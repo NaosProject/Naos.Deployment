@@ -49,6 +49,7 @@
     <Compile Include="DeploymentException.cs" />
     <Compile Include="ImageDetails.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
+    <Compile Include="IManageDeployments.cs" />
     <Compile Include="IManagePackages.cs" />
     <Compile Include="InitializationStrategy.cs" />
     <Compile Include="InitializationStrategyConsole.cs" />

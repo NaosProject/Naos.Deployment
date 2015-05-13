@@ -79,6 +79,7 @@
     <Compile Include="ComputingInfrastructureTracker.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="DeploymentConfigurationSerializer.cs" />
+    <Compile Include="DeploymentManager.cs" />
     <Compile Include="KnownTypeConverter.cs" />
     <Compile Include="NaosInstanceExtensionMethods.cs" />
     <Compile Include="PackageManager.cs" />
