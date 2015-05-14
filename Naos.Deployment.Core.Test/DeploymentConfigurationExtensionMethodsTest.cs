@@ -20,8 +20,8 @@ namespace Naos.Deployment.Core.Test
         {
             var deploymentConfig = new DeploymentConfiguration()
                                        {
-                                           InstanceType = "t2.medium",
-                                           IsPubliclyAccessible = true,
+                                           InstanceType = new InstanceType { VirtualCores = 2, RamInGb = 4 },
+                                           InstanceAccessibility = InstanceAccessibility.Public,
                                            Volumes =
                                                new[]
                                                    {
@@ -40,8 +40,8 @@ namespace Naos.Deployment.Core.Test
         {
             var deploymentConfig = new DeploymentConfiguration()
                                        {
-                                           InstanceType = "t2.medium",
-                                           IsPubliclyAccessible = true,
+                                           InstanceType = new InstanceType { VirtualCores = 2, RamInGb = 4 },
+                                           InstanceAccessibility = InstanceAccessibility.Public,
                                        };
 
             var flattenedConfig = new[] { deploymentConfig }.Flatten();
@@ -49,24 +49,34 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Flatten_TwoConfigsConflictingPublicAccesiblity_Throws()
+        public static void Flatten_TwoConfigsConflictingAccesiblity_Throws()
         {
             var deploymentConfigs = new[]
                                         {
                                             new DeploymentConfiguration()
                                                 {
-                                                    InstanceType = "t2.medium",
-                                                    IsPubliclyAccessible = false,
+                                                    InstanceType =
+                                                        new InstanceType
+                                                            {
+                                                                VirtualCores = 2,
+                                                                RamInGb = 4
+                                                            },
+                                                    InstanceAccessibility = InstanceAccessibility.Public,
                                                 },
                                             new DeploymentConfiguration()
                                                 {
-                                                    InstanceType = "t2.medium",
-                                                    IsPubliclyAccessible = true,
+                                                    InstanceType =
+                                                        new InstanceType
+                                                            {
+                                                                VirtualCores = 2,
+                                                                RamInGb = 4
+                                                            },
+                                                    InstanceAccessibility = InstanceAccessibility.Private,
                                                 },
                                         };
 
             var ex = Assert.Throws<DeploymentException>(() => deploymentConfigs.Flatten());
-            Assert.Equal("Cannot deploy packages with requirements of public accessibly.", ex.Message);
+            Assert.Equal("Cannot deploy packages with differing requirements of accessibly.", ex.Message);
         }
 
         [Fact]
@@ -75,8 +85,8 @@ namespace Naos.Deployment.Core.Test
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
                                     {
-                                        InstanceType = "t2.medium",
-                                        IsPubliclyAccessible = false,
+                                        InstanceType = new InstanceType { VirtualCores = 2, RamInGb = 4 },
+                                        InstanceAccessibility = InstanceAccessibility.Private,
                                         Volumes =
                                             new[]
                                                 {
@@ -85,15 +95,72 @@ namespace Naos.Deployment.Core.Test
                                                             DriveLetter = "C",
                                                             SizeInGb = 50,
                                                         }
-                                                }
+                                                },
+                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
+                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
-            Assert.Equal(defaultConfig.IsPubliclyAccessible, appliedConfig.IsPubliclyAccessible);
+            Assert.Equal(defaultConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
             Assert.Equal(defaultConfig.InstanceType, appliedConfig.InstanceType);
             Assert.Equal(1, appliedConfig.Volumes.Count);
             Assert.Equal(defaultConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(defaultConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
+            Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_DefaultAccessibleIsNull_BecomesPrivate()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration()
+                                    {
+                                        InstanceAccessibility = null,
+                                    };
+
+            var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(InstanceAccessibility.Private, appliedConfig.InstanceAccessibility);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_DefaultAccessibleIsDoesntMatter_BecomesPrivate()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration()
+                                    {
+                                        InstanceAccessibility = InstanceAccessibility.DoesntMatter,
+                                    };
+
+            var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(InstanceAccessibility.Private, appliedConfig.InstanceAccessibility);
+        }
+
+        [Fact]
+        public static void ApplyOverrides_EverythingOverwritten()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var overrideConfig = new DeploymentConfiguration()
+                                    {
+                                        InstanceAccessibility = InstanceAccessibility.Public,
+                                        InstanceType = new InstanceType
+                                                           {
+                                                               VirtualCores = 4,
+                                                               RamInGb = 10,
+                                                           },
+                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
+                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
+                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                                    };
+
+            var appliedConfig = baseConfig.ApplyDefaults(overrideConfig);
+            Assert.Equal(overrideConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
+            Assert.Equal(overrideConfig.InstanceType.VirtualCores, appliedConfig.InstanceType.VirtualCores);
+            Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
+            Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(overrideConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
+            Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
         }
     }
 }

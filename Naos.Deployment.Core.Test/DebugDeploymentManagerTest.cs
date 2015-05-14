@@ -61,8 +61,8 @@ namespace Naos.Deployment.Core.Test
                 var packageManager = new PackageManager(repoConfig, unzipDirPath);
                 var defaultDeploymentConfig = new DeploymentConfiguration()
                                                   {
-                                                      InstanceType = "t2.medium",
-                                                      IsPubliclyAccessible = false,
+                                                      InstanceType = new InstanceType { VirtualCores = 2, RamInGb = 4 },
+                                                      InstanceAccessibility = InstanceAccessibility.Private,
                                                       Volumes =
                                                           new[]
                                                               {

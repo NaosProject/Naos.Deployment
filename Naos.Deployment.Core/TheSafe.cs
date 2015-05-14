@@ -89,7 +89,7 @@ namespace Naos.Deployment.Core
 
         private ContainerDetails GetContainer(DeploymentConfiguration deploymentConfig)
         {
-            return this.Containers.Single(_ => _.IsPubliclyAccessible == deploymentConfig.IsPubliclyAccessible);
+            return this.Containers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
 
         /// <summary>

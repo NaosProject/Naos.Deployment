@@ -76,7 +76,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CloudInfrastructureManagerTest.cs" />
     <Compile Include="CloudInfrastructureNamerTest.cs" />
     <Compile Include="DebugDeploymentManagerTest.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.cs" />

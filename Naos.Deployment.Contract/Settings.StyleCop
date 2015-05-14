@@ -2,6 +2,7 @@
   <GlobalSettings>
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
     <CollectionProperty Name="RecognizedWords">
+      <Value>Chocolatey</Value>
       <Value>AppVeyor</Value>
       <Value>Aws</Value>
       <Value>bool</Value>

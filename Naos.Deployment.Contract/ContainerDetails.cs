@@ -27,9 +27,9 @@ namespace Naos.Deployment.Contract
         public string ContainerLocation { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the container is publicly accessible.
+        /// Gets or sets the accessibility of the instance.
         /// </summary>
-        public bool IsPubliclyAccessible { get; set; }
+        public InstanceAccessibility InstanceAccessibility { get; set; }
 
         /// <summary>
         /// Gets or sets the CIDR block of the container.

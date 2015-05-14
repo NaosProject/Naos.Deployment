@@ -19,7 +19,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": ""t2.medium"",
+	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
 	""IsPubliclyAccessible"": false,
 	""Volumes"": [{
 		""DriveLetter"": ""C"",
@@ -42,7 +42,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": ""t2.medium"",
+	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
 	""IsPubliclyAccessible"": false,
 	""Volumes"": [{
 		""DriveLetter"": ""C"",
@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": ""t2.medium"",
+	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
 	""IsPubliclyAccessible"": false,
 	""Volumes"": [{
 		""DriveLetter"": ""C"",

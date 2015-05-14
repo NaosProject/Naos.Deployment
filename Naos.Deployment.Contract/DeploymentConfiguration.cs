@@ -16,12 +16,12 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the type of instance to deploy to.
         /// </summary>
-        public string InstanceType { get; set; }
+        public InstanceType InstanceType { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not this needs to be accessible publicly.
+        /// Gets or sets the accessibility of the instance.
         /// </summary>
-        public bool? IsPubliclyAccessible { get; set; }
+        public InstanceAccessibility? InstanceAccessibility { get; set; }
 
         /// <summary>
         /// Gets or sets the volumes to add to the instance.
@@ -32,5 +32,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the initialization strategies of the deployment.
         /// </summary>
         public ICollection<InitializationStrategy> InitializationStrategies { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Chocolatey packages to install during the deployment.
+        /// </summary>
+        public ICollection<PackageDescription> ChocolateyPackages { get; set; } 
     }
 }

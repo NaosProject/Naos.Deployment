@@ -24,40 +24,53 @@ namespace Naos.Deployment.Core
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
         public static DeploymentConfiguration Flatten(this ICollection<DeploymentConfiguration> deploymentConfigs)
         {
-            // Validations first...
+            // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))
             {
                 throw new ArgumentException("Can't have two volumes with the same drive letter.");
             }
 
+            // Check if there are conflicting levels of accessibility
             var distinctPubliclyAccessible =
-                deploymentConfigs.Where(_ => _.IsPubliclyAccessible != null)
-                    .Select(_ => _.IsPubliclyAccessible)
+                deploymentConfigs.Where(
+                    _ =>
+                    _.InstanceAccessibility != null && _.InstanceAccessibility != InstanceAccessibility.DoesntMatter)
+                    .Select(_ => _.InstanceAccessibility)
                     .Distinct()
                     .ToList();
             if (distinctPubliclyAccessible.Count > 1)
             {
-                throw new DeploymentException("Cannot deploy packages with requirements of public accessibly.");
+                throw new DeploymentException("Cannot deploy packages with differing requirements of accessibly.");
             }
 
-            // there are only nulls and a single other value so now update all nulls to that value...
-            var firstOrDefaultPubliclyAccesible = deploymentConfigs.FirstOrDefault(_ => _.IsPubliclyAccessible != null);
-            var isPubliclyAccesibleValueToUse = firstOrDefaultPubliclyAccesible == null
-                                                    ? false
-                                                    : firstOrDefaultPubliclyAccesible.IsPubliclyAccessible;
+            // if the distinct (minus 'DoesntMatter') has a count of 1 then the first non-null/'DoesntMatter' will be the value to use.
+            var firstOrDefaultPubliclyAccessibility =
+                deploymentConfigs.FirstOrDefault(
+                    _ =>
+                    _.InstanceAccessibility != null && _.InstanceAccessibility != InstanceAccessibility.DoesntMatter);
+            var accessibilityToUse = firstOrDefaultPubliclyAccessibility == null
+                                         ? InstanceAccessibility.Private
+                                         : firstOrDefaultPubliclyAccessibility.InstanceAccessibility;
 
             if (deploymentConfigs.Count == 1)
             {
                 var singleValueToReturn = deploymentConfigs.Single();
-                singleValueToReturn.IsPubliclyAccessible = isPubliclyAccesibleValueToUse;
+                singleValueToReturn.InstanceAccessibility = accessibilityToUse;
                 return singleValueToReturn;
             }
 
             var ret = new DeploymentConfiguration()
                           {
-                              InstanceType = CloudInfrastructureManager.InferLargestInstanceType(deploymentConfigs.Select(_ => _.InstanceType).ToList()),
-                              IsPubliclyAccessible = isPubliclyAccesibleValueToUse,
-                              InitializationStrategies = deploymentConfigs.SelectMany(_ => _.InitializationStrategies).ToList(),
+                              InstanceType =
+                                  new InstanceType
+                                      {
+                                          RamInGb = deploymentConfigs.Max(_ => _.InstanceType.RamInGb),
+                                          VirtualCores = deploymentConfigs.Max(_ => _.InstanceType.VirtualCores),
+                                      },
+                              InstanceAccessibility = accessibilityToUse,
+                              InitializationStrategies =
+                                  deploymentConfigs.SelectMany(
+                                      _ => _.InitializationStrategies).ToList(),
                               Volumes = deploymentConfigs.SelectMany(_ => _.Volumes).ToList(),
                           };
 
@@ -67,32 +80,39 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Creates a new config apply the provided config as an override.
         /// </summary>
-        /// <param name="deploymentConfigBase">Base deployment config to override.</param>
+        /// <param name="deploymentConfigInitial">Base deployment config to override.</param>
         /// <param name="deploymentConfigOverride">Overrides to apply</param>
         /// <returns>New config with overrides applied.</returns>
         public static DeploymentConfiguration ApplyOverrides(
-            this DeploymentConfiguration deploymentConfigBase,
+            this DeploymentConfiguration deploymentConfigInitial,
             DeploymentConfiguration deploymentConfigOverride)
         {
             if (deploymentConfigOverride == null)
             {
-                return deploymentConfigBase;
+                return deploymentConfigInitial;
+            }
+
+            var accessibilityValue = deploymentConfigInitial.InstanceAccessibility;
+            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            {
+                accessibilityValue = deploymentConfigOverride.InstanceAccessibility;
             }
 
             var ret = new DeploymentConfiguration()
                           {
-                              IsPubliclyAccessible =
-                                  deploymentConfigOverride.IsPubliclyAccessible
-                                  ?? deploymentConfigBase.IsPubliclyAccessible ?? false,
+                              InstanceAccessibility = accessibilityValue,
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
-                                  ?? deploymentConfigBase.InstanceType,
+                                  ?? deploymentConfigInitial.InstanceType,
                               InitializationStrategies =
                                   deploymentConfigOverride.InitializationStrategies
-                                  ?? deploymentConfigBase.InitializationStrategies,
+                                  ?? deploymentConfigInitial.InitializationStrategies,
                               Volumes =
                                   deploymentConfigOverride.Volumes
-                                  ?? deploymentConfigBase.Volumes,
+                                  ?? deploymentConfigInitial.Volumes,
+                              ChocolateyPackages =
+                                  deploymentConfigOverride.ChocolateyPackages
+                                  ?? deploymentConfigInitial.ChocolateyPackages,
                           };
 
             return ret;
@@ -101,11 +121,11 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Creates a copy with the null replaced by any provided default values (base level check only!).
         /// </summary>
-        /// <param name="deploymentConfigBase">Base deployment config to work with.</param>
+        /// <param name="deploymentConfigInitial">Base deployment config to work with.</param>
         /// <param name="defaultDeploymentConfig">Defaults to use in case of a null value.</param>
         /// <returns>Copy of provided config with defaults applied.</returns>
         public static DeploymentConfiguration ApplyDefaults(
-            this DeploymentConfiguration deploymentConfigBase,
+            this DeploymentConfiguration deploymentConfigInitial,
             DeploymentConfiguration defaultDeploymentConfig)
         {
             if (defaultDeploymentConfig == null)
@@ -113,20 +133,33 @@ namespace Naos.Deployment.Core
                 throw new ArgumentException("Cannot apply defaults from a null definition", "defaultDeploymentConfig");
             }
 
+            var accessibilityValue = deploymentConfigInitial.InstanceAccessibility;
+            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            {
+                accessibilityValue = defaultDeploymentConfig.InstanceAccessibility;
+            }
+
+            // if the default isn't actually specifying anything then default private for safety
+            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            {
+                accessibilityValue = InstanceAccessibility.Private;
+            }
+
             var ret = new DeploymentConfiguration()
                           {
-                              IsPubliclyAccessible =
-                                  deploymentConfigBase.IsPubliclyAccessible
-                                  ?? defaultDeploymentConfig.IsPubliclyAccessible ?? false,
+                              InstanceAccessibility = accessibilityValue,
                               InstanceType =
-                                  deploymentConfigBase.InstanceType
+                                  deploymentConfigInitial.InstanceType
                                   ?? defaultDeploymentConfig.InstanceType,
                               InitializationStrategies =
-                                  deploymentConfigBase.InitializationStrategies
+                                  deploymentConfigInitial.InitializationStrategies
                                   ?? defaultDeploymentConfig.InitializationStrategies,
                               Volumes =
-                                  deploymentConfigBase.Volumes
+                                  deploymentConfigInitial.Volumes
                                   ?? defaultDeploymentConfig.Volumes,
+                              ChocolateyPackages = 
+                                  deploymentConfigInitial.ChocolateyPackages
+                                  ?? defaultDeploymentConfig.ChocolateyPackages,
                           };
 
             return ret;

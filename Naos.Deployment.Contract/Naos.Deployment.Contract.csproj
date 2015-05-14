@@ -47,6 +47,7 @@
     <Compile Include="ContainerDetails.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="ImageDetails.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="InitializationStrategyWeb.cs" />
     <Compile Include="InstanceDescription.cs" />
     <Compile Include="InstanceDetails.cs" />
+    <Compile Include="InstanceType.cs" />
     <Compile Include="ITrackComputingInfrastructure.cs" />
     <Compile Include="PackageDescription.cs" />
     <Compile Include="PackageRepositoryConfiguration.cs" />
