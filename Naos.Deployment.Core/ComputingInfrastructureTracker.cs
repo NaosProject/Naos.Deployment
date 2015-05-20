@@ -37,9 +37,15 @@ namespace Naos.Deployment.Core
             {
                 var theSafe = this.LoadStateFromDisk();
 
-                var ret = theSafe.Instances.Where(_ => _.InstanceDescription.DeployedPackages.Intersect(packages).Any());
+                var instancesThatHaveAnyOfTheProvidedPackages =
+                    theSafe.Instances.Where(
+                        _ =>
+                        _.InstanceDescription.DeployedPackages.Intersect(
+                            packages,
+                            new PackageDescriptionIdOnlyEqualityComparer()).Any()).ToList();
 
-                return ret.Select(_ => _.InstanceDescription).ToList();
+                var ret = instancesThatHaveAnyOfTheProvidedPackages.Select(_ => _.InstanceDescription).ToList();
+                return ret;
             }
         }
 
@@ -61,7 +67,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceCreation(InstanceDetails instanceDetails, string systemId)
+        public void ProcessInstanceCreation(InstanceDescription instanceDescription)
         {
             lock (this.fileSync)
             {
@@ -69,15 +75,15 @@ namespace Naos.Deployment.Core
 
                 var toUpdate =
                     theSafe.Instances.SingleOrDefault(
-                        _ => _.InstanceDetails.PrivateIpAddress == instanceDetails.PrivateIpAddress);
+                        _ => _.InstanceDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
                 if (toUpdate == null)
                 {
                     throw new NullReferenceException(
                         "Expected to find a tracked instance (pre-creation) with private IP: "
-                        + instanceDetails.PrivateIpAddress);
+                        + instanceDescription.PrivateIpAddress);
                 }
 
-                toUpdate.InstanceDescription.Id = systemId;
+                toUpdate.InstanceDescription = instanceDescription;
 
                 this.SaveStateToDisk(theSafe);
             }
@@ -120,6 +126,19 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
+        public string GetInstanceIdByName(string name)
+        {
+            lock (this.fileSync)
+            {
+                var theSafe = this.LoadStateFromDisk();
+
+                var wrapped = theSafe.Instances.FirstOrDefault(_ => _.InstanceDescription.Name == name);
+
+                return wrapped == null ? null : wrapped.InstanceDescription.Id;
+            }
+        }
+
+        /// <inheritdoc />
         public string GetPrivateKeyOfInstanceById(string systemId)
         {
             lock (this.fileSync)
@@ -143,6 +162,19 @@ namespace Naos.Deployment.Core
                 }
 
                 return container.PrivateKey;
+            }
+        }
+
+        /// <inheritdoc />
+        public string GetDomainZoneId(string domain)
+        {
+            lock (this.fileSync)
+            {
+                var theSafe = this.LoadStateFromDisk();
+
+                string ret = null;
+                var found = theSafe.RootDomainHostingIdMap.TryGetValue(domain, out ret);
+                return found ? ret : null;
             }
         }
 
@@ -206,7 +238,9 @@ namespace Naos.Deployment.Core
             }
 
             var raw = File.ReadAllText(this.filePath);
-            var ret = JsonConvert.DeserializeObject<TheSafe>(raw);
+            var settings = new JsonSerializerSettings();
+            settings.Converters.Add(new KnownTypeConverter());
+            var ret = JsonConvert.DeserializeObject<TheSafe>(raw, settings);
             if (ret.Instances == null)
             {
                 ret.Instances = new List<InstanceWrapper>();

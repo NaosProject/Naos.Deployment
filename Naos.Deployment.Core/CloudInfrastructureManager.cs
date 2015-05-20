@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core
     /// <inheritdoc />
     public class CloudInfrastructureManager : IManageCloudInfrastructure
     {
+        private const string ElasticIpIdKeyForSystemSpecificDictionary = "ElasticIpId";
         private readonly ITrackComputingInfrastructure tracker;
 
         private CredentialContainer credentials;
@@ -73,15 +74,32 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void Terminate(string systemId, string systemLocation)
+        public void Terminate(string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
+            var instanceDescription = this.tracker.GetInstanceDescriptionById(systemId);
+            if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
+            {
+                // has a public IP that needs to be dissassociated and released before moving on...
+                var elasticIp = new ElasticIp()
+                                    {
+                                        Id = instanceDescription.SystemSpecificDetails[ElasticIpIdKeyForSystemSpecificDictionary],
+                                        PublicIpAddress = instanceDescription.PublicIpAddress,
+                                        Region = systemLocation
+                                    };
+                elasticIp.DisassociateFromInstance(this.credentials);
+                if (releasePublicIpIfApplicable)
+                {
+                    elasticIp.Release(this.credentials);
+                }
+            }
+
             var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
             instanceToTerminate.Terminate(this.credentials);
             this.tracker.ProcessInstanceTermination(instanceToTerminate.Id);
         }
 
         /// <inheritdoc />
-        public InstanceDescription Create(string name, DeploymentConfiguration deploymentConfiguration)
+        public InstanceDescription CreateNewInstance(string name, string environment, DeploymentConfiguration deploymentConfiguration)
         {
             var instanceDetails = this.tracker.CreateInstanceDetails(deploymentConfiguration);
 
@@ -91,13 +109,11 @@ namespace Naos.Deployment.Core
                                         SearchPattern = instanceDetails.ImageDetails.SearchPattern,
                                         MultipleFoundBehavior =
                                             instanceDetails.ImageDetails.ShouldHaveSingleMatch
-                                                ? Enums.MultipleAmiFoundBehavior.Throw
-                                                : Enums.MultipleAmiFoundBehavior.FirstSortedDescending,
+                                                ? MultipleAmiFoundBehavior.Throw
+                                                : MultipleAmiFoundBehavior.FirstSortedDescending,
                                     };
 
-            var namer = new CloudInfrastructureNamer(
-                name,
-                instanceDetails.ContainerDetails.ContainerLocation);
+            var namer = new CloudInfrastructureNamer(name, instanceDetails.ContainerDetails.ContainerLocation);
 
             Func<string, string> getDeviceNameFromDriveLetter = delegate(string driveLetter)
                 {
@@ -129,9 +145,19 @@ namespace Naos.Deployment.Core
                             VirtualName = _.DriveLetter
                         }).ToList();
 
+            var awsInstanceType = GetAwsInstanceType(deploymentConfiguration.InstanceType);
+            var instanceName = namer.GetInstanceName();
+            var existing = this.tracker.GetInstanceIdByName(instanceName);
+            if (existing != null)
+            {
+                throw new DeploymentException(
+                    "Instance trying to be created with name: " + instanceName
+                    + " but an instance with this name already exists; ID: " + existing);
+            }
+
             var instanceToCreate = new Instance()
                                        {
-                                           Name = namer.GetInstanceName(),
+                                           Name = instanceName,
                                            Ami =
                                                new Ami()
                                                    {
@@ -146,25 +172,58 @@ namespace Naos.Deployment.Core
                                            Key = new KeyPair() { KeyName = instanceDetails.KeyName },
                                            PrivateIpAddress = instanceDetails.PrivateIpAddress,
                                            SecurityGroup = new SecurityGroup() { Id = instanceDetails.SecurityGroupId },
-                                           InstanceType = GetAwsInstanceType(deploymentConfiguration.InstanceType),
+                                           InstanceType = awsInstanceType,
                                            DisableApiTermination = false,
                                            MappedVolumes = mappedVolumes,
                                            Region = instanceDetails.Location,
                                            EnableSourceDestinationCheck = true,
                                        };
 
+            if (deploymentConfiguration.InstanceAccessibility == InstanceAccessibility.Public)
+            {
+                instanceToCreate.ElasticIp = new ElasticIp
+                                                 {
+                                                     Name = instanceName + "-ElasticIp",
+                                                     Region = instanceDetails.Location,
+                                                 };
+            }
+
             var userData = new UserData() { Data = this.GetUserData(name) };
 
             var createdInstance = instanceToCreate.Create(userData, this.credentials);
 
-            this.tracker.ProcessInstanceCreation(instanceDetails, createdInstance.Id);
+            var systemSpecificDetails = new Dictionary<string, string>();
+            if (createdInstance.ElasticIp != null)
+            {
+                systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);
+            }
 
-            return new InstanceDescription()
-                       {
-                           Id = createdInstance.Id,
-                           Location = createdInstance.Region,
-                           PrivateIpAddress = createdInstance.PrivateIpAddress,
-                       };
+            var instanceDescription = new InstanceDescription()
+            {
+                Id = createdInstance.Id,
+                Name = instanceName,
+                Environment = environment,
+                Location = createdInstance.Region,
+                PublicIpAddress =
+                    createdInstance.ElasticIp == null
+                        ? null
+                        : createdInstance.ElasticIp.PublicIpAddress,
+                PrivateIpAddress = createdInstance.PrivateIpAddress,
+                DeployedPackages = new List<PackageDescription>(),
+                SystemSpecificDetails = systemSpecificDetails,
+            };
+
+            this.tracker.ProcessInstanceCreation(instanceDescription);
+
+            return instanceDescription;
+        }
+
+        /// <inheritdoc />
+        public InstanceDescription GetInstanceDescription(string name)
+        {
+            var id = this.tracker.GetInstanceIdByName(name);
+            var ret = this.tracker.GetInstanceDescriptionById(id);
+            return ret;
         }
 
         /// <summary>
@@ -174,34 +233,68 @@ namespace Naos.Deployment.Core
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
         public static string GetAwsInstanceType(InstanceType instanceType)
         {
-            throw new NotImplementedException();
+            var theDatasheet = new[]
+                                   {
+                                       new { AwsType = "t1.micro", RamInGb = 0.613, VirtualCores = 1 },
+                                       new { AwsType = "t2.medium", RamInGb = 4.0, VirtualCores = 2 },
+                                       new { AwsType = "t2.micro", RamInGb = 1.0, VirtualCores = 1 },
+                                       new { AwsType = "t2.small", RamInGb = 2.0, VirtualCores = 1 },
+                                       new { AwsType = "m1.small", RamInGb = 1.7, VirtualCores = 1 },
+                                       new { AwsType = "m1.medium", RamInGb = 3.75, VirtualCores = 1 },
+                                       new { AwsType = "m1.large", RamInGb = 7.5, VirtualCores = 2 },
+                                       new { AwsType = "m1.xlarge", RamInGb = 15.0, VirtualCores = 4 },
+                                       new { AwsType = "m2.xlarge", RamInGb = 17.1, VirtualCores = 2 },
+                                       new { AwsType = "m2.2xlarge", RamInGb = 34.2, VirtualCores = 4 },
+                                       new { AwsType = "m2.4xlarge", RamInGb = 68.4, VirtualCores = 8 },
+                                       new { AwsType = "m3.large", RamInGb = 7.5, VirtualCores = 2 },
+                                       new { AwsType = "m3.medium", RamInGb = 3.75, VirtualCores = 1 },
+                                       new { AwsType = "m3.xlarge", RamInGb = 15.0, VirtualCores = 4 },
+                                       new { AwsType = "m3.2xlarge", RamInGb = 30.0, VirtualCores = 8 },
+                                       new { AwsType = "c1.medium", RamInGb = 1.7, VirtualCores = 2 },
+                                       new { AwsType = "c1.xlarge", RamInGb = 7.0, VirtualCores = 8 },
+                                       new { AwsType = "c3.large", RamInGb = 3.75, VirtualCores = 2 },
+                                       new { AwsType = "c3.xlarge", RamInGb = 7.5, VirtualCores = 4 },
+                                       new { AwsType = "c3.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
+                                       new { AwsType = "c3.4xlarge", RamInGb = 30.0, VirtualCores = 16 },
+                                       new { AwsType = "c3.8xlarge", RamInGb = 60.0, VirtualCores = 32 },
+                                       new { AwsType = "c4.large", RamInGb = 3.75, VirtualCores = 2 },
+                                       new { AwsType = "c4.xlarge", RamInGb = 7.5, VirtualCores = 4 },
+                                       new { AwsType = "c4.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
+                                       new { AwsType = "c4.4xlarge", RamInGb = 30.0, VirtualCores = 16 },
+                                       new { AwsType = "c4.8xlarge", RamInGb = 60.0, VirtualCores = 36 },
+                                       new { AwsType = "g2.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
+                                       new { AwsType = "r3.large", RamInGb = 15.25, VirtualCores = 2 },
+                                       new { AwsType = "r3.xlarge", RamInGb = 30.5, VirtualCores = 4 },
+                                       new { AwsType = "r3.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
+                                       new { AwsType = "r3.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
+                                       new { AwsType = "r3.8xlarge", RamInGb = 244.0, VirtualCores = 32 },
+                                       new { AwsType = "i2.xlarge", RamInGb = 30.5, VirtualCores = 4 },
+                                       new { AwsType = "i2.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
+                                       new { AwsType = "i2.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
+                                       new { AwsType = "i2.8xlarge", RamInGb = 244.0, VirtualCores = 32 },
+                                       new { AwsType = "d2.xlarge", RamInGb = 30.5, VirtualCores = 4 },
+                                       new { AwsType = "d2.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
+                                       new { AwsType = "d2.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
+                                       new { AwsType = "d2.8xlarge", RamInGb = 244.0, VirtualCores = 36 },
+                                   };
+
+            foreach (var type in theDatasheet)
+            {
+                if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
+                {
+                    return type.AwsType;
+                }
+            }
+
+            throw new NotSupportedException(
+                "Could not find an AWS instance type that could support the specified needs; VirtualCores: "
+                + instanceType.VirtualCores + ", RamInGb: " + instanceType.RamInGb);
         }
 
         private string GetUserData(string name)
         {
             return @"
 <powershell>
-# ADDING RENAME COMMAND BECAUSE 'computerName' WAS PRESENT IN CONFIG
-Rename-Computer -NewName '" + name + @"' -Force
-
-# ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY
-$windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings
-$windowsUpdateSettings.NotificationLevel = 4
-$windowsUpdateSettings.Save()
-
-# ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)
-NET STOP W32Time
-NET START W32Time
-
-# ADDING COMMAND TO INSTALL CHOCOLATEY FOR APPLICATION INSTALLS LATER
-iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
-
-# CHOCOLATEY PACKAGES FOR PROFILE: machineProfile-webServer
-# PACKAGE - ID: notepadplusplus.install (Notepad++ (Improved Text Editor))
-choco install notepadplusplus.install -y
-# PACKAGE - ID: GoogleChrome (Chrome Web Browser)
-choco install GoogleChrome -7
-
 # BLOCK NAME: powershellBlock-enableRemoting
 winrm quickconfig -q
 winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=""300""}'
@@ -215,11 +308,20 @@ net start winrm
 # BLOCK NAME: powershellBlock-enableScriptExecution
 Set-ExecutionPolicy 'Unrestricted' -Force
 
-# BLOCK NAME: powershellBlock-enableIIS
-# Add IIS and suppporting features
-Add-WindowsFeature -IncludeManagementTools -Name Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Basic-Auth, Web-Digest-Auth, Web-Windows-Auth, Web-Net-Ext, Web-Net-Ext45, Web-Asp-Net, Web-Asp-Net45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Scripting-Tools, NET-Framework-45-ASPNET
-# Set IIS Service to restart on failure and reboot on 3rd failure
-$services = Get-WMIObject win32_service | Where-Object {$_.name -imatch 'W3SVC' -and $_.startmode -eq 'Auto'}; foreach ($service in $services){sc.exe failure $service.name reset= 86400 actions= restart/5000/restart/5000/reboot/5000}
+# ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY
+$windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings
+$windowsUpdateSettings.NotificationLevel = 4
+$windowsUpdateSettings.Save()
+
+# ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)
+NET STOP W32Time
+NET START W32Time
+
+# ADDING COMMAND TO INSTALL CHOCOLATEY FOR APPLICATION INSTALLS LATER
+iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
+
+# ADDING RENAME COMMAND BECAUSE 'computerName' WAS PRESENT IN CONFIG
+Rename-Computer -NewName '" + name + @"' -Force
 </powershell>
                     ";
         }
@@ -236,6 +338,26 @@ $services = Get-WMIObject win32_service | Where-Object {$_.name -imatch 'W3SVC' 
 
             var password = instanceToGetPasswordFor.GetAdministratorPassword(this.credentials);
             return password;
+        }
+
+        /// <inheritdoc />
+        public void UpsertDnsEntry(string location, string domain, ICollection<string> ipAddresses)
+        {
+            // from: http://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net
+            var host = new Uri("http://" + domain).Host;
+            int index = host.LastIndexOf('.'), last = 3;
+            while (index > 0 && index >= last - 3)
+            {
+                last = index;
+                index = host.LastIndexOf('.', last - 1);
+            }
+
+            // need root domain to lookup zone id
+            var rootDomain = host.Substring(index + 1); 
+
+            var hostingId = this.tracker.GetDomainZoneId(rootDomain);
+            var dnsManager = new Route53Manager(this.credentials);
+            dnsManager.UpsertDnsEntry(location, hostingId, Route53EntryType.A, domain, ipAddresses);
         }
     }
 }

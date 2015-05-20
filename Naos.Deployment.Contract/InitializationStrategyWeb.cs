@@ -15,5 +15,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the primary DNS access point of the web deployment.
         /// </summary>
         public string PrimaryDns { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the SSL certificate to lookup and use.
+        /// </summary>
+        public string SslCertificateName { get; set; }
     }
 }

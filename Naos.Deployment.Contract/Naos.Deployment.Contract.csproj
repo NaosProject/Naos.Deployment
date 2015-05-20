@@ -49,6 +49,7 @@
     <Compile Include="DeploymentException.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="ImageDetails.cs" />
+    <Compile Include="IManageCertificates.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="IManagePackages.cs" />
@@ -60,6 +61,7 @@
     <Compile Include="InstanceDetails.cs" />
     <Compile Include="InstanceType.cs" />
     <Compile Include="ITrackComputingInfrastructure.cs" />
+    <Compile Include="Package.cs" />
     <Compile Include="PackageDescription.cs" />
     <Compile Include="PackageRepositoryConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

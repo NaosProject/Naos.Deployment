@@ -25,6 +25,11 @@ namespace Naos.Deployment.Core
         /// <returns>DeploymentConfiguration from provided JSON.</returns>
         public static DeploymentConfiguration DeserializeDeploymentConfiguration(string json)
         {
+            if (string.IsNullOrEmpty(json))
+            {
+                return null;
+            }
+
             var settings = new JsonSerializerSettings();
             settings.Converters.Add(new KnownTypeConverter());
             var ret = JsonConvert.DeserializeObject<DeploymentConfiguration>(json, settings);

@@ -108,6 +108,11 @@ namespace Naos.Deployment.Core
         public ICollection<ContainerDetails> Containers { get; set; }
 
         /// <summary>
+        /// Gets or sets a map of root domains and their hosting ID.
+        /// </summary>
+        public IDictionary<string, string> RootDomainHostingIdMap { get; set; } 
+
+        /// <summary>
         /// Gets or sets the configured search pattern.
         /// </summary>
         public string DefaultInstanceImageSearchPattern { get; set; }

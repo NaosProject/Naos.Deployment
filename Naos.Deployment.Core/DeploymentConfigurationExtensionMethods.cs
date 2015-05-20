@@ -133,7 +133,7 @@ namespace Naos.Deployment.Core
                 throw new ArgumentException("Cannot apply defaults from a null definition", "defaultDeploymentConfig");
             }
 
-            var accessibilityValue = deploymentConfigInitial.InstanceAccessibility;
+            var accessibilityValue = deploymentConfigInitial == null ? InstanceAccessibility.DoesntMatter : deploymentConfigInitial.InstanceAccessibility;
             if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
             {
                 accessibilityValue = defaultDeploymentConfig.InstanceAccessibility;
@@ -149,16 +149,16 @@ namespace Naos.Deployment.Core
                           {
                               InstanceAccessibility = accessibilityValue,
                               InstanceType =
-                                  deploymentConfigInitial.InstanceType
+                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.InstanceType)
                                   ?? defaultDeploymentConfig.InstanceType,
                               InitializationStrategies =
-                                  deploymentConfigInitial.InitializationStrategies
+                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.InitializationStrategies)
                                   ?? defaultDeploymentConfig.InitializationStrategies,
                               Volumes =
-                                  deploymentConfigInitial.Volumes
+                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.Volumes)
                                   ?? defaultDeploymentConfig.Volumes,
                               ChocolateyPackages = 
-                                  deploymentConfigInitial.ChocolateyPackages
+                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.ChocolateyPackages)
                                   ?? defaultDeploymentConfig.ChocolateyPackages,
                           };
 

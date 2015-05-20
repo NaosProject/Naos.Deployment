@@ -57,11 +57,14 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetFileContentsFromPackage(PackageDescription packageDescription, string searchPattern)
+        public string GetFileContentsFromPackage(Package package, string searchPattern)
         {
             // download package (decompressed)
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageDownload-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
-            this.DownloadPackage(packageDescription, workingDirectory);
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
+            var packageFilePath = Path.Combine(workingDirectory, "Package.zip");
+            Directory.CreateDirectory(workingDirectory);
+            File.WriteAllBytes(packageFilePath, package.PackageFileBytes);
+            ZipFile.ExtractToDirectory(packageFilePath, Directory.GetParent(packageFilePath).FullName);
 
             // get list of files as fullpath strings
             var files = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
@@ -91,7 +94,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void DownloadPackage(PackageDescription packageDescription, string workingDirectory)
+        public string DownloadPackage(PackageDescription packageDescription, string workingDirectory)
         {
             // credential override for below taken from: http://stackoverflow.com/questions/18594613/setting-the-package-credentials-using-nuget-core-dll
             var settings = Settings.LoadDefaultSettings(null, null, null);
@@ -113,8 +116,20 @@ namespace Naos.Deployment.Core
                 Directory.GetFiles(workingDirectory, packageDescription.Id + "*.nupkg", SearchOption.AllDirectories)
                     .Single();
 
-            var parentDirectoryOfPackageFile = Directory.GetParent(file).FullName;
-            ZipFile.ExtractToDirectory(file, parentDirectoryOfPackageFile);
+            return file;
+        }
+
+        /// <inheritdoc />
+        public byte[] GetPackageFile(PackageDescription packageDescription)
+        {
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageDownload-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
+            var packageFile = this.DownloadPackage(packageDescription, workingDirectory);
+            var ret = File.ReadAllBytes(packageFile);
+
+            // clean up temp files
+            Directory.Delete(workingDirectory, true);
+
+            return ret;
         }
     }
 }

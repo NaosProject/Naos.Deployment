@@ -38,9 +38,8 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Adds the instance to the tracking system.
         /// </summary>
-        /// <param name="instanceDetails">Details the tracking system provided around provisioning an instance.</param>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
-        void ProcessInstanceCreation(InstanceDetails instanceDetails, string systemId);
+        /// <param name="instanceDescription">Description of the created instance.</param>
+        void ProcessInstanceCreation(InstanceDescription instanceDescription);
 
         /// <summary>
         /// Updates the list of the deployed packages.
@@ -57,10 +56,24 @@ namespace Naos.Deployment.Contract
         InstanceDescription GetInstanceDescriptionById(string systemId);
 
         /// <summary>
+        /// Gets the instance ID by name.
+        /// </summary>
+        /// <param name="name">Name of the instance.</param>
+        /// <returns>ID of instance by name if found.</returns>
+        string GetInstanceIdByName(string name);
+
+        /// <summary>
         /// Looks up the key used for the instance and returns the private key.
         /// </summary>
         /// <param name="systemId">ID from the cloud provider of the instance.</param>
         /// <returns>Private key of instance.</returns>
         string GetPrivateKeyOfInstanceById(string systemId);
+
+        /// <summary>
+        /// Looks up the hosting ID of the specified ROOT domain (null if not found).
+        /// </summary>
+        /// <param name="domain">Domain to find the hosting ID for (should only be a root domain).</param>
+        /// <returns>Hosting ID or null if not found.</returns>
+        string GetDomainZoneId(string domain);
     }
 }
