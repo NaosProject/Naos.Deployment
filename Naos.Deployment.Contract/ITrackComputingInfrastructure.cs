@@ -75,5 +75,11 @@ namespace Naos.Deployment.Contract
         /// <param name="domain">Domain to find the hosting ID for (should only be a root domain).</param>
         /// <returns>Hosting ID or null if not found.</returns>
         string GetDomainZoneId(string domain);
+
+        /// <summary>
+        /// Gets the root domain for use when creating the private DNS entries for the machines (e.g. machines.my-company.com).
+        /// </summary>
+        /// <returns>Root domain to use.</returns>
+        string GetInstancePrivateDnsRootDomain();
     }
 }

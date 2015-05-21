@@ -16,7 +16,7 @@ namespace Naos.Deployment.Core
     using Newtonsoft.Json;
 
     /// <inheritdoc />
-    public class ComputingInfrastructureTracker : ITrackComputingInfrastructure
+    public class ComputingInfrastructureTracker : ITrackComputingInfrastructure, IGetCertificates
     {
         private readonly object fileSync = new object();
         private readonly string filePath;
@@ -175,6 +175,31 @@ namespace Naos.Deployment.Core
                 string ret = null;
                 var found = theSafe.RootDomainHostingIdMap.TryGetValue(domain, out ret);
                 return found ? ret : null;
+            }
+        }
+
+        /// <inheritdoc />
+        public string GetInstancePrivateDnsRootDomain()
+        {
+            lock (this.fileSync)
+            {
+                var theSafe = this.LoadStateFromDisk();
+
+                var ret = theSafe.InstancePrivateDnsRootDomain;
+                return ret;
+            }
+        }
+
+        /// <inheritdoc />
+        public CertificateDetails GetCertificateByName(string name)
+        {
+            lock (this.fileSync)
+            {
+                var theSafe = this.LoadStateFromDisk();
+
+                var certContainer = theSafe.Certificates.SingleOrDefault(_ => _.Name == name);
+                var certDetails = certContainer == null ? null : certContainer.ToCertificateDetails();
+                return certDetails;
             }
         }
 

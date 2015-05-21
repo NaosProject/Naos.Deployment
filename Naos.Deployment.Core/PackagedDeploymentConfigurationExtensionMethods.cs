@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security;
 
     using Naos.Deployment.Contract;
 
@@ -57,14 +58,14 @@ namespace Naos.Deployment.Core
         /// <param name="certificateManager">Certificate manager to handle dependencies on certain types of setup steps.</param>
         /// <param name="environment">Environment that is being deployed.</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public static ICollection<SetupStep> GetSetupSteps(this PackagedDeploymentConfiguration packagedConfig, IManageCertificates certificateManager, string environment)
+        public static ICollection<SetupStep> GetSetupSteps(this PackagedDeploymentConfiguration packagedConfig, IGetCertificates certificateManager, string environment)
         {
             return
                 packagedConfig.DeploymentConfiguration.InitializationStrategies.SelectMany(
                     _ => _.GetSetupSteps(certificateManager, packagedConfig, environment)).ToList();
         }
 
-        private static ICollection<SetupStep> GetSetupSteps(this InitializationStrategy strategy, IManageCertificates certificateManager, PackagedDeploymentConfiguration packagedConfig, string environment)
+        private static ICollection<SetupStep> GetSetupSteps(this InitializationStrategy strategy, IGetCertificates certificateManager, PackagedDeploymentConfiguration packagedConfig, string environment)
         {
             var ret = new List<SetupStep>();
 
@@ -134,12 +135,15 @@ namespace Naos.Deployment.Core
                         });
 
                 var webStrategy = (InitializationStrategyWeb)strategy;
-                var certificateTargetPath = Path.Combine(
-                    packageDirectoryPath,
-                    certificateManager.GetCertificateFileName(webStrategy.SslCertificateName));
-                var certificateFileBytes = certificateManager.GetCertificateBytes(webStrategy.SslCertificateName);
-                var installWebScript = InstallScriptBlocks.InstallWeb;
-                var certificatePassword = certificateManager.GetCertificatePassword(webStrategy.SslCertificateName);
+
+                var certDetails = certificateManager.GetCertificateByName(webStrategy.SslCertificateName);
+                if (certDetails == null)
+                {
+                    throw new DeploymentException(
+                        "Could not find certificate by name: " + webStrategy.SslCertificateName);
+                }
+
+                var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
                 var enableSni = false;
                 var addHostHeaders = true;
                 var installWebParameters = new object[]
@@ -147,7 +151,7 @@ namespace Naos.Deployment.Core
                                                    packageDirectoryPath, 
                                                    webStrategy.PrimaryDns, 
                                                    certificateTargetPath,
-                                                   certificatePassword, 
+                                                   certDetails.CertificatePassword, 
                                                    enableSni, 
                                                    addHostHeaders,
                                                };
@@ -157,7 +161,7 @@ namespace Naos.Deployment.Core
                         {
                             Description = "Send certificate file",
                             SetupAction =
-                                (machineManager) => machineManager.SendFile(certificateTargetPath, certificateFileBytes)
+                                (machineManager) => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
                         });
 
                 ret.Add(
@@ -165,7 +169,7 @@ namespace Naos.Deployment.Core
                         {
                             Description = "Install IIS and tools",
                             SetupAction =
-                                (machineManager) => machineManager.RunScript(installWebScript, installWebParameters)
+                                (machineManager) => machineManager.RunScript(InstallScriptBlocks.InstallWeb, installWebParameters)
                         });
             }
             else if (packagedConfig.GetType() == typeof(InitializationStrategyConsole))

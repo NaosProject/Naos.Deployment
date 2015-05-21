@@ -14,16 +14,16 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Indicates that it's irrelevant to this deployment.
         /// </summary>
-        DoesntMatter,
-
-        /// <summary>
-        /// Indicates accessible to the public internet.
-        /// </summary>
-        Public,
+        DoesntMatter = 0,
 
         /// <summary>
         /// Indicates accessible only inside the private network.
         /// </summary>
-        Private
+        Private = 1,
+
+        /// <summary>
+        /// Indicates accessible to the public internet.
+        /// </summary>
+        Public = 2,
     }
 }

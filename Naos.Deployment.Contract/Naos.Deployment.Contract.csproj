@@ -48,8 +48,9 @@
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />
     <Compile Include="Enums.cs" />
+    <Compile Include="IGetCertificates.cs" />
     <Compile Include="ImageDetails.cs" />
-    <Compile Include="IManageCertificates.cs" />
+    <Compile Include="CertificateDetails.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="IManagePackages.cs" />

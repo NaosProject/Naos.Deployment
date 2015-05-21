@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.WinRM;
 
     /// <summary>
     /// File to keep all state for ComputingInfrastructureTracker.
@@ -121,5 +122,53 @@ namespace Naos.Deployment.Core
         /// Gets or sets the wrapped instances.
         /// </summary>
         public List<InstanceWrapper> Instances { get; set; }
+
+        /// <summary>
+        /// Gets or sets the certificates.
+        /// </summary>
+        public List<CertificateContainer> Certificates { get; set; }
+
+        /// <summary>
+        /// Gets or sets the instance private DNS root domain to use (e.g. machines.my-company.com).
+        /// </summary>
+        public string InstancePrivateDnsRootDomain { get; set; }
+    }
+
+    /// <summary>
+    /// Class to allow TheSafe to be serialized and deserialized but still provide a CertificateDetails object.
+    /// </summary>
+    public class CertificateContainer
+    {
+        /// <summary>
+        /// Converts the container to a certificate details class.
+        /// </summary>
+        /// <returns>Converted details version.</returns>
+        public CertificateDetails ToCertificateDetails()
+        {
+            var ret = new CertificateDetails
+                          {
+                              Name = this.Name,
+                              CertificatePassword =
+                                  MachineManager.ConvertStringToSecureString(this.Password),
+                              FileBytes = Convert.FromBase64String(this.Base64Bytes),
+                          };
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets or sets the name.
+        /// </summary>
+        public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the password.
+        /// </summary>
+        public string Password { get; set; }
+
+        /// <summary>
+        /// Gets or sets the bytes in Base64 format.
+        /// </summary>
+        public string Base64Bytes { get; set; }
     }
 }

@@ -49,8 +49,7 @@ namespace Naos.Deployment.Core
             string virtualMfaDeviceId,
             string mfaValue)
         {
-            var credentialManager = new CredentialManager();
-            var credentialsToUse = credentialManager.GetSessionTokenCredentials(
+            var credentialsToUse = GetNewCredentials(
                 location,
                 tokenLifespan,
                 username,
@@ -59,6 +58,35 @@ namespace Naos.Deployment.Core
                 mfaValue);
 
             return this.InitializeCredentials(credentialsToUse);
+        }
+
+        /// <summary>
+        /// Get a new set of credentials using provided information.
+        /// </summary>
+        /// <param name="location">Cloud provider location to make the call against.</param>
+        /// <param name="tokenLifespan">Life span of the credentials.</param>
+        /// <param name="username">Username of the credentials.</param>
+        /// <param name="password">Password of the credentials.</param>
+        /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
+        /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
+        /// <returns>New credentials for use in performing operations against the cloud provider.</returns>
+        public static CredentialContainer GetNewCredentials(
+            string location,
+            TimeSpan tokenLifespan,
+            string username,
+            string password,
+            string virtualMfaDeviceId,
+            string mfaValue)
+        {
+            var credentialManager = new CredentialManager();
+            var credentialsToUse = credentialManager.GetSessionTokenCredentials(
+                location,
+                tokenLifespan,
+                username,
+                password,
+                virtualMfaDeviceId,
+                mfaValue);
+            return credentialsToUse;
         }
 
         /// <summary>
@@ -102,6 +130,7 @@ namespace Naos.Deployment.Core
         public InstanceDescription CreateNewInstance(string name, string environment, DeploymentConfiguration deploymentConfiguration)
         {
             var instanceDetails = this.tracker.CreateInstanceDetails(deploymentConfiguration);
+            var privateDnsRootDomain = this.tracker.GetInstancePrivateDnsRootDomain();
 
             var imageStrategy = new AmiSearchStrategy()
                                     {
@@ -113,7 +142,11 @@ namespace Naos.Deployment.Core
                                                 : MultipleAmiFoundBehavior.FirstSortedDescending,
                                     };
 
-            var namer = new CloudInfrastructureNamer(name, instanceDetails.ContainerDetails.ContainerLocation);
+            var namer = new CloudInfrastructureNamer(
+                name,
+                environment,
+                instanceDetails.ContainerDetails.ContainerLocation,
+                privateDnsRootDomain);
 
             Func<string, string> getDeviceNameFromDriveLetter = delegate(string driveLetter)
                 {
@@ -146,6 +179,7 @@ namespace Naos.Deployment.Core
                         }).ToList();
 
             var awsInstanceType = GetAwsInstanceType(deploymentConfiguration.InstanceType);
+            var instancePrivateDns = namer.GetPrivateDns();
             var instanceName = namer.GetInstanceName();
             var existing = this.tracker.GetInstanceIdByName(instanceName);
             if (existing != null)
@@ -198,6 +232,12 @@ namespace Naos.Deployment.Core
                 systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);
             }
 
+            // add private dns entry for the machine.
+            this.UpsertDnsEntry(
+                createdInstance.Region,
+                instancePrivateDns,
+                new[] { createdInstance.PrivateIpAddress });
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,
@@ -210,6 +250,7 @@ namespace Naos.Deployment.Core
                         : createdInstance.ElasticIp.PublicIpAddress,
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
                 DeployedPackages = new List<PackageDescription>(),
+                PrivateDns = instancePrivateDns,
                 SystemSpecificDetails = systemSpecificDetails,
             };
 

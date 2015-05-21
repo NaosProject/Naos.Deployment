@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Core", "Nao
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Core.Test", "Naos.Deployment.Core.Test\Naos.Deployment.Core.Test.csproj", "{D54391C0-BBDC-4F7A-B1DC-AA38EB87FED8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Console", "Naos.Deployment.Console\Naos.Deployment.Console.csproj", "{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{D54391C0-BBDC-4F7A-B1DC-AA38EB87FED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D54391C0-BBDC-4F7A-B1DC-AA38EB87FED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D54391C0-BBDC-4F7A-B1DC-AA38EB87FED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -49,6 +49,11 @@ namespace Naos.Deployment.Contract
         public string PrivateIpAddress { get; set; }
 
         /// <summary>
+        /// Gets or sets the private DNS entry for the instance.
+        /// </summary>
+        public string PrivateDns { get; set; }
+
+        /// <summary>
         /// Gets or sets a property bag of system specific details.
         /// </summary>
         public Dictionary<string, string> SystemSpecificDetails { get; set; }

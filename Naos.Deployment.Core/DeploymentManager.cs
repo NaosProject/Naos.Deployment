@@ -15,8 +15,6 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Contract;
     using Naos.WinRM;
 
-    using Newtonsoft.Json;
-
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
     {
@@ -28,7 +26,7 @@ namespace Naos.Deployment.Core
 
         private readonly DeploymentConfiguration defaultDeploymentConfig;
 
-        private readonly IManageCertificates certificateManager;
+        private readonly IGetCertificates certificateRetriever;
 
         private readonly Action<string> announce;
 
@@ -38,21 +36,21 @@ namespace Naos.Deployment.Core
         /// <param name="tracker">Tracker of computing infrastructure.</param>
         /// <param name="cloudManager">Manager of the cloud infrastructure (wraps custom cloud interactions).</param>
         /// <param name="packageManager">Proxy to retrieve packages.</param>
-        /// <param name="certificateManager">Manager of certificates (get passwords and file bytes by name).</param>
+        /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
             IManageCloudInfrastructure cloudManager,
             IManagePackages packageManager,
-            IManageCertificates certificateManager,
+            IGetCertificates certificateRetriever,
             DeploymentConfiguration defaultDeploymentConfig,
             Action<string> announcer)
         {
             this.tracker = tracker;
             this.cloudManager = cloudManager;
             this.packageManager = packageManager;
-            this.certificateManager = certificateManager;
+            this.certificateRetriever = certificateRetriever;
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.announce = announcer;
         }
@@ -76,7 +74,7 @@ namespace Naos.Deployment.Core
 
             if (string.IsNullOrEmpty(instanceName))
             {
-                instanceName = string.Join("--", packagesToDeploy.Select(_ => _.Id).ToArray());
+                instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
             // get aws instance object by name (from the AWS object tracking storage)
@@ -230,6 +228,7 @@ namespace Naos.Deployment.Core
                             Package = _.Package,
                         }).ToList();
 
+            // get all web initializations to update any DNS entries on the public IP address.
             var webInitializations =
                 packagedConfigsWithFlatteningAndOverride.SelectMany(
                     _ =>
@@ -238,12 +237,15 @@ namespace Naos.Deployment.Core
 
             foreach (var webInitialization in webInitializations)
             {
-                this.cloudManager.UpsertDnsEntry(createdInstanceDescription.Location, webInitialization.PrimaryDns, new[] { createdInstanceDescription.PublicIpAddress });
+                this.cloudManager.UpsertDnsEntry(
+                    createdInstanceDescription.Location,
+                    webInitialization.PrimaryDns,
+                    new[] { createdInstanceDescription.PublicIpAddress });
             }
 
             foreach (var packagedConfig in packagedConfigsWithFlatteningAndOverride)
             {
-                var setupActions = packagedConfig.GetSetupSteps(this.certificateManager, environment);
+                var setupActions = packagedConfig.GetSetupSteps(this.certificateRetriever, environment);
                 this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
                 foreach (var setupAction in setupActions)
                 {

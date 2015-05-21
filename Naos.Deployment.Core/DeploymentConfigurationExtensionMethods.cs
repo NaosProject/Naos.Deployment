@@ -92,15 +92,16 @@ namespace Naos.Deployment.Core
                 return deploymentConfigInitial;
             }
 
-            var accessibilityValue = deploymentConfigInitial.InstanceAccessibility;
-            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            var instanceAccessibility = deploymentConfigInitial.InstanceAccessibility;
+            var overrideAccessibility = deploymentConfigOverride.InstanceAccessibility;
+            if (overrideAccessibility != null && overrideAccessibility != InstanceAccessibility.DoesntMatter)
             {
-                accessibilityValue = deploymentConfigOverride.InstanceAccessibility;
+                instanceAccessibility = overrideAccessibility;
             }
 
             var ret = new DeploymentConfiguration()
                           {
-                              InstanceAccessibility = accessibilityValue,
+                              InstanceAccessibility = instanceAccessibility,
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
                                   ?? deploymentConfigInitial.InstanceType,
