@@ -153,7 +153,7 @@ namespace Naos.Deployment.Core
 
             this.announce(
                 "Created new instance (waiting for Administrator password to be available); ID: "
-                + createdInstanceDescription.Id);
+                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress);
             string adminPassword = null;
             var sleepTimeInSeconds = 30d;
             var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Id);
