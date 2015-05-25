@@ -70,7 +70,8 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            var jsonObject = JObject.FromObject(value);
+            jsonObject.WriteTo(writer);
         }
     }
 }

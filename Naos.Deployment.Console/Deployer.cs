@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Console
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
 
@@ -15,8 +16,6 @@ namespace Naos.Deployment.Console
     using Naos.AWS.Contract;
     using Naos.Deployment.Contract;
     using Naos.Deployment.Core;
-
-    using Newtonsoft.Json;
 
     using OBeautifulCode.Libs.Collections;
 
@@ -39,7 +38,7 @@ namespace Naos.Deployment.Console
         {
             if (startDebugger)
             {
-                System.Diagnostics.Debugger.Launch();
+                Debugger.Launch();
             }
 
             var tokenLifespanTimeSpan = GetTimeSpanFromDayHourMinuteColonDelimited(tokenLifespan);
@@ -51,7 +50,7 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var ret = JsonConvert.SerializeObject(retObj);
+            var ret = Serializer.Serialize(retObj, false);
             Console.Write(ret);
         }
 
@@ -71,7 +70,7 @@ namespace Naos.Deployment.Console
         {
             if (startDebugger)
             {
-                System.Diagnostics.Debugger.Launch();
+                Debugger.Launch();
             }
 
             Console.WriteLine("PARAMETERS:");
@@ -85,20 +84,19 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                    packagesToDeployJson: " + packagesToDeployJson);
             Console.WriteLine(string.Empty);
 
-            var packagesToDeploy = JsonConvert.DeserializeObject<PackageDescription[]>(packagesToDeployJson);
+            var packagesToDeploy = Serializer.Deserialize<PackageDescription[]>(packagesToDeployJson);
 
             var tracker = new ComputingInfrastructureTracker(trackingFilePath);
-            var credentials = JsonConvert.DeserializeObject<CredentialContainer>(cloudCredentialsJson);
+            var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
             var cloudManager = new CloudInfrastructureManager(tracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
             var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.WorkingDirectory");
             var repoConfig =
-                JsonConvert.DeserializeObject<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
+                Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
             var packageManager = new PackageManager(repoConfig, unzipDirPath);
-            var defaultDeploymentConfig =
-                DeploymentConfigurationSerializer.DeserializeDeploymentConfiguration(defaultDeploymentConfigJson);
+            var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
             var deploymentManager = new DeploymentManager(
                 tracker,
@@ -108,8 +106,7 @@ namespace Naos.Deployment.Console
                 defaultDeploymentConfig,
                 Console.WriteLine);
 
-            var overrideConfig =
-                DeploymentConfigurationSerializer.DeserializeDeploymentConfiguration(overrideDeploymentConfigJson);
+            var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
 
             deploymentManager.DeployPackages(packagesToDeploy, environment, instanceName, overrideConfig);
         }

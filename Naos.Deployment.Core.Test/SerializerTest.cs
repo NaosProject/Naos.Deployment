@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentConfigurationSerializerTest.cs" company="Naos">
+// <copyright file="SerializerTest.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -12,10 +12,10 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class DeploymentConfigurationSerializerTest
+    public class SerializerTest
     {
         [Fact]
-        public static void DeserializeDeploymentConfiguration_SingleConsoleInitStrategy_Valid()
+        public static void Deserialize_SingleConsoleInitStrategy_Valid()
         {
             var input = @"
 {
@@ -31,14 +31,14 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = DeploymentConfigurationSerializer.DeserializeDeploymentConfiguration(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
 
             Assert.Equal(typeof(InitializationStrategyConsole), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("/go", deserialized.InitializationStrategies.Cast<InitializationStrategyConsole>().Single().Arguments);
         }
 
         [Fact]
-        public static void DeserializeDeploymentConfiguration_SingleDatabaseInitStrategy_Valid()
+        public static void Deserialize_SingleDatabaseInitStrategy_Valid()
         {
             var input = @"
 {
@@ -54,14 +54,14 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = DeploymentConfigurationSerializer.DeserializeDeploymentConfiguration(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
 
             Assert.Equal(typeof(InitializationStrategyDatabase), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().DatabaseName);
         }
 
         [Fact]
-        public static void DeserializeDeploymentConfiguration_SingleWebInitStrategy_Valid()
+        public static void Deserialize_SingleWebInitStrategy_Valid()
         {
             var input = @"
 {
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = DeploymentConfigurationSerializer.DeserializeDeploymentConfiguration(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
 
             Assert.Equal(typeof(InitializationStrategyWeb), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyWeb>().Single().PrimaryDns);

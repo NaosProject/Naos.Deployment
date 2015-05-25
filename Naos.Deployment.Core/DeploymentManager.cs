@@ -96,7 +96,8 @@ namespace Naos.Deployment.Core
             // terminate instance(s) if necessary (if it exists)
             foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
             {
-                this.announce("Terminating instance; ID: " + instanceDescription.Id);
+                this.announce(
+                    "Terminating instance; ID: " + instanceDescription.Id + ", Name: " + instanceDescription.Name);
                 this.cloudManager.Terminate(instanceDescription.Id, instanceDescription.Location, true);
             }
 
@@ -125,8 +126,7 @@ namespace Naos.Deployment.Core
                         {
                             Package = _,
                             DeploymentConfiguration =
-                                DeploymentConfigurationSerializer
-                                .DeserializeDeploymentConfiguration(
+                                Serializer.Deserialize<DeploymentConfiguration>(
                                     this.packageManager.GetFileContentsFromPackage(
                                         _,
                                         deploymentFileSearchPattern)),
@@ -153,7 +153,8 @@ namespace Naos.Deployment.Core
 
             this.announce(
                 "Created new instance (waiting for Administrator password to be available); ID: "
-                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress);
+                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress
+                + ", Private DNS: " + createdInstanceDescription.PrivateDns);
             string adminPassword = null;
             var sleepTimeInSeconds = 30d;
             var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Id);

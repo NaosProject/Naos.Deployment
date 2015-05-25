@@ -79,7 +79,7 @@
   <ItemGroup>
     <Compile Include="CloudInfrastructureNamerTest.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.cs" />
-    <Compile Include="DeploymentConfigurationSerializerTest.cs" />
+    <Compile Include="SerializerTest.cs" />
     <Compile Include="PackageManagerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

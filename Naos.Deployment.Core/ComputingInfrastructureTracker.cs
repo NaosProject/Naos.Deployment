@@ -13,8 +13,6 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Contract;
 
-    using Newtonsoft.Json;
-
     /// <inheritdoc />
     public class ComputingInfrastructureTracker : ITrackComputingInfrastructure, IGetCertificates
     {
@@ -263,9 +261,7 @@ namespace Naos.Deployment.Core
             }
 
             var raw = File.ReadAllText(this.filePath);
-            var settings = new JsonSerializerSettings();
-            settings.Converters.Add(new KnownTypeConverter());
-            var ret = JsonConvert.DeserializeObject<TheSafe>(raw, settings);
+            var ret = Serializer.Deserialize<TheSafe>(raw);
             if (ret.Instances == null)
             {
                 ret.Instances = new List<InstanceWrapper>();
@@ -276,7 +272,7 @@ namespace Naos.Deployment.Core
 
         private void SaveStateToDisk(TheSafe theSafe)
         {
-            var serialized = JsonConvert.SerializeObject(theSafe);
+            var serialized = Serializer.Serialize(theSafe);
             File.WriteAllText(this.filePath, serialized);
         }
     }
