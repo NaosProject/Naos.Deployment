@@ -7,6 +7,27 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
+    /// Enumeration of the types of startup modes for IIS Application Pools.
+    /// </summary>
+    public enum ApplicationPoolStartMode
+    {
+        /// <summary>
+        /// Nothing specified.
+        /// </summary>
+        None,
+
+        /// <summary>
+        /// IIS will manage as necessary with traffic.
+        /// </summary>
+        OnDemand,
+
+        /// <summary>
+        /// IIS will keep it running all the time.
+        /// </summary>
+        AlwaysRunning,
+    }
+
+    /// <summary>
     /// Enumeration of the type of access an instance needs.
     /// </summary>
     public enum InstanceAccessibility

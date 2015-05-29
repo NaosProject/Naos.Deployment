@@ -144,6 +144,13 @@ namespace Naos.Deployment.Core
                 }
 
                 var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
+                var appPoolStartMode = webStrategy.AppPoolStartMode == ApplicationPoolStartMode.None
+                                           ? ApplicationPoolStartMode.OnDemand
+                                           : webStrategy.AppPoolStartMode;
+
+                var autoStartProviderName = webStrategy.AutoStartProvider.Name;
+                var autoStartProviderType = webStrategy.AutoStartProvider.Type;
+
                 var enableSni = false;
                 var addHostHeaders = true;
                 var installWebParameters = new object[]
@@ -152,6 +159,9 @@ namespace Naos.Deployment.Core
                                                    webStrategy.PrimaryDns, 
                                                    certificateTargetPath,
                                                    certDetails.CertificatePassword, 
+                                                   appPoolStartMode,
+                                                   autoStartProviderName,
+                                                   autoStartProviderType,
                                                    enableSni, 
                                                    addHostHeaders,
                                                };

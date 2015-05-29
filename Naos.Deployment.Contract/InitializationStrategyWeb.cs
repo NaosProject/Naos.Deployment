@@ -20,5 +20,15 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the name of the SSL certificate to lookup and use.
         /// </summary>
         public string SslCertificateName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the application pool start mode.
+        /// </summary>
+        public ApplicationPoolStartMode AppPoolStartMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the auto start provider (if any).
+        /// </summary>
+        public AutoStartProvider AutoStartProvider { get; set; }
     }
 }

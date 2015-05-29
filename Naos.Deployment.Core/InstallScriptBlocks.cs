@@ -19,6 +19,9 @@ param(
 	[string] $Domain,
 	[string] $CertPath,
 	[SecureString] $CertPassword,
+    [string] $AppPoolStartMode,
+    [string] $AutoStartProviderName,
+    [string] $AutoStartProviderType,
 	[switch] $EnableSNI,
 	[switch] $AddHostHeaders
 	)
@@ -72,6 +75,8 @@ try
 	Write-Output ""Creating Application Pool: $appPoolName""
 	New-Item ""IIS:\AppPools\$appPoolName"" | Out-Null
 	Set-ItemProperty ""IIS:\AppPools\$appPoolName"" managedRuntimeVersion v4.0 | Out-Null
+	Set-ItemProperty ""IIS:\AppPools\$appPoolName"" startMode $AppPoolStartMode | Out-Null
+    Set-ItemProperty ""IIS:\AppPools\$appPoolName"" autoStart true | Out-Null
 
 	$sslFlags = 0
 	if ($EnableSNI)
@@ -83,33 +88,66 @@ try
 	{
 		Write-Output ""SNI is NOT Enabled (can NOT use multiple host names on same machine""
 	}
-	
+
+    $sitePath = ""IIS:\Sites\$Domain""
 	if ($AddHostHeaders)
 	{
 		Write-Output ""Creating site at $SitePath for domain $Domain WITH hostHeaders""
-		New-Item -Path ""IIS:\Sites\$Domain"" -bindings @{protocol=""http"";bindingInformation="":80:$Domain""} -physicalPath $SitePath -applicationPool $appPoolName
+		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:$Domain""} -physicalPath $SitePath -applicationPool $appPoolName
 		New-WebBinding -name $Domain -Protocol https -HostHeader ""$Domain"" -Port 443 -SslFlags $sslFlags
 	}
 	else
 	{
 		Write-Output ""Creating site at $SitePath for domain $Domain WITH OUT hostHeaders""
-		New-Item -Path ""IIS:\Sites\$Domain"" -bindings @{protocol=""http"";bindingInformation="":80:""} -physicalPath $SitePath -applicationPool $appPoolName
+		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:""} -physicalPath $SitePath -applicationPool $appPoolName
 		New-WebBinding -name $Domain -Protocol https -Port 443 -SslFlags $sslFlags
 	}
-	
+
 	$cert = Get-Item $(Join-Path $certStoreLocation $certResult.Thumbprint)
 	New-Item -Path ""IIS:\SslBindings\!443!$Domain"" -Value $cert -SSLFlags $sslFlags
 	
 	Write-Output ""Performing IIS RESET to make sure everything is up and running correctly""
 	iisreset
 	
-	$site = Get-Item ""IIS:\sites\$Domain"" -ErrorAction SilentlyContinue
+	$site = Get-Item $sitePath -ErrorAction SilentlyContinue
 	$newSitePath = $site.physicalPath
 	
 	if ($newSitePath -ne $SitePath)
 	{
 		throw ""Failed to correctly deploy site to $SitePath, instead it got configured to $newSitePath""
 	}
+
+    if ((-not [String]::IsNullOrEmpty($AutoStartProviderName)) -and (-not ([String]::IsNullOrEmpty($AutoStartProviderType))))
+    {
+        Set-ItemProperty $sitePath serverAutoStart true
+        Set-ItemProperty $sitePath 'applicationDefaults.serviceAutoStartEnabled' true
+        Set-ItemProperty $sitePath 'applicationDefaults.serviceAutoStartProvider' $AutoStartProviderName
+
+        [xml]$appHost = New-Object xml
+        $appHost.psbase.PreserveWhitespace = $true
+
+        $configPath = ""C:\Windows\System32\inetsrv\config\applicationHost.config""
+        $appHost.Load($configPath)
+
+        $appHost.configuration.'system.applicationHost'
+        $autoStartProviders = $appHost.configuration.'system.applicationHost'.serviceAutoStartProviders
+        if ($autoStartProviders -eq $null)
+        {
+	        $autoStartProviders = $appHost.CreateElement(""serviceAutoStartProviders"")
+	        $appHost.configuration.'system.applicationHost'.AppendChild($autoStartProviders)
+        }
+
+        $existingProvider = $autoStartProviders.add | ?{$_.name -eq $AutoStartProviderName}
+        if ($existingProvider -eq $null)
+        {
+	        $provider = $appHost.CreateElement(""add"")
+	        $provider.SetAttribute(""name"", $AutoStartProviderName)
+	        $provider.SetAttribute(""type"", $AutoStartProviderType)
+	        $autoStartProviders.AppendChild($provider)
+        }
+
+    	$appHost.Save($configPath)
+    }
 
 	$deploymentInfo = join-path $SitePath ""deploymentInfo.xml""
 	Write-Output ""Writing deployment info to $deploymentInfo""

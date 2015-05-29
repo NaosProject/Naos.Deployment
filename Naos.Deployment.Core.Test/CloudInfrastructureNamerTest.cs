@@ -17,7 +17,7 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void GetInstanceName_ValidInputs_ValidName()
         {
-            var expected = "instance-theComputer@use-east-1a";
+            var expected = "instance-demo-theComputer@use-east-1a";
             var actual =
                 new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a", "boxes.monkey.com").GetInstanceName();
             Assert.Equal(expected, actual);
@@ -26,7 +26,7 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void GetVolumeName_ValidInputs_ValidName()
         {
-            var expected = "ebs-G-theComputer@use-east-1a";
+            var expected = "ebs-demo-theComputer-G@use-east-1a";
             var actual =
                 new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a", "boxes.monkey.com").GetVolumeName(
                     "G");

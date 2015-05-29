@@ -17,7 +17,7 @@ namespace Naos.Deployment.Core
     /// <inheritdoc />
     public class CloudInfrastructureManager : IManageCloudInfrastructure
     {
-        private const string ElasticIpIdKeyForSystemSpecificDictionary = "ElasticIpId";
+        private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
         private readonly ITrackComputingInfrastructure tracker;
 
         private CredentialContainer credentials;
