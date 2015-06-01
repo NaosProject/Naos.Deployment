@@ -18,6 +18,8 @@ namespace Naos.Deployment.Core
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
     {
+        private const string MessageBusHandlerPackageSuffix = ".MessageBusHandler";
+
         private readonly ITrackComputingInfrastructure tracker;
 
         private readonly IManageCloudInfrastructure cloudManager;
@@ -27,6 +29,8 @@ namespace Naos.Deployment.Core
         private readonly DeploymentConfiguration defaultDeploymentConfig;
 
         private readonly IGetCertificates certificateRetriever;
+
+        private readonly PackageDescription messageBusHandlerHarnessPackageDescription;
 
         private readonly Action<string> announce;
 
@@ -38,6 +42,7 @@ namespace Naos.Deployment.Core
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
+        /// <param name="messageBusHandlerHarnessPackageDescription">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
@@ -45,6 +50,7 @@ namespace Naos.Deployment.Core
             IManagePackages packageManager,
             IGetCertificates certificateRetriever,
             DeploymentConfiguration defaultDeploymentConfig,
+            PackageDescription messageBusHandlerHarnessPackageDescription,
             Action<string> announcer)
         {
             this.tracker = tracker;
@@ -52,6 +58,7 @@ namespace Naos.Deployment.Core
             this.packageManager = packageManager;
             this.certificateRetriever = certificateRetriever;
             this.defaultDeploymentConfig = defaultDeploymentConfig;
+            this.messageBusHandlerHarnessPackageDescription = messageBusHandlerHarnessPackageDescription;
             this.announce = announcer;
         }
 
@@ -77,50 +84,20 @@ namespace Naos.Deployment.Core
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
-            // get aws instance object by name (from the AWS object tracking storage)
-            var instancesMatchingPackagesAllEnvironments = this.tracker.GetInstancesByDeployedPackages(packagesToDeploy);
-            var instancesWithMatchingEnvironmentAndPackages =
-                instancesMatchingPackagesAllEnvironments.Where(_ => _.Environment == environment).ToList();
-
-            // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
-            var deployedPackages = instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
-            if (deployedPackages.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
-            {
-                var deployedIdList = string.Join(",", deployedPackages.Select(_ => _.Id));
-                var deployingIdList = string.Join(",", packagesToDeploy.Select(_ => _.Id));
-                throw new DeploymentException(
-                    "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed; Running: "
-                    + deployedIdList + " Deploying: " + deployingIdList);
-            }
-
-            // terminate instance(s) if necessary (if it exists)
-            foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
-            {
-                this.announce(
-                    "Terminating instance; ID: " + instanceDescription.Id + ", Name: " + instanceDescription.Name);
-                this.cloudManager.Terminate(instanceDescription.Id, instanceDescription.Location, true);
-            }
+            this.TerminateInstancesBeingReplaced(packagesToDeploy, environment);
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
                 "Downloading packages that are to be deployed; IDs: "
                 + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
-            var packagesWithTheirFiles =
-                packagesToDeploy.Select(
-                    _ =>
-                    new Package
-                        {
-                            PackageDescription = _,
-                            PackageFileBytes = this.packageManager.GetPackageFile(_),
-                            PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
-                        }).ToList();
+            var packages = this.packageManager.GetPackages(packagesToDeploy);
 
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = string.Format(".config/{0}/Deployment.json", environment);
 
             this.announce("Searching for deployment configs in packages to be deployed.");
             var packagedDeploymentConfigs =
-                packagesWithTheirFiles.Select(
+                packages.Select(
                     _ =>
                     new PackagedDeploymentConfiguration()
                         {
@@ -147,6 +124,10 @@ namespace Naos.Deployment.Core
             // set config to use for creation
             var configToCreateWith = overriddenConfig;
 
+            // apply newly constructed configs across all configs (merging initialization strategies)
+            var packagedDeploymentConfigsWithDefaultsAndOverrides =
+                packagedDeploymentConfigs.OverrideDeploymentConfigAndMergeInitializationStrategies(configToCreateWith);
+
             // create new aws instance(s)
             this.announce("Creating new instance; Name: " + instanceName);
             var createdInstanceDescription = this.cloudManager.CreateNewInstance(instanceName, environment, configToCreateWith);
@@ -155,34 +136,71 @@ namespace Naos.Deployment.Core
                 "Created new instance (waiting for Administrator password to be available); ID: "
                 + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress
                 + ", Private DNS: " + createdInstanceDescription.PrivateDns);
-            string adminPassword = null;
-            var sleepTimeInSeconds = 30d;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Id);
-            while (adminPassword == null)
-            {
-                sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
-                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-
-                try
-                {
-                    adminPassword = this.cloudManager.GetAdministratorPasswordForInstance(createdInstanceDescription, privateKey);
-                }
-                catch (NullPasswordDataException)
-                {
-                    // No-op
-                }
-            }
-
-            // finalize instance creation (WinRM reboot, etc.)
-            var machineManager = new MachineManager(
-                createdInstanceDescription.PrivateIpAddress,
-                "Administrator",
-                MachineManager.ConvertStringToSecureString(adminPassword),
-                true);
+            var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
             // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
             this.announce("Rebooting new instance to finalize any items from user data setup.");
-            sleepTimeInSeconds = 1d;
+            this.RebootInstance(machineManager);
+
+            var messageBusHandlerPackagedConfigsWithFlatteningAndOverride =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.Select(
+                    _ => _.Package.PackageDescription.Id.EndsWith(MessageBusHandlerPackageSuffix)).ToList();
+            if (messageBusHandlerPackagedConfigsWithFlatteningAndOverride.Any())
+            {
+                // if we have any message bus handlers that are being deployed then we need to also deploy the harness
+                var messageBusHandlerPackage = new Package
+                                                   {
+                                                       PackageDescription =
+                                                           this.messageBusHandlerHarnessPackageDescription,
+                                                       PackageFileBytes =
+                                                           this.packageManager.GetPackageFile(
+                                                               this.messageBusHandlerHarnessPackageDescription),
+                                                       PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
+                                                   };
+
+                packagedDeploymentConfigsWithDefaultsAndOverrides.Add(
+                    new PackagedDeploymentConfiguration
+                        {
+                            DeploymentConfiguration = configToCreateWith,
+                            Package = messageBusHandlerPackage, // TODO: Add settings file as executor here...
+                        });
+            }
+
+            foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
+            {
+                var setupActions = packagedConfig.GetSetupSteps(this.certificateRetriever, environment);
+                this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
+                foreach (var setupAction in setupActions)
+                {
+                    setupAction.SetupAction(machineManager);
+                }
+             
+                // Mark the instance as having the successfully deployed packages
+                this.tracker.ProcessDeployedPackage(
+                    createdInstanceDescription.Id,
+                    packagedConfig.Package.PackageDescription);
+                this.announce("Finished deployment.");
+            }
+
+            // get all web initializations to update any DNS entries on the public IP address.
+            var webInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
+                    _ =>
+                    _.DeploymentConfiguration.InitializationStrategies.Select(
+                        strat => strat as InitializationStrategyWeb)).Where(_ => _ != null).ToList();
+
+            foreach (var webInitialization in webInitializations)
+            {
+                this.cloudManager.UpsertDnsEntry(
+                    createdInstanceDescription.Location,
+                    webInitialization.PrimaryDns,
+                    new[] { createdInstanceDescription.PublicIpAddress });
+            }
+        }
+
+        private void RebootInstance(MachineManager machineManager)
+        {
+            var sleepTimeInSeconds = 1d;
             var rebootCallSucceeded = false;
             while (!rebootCallSucceeded)
             {
@@ -219,45 +237,62 @@ namespace Naos.Deployment.Core
                     /* no-op */
                 }
             }
+        }
 
-            var packagedConfigsWithFlatteningAndOverride =
-                packagedConfigsWithDefaults.Select(
-                    _ =>
-                    new PackagedDeploymentConfiguration
-                        {
-                            DeploymentConfiguration = configToCreateWith,
-                            Package = _.Package,
-                        }).ToList();
-
-            // get all web initializations to update any DNS entries on the public IP address.
-            var webInitializations =
-                packagedConfigsWithFlatteningAndOverride.SelectMany(
-                    _ =>
-                    _.DeploymentConfiguration.InitializationStrategies.Select(
-                        strat => strat as InitializationStrategyWeb)).Where(_ => _ != null).ToList();
-
-            foreach (var webInitialization in webInitializations)
+        private MachineManager GetMachineManagerForInstance(InstanceDescription createdInstanceDescription)
+        {
+            string adminPassword = null;
+            var sleepTimeInSeconds = 30d;
+            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Id);
+            while (adminPassword == null)
             {
-                this.cloudManager.UpsertDnsEntry(
-                    createdInstanceDescription.Location,
-                    webInitialization.PrimaryDns,
-                    new[] { createdInstanceDescription.PublicIpAddress });
+                sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
+                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
+
+                try
+                {
+                    adminPassword = this.cloudManager.GetAdministratorPasswordForInstance(
+                        createdInstanceDescription,
+                        privateKey);
+                }
+                catch (NullPasswordDataException)
+                {
+                    // No-op
+                }
             }
 
-            foreach (var packagedConfig in packagedConfigsWithFlatteningAndOverride)
+            // finalize instance creation (WinRM reboot, etc.)
+            var machineManager = new MachineManager(
+                createdInstanceDescription.PrivateIpAddress,
+                "Administrator",
+                MachineManager.ConvertStringToSecureString(adminPassword),
+                true);
+            return machineManager;
+        }
+
+        private void TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
+        {
+            // get aws instance object by name (from the AWS object tracking storage)
+            var instancesMatchingPackagesAllEnvironments = this.tracker.GetInstancesByDeployedPackages(packagesToDeploy);
+            var instancesWithMatchingEnvironmentAndPackages =
+                instancesMatchingPackagesAllEnvironments.Where(_ => _.Environment == environment).ToList();
+
+            // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
+            var deployedPackages = instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
+            if (deployedPackages.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
             {
-                var setupActions = packagedConfig.GetSetupSteps(this.certificateRetriever, environment);
-                this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
-                foreach (var setupAction in setupActions)
-                {
-                    setupAction.SetupAction(machineManager);
-                }
-             
-                // Mark the instance as having the successfully deployed packages
-                this.tracker.ProcessDeployedPackage(
-                    createdInstanceDescription.Id,
-                    packagedConfig.Package.PackageDescription);
-                this.announce("Finished deployment.");
+                var deployedIdList = string.Join(",", deployedPackages.Select(_ => _.Id));
+                var deployingIdList = string.Join(",", packagesToDeploy.Select(_ => _.Id));
+                throw new DeploymentException(
+                    "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed; Running: "
+                    + deployedIdList + " Deploying: " + deployingIdList);
+            }
+
+            // terminate instance(s) if necessary (if it exists)
+            foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
+            {
+                this.announce("Terminating instance; ID: " + instanceDescription.Id + ", Name: " + instanceDescription.Name);
+                this.cloudManager.Terminate(instanceDescription.Id, instanceDescription.Location, true);
             }
         }
 

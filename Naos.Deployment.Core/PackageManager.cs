@@ -131,5 +131,20 @@ namespace Naos.Deployment.Core
 
             return ret;
         }
+
+        /// <inheritdoc />
+        public ICollection<Package> GetPackages(ICollection<PackageDescription> packageDescriptions)
+        {
+            var ret = packageDescriptions.Select(
+                _ =>
+                new Package
+                {
+                    PackageDescription = _,
+                    PackageFileBytes = this.GetPackageFile(_),
+                    PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
+                }).ToList();
+
+            return ret;
+        }
     }
 }

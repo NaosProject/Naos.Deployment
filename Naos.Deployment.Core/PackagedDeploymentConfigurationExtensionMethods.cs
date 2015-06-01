@@ -52,6 +52,52 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Overrides the deployment config in a collection of packaged configurations.
+        /// </summary>
+        /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
+        /// <param name="overrideConfig">Configuration to apply as an override.</param>
+        /// <returns>New collection of packaged configurations with overrides applied.</returns>
+        public static ICollection<PackagedDeploymentConfiguration>
+            OverrideDeploymentConfigAndMergeInitializationStrategies(
+            this ICollection<PackagedDeploymentConfiguration> baseCollection,
+            DeploymentConfiguration overrideConfig)
+        {
+            var ret = baseCollection.Select(
+                _ =>
+                new PackagedDeploymentConfiguration
+                    {
+                        DeploymentConfiguration =
+                            new DeploymentConfiguration
+                                {
+                                    ChocolateyPackages =
+                                        overrideConfig
+                                        .ChocolateyPackages,
+                                    InstanceAccessibility =
+                                        overrideConfig
+                                        .InstanceAccessibility,
+                                    InstanceType =
+                                        overrideConfig
+                                        .InstanceType,
+                                    Volumes =
+                                        overrideConfig
+                                        .Volumes,
+                                    InitializationStrategies
+                                        =
+                                        overrideConfig
+                                        .InitializationStrategies
+                                        .Concat(
+                                            _
+                                        .DeploymentConfiguration
+                                        .InitializationStrategies)
+                                        .ToList(),
+                                },
+                        Package = _.Package
+                    }).ToList();
+            return
+                ret;
+        }
+
+        /// <summary>
         /// Get the appropriate setup steps for the packaged config.
         /// </summary>
         /// <param name="packagedConfig">Config to base setup steps from.</param>

@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Methods to interface into the package repository.
     /// </summary>
@@ -33,5 +35,12 @@ namespace Naos.Deployment.Contract
         /// <param name="packageDescription">Description of the package to retrieve.</param>
         /// <returns>Bytes of the package (NUPKG) file from the gallery.</returns>
         byte[] GetPackageFile(PackageDescription packageDescription);
+
+        /// <summary>
+        /// Gets package files for a list of package descriptions.
+        /// </summary>
+        /// <param name="packageDescriptions">Package descriptions to get files for.</param>
+        /// <returns>List of packages (description and file).</returns>
+        ICollection<Package> GetPackages(ICollection<PackageDescription> packageDescriptions);
     }
 }
