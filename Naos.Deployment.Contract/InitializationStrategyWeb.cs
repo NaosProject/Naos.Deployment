@@ -7,9 +7,9 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
-    /// Custom extension of the DeploymentConfiguration to accommodate web service/site deployments.
+    /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>
-    public class InitializationStrategyWeb : InitializationStrategy
+    public class InitializationStrategyWeb : InitializationStrategyBase
     {
         /// <summary>
         /// Gets or sets the primary DNS access point of the web deployment.

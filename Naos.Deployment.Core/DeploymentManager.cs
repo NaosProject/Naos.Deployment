@@ -13,13 +13,12 @@ namespace Naos.Deployment.Core
 
     using Naos.AWS.Core;
     using Naos.Deployment.Contract;
+    using Naos.MessageBus.HandlingContract;
     using Naos.WinRM;
 
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
     {
-        private const string MessageBusHandlerPackageSuffix = ".MessageBusHandler";
-
         private readonly ITrackComputingInfrastructure tracker;
 
         private readonly IManageCloudInfrastructure cloudManager;
@@ -28,11 +27,11 @@ namespace Naos.Deployment.Core
 
         private readonly DeploymentConfiguration defaultDeploymentConfig;
 
-        private readonly IGetCertificates certificateRetriever;
-
         private readonly PackageDescription messageBusHandlerHarnessPackageDescription;
 
         private readonly Action<string> announce;
+
+        private readonly SetupStepFactory setupStepFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
@@ -56,7 +55,7 @@ namespace Naos.Deployment.Core
             this.tracker = tracker;
             this.cloudManager = cloudManager;
             this.packageManager = packageManager;
-            this.certificateRetriever = certificateRetriever;
+            this.setupStepFactory = new SetupStepFactory(certificateRetriever);
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.messageBusHandlerHarnessPackageDescription = messageBusHandlerHarnessPackageDescription;
             this.announce = announcer;
@@ -142,37 +141,32 @@ namespace Naos.Deployment.Core
             this.announce("Rebooting new instance to finalize any items from user data setup.");
             this.RebootInstance(machineManager);
 
-            var messageBusHandlerPackagedConfigsWithFlatteningAndOverride =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.Select(
-                    _ => _.Package.PackageDescription.Id.EndsWith(MessageBusHandlerPackageSuffix)).ToList();
-            if (messageBusHandlerPackagedConfigsWithFlatteningAndOverride.Any())
+            // get all message bus handler initializations to know if we need a handler.
+            var messageBusInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
+                    _ =>
+                    _.DeploymentConfiguration.InitializationStrategies.Select(
+                        strat => strat as InitializationStrategyMessageBusHandler)).Where(_ => _ != null).ToList();
+
+            if (messageBusInitializations.Any())
             {
                 // if we have any message bus handlers that are being deployed then we need to also deploy the harness
-                var messageBusHandlerPackage = new Package
-                                                   {
-                                                       PackageDescription =
-                                                           this.messageBusHandlerHarnessPackageDescription,
-                                                       PackageFileBytes =
-                                                           this.packageManager.GetPackageFile(
-                                                               this.messageBusHandlerHarnessPackageDescription),
-                                                       PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
-                                                   };
+                var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
+                    instanceName,
+                    messageBusInitializations,
+                    configToCreateWith);
 
                 packagedDeploymentConfigsWithDefaultsAndOverrides.Add(
-                    new PackagedDeploymentConfiguration
-                        {
-                            DeploymentConfiguration = configToCreateWith,
-                            Package = messageBusHandlerPackage, // TODO: Add settings file as executor here...
-                        });
+                    harnessPackagedConfig);
             }
 
             foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
             {
-                var setupActions = packagedConfig.GetSetupSteps(this.certificateRetriever, environment);
+                var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
                 this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
-                foreach (var setupAction in setupActions)
+                foreach (var setupStep in setupSteps)
                 {
-                    setupAction.SetupAction(machineManager);
+                    setupStep.SetupAction(machineManager);
                 }
              
                 // Mark the instance as having the successfully deployed packages
@@ -196,6 +190,51 @@ namespace Naos.Deployment.Core
                     webInitialization.PrimaryDns,
                     new[] { createdInstanceDescription.PublicIpAddress });
             }
+        }
+
+        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(
+            string instanceName,
+            ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations,
+            DeploymentConfiguration configToCreateWith)
+        {
+            var messageBusHandlerPackage =
+                this.packageManager.GetPackages(new[] { this.messageBusHandlerHarnessPackageDescription }).Single();
+
+            var privateQueueName = instanceName;
+            var channelsToMonitor =
+                new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor)).ToList();
+
+            var messageBusHandlerSettings = new MessageBusHarnessRoleSettingsExecutor
+            {
+                ChannelsToMonitor = channelsToMonitor,
+                HandlerAssemblyPath =
+                    SetupStepFactory.RootDeploymentPath,
+                WorkerCount =
+                    configToCreateWith.InstanceType
+                        .VirtualCores ?? 1,
+                PollingTimeSpan =
+                    TimeSpan.FromMinutes(1)
+            };
+
+            var messageBusHandlerSettingsJson = Serializer.Serialize(messageBusHandlerSettings);
+            var harnessPackagedConfig = new PackagedDeploymentConfiguration
+            {
+                DeploymentConfiguration = configToCreateWith,
+                Package = messageBusHandlerPackage,
+                ItsConfigOverrides =
+                    new[]
+                                                        {
+                                                            new ItsConfigOverride
+                                                                {
+                                                                    FileNameWithoutExtension =
+                                                                        "MessageBusHarnessSettings",
+                                                                    FileContentsJson
+                                                                        =
+                                                                        messageBusHandlerSettingsJson
+                                                                }
+                                                        }
+            };
+            return harnessPackagedConfig;
         }
 
         private void RebootInstance(MachineManager machineManager)

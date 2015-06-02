@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InitializationStrategy.cs" company="Naos">
+// <copyright file="InitializationStrategyBase.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -11,10 +11,10 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Strategy to initialize the application.
     /// </summary>
-    [KnownType(typeof(InitializationStrategyConsole))]
+    [KnownType(typeof(InitializationStrategyMessageBusHandler))]
     [KnownType(typeof(InitializationStrategyDatabase))]
     [KnownType(typeof(InitializationStrategyWeb))]
-    public abstract class InitializationStrategy
+    public abstract class InitializationStrategyBase
     {
     }
 }

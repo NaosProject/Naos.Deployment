@@ -9,7 +9,7 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
     /// </summary>
-    public class InitializationStrategyDatabase : InitializationStrategy
+    public class InitializationStrategyDatabase : InitializationStrategyBase
     {
         /// <summary>
         /// Gets or sets the name of the database.

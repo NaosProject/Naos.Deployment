@@ -96,7 +96,7 @@ namespace Naos.Deployment.Core.Test
                                                             SizeInGb = 50,
                                                         }
                                                 },
-                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
+                                        InitializationStrategies = new[] { new InitializationStrategyWeb(),  },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 
@@ -149,7 +149,7 @@ namespace Naos.Deployment.Core.Test
                                                                RamInGb = 10,
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
-                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
+                                        InitializationStrategies = new[] { new InitializationStrategyWeb(),  },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 

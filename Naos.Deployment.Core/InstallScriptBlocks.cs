@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core
                 return @"
 {
 param(
-	[string] $RootPath,
+    [string] $WebRootPath
 	[string] $Domain,
 	[string] $CertPath,
 	[SecureString] $CertPassword,
@@ -29,16 +29,11 @@ param(
 try
 {
 	Write-Output ""Beginning Deployment of a Website:""
-	Write-Output ""    RootPath: $RootPath""
-	Write-Output ""    Domain: $Domain""
-	Write-Output ""    CertPath: $CertPath""
-	Write-Output ""    CertPassword: $CertPassword""
+	Write-Output ""    WebRootPath: $WebRootPath""
+	Write-Output ""         Domain: $Domain""
+	Write-Output ""       CertPath: $CertPath""
+	Write-Output ""   CertPassword: $CertPassword""
 	Write-Output ''
-	
-	if (-not (Test-Path $RootPath))
-	{
-		md $RootPath
-	}
 	
 	# Add IIS and suppporting features
 	Add-WindowsFeature -IncludeManagementTools -Name Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Basic-Auth, Web-Digest-Auth, Web-Windows-Auth, Web-Net-Ext, Web-Net-Ext45, Web-Asp-Net, Web-Asp-Net45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Scripting-Tools, NET-Framework-45-ASPNET
@@ -46,18 +41,15 @@ try
 	$services = Get-WMIObject win32_service | Where-Object {$_.name -imatch ""W3SVC"" -and $_.startmode -eq ""Auto""}; foreach ($service in $services){sc.exe failure $service.name reset= 86400 actions= restart/5000/restart/5000/reboot/5000}
 
 	Import-Module WebAdministration
-	
-	$innerPackageDirForWebPackage = 'packagedWebsite' # this value must match whats in the build script Build.ps1
 
-	$SitePath = Join-Path $RootPath $innerPackageDirForWebPackage
-	Write-Output ""Using site path for IIS at $SitePath""
+	Write-Output ""Using site path for IIS at $WebRootPath""
 
 	Write-Output ""Removing default site if present to avoid any potential conflicts""
 	if (Test-Path 'IIS:\Sites\Default Web Site'){ Remove-Item 'IIS:\Sites\Default Web Site' -Force -Recurse}
 
-	if (-not (Test-Path $SitePath))
+	if (-not (Test-Path $WebRootPath))
 	{
-		throw ""Site missing at $SitePath""
+		throw ""Site missing at $WebRootPath""
 	}
 	
 	if (-not (Test-Path $CertPath))
@@ -92,14 +84,14 @@ try
     $sitePath = ""IIS:\Sites\$Domain""
 	if ($AddHostHeaders)
 	{
-		Write-Output ""Creating site at $SitePath for domain $Domain WITH hostHeaders""
-		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:$Domain""} -physicalPath $SitePath -applicationPool $appPoolName
+		Write-Output ""Creating site at $WebRootPath for domain $Domain WITH hostHeaders""
+		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:$Domain""} -physicalPath $WebRootPath -applicationPool $appPoolName
 		New-WebBinding -name $Domain -Protocol https -HostHeader ""$Domain"" -Port 443 -SslFlags $sslFlags
 	}
 	else
 	{
-		Write-Output ""Creating site at $SitePath for domain $Domain WITH OUT hostHeaders""
-		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:""} -physicalPath $SitePath -applicationPool $appPoolName
+		Write-Output ""Creating site at $WebRootPath for domain $Domain WITH OUT hostHeaders""
+		New-Item -Path $sitePath -bindings @{protocol=""http"";bindingInformation="":80:""} -physicalPath $WebRootPath -applicationPool $appPoolName
 		New-WebBinding -name $Domain -Protocol https -Port 443 -SslFlags $sslFlags
 	}
 
@@ -112,9 +104,9 @@ try
 	$site = Get-Item $sitePath -ErrorAction SilentlyContinue
 	$newSitePath = $site.physicalPath
 	
-	if ($newSitePath -ne $SitePath)
+	if ($newSitePath -ne $WebRootPath)
 	{
-		throw ""Failed to correctly deploy site to $SitePath, instead it got configured to $newSitePath""
+		throw ""Failed to correctly deploy site to $WebRootPath, instead it got configured to $newSitePath""
 	}
 
     if ((-not [String]::IsNullOrEmpty($AutoStartProviderName)) -and (-not ([String]::IsNullOrEmpty($AutoStartProviderType))))
@@ -149,7 +141,7 @@ try
     	$appHost.Save($configPath)
     }
 
-	$deploymentInfo = join-path $SitePath ""deploymentInfo.xml""
+	$deploymentInfo = join-path $WebRootPath ""deploymentInfo.xml""
 	Write-Output ""Writing deployment info to $deploymentInfo""
 
 	$xmlWriter = New-Object System.XML.XmlTextWriter($deploymentInfo,$Null)
@@ -159,7 +151,7 @@ try
 	$xmlWriter.IndentChar = ""	""
 	$xmlWriter.WriteStartDocument()
 	$xmlWriter.WriteStartElement('Publish')
-	$xmlWriter.WriteElementString('SitePath',$SitePath)
+	$xmlWriter.WriteElementString('SitePath',$WebRootPath)
 	$xmlWriter.WriteElementString('Domain',$Domain)
 	$xmlWriter.WriteElementString('AppPool',$appPoolName)
 	$xmlWriter.WriteElementString('Username',[Environment]::Username)

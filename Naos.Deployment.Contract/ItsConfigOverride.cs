@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceType.cs" company="Naos">
+// <copyright file="ItsConfigOverride.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -7,18 +7,18 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
-    /// Model object to describe the type/caliber of machine to provision.
+    /// Model object to override an entire file in Its.Configuration.
     /// </summary>
-    public class InstanceType
+    public class ItsConfigOverride
     {
         /// <summary>
-        /// Gets or sets the minimum number of virtual cores necessary.
+        /// Gets or sets the file name to override.
         /// </summary>
-        public int? VirtualCores { get; set; }
+        public string FileNameWithoutExtension { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum amount of RAM in gigabytes.
+        /// Gets or sets the contents of JSON file to write.
         /// </summary>
-        public double? RamInGb { get; set; }
+        public string FileContentsJson { get; set; }
     }
 }

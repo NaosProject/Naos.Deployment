@@ -48,6 +48,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.5\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Naos.MessageBus.DataContract">
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.3-firstcut\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.MessageBus.HandlingContract">
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.3-firstcut\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.WinRM.1.0.16\lib\45\Naos.WinRM.dll</HintPath>
@@ -90,6 +96,7 @@
     <Compile Include="PackageManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetupStep.cs" />
+    <Compile Include="SetupStepFactory.cs" />
     <Compile Include="TheSafe.cs" />
   </ItemGroup>
   <ItemGroup>

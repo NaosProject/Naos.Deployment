@@ -31,7 +31,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the initialization strategies of the deployment.
         /// </summary>
-        public ICollection<InitializationStrategy> InitializationStrategies { get; set; }
+        public ICollection<InitializationStrategyBase> InitializationStrategies { get; set; }
 
         /// <summary>
         /// Gets or sets the Chocolatey packages to install during the deployment.

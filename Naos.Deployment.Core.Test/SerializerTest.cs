@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
     public class SerializerTest
     {
         [Fact]
-        public static void Deserialize_SingleConsoleInitStrategy_Valid()
+        public static void Deserialize_SingleMessageBusHandlerInitStrategy_Valid()
         {
             var input = @"
 {
@@ -26,15 +26,15 @@ namespace Naos.Deployment.Core.Test
 		""SizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""Arguments"": ""/go"",
+		""ChannelsToMonitor"": [""MyChannel""],
 	}],
 }
 ";
 
             var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
 
-            Assert.Equal(typeof(InitializationStrategyConsole), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("/go", deserialized.InitializationStrategies.Cast<InitializationStrategyConsole>().Single().Arguments);
+            Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
+            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single());
         }
 
         [Fact]
