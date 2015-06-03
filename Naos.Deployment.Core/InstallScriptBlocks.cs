@@ -220,7 +220,7 @@ catch
     Write-Error """"
     Write-Error ""  END   Error Details:""
     Write-Error """"
-    Write-Error wr""ERROR DURING EXECUTION""
+    Write-Error ""ERROR DURING EXECUTION""
     Write-Error """"
     
     throw
@@ -243,10 +243,32 @@ catch
 
     try
     {
-        [xml] $c = Get-Content $FilePath
-        $n = $c.configuration.appSettings.add | ?{$_.key -eq 'Its.Configuration.Settings.Precedence'}
-        $n.value = $Environment
-        $c.Save($FilePath)
+	    $appSettingsNodeName = 'appSettings'
+	    [xml] $c = Get-Content $FilePath
+	    # should only be one so this 'hack' works
+	    $appSettingsNode = $c.configuration.GetElementsByTagName($appSettingsNodeName) | %{$_}
+	    if ($appSettingsNode -eq $null)
+	    {
+		    $appSettingsNode = $c.CreateElement($appSettingsNodeName)
+		    $c.configuration.AppendChild($appSettingsNode)
+	    }
+
+	    $itsConfigPrecedenceKey = 'Its.Configuration.Settings.Precedence'
+	    $n = $appSettingsNode.GetElementsByTagName('add') | ?{$_.key -eq $itsConfigPrecedenceKey}
+	
+	    if ($n -eq $null)
+	    {
+		    $n = $c.CreateElement('add') 
+		    $appSettingsNode.AppendChild($n)
+		    $n.SetAttribute('key',  $itsConfigPrecedenceKey)
+		    $n.SetAttribute('value',  $Environment)
+	    }
+	    else
+	    {
+		    $n.value = $Environment
+	    }
+
+	    $c.Save($FilePath)
     }
     catch
     {
@@ -261,7 +283,7 @@ catch
         Write-Error """"
         Write-Error ""  END   Error Details:""
         Write-Error """"
-        Write-Error wr""ERROR DURING EXECUTION""
+        Write-Error ""ERROR DURING EXECUTION""
         Write-Error """"
     
         throw

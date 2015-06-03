@@ -26,13 +26,8 @@ namespace Naos.Deployment.Core
         public int GetHashCode(PackageDescription obj)
         {
             var id = obj == null ? null : obj.Id;
-            var version = obj == null ? null : obj.Version;
-            if (string.IsNullOrEmpty(version))
-            {
-                version = null;
-            }
 
-            var hashCode = new Tuple<string, string>(id, version).GetHashCode();
+            var hashCode = new Tuple<string>(id).GetHashCode();
             return hashCode;
         }
 

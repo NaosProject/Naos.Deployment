@@ -58,15 +58,16 @@ namespace Naos.Deployment.Console
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
 #pragma warning disable 1591
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson,
-            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson,
+            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
+            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
             [Aliases("")] [Description("Description of package (with overrides) to use as the harness for Message Bus Handlers.")] string messageBusHandlerHarnessPackageDescriptionJson,
-            [Aliases("")] [Description("Full file path to the tracking file of cloud properties.")] string trackingFilePath,
+            [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString, 
+            [Aliases("")] [Description("Full file path to the tracking file of cloud properties.")] string trackingFilePath, 
             [Aliases("")] [Description("Default deployment configuration to use where items are not specified in JSON.")] string defaultDeploymentConfigJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
-            [Aliases("")] [Description("Environment to deploy to.")] string environment,
-            [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
-            [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
+            [Aliases("")] [Description("Environment to deploy to.")] string environment, 
+            [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName, 
+            [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson, 
             [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
 #pragma warning restore 1591
         {
@@ -112,6 +113,7 @@ namespace Naos.Deployment.Console
                 tracker,
                 defaultDeploymentConfig,
                 messageBusHandlerHarnessPackageDescription,
+                messageBusPersistenceConnectionString,
                 Console.WriteLine);
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);

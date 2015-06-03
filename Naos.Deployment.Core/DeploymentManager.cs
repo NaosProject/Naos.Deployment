@@ -33,6 +33,8 @@ namespace Naos.Deployment.Core
 
         private readonly SetupStepFactory setupStepFactory;
 
+        private readonly string messageBusPersistenceConnectionString;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -42,6 +44,7 @@ namespace Naos.Deployment.Core
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
+        /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
@@ -50,6 +53,7 @@ namespace Naos.Deployment.Core
             IGetCertificates certificateRetriever,
             DeploymentConfiguration defaultDeploymentConfig,
             PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
+            string messageBusPersistenceConnectionString,
             Action<string> announcer)
         {
             this.tracker = tracker;
@@ -58,6 +62,7 @@ namespace Naos.Deployment.Core
             this.setupStepFactory = new SetupStepFactory(certificateRetriever);
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
+            this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
             this.announce = announcer;
         }
 
@@ -91,7 +96,7 @@ namespace Naos.Deployment.Core
                 + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = string.Format(".config/{0}/Deployment.json", environment);
+            var deploymentFileSearchPattern = string.Format(".config/{0}/DeploymentConfigurationWithStrategies.json", environment);
 
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
 
@@ -223,17 +228,31 @@ namespace Naos.Deployment.Core
             var channelsToMonitor =
                 new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor)).ToList();
 
-            var messageBusHandlerSettings = new MessageBusHarnessRoleSettingsExecutor
-            {
-                ChannelsToMonitor = channelsToMonitor,
-                HandlerAssemblyPath =
-                    SetupStepFactory.RootDeploymentPath,
-                WorkerCount =
-                    configToCreateWith.InstanceType
-                        .VirtualCores ?? 1,
-                PollingTimeSpan =
-                    TimeSpan.FromMinutes(1)
-            };
+            var messageBusHandlerSettings = new MessageBusHarnessSettings
+                                                {
+                                                    PersistenceConnectionString = this.messageBusPersistenceConnectionString,
+                                                    RoleSettings =
+                                                        new MessageBusHarnessRoleSettingsExecutor
+                                                            {
+                                                                ChannelsToMonitor
+                                                                    =
+                                                                    channelsToMonitor,
+                                                                HandlerAssemblyPath
+                                                                    =
+                                                                    SetupStepFactory
+                                                                    .RootDeploymentPath,
+                                                                WorkerCount
+                                                                    =
+                                                                    configToCreateWith
+                                                                        .InstanceType
+                                                                        .VirtualCores
+                                                                    ?? 1,
+                                                                PollingTimeSpan
+                                                                    =
+                                                                    TimeSpan
+                                                                    .FromMinutes(1)
+                                                            }
+                                                };
 
             var messageBusHandlerSettingsJson = Serializer.Serialize(messageBusHandlerSettings);
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
