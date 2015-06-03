@@ -133,16 +133,14 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public ICollection<Package> GetPackages(ICollection<PackageDescription> packageDescriptions)
+        public Package GetPackage(PackageDescription packageDescription)
         {
-            var ret = packageDescriptions.Select(
-                _ =>
-                new Package
-                {
-                    PackageDescription = _,
-                    PackageFileBytes = this.GetPackageFile(_),
-                    PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
-                }).ToList();
+            var ret = new Package
+                          {
+                              PackageDescription = packageDescription,
+                              PackageFileBytes = this.GetPackageFile(packageDescription),
+                              PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
+                          };
 
             return ret;
         }

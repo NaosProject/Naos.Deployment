@@ -96,7 +96,6 @@ namespace Naos.Deployment.Core.Test
                                                             SizeInGb = 50,
                                                         }
                                                 },
-                                        InitializationStrategies = new[] { new InitializationStrategyWeb(),  },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 
@@ -106,7 +105,6 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(1, appliedConfig.Volumes.Count);
             Assert.Equal(defaultConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
-            Assert.Equal(defaultConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
         }
 
@@ -149,7 +147,6 @@ namespace Naos.Deployment.Core.Test
                                                                RamInGb = 10,
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
-                                        InitializationStrategies = new[] { new InitializationStrategyWeb(),  },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 
@@ -159,7 +156,6 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
             Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
-            Assert.Equal(overrideConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
         }
     }

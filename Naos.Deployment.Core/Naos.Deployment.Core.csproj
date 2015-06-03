@@ -85,6 +85,7 @@
     <Compile Include="CloudInfrastructureNamer.cs" />
     <Compile Include="ComputingInfrastructureTracker.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
+    <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />

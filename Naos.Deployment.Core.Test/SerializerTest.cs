@@ -31,7 +31,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single());
@@ -54,7 +54,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyDatabase), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().DatabaseName);
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyWeb), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyWeb>().Single().PrimaryDns);

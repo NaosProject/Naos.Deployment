@@ -6,7 +6,6 @@
 
 namespace Naos.Deployment.Contract
 {
-    using System.Collections;
     using System.Collections.Generic;
 
     /// <summary>
@@ -22,7 +21,7 @@ namespace Naos.Deployment.Contract
         /// <param name="instanceName">Name of the instance the deployment will reside on.</param>
         /// <param name="deploymentConfigOverride">Optional overrides to the deployment configuration.</param>
         void DeployPackages(
-            ICollection<PackageDescription> packagesToDeploy,
+            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string environment,
             string instanceName,
             DeploymentConfiguration deploymentConfigOverride = null);

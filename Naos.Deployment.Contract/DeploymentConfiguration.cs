@@ -29,13 +29,8 @@ namespace Naos.Deployment.Contract
         public ICollection<Volume> Volumes { get; set; }
 
         /// <summary>
-        /// Gets or sets the initialization strategies of the deployment.
-        /// </summary>
-        public ICollection<InitializationStrategyBase> InitializationStrategies { get; set; }
-
-        /// <summary>
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
-        public ICollection<PackageDescription> ChocolateyPackages { get; set; } 
+        public ICollection<PackageDescription> ChocolateyPackages { get; set; }
     }
 }

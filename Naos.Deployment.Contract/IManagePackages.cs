@@ -37,10 +37,10 @@ namespace Naos.Deployment.Contract
         byte[] GetPackageFile(PackageDescription packageDescription);
 
         /// <summary>
-        /// Gets package files for a list of package descriptions.
+        /// Gets package file for a package description.
         /// </summary>
-        /// <param name="packageDescriptions">Package descriptions to get files for.</param>
-        /// <returns>List of packages (description and file).</returns>
-        ICollection<Package> GetPackages(ICollection<PackageDescription> packageDescriptions);
+        /// <param name="packageDescription">Package description to get file for.</param>
+        /// <returns>Package (description and file).</returns>
+        Package GetPackage(PackageDescription packageDescription);
     }
 }

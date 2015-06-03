@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core
                 return @"
 {
 param(
-    [string] $WebRootPath
+    [string] $WebRootPath,
 	[string] $Domain,
 	[string] $CertPath,
 	[SecureString] $CertPassword,
@@ -178,7 +178,7 @@ catch
     Write-Error """"
     Write-Error ""  END   Error Details:""
     Write-Error """"
-    Write-Error wr""ERROR DURING EXECUTION""
+    Write-Error ""ERROR DURING EXECUTION""
     Write-Error """"
     
     throw

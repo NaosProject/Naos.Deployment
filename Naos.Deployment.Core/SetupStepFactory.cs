@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core
             var deployUnzippedFileStep = GetCopyAndUnzipPackageStep(packagedConfig);
             ret.Add(deployUnzippedFileStep);
 
-            foreach (var initializationStrategy in packagedConfig.DeploymentConfiguration.InitializationStrategies)
+            foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
                 var initSteps = this.GetStrategySpecificSetupSteps(initializationStrategy, packagedConfig, environment);
                 ret.AddRange(initSteps);
@@ -108,7 +108,7 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(updateWebConfigScriptBlock, updateWebConfigScriptParams)
                     });
 
-            foreach (var itsConfigOverride in itsConfigOverrides)
+            foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
                 var itsFileSubPath = string.Format(
                     ".config/{0}/{1}.json",
@@ -139,8 +139,12 @@ namespace Naos.Deployment.Core
                                        ? ApplicationPoolStartMode.OnDemand
                                        : webStrategy.AppPoolStartMode;
 
-            var autoStartProviderName = webStrategy.AutoStartProvider.Name;
-            var autoStartProviderType = webStrategy.AutoStartProvider.Type;
+            var autoStartProviderName = webStrategy.AutoStartProvider == null
+                                            ? null
+                                            : webStrategy.AutoStartProvider.Name;
+            var autoStartProviderType = webStrategy.AutoStartProvider == null
+                                            ? null
+                                            : webStrategy.AutoStartProvider.Type;
 
             var enableSni = false;
             var addHostHeaders = true;

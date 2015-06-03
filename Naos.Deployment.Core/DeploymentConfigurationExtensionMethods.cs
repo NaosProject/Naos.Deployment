@@ -68,9 +68,6 @@ namespace Naos.Deployment.Core
                                           VirtualCores = deploymentConfigs.Max(_ => _.InstanceType.VirtualCores),
                                       },
                               InstanceAccessibility = accessibilityToUse,
-                              InitializationStrategies =
-                                  deploymentConfigs.SelectMany(
-                                      _ => _.InitializationStrategies).ToList(),
                               Volumes = deploymentConfigs.SelectMany(_ => _.Volumes).ToList(),
                           };
 
@@ -105,9 +102,6 @@ namespace Naos.Deployment.Core
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
                                   ?? deploymentConfigInitial.InstanceType,
-                              InitializationStrategies =
-                                  deploymentConfigOverride.InitializationStrategies
-                                  ?? deploymentConfigInitial.InitializationStrategies,
                               Volumes =
                                   deploymentConfigOverride.Volumes
                                   ?? deploymentConfigInitial.Volumes,
@@ -152,9 +146,6 @@ namespace Naos.Deployment.Core
                               InstanceType =
                                   (deploymentConfigInitial == null ? null : deploymentConfigInitial.InstanceType)
                                   ?? defaultDeploymentConfig.InstanceType,
-                              InitializationStrategies =
-                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.InitializationStrategies)
-                                  ?? defaultDeploymentConfig.InitializationStrategies,
                               Volumes =
                                   (deploymentConfigInitial == null ? null : deploymentConfigInitial.Volumes)
                                   ?? defaultDeploymentConfig.Volumes,

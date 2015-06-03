@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
 
         private readonly DeploymentConfiguration defaultDeploymentConfig;
 
-        private readonly PackageDescription messageBusHandlerHarnessPackageDescription;
+        private readonly PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides;
 
         private readonly Action<string> announce;
 
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
-        /// <param name="messageBusHandlerHarnessPackageDescription">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
+        /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
@@ -49,7 +49,7 @@ namespace Naos.Deployment.Core
             IManagePackages packageManager,
             IGetCertificates certificateRetriever,
             DeploymentConfiguration defaultDeploymentConfig,
-            PackageDescription messageBusHandlerHarnessPackageDescription,
+            PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
             Action<string> announcer)
         {
             this.tracker = tracker;
@@ -57,20 +57,20 @@ namespace Naos.Deployment.Core
             this.packageManager = packageManager;
             this.setupStepFactory = new SetupStepFactory(certificateRetriever);
             this.defaultDeploymentConfig = defaultDeploymentConfig;
-            this.messageBusHandlerHarnessPackageDescription = messageBusHandlerHarnessPackageDescription;
+            this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
             this.announce = announcer;
         }
 
         /// <inheritdoc />
         public void DeployPackages(
-            ICollection<PackageDescription> packagesToDeploy,
+            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string environment,
             string instanceName,
             DeploymentConfiguration deploymentConfigOverride = null)
         {
             if (packagesToDeploy == null)
             {
-                packagesToDeploy = new List<PackageDescription>();
+                packagesToDeploy = new List<PackageDescriptionWithOverrides>();
             }
 
             if (packagesToDeploy.Count > 1)
@@ -83,30 +83,17 @@ namespace Naos.Deployment.Core
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
-            this.TerminateInstancesBeingReplaced(packagesToDeploy, environment);
+            this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment);
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
                 "Downloading packages that are to be deployed; IDs: "
                 + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
-            var packages = this.packageManager.GetPackages(packagesToDeploy);
 
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = string.Format(".config/{0}/Deployment.json", environment);
 
-            this.announce("Searching for deployment configs in packages to be deployed.");
-            var packagedDeploymentConfigs =
-                packages.Select(
-                    _ =>
-                    new PackagedDeploymentConfiguration()
-                        {
-                            Package = _,
-                            DeploymentConfiguration =
-                                Serializer.Deserialize<DeploymentConfiguration>(
-                                    this.packageManager.GetFileContentsFromPackage(
-                                        _,
-                                        deploymentFileSearchPattern)),
-                        }).ToList();
+            var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
 
             // apply default values to any nulls
             this.announce("Applying default deployment configuration options.");
@@ -123,9 +110,9 @@ namespace Naos.Deployment.Core
             // set config to use for creation
             var configToCreateWith = overriddenConfig;
 
-            // apply newly constructed configs across all configs (merging initialization strategies)
+            // apply newly constructed configs across all configs
             var packagedDeploymentConfigsWithDefaultsAndOverrides =
-                packagedDeploymentConfigs.OverrideDeploymentConfigAndMergeInitializationStrategies(configToCreateWith);
+                packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
             // create new aws instance(s)
             this.announce("Creating new instance; Name: " + instanceName);
@@ -143,10 +130,8 @@ namespace Naos.Deployment.Core
 
             // get all message bus handler initializations to know if we need a handler.
             var messageBusInitializations =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
-                    _ =>
-                    _.DeploymentConfiguration.InitializationStrategies.Select(
-                        strat => strat as InitializationStrategyMessageBusHandler)).Where(_ => _ != null).ToList();
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
 
             if (messageBusInitializations.Any())
             {
@@ -178,10 +163,8 @@ namespace Naos.Deployment.Core
 
             // get all web initializations to update any DNS entries on the public IP address.
             var webInitializations =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
-                    _ =>
-                    _.DeploymentConfiguration.InitializationStrategies.Select(
-                        strat => strat as InitializationStrategyWeb)).Where(_ => _ != null).ToList();
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .GetInitializationStrategiesOf<InitializationStrategyWeb>();
 
             foreach (var webInitialization in webInitializations)
             {
@@ -192,13 +175,49 @@ namespace Naos.Deployment.Core
             }
         }
 
+        private ICollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
+            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
+            string deploymentFileSearchPattern)
+        {
+            var packagedDeploymentConfigs = packagesToDeploy.Select(
+                packageDescriptionWithOverrides =>
+                    {
+                        var package = this.packageManager.GetPackage(packageDescriptionWithOverrides);
+                        var deploymentConfig =
+                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
+                                this.packageManager.GetFileContentsFromPackage(package, deploymentFileSearchPattern));
+
+                        // take overrides if present, otherwise take existing, otherwise take empty
+                        var initializationStrategies = packageDescriptionWithOverrides.InitializationStrategies != null
+                                                       && packageDescriptionWithOverrides.InitializationStrategies.Count
+                                                       > 0
+                                                           ? packageDescriptionWithOverrides.InitializationStrategies
+                                                           : deploymentConfig.InitializationStrategies
+                                                             ?? new List<InitializationStrategyBase>();
+
+                        var newItem = new PackagedDeploymentConfiguration
+                                          {
+                                              Package = package,
+                                              DeploymentConfiguration = deploymentConfig,
+                                              InitializationStrategies =
+                                                  initializationStrategies,
+                                              ItsConfigOverrides =
+                                                  packageDescriptionWithOverrides
+                                                  .ItsConfigOverrides,
+                                          };
+                        return newItem;
+                    }).ToList();
+
+            return packagedDeploymentConfigs;
+        }
+
         private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(
             string instanceName,
             ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations,
             DeploymentConfiguration configToCreateWith)
         {
             var messageBusHandlerPackage =
-                this.packageManager.GetPackages(new[] { this.messageBusHandlerHarnessPackageDescription }).Single();
+                this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
 
             var privateQueueName = instanceName;
             var channelsToMonitor =
@@ -218,22 +237,43 @@ namespace Naos.Deployment.Core
 
             var messageBusHandlerSettingsJson = Serializer.Serialize(messageBusHandlerSettings);
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
-            {
-                DeploymentConfiguration = configToCreateWith,
-                Package = messageBusHandlerPackage,
-                ItsConfigOverrides =
-                    new[]
+                                            {
+                                                DeploymentConfiguration =
+                                                    configToCreateWith,
+                                                Package = messageBusHandlerPackage,
+                                                ItsConfigOverrides =
+                                                    new[]
                                                         {
                                                             new ItsConfigOverride
                                                                 {
-                                                                    FileNameWithoutExtension =
+                                                                    FileNameWithoutExtension
+                                                                        =
                                                                         "MessageBusHarnessSettings",
                                                                     FileContentsJson
                                                                         =
                                                                         messageBusHandlerSettingsJson
                                                                 }
                                                         }
-            };
+                                                    .Concat(
+                                                        this
+                                                    .handlerHarnessPackageDescriptionWithOverrides
+                                                    .ItsConfigOverrides).ToList(),
+                                                InitializationStrategies =
+                                                    this
+                                                    .handlerHarnessPackageDescriptionWithOverrides
+                                                    .InitializationStrategies,
+                                            };
+
+            // apply instance name replacement if applicable on DNS
+            foreach (
+                var initializationStrategy in
+                    harnessPackagedConfig.GetInitializationStrategiesOf<InitializationStrategyWeb>())
+            {
+                initializationStrategy.PrimaryDns = initializationStrategy.PrimaryDns.Replace(
+                    "{instanceName}",
+                    instanceName);
+            }
+
             return harnessPackagedConfig;
         }
 
