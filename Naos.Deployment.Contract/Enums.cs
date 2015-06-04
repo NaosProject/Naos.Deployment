@@ -35,7 +35,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Indicates that it's irrelevant to this deployment.
         /// </summary>
-        DoesntMatter = 0,
+        DoesNotMatter = 0,
 
         /// <summary>
         /// Indicates accessible only inside the private network.
@@ -53,6 +53,16 @@ namespace Naos.Deployment.Contract
     /// </summary>
     public enum WindowsSku
     {
+        /// <summary>
+        /// Indicates that it's irrelevant to this deployment.
+        /// </summary>
+        DoesNotMatter,
+
+        /// <summary>
+        /// Core SKU (without UI or SQL).
+        /// </summary>
+        Core,
+
         /// <summary>
         /// Base SKU (without SQL).
         /// </summary>

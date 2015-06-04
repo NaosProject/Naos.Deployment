@@ -18,6 +18,7 @@ namespace Naos.Deployment.Core
     public class CloudInfrastructureManager : IManageCloudInfrastructure
     {
         private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
+        private const string AmiIdKeyForSystemSpecificDictionary = "amiId";
         private readonly ITrackComputingInfrastructure tracker;
 
         private CredentialContainer credentials;
@@ -226,7 +227,14 @@ namespace Naos.Deployment.Core
 
             var createdInstance = instanceToCreate.Create(userData, this.credentials);
 
-            var systemSpecificDetails = new Dictionary<string, string>();
+            var systemSpecificDetails = new Dictionary<string, string>
+                                            {
+                                                {
+                                                    AmiIdKeyForSystemSpecificDictionary,
+                                                    createdInstance.Ami.Id
+                                                }
+                                            };
+
             if (createdInstance.ElasticIp != null)
             {
                 systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);

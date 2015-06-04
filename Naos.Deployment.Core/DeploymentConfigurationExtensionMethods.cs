@@ -32,22 +32,19 @@ namespace Naos.Deployment.Core
 
             // Check if there are conflicting levels of accessibility
             var distinctPubliclyAccessible =
-                deploymentConfigs.Where(
-                    _ =>
-                    _.InstanceAccessibility != null && _.InstanceAccessibility != InstanceAccessibility.DoesntMatter)
+                deploymentConfigs.Where(_ => _.InstanceAccessibility != InstanceAccessibility.DoesNotMatter)
                     .Select(_ => _.InstanceAccessibility)
                     .Distinct()
                     .ToList();
+
             if (distinctPubliclyAccessible.Count > 1)
             {
                 throw new DeploymentException("Cannot deploy packages with differing requirements of accessibly.");
             }
 
-            // if the distinct (minus 'DoesntMatter') has a count of 1 then the first non-null/'DoesntMatter' will be the value to use.
+            // if the distinct (minus 'DoesNotMatter') has a count of 1 then the first non-null/'DoesNotMatter' will be the value to use.
             var firstOrDefaultPubliclyAccessibility =
-                deploymentConfigs.FirstOrDefault(
-                    _ =>
-                    _.InstanceAccessibility != null && _.InstanceAccessibility != InstanceAccessibility.DoesntMatter);
+                deploymentConfigs.FirstOrDefault(_ => _.InstanceAccessibility != InstanceAccessibility.DoesNotMatter);
             var accessibilityToUse = firstOrDefaultPubliclyAccessibility == null
                                          ? InstanceAccessibility.Private
                                          : firstOrDefaultPubliclyAccessibility.InstanceAccessibility;
@@ -61,14 +58,24 @@ namespace Naos.Deployment.Core
 
             var ret = new DeploymentConfiguration()
                           {
-                              InstanceType =
+                              InstanceType = 
                                   new InstanceType
                                       {
-                                          RamInGb = deploymentConfigs.Max(_ => _.InstanceType.RamInGb),
-                                          VirtualCores = deploymentConfigs.Max(_ => _.InstanceType.VirtualCores),
+                                          RamInGb =
+                                              deploymentConfigs.Max(
+                                                  _ => _.InstanceType == null ? 0 : _.InstanceType.RamInGb),
+                                          VirtualCores =
+                                              deploymentConfigs.Max(
+                                                  _ =>
+                                                  _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
                                       },
                               InstanceAccessibility = accessibilityToUse,
-                              Volumes = deploymentConfigs.SelectMany(_ => _.Volumes).ToList(),
+                              Volumes = deploymentConfigs.SelectMany(_ => _.Volumes ?? new List<Volume>()).ToList(),
+                              WindowsSku =
+                                  GetLargestWindowsSku(
+                                      deploymentConfigs.Select(_ => _.WindowsSku)
+                                  .Distinct()
+                                  .ToList()),
                           };
 
             return ret;
@@ -91,9 +98,16 @@ namespace Naos.Deployment.Core
 
             var instanceAccessibility = deploymentConfigInitial.InstanceAccessibility;
             var overrideAccessibility = deploymentConfigOverride.InstanceAccessibility;
-            if (overrideAccessibility != null && overrideAccessibility != InstanceAccessibility.DoesntMatter)
+            if (overrideAccessibility != InstanceAccessibility.DoesNotMatter)
             {
                 instanceAccessibility = overrideAccessibility;
+            }
+
+            var windowsSku = deploymentConfigInitial.WindowsSku;
+            var overrideWindowsSku = deploymentConfigOverride.WindowsSku;
+            if (overrideWindowsSku != WindowsSku.DoesNotMatter)
+            {
+                windowsSku = overrideWindowsSku;
             }
 
             var ret = new DeploymentConfiguration()
@@ -108,6 +122,7 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages =
                                   deploymentConfigOverride.ChocolateyPackages
                                   ?? deploymentConfigInitial.ChocolateyPackages,
+                              WindowsSku = windowsSku,
                           };
 
             return ret;
@@ -128,16 +143,25 @@ namespace Naos.Deployment.Core
                 throw new ArgumentException("Cannot apply defaults from a null definition", "defaultDeploymentConfig");
             }
 
-            var accessibilityValue = deploymentConfigInitial == null ? InstanceAccessibility.DoesntMatter : deploymentConfigInitial.InstanceAccessibility;
-            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            var accessibilityValue = deploymentConfigInitial == null ? InstanceAccessibility.DoesNotMatter : deploymentConfigInitial.InstanceAccessibility;
+            if (accessibilityValue == InstanceAccessibility.DoesNotMatter)
             {
                 accessibilityValue = defaultDeploymentConfig.InstanceAccessibility;
             }
 
             // if the default isn't actually specifying anything then default private for safety
-            if (accessibilityValue == null || accessibilityValue == InstanceAccessibility.DoesntMatter)
+            if (accessibilityValue == InstanceAccessibility.DoesNotMatter)
             {
                 accessibilityValue = InstanceAccessibility.Private;
+            }
+
+            var windowsSku = deploymentConfigInitial == null
+                                 ? WindowsSku.DoesNotMatter
+                                 : deploymentConfigInitial.WindowsSku;
+
+            if (windowsSku == WindowsSku.DoesNotMatter)
+            {
+                windowsSku = defaultDeploymentConfig.WindowsSku;
             }
 
             var ret = new DeploymentConfiguration()
@@ -152,9 +176,47 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages = 
                                   (deploymentConfigInitial == null ? null : deploymentConfigInitial.ChocolateyPackages)
                                   ?? defaultDeploymentConfig.ChocolateyPackages,
+                              WindowsSku = windowsSku,
                           };
 
             return ret;
+        }
+
+        private static WindowsSku GetLargestWindowsSku(ICollection<WindowsSku> windowsSkus)
+        {
+            if (windowsSkus == null || windowsSkus.Count == 0)
+            {
+                return WindowsSku.DoesNotMatter;
+            }
+
+            if (windowsSkus.Count == 1)
+            {
+                return windowsSkus.Single();
+            }
+
+            if (windowsSkus.Contains(WindowsSku.SqlStandard))
+            {
+                return WindowsSku.SqlStandard;
+            }
+
+            if (windowsSkus.Contains(WindowsSku.SqlWeb))
+            {
+                return WindowsSku.SqlWeb;
+            }
+
+            if (windowsSkus.Contains(WindowsSku.Base))
+            {
+                return WindowsSku.Base;
+            }
+
+            if (windowsSkus.Contains(WindowsSku.Core))
+            {
+                return WindowsSku.Core;
+            }
+
+            throw new NotSupportedException(
+                "Could not find the appropriate Windows SKU from the list (perhaps there is an unsupported type in there): "
+                + string.Join(",", windowsSkus));
         }
     }
 }

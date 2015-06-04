@@ -21,7 +21,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the accessibility of the instance.
         /// </summary>
-        public InstanceAccessibility? InstanceAccessibility { get; set; }
+        public InstanceAccessibility InstanceAccessibility { get; set; }
 
         /// <summary>
         /// Gets or sets the volumes to add to the instance.

@@ -102,7 +102,7 @@ namespace Naos.Deployment.Core
             webSteps.Add(
                 new SetupStep()
                     {
-                        Description = "Update Its.Config precedence",
+                        Description = "Update Its.Config precedence: " + environment,
                         SetupAction =
                             (machineManager) =>
                             machineManager.RunScript(updateWebConfigScriptBlock, updateWebConfigScriptParams)
@@ -122,7 +122,7 @@ namespace Naos.Deployment.Core
                     new SetupStep()
                         {
                             Description =
-                                "Write Its.Config file - " + itsConfigOverride.FileNameWithoutExtension,
+                                "(Over)write Its.Config file: " + itsConfigOverride.FileNameWithoutExtension,
                             SetupAction =
                                 (machineManager) => machineManager.SendFile(itsFilePath, itsFileBytes)
                         });
@@ -158,7 +158,7 @@ namespace Naos.Deployment.Core
             webSteps.Add(
                 new SetupStep()
                     {
-                        Description = "Send certificate file",
+                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
                         SetupAction =
                             (machineManager) => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
                     });
@@ -166,7 +166,7 @@ namespace Naos.Deployment.Core
             webSteps.Add(
                 new SetupStep()
                     {
-                        Description = "Install IIS and tools",
+                        Description = "Install IIS and configure website/webservice (this could take several minutes).",
                         SetupAction =
                             (machineManager) =>
                             machineManager.RunScript(InstallScriptBlocks.InstallWeb, installWebParameters)
@@ -182,16 +182,19 @@ namespace Naos.Deployment.Core
             var unzipScript = InstallScriptBlocks.UnzipFile;
             var unzipParams = new[] { packageFilePath, packageDirectoryPath };
             var deployUnzippedFileStep = new SetupStep
-                                                   {
-                                                       Description = "Push package file and unzip.",
-                                                       SetupAction = (machineManager) =>
-                                                           {
-                                                               machineManager.SendFile(
-                                                                   packageFilePath,
-                                                                   packagedConfig.Package.PackageFileBytes);
-                                                               machineManager.RunScript(unzipScript, unzipParams);
-                                                           }
-                                                   };
+                                             {
+                                                 Description =
+                                                     "Push package file and unzip: "
+                                                     + packagedConfig.Package.PackageDescription
+                                                           .GetIdDotVersionString(),
+                                                 SetupAction = (machineManager) =>
+                                                     {
+                                                         machineManager.SendFile(
+                                                             packageFilePath,
+                                                             packagedConfig.Package.PackageFileBytes);
+                                                         machineManager.RunScript(unzipScript, unzipParams);
+                                                     }
+                                             };
 
             return deployUnzippedFileStep;
         }
@@ -205,11 +208,11 @@ namespace Naos.Deployment.Core
                 installChocoStep = new SetupStep
                 {
                     Description =
-                        "Install Chocolatey Packages; IDs: "
+                        "Install Chocolatey Packages: "
                         + string.Join(
                             ",",
                             packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                              .Select(_ => _.Id)),
+                              .Select(_ => _.GetIdDotVersionString())),
                     SetupAction = (machineManager) =>
                     {
                         var installChocolateyPackagesLines =

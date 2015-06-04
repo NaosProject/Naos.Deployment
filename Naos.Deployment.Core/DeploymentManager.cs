@@ -153,7 +153,9 @@ namespace Naos.Deployment.Core
             foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
             {
                 var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
-                this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
+                this.announce(
+                    "Running setup actions for package: "
+                    + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
                 foreach (var setupStep in setupSteps)
                 {
                     this.announce("  - " + setupStep.Description);
