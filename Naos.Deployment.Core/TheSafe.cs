@@ -100,7 +100,14 @@ namespace Naos.Deployment.Core
         /// <returns>Image search pattern to use.</returns>
         public string FindImageSearchPattern(DeploymentConfiguration deploymentConfig)
         {
-            return this.DefaultInstanceImageSearchPattern;
+            string searchPattern;
+            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.WindowsSku, out searchPattern);
+            if (!success)
+            {
+                throw new NotSupportedException("Unsupported Windows SKU: " + deploymentConfig.WindowsSku);
+            }
+
+            return searchPattern;
         }
 
         /// <summary>
@@ -114,9 +121,9 @@ namespace Naos.Deployment.Core
         public IDictionary<string, string> RootDomainHostingIdMap { get; set; } 
 
         /// <summary>
-        /// Gets or sets the configured search pattern.
+        /// Gets or sets the a map of configured search patterns to Windows SKU's.
         /// </summary>
-        public string DefaultInstanceImageSearchPattern { get; set; }
+        public IDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
 
         /// <summary>
         /// Gets or sets the wrapped instances.

@@ -47,4 +47,25 @@ namespace Naos.Deployment.Contract
         /// </summary>
         Public = 2,
     }
+
+    /// <summary>
+    /// Enumeration of the different SKU's of windows that are available.
+    /// </summary>
+    public enum WindowsSku
+    {
+        /// <summary>
+        /// Base SKU (without SQL).
+        /// </summary>
+        Base,
+
+        /// <summary>
+        /// SQL Web SKU.
+        /// </summary>
+        SqlWeb,
+
+        /// <summary>
+        /// SQL Standard SKU.
+        /// </summary>
+        SqlStandard,
+    }
 }

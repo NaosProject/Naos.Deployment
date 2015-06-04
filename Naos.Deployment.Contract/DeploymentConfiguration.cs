@@ -32,5 +32,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
         public ICollection<PackageDescription> ChocolateyPackages { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Windows SKU to use.
+        /// </summary>
+        public WindowsSku WindowsSku { get; set; }
     }
 }

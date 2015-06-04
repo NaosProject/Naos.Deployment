@@ -156,6 +156,7 @@ namespace Naos.Deployment.Core
                 this.announce("Running setup actions for package ID: " + packagedConfig.Package.PackageDescription.Id);
                 foreach (var setupStep in setupSteps)
                 {
+                    this.announce("  - " + setupStep.Description);
                     setupStep.SetupAction(machineManager);
                 }
              
