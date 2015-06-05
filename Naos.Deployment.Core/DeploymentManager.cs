@@ -78,11 +78,6 @@ namespace Naos.Deployment.Core
                 packagesToDeploy = new List<PackageDescriptionWithOverrides>();
             }
 
-            if (packagesToDeploy.Count > 1)
-            {
-                throw new NotSupportedException("Currently deploying multiple packages at once is not supported.");
-            }
-
             if (string.IsNullOrEmpty(instanceName))
             {
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
@@ -138,12 +133,19 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
 
-            if (messageBusInitializations.Any())
+            // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
+            var notAlreadyDeployingTheSamePackageAsHandlersUse =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.All(
+                    _ => _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
+            if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
             {
                 // if we have any message bus handlers that are being deployed then we need to also deploy the harness
+                var itsConfigOverridesForHandlers =
+                    packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.ItsConfigOverrides).ToList();
                 var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
                     instanceName,
                     messageBusInitializations,
+                    itsConfigOverridesForHandlers,
                     configToCreateWith);
 
                 packagedDeploymentConfigsWithDefaultsAndOverrides.Add(
@@ -166,7 +168,6 @@ namespace Naos.Deployment.Core
                 this.tracker.ProcessDeployedPackage(
                     createdInstanceDescription.Id,
                     packagedConfig.Package.PackageDescription);
-                this.announce("Finished deployment.");
             }
 
             // get all web initializations to update any DNS entries on the public IP address.
@@ -179,8 +180,10 @@ namespace Naos.Deployment.Core
                 this.cloudManager.UpsertDnsEntry(
                     createdInstanceDescription.Location,
                     webInitialization.PrimaryDns,
-                    new[] { createdInstanceDescription.PublicIpAddress });
+                    new[] { createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress });
             }
+
+            this.announce("Finished deployment.");
         }
 
         private ICollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
@@ -222,8 +225,26 @@ namespace Naos.Deployment.Core
         private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(
             string instanceName,
             ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations,
+            ICollection<ItsConfigOverride> itsConfigOverrides, 
             DeploymentConfiguration configToCreateWith)
         {
+            // TODO:    Maybe this should be exclusively done with that provided package and 
+            // TODO:        only update the private channel to monitor and directory of packages...
+
+            // Create a new list to use for the overrides of the handler harness deployment
+            var itsConfigOverridesToUse = new List<ItsConfigOverride>();
+            if (itsConfigOverrides != null)
+            {
+                // merge in any ItsConfig overrides supplied with handler packages
+                itsConfigOverridesToUse.AddRange(itsConfigOverrides);
+            }
+
+            if (this.handlerHarnessPackageDescriptionWithOverrides.ItsConfigOverrides != null)
+            {
+                // merge in any overrides specified with the handler package
+                itsConfigOverridesToUse.AddRange(this.handlerHarnessPackageDescriptionWithOverrides.ItsConfigOverrides);
+            }
+
             var messageBusHandlerPackage =
                 this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
 
@@ -231,55 +252,48 @@ namespace Naos.Deployment.Core
             var channelsToMonitor =
                 new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor)).ToList();
 
+            var executorRoleSettings = new[]
+                                           {
+                                               new MessageBusHarnessRoleSettingsExecutor
+                                                   {
+                                                       ChannelsToMonitor =
+                                                           channelsToMonitor,
+                                                       HandlerAssemblyPath =
+                                                           SetupStepFactory
+                                                           .RootDeploymentPath,
+                                                       WorkerCount =
+                                                           configToCreateWith
+                                                               .InstanceType
+                                                               .VirtualCores ?? 1,
+                                                       PollingTimeSpan =
+                                                           TimeSpan.FromMinutes(1)
+                                                   }
+                                           };
+
             var messageBusHandlerSettings = new MessageBusHarnessSettings
                                                 {
-                                                    PersistenceConnectionString = this.messageBusPersistenceConnectionString,
-                                                    RoleSettings =
-                                                        new MessageBusHarnessRoleSettingsExecutor
-                                                            {
-                                                                ChannelsToMonitor
-                                                                    =
-                                                                    channelsToMonitor,
-                                                                HandlerAssemblyPath
-                                                                    =
-                                                                    SetupStepFactory
-                                                                    .RootDeploymentPath,
-                                                                WorkerCount
-                                                                    =
-                                                                    configToCreateWith
-                                                                        .InstanceType
-                                                                        .VirtualCores
-                                                                    ?? 1,
-                                                                PollingTimeSpan
-                                                                    =
-                                                                    TimeSpan
-                                                                    .FromMinutes(1)
-                                                            }
+                                                    PersistenceConnectionString =
+                                                        this
+                                                        .messageBusPersistenceConnectionString,
+                                                    RoleSettings = executorRoleSettings
                                                 };
 
+            // add the override that will activate the harness in executor mode.
             var messageBusHandlerSettingsJson = Serializer.Serialize(messageBusHandlerSettings);
+            itsConfigOverridesToUse.Add(
+                new ItsConfigOverride
+                    {
+                        FileNameWithoutExtension = "MessageBusHarnessSettings",
+                        FileContentsJson = messageBusHandlerSettingsJson
+                    });
+
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
                                             {
                                                 DeploymentConfiguration =
                                                     configToCreateWith,
                                                 Package = messageBusHandlerPackage,
                                                 ItsConfigOverrides =
-                                                    new[]
-                                                        {
-                                                            new ItsConfigOverride
-                                                                {
-                                                                    FileNameWithoutExtension
-                                                                        =
-                                                                        "MessageBusHarnessSettings",
-                                                                    FileContentsJson
-                                                                        =
-                                                                        messageBusHandlerSettingsJson
-                                                                }
-                                                        }
-                                                    .Concat(
-                                                        this
-                                                    .handlerHarnessPackageDescriptionWithOverrides
-                                                    .ItsConfigOverrides).ToList(),
+                                                    itsConfigOverridesToUse,
                                                 InitializationStrategies =
                                                     this
                                                     .handlerHarnessPackageDescriptionWithOverrides

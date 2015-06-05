@@ -75,17 +75,17 @@ namespace Naos.Deployment.Core
                     environment);
                 ret.AddRange(webSteps);
             }
-            else if (packagedConfig.GetType() == typeof(InitializationStrategyMessageBusHandler))
+            else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
             }
-            else if (packagedConfig.GetType() == typeof(InitializationStrategyDatabase))
+            else if (strategy.GetType() == typeof(InitializationStrategyDatabase))
             {
                 throw new NotImplementedException();
             }
             else
             {
-                throw new NotSupportedException("The initialization strategy type is not supported: " + packagedConfig.GetType());
+                throw new NotSupportedException("The initialization strategy type is not supported: " + strategy.GetType());
             }
 
             return ret;

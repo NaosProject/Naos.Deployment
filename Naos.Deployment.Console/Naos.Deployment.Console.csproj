@@ -36,8 +36,9 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Console.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AWSSDK">
-      <HintPath>..\packages\AWSSDK.2.3.37.0\lib\net45\AWSSDK.dll</HintPath>
+    <Reference Include="AWSSDK, Version=2.3.40.0, Culture=neutral, PublicKeyToken=9f476d3089b52be3, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\AWSSDK.2.3.40.0\lib\net45\AWSSDK.dll</HintPath>
     </Reference>
     <Reference Include="CLAP">
       <HintPath>..\packages\CLAP.4.6\lib\net35\CLAP.dll</HintPath>
@@ -45,11 +46,13 @@
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Contract">
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.5\lib\45\Naos.AWS.Contract.dll</HintPath>
+    <Reference Include="Naos.AWS.Contract, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.6\lib\45\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.5\lib\45\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Naos.AWS.Core.1.0.6\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Naos.WinRM">
       <HintPath>..\packages\Naos.WinRM.1.0.16\lib\45\Naos.WinRM.dll</HintPath>
@@ -61,8 +64,9 @@
     <Reference Include="OBeautifulCode.Libs.Collections">
       <HintPath>..\packages\OBeautifulCode.Libs.Collections.1.0.3\lib\45\OBeautifulCode.Libs.Collections.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Libs.String">
-      <HintPath>..\packages\OBeautifulCode.Libs.String.1.0.3\lib\45\OBeautifulCode.Libs.String.dll</HintPath>
+    <Reference Include="OBeautifulCode.Libs.String, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\OBeautifulCode.Libs.String.1.0.5\lib\45\OBeautifulCode.Libs.String.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

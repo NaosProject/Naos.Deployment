@@ -56,6 +56,28 @@ namespace Naos.Deployment.Core
                 return singleValueToReturn;
             }
 
+            var allVolumes = deploymentConfigs.SelectMany(_ => _.Volumes ?? new List<Volume>()).ToList();
+            var distinctDriveLetters = allVolumes.Select(_ => _.DriveLetter).Distinct().ToList();
+            var volumes = new List<Volume>();
+            foreach (var distinctDriveLetter in distinctDriveLetters)
+            {
+                var sizeInGb = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).Max(_ => _.SizeInGb);
+                volumes.Add(new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb });
+            }
+
+            var allChocolateyPackages =
+                deploymentConfigs.SelectMany(_ => _.ChocolateyPackages ?? new List<PackageDescription>()).ToList();
+
+            // thin out duplicates
+            var distinctPackageStrings =
+                allChocolateyPackages.Select(_ => _.GetIdDotVersionString()).Distinct().ToList();
+            var chocolateyPackagesToUse = new List<PackageDescription>();
+            foreach (var packageString in distinctPackageStrings)
+            {
+                chocolateyPackagesToUse.Add(
+                    allChocolateyPackages.First(_ => _.GetIdDotVersionString() == packageString));
+            }
+
             var ret = new DeploymentConfiguration()
                           {
                               InstanceType = 
@@ -70,7 +92,8 @@ namespace Naos.Deployment.Core
                                                   _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
                                       },
                               InstanceAccessibility = accessibilityToUse,
-                              Volumes = deploymentConfigs.SelectMany(_ => _.Volumes ?? new List<Volume>()).ToList(),
+                              Volumes = volumes,
+                              ChocolateyPackages = chocolateyPackagesToUse,
                               WindowsSku =
                                   GetLargestWindowsSku(
                                       deploymentConfigs.Select(_ => _.WindowsSku)

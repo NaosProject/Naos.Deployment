@@ -49,6 +49,27 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
+        {
+            var first = new DeploymentConfiguration()
+                            {
+                                Volumes =
+                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } }
+                            };
+
+            var second = new DeploymentConfiguration()
+                             {
+                                 Volumes =
+                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50 } }
+                             };
+
+            var flattenedConfig = new[] { first, second }.Flatten();
+            Assert.Equal(1, flattenedConfig.Volumes.Count);
+            Assert.Equal("C", flattenedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(100, flattenedConfig.Volumes.Single().SizeInGb);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsConflictingAccesiblity_Throws()
         {
             var deploymentConfigs = new[]
@@ -102,6 +123,36 @@ namespace Naos.Deployment.Core.Test
             testSkuCombo(WindowsSku.SqlWeb, WindowsSku.SqlStandard);
 
             testSkuCombo(WindowsSku.SqlStandard, WindowsSku.SqlStandard);
+        }
+
+        [Fact]
+        public static void Flatten_MultipleChocolateyPackages_MergedDistinctly()
+        {
+            var deploymentConfigs = new[]
+                                        {
+                                            new DeploymentConfiguration()
+                                                {
+                                                    ChocolateyPackages =
+                                                        new[]
+                                                            {
+                                                                new PackageDescriptionWithOverrides() { Id = "Monkeys" },
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
+                                                            }
+                                                },
+                                            new DeploymentConfiguration()
+                                                {
+                                                    ChocolateyPackages =
+                                                        new[]
+                                                            {
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
+                                                            }
+                                                },
+                                        };
+
+            var flattened = deploymentConfigs.Flatten();
+            Assert.Equal(2, flattened.ChocolateyPackages.Count);
+            Assert.Equal("Monkeys", flattened.ChocolateyPackages.First().Id);
+            Assert.Equal("PandaBears", flattened.ChocolateyPackages.Skip(1).First().Id);
         }
 
         [Fact]
