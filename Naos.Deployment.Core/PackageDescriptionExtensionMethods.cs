@@ -26,6 +26,6 @@ namespace Naos.Deployment.Core
         {
             var ret = withStrategies.Select(_ => new PackageDescription { Id = _.Id, Version = _.Version }).ToList();
             return ret;
-        } 
+        }
     }
 }

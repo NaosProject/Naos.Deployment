@@ -94,11 +94,19 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string DownloadPackage(PackageDescription packageDescription, string workingDirectory)
+        public ICollection<string> DownloadPackages(ICollection<PackageDescription> packageDescriptions, string workingDirectory, bool includeDependencies = false)
         {
             // credential override for below taken from: http://stackoverflow.com/questions/18594613/setting-the-package-credentials-using-nuget-core-dll
             var settings = Settings.LoadDefaultSettings(null, null, null);
-            var packageSource = new PackageSource(this.repoConfig.Source, this.repoConfig.SourceName) { UserName = this.repoConfig.Username, Password = this.repoConfig.Password };
+            var packageSource = new PackageSource(this.repoConfig.Source, this.repoConfig.SourceName)
+            {
+                UserName =
+                    this.repoConfig
+                    .Username,
+                Password =
+                    this.repoConfig
+                    .Password
+            };
             var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource });
             var credentialProvider = new SettingsCredentialProvider(NullCredentialProvider.Instance, packageSourceProvider);
             HttpClient.DefaultCredentialProvider = credentialProvider;
@@ -106,25 +114,49 @@ namespace Naos.Deployment.Core
             // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
             var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
             var packageManager = new NuGet.PackageManager(repo, workingDirectory);
-        
-            // Download and SUPPOSED to unzip but it doesn't so that's below...
-            var version = SemanticVersion.ParseOptionalVersion(packageDescription.Version);
-            packageManager.InstallPackage(packageDescription.Id, version, true, true);
 
-            // unzip nupkg (expects that it's in isolated storage (so a single nupkg)...
-            var file =
-                Directory.GetFiles(workingDirectory, packageDescription.Id + "*.nupkg", SearchOption.AllDirectories)
-                    .Single();
+            var workingDirectorySnapshotBefore = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
 
-            return file;
+            foreach (var packageDescription in packageDescriptions)
+            {
+                var version = SemanticVersion.ParseOptionalVersion(packageDescription.Version);
+                var ignoreDependencies = !includeDependencies;
+                packageManager.InstallPackage(packageDescription.Id, version, ignoreDependencies, true);
+            }
+
+            var workingDirectorySnapshotAfter = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
+
+            var ret =
+                workingDirectorySnapshotAfter.Except(workingDirectorySnapshotBefore)
+                    .Where(_ => _.EndsWith(".nupkg"))
+                    .ToList();
+
+            return ret;
         }
 
         /// <inheritdoc />
-        public byte[] GetPackageFile(PackageDescription packageDescription)
+        public byte[] GetPackageFile(PackageDescription packageDescription, bool bundleAllDependencies = false)
         {
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageDownload-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
-            var packageFile = this.DownloadPackage(packageDescription, workingDirectory);
-            var ret = File.ReadAllBytes(packageFile);
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageDownload-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss--fff"));
+            byte[] ret;
+            if (bundleAllDependencies)
+            {
+                var packageFilePaths = this.DownloadPackages(new[] { packageDescription }, workingDirectory, true);
+                var bundleStagePath = Path.Combine(workingDirectory, "BundleStage");
+                foreach (var packageFilePath in packageFilePaths)
+                {
+                    ZipFile.ExtractToDirectory(packageFilePath, bundleStagePath);
+                }
+
+                var bundledFilePath = Path.Combine(workingDirectory, packageDescription.Id + "_DependenciesBundled.zip");
+                ZipFile.CreateFromDirectory(bundleStagePath, bundledFilePath);
+                ret = File.ReadAllBytes(bundledFilePath);
+            }
+            else
+            {
+                var packageFilePath = this.DownloadPackages(new[] { packageDescription }, workingDirectory).Single();
+                ret = File.ReadAllBytes(packageFilePath);
+            }
 
             // clean up temp files
             Directory.Delete(workingDirectory, true);
@@ -133,12 +165,12 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public Package GetPackage(PackageDescription packageDescription)
+        public Package GetPackage(PackageDescription packageDescription, bool bundleAllDependencies)
         {
             var ret = new Package
                           {
                               PackageDescription = packageDescription,
-                              PackageFileBytes = this.GetPackageFile(packageDescription),
+                              PackageFileBytes = this.GetPackageFile(packageDescription, bundleAllDependencies),
                               PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
                           };
 

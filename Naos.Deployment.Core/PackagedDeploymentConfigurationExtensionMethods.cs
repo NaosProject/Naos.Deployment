@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Deployment.Core;
 
     /// <summary>
     /// Additional behavior to add the initialization strategies.
@@ -57,24 +58,8 @@ namespace Naos.Deployment.Core
         public static ICollection<T> GetInitializationStrategiesOf<T>(
             this ICollection<PackagedDeploymentConfiguration> baseCollection) where T : InitializationStrategyBase
         {
-            var ret =
-                baseCollection.SelectMany(_ => _.InitializationStrategies.Select(strat => strat as T))
-                    .Where(_ => _ != null)
-                    .ToList();
+            var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
 
-            return ret;
-        }
-
-        /// <summary>
-        /// Retrieves the initialization strategies matching the specified type.
-        /// </summary>
-        /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
-        /// <param name="baseObject">Base packaged configuration to operate on.</param>
-        /// <returns>Collection of initialization strategies matching the type specified.</returns>
-        public static ICollection<T> GetInitializationStrategiesOf<T>(
-            this PackagedDeploymentConfiguration baseObject) where T : InitializationStrategyBase
-        {
-            var ret = baseObject.InitializationStrategies.Select(_ => _ as T).Where(_ => _ != null).ToList();
             return ret;
         }
 

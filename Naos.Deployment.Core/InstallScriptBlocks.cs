@@ -230,6 +230,49 @@ catch
             }
         }
 
+        public static string CreateDirectoryWithFullControl
+        {
+            get
+            {
+                return @"
+{
+param(
+	[string] $DirectoryPath,
+	[string] $UserToGiveFullControlTo
+	)
+
+try
+{
+    md $DirectoryPath
+    $acl = Get-Acl $DirectoryPath
+    $permission = $UserToGiveFullControlTo, 'FullControl', 'Allow'
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+    $acl.SetAccessRule($accessRule)
+    $acl | Set-Acl $DirectoryPath
+}
+catch
+{
+    Write-Error """"
+    Write-Error ""ERROR DURING EXECUTION @ $([DateTime]::Now.ToString('yyyyMMdd-HHmm'))""
+    Write-Error """"
+    Write-Error ""  BEGIN Error Details:""
+    Write-Error """"
+    Write-Error ""   $_""
+    Write-Error ""   IN FILE: $($_.InvocationInfo.ScriptName)""
+    Write-Error ""   AT LINE: $($_.InvocationInfo.ScriptLineNumber) OFFSET: $($_.InvocationInfo.OffsetInLine)""
+    Write-Error """"
+    Write-Error ""  END   Error Details:""
+    Write-Error """"
+    Write-Error ""ERROR DURING EXECUTION""
+    Write-Error """"
+    
+    throw
+}
+}
+";
+            }
+        }
+
         public static string UpdateItsConfigPrecedence
         {
             get

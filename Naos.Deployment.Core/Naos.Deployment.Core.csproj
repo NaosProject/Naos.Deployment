@@ -87,6 +87,7 @@
     <Compile Include="CloudInfrastructureNamer.cs" />
     <Compile Include="ComputingInfrastructureTracker.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
+    <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />

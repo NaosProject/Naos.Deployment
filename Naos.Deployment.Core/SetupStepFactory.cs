@@ -75,13 +75,32 @@ namespace Naos.Deployment.Core
                     environment);
                 ret.AddRange(webSteps);
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyDatabase))
+            {
+                var databaseSteps = new List<SetupStep>();
+                var createBackupDirScript = InstallScriptBlocks.CreateDirectoryWithFullControl;
+                var createBackupDirParams = new[] { "D:\\Backups\\", "NT SERVICE\\MSSQLSERVER" }; // this is the user that AWS will run SQL as for SQL SKU'ed Windows
+                databaseSteps.Add(
+                    new SetupStep()
+                    {
+                        Description = "Create D:\\Backups and grant rights to SQL service account.",
+                        SetupAction =
+                            (machineManager) =>
+                            machineManager.RunScript(createBackupDirScript, createBackupDirParams)
+                    });
+
+                // TODO: finish this...
+                // Get SA account working
+                // Create database
+                // Create/add necessary users (and roles)?
+                // Restore from backup?
+                // Apply Migration?
+                ret.AddRange(databaseSteps);
+                throw new NotImplementedException();
+            }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
-            }
-            else if (strategy.GetType() == typeof(InitializationStrategyDatabase))
-            {
-                throw new NotImplementedException();
             }
             else
             {

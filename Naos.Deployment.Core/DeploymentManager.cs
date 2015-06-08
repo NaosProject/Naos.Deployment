@@ -193,7 +193,12 @@ namespace Naos.Deployment.Core
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
                     {
-                        var package = this.packageManager.GetPackage(packageDescriptionWithOverrides);
+                        // decide whether we need to get all of the dependencies or just the normal package
+                        var bundleAllDependencies = packageDescriptionWithOverrides.InitializationStrategies != null
+                                                    && packageDescriptionWithOverrides
+                                                           .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
+
+                        var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
                         var deploymentConfig =
                             Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
                                 this.packageManager.GetFileContentsFromPackage(package, deploymentFileSearchPattern));
