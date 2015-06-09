@@ -46,6 +46,9 @@
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
+    <Reference Include="Its.Configuration">
+      <HintPath>..\packages\Its.Configuration.0.10.1\lib\net40\Its.Configuration.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.AWS.Contract, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Contract.1.0.6\lib\45\Naos.AWS.Contract.dll</HintPath>
@@ -69,11 +72,13 @@
       <HintPath>..\packages\OBeautifulCode.Libs.String.1.0.5\lib\45\OBeautifulCode.Libs.String.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Naos.External.MS-WinRM.1.0.0.0\lib\40\System.Management.Automation.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -81,6 +86,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".config\Default\CloudInfrastructureManagerSettings.json" />
+    <None Include=".config\Default\SetupStepFactorySettings.json" />
     <Compile Include="Deployer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

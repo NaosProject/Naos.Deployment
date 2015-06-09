@@ -2,6 +2,8 @@
   <GlobalSettings>
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
     <CollectionProperty Name="RecognizedWords">
+      <Value>Powershell</Value>
+      <Value>powershell</Value>
       <Value>Chocolatey</Value>
       <Value>AppVeyor</Value>
       <Value>Aws</Value>

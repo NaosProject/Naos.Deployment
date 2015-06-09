@@ -14,6 +14,8 @@ namespace Naos.Deployment.Console
 
     using CLAP;
 
+    using Its.Configuration;
+
     using Naos.AWS.Contract;
     using Naos.Deployment.Contract;
     using Naos.Deployment.Core;
@@ -106,11 +108,13 @@ namespace Naos.Deployment.Console
             var packageManager = new PackageManager(repoConfig, unzipDirPath);
             var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
+            var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var deploymentManager = new DeploymentManager(
                 tracker,
                 cloudManager,
                 packageManager,
                 tracker,
+                setupFactorySettings,
                 defaultDeploymentConfig,
                 messageBusHandlerHarnessPackageDescription,
                 messageBusPersistenceConnectionString,

@@ -37,6 +37,9 @@
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
+    <Reference Include="Dapper">
+      <HintPath>..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
@@ -47,6 +50,9 @@
     <Reference Include="Naos.AWS.Core, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.6\lib\45\Naos.AWS.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Database.Tools">
+      <HintPath>..\packages\Naos.Database.Tools.1.0.27\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.DataContract, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -91,7 +97,6 @@
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />
-    <Compile Include="InstallScriptBlocks.cs" />
     <Compile Include="NaosInstanceExtensionMethods.cs" />
     <Compile Include="PackagedDeploymentConfiguration.cs" />
     <Compile Include="PackageDescriptionIdOnlyEqualityComparer.cs" />

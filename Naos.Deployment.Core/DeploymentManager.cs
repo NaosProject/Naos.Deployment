@@ -42,6 +42,7 @@ namespace Naos.Deployment.Core
         /// <param name="cloudManager">Manager of the cloud infrastructure (wraps custom cloud interactions).</param>
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
+        /// <param name="setupStepFactorySettings">Settings for the setup step factory.</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
@@ -51,6 +52,7 @@ namespace Naos.Deployment.Core
             IManageCloudInfrastructure cloudManager,
             IManagePackages packageManager,
             IGetCertificates certificateRetriever,
+            SetupStepFactorySettings setupStepFactorySettings,
             DeploymentConfiguration defaultDeploymentConfig,
             PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
             string messageBusPersistenceConnectionString,
@@ -59,7 +61,7 @@ namespace Naos.Deployment.Core
             this.tracker = tracker;
             this.cloudManager = cloudManager;
             this.packageManager = packageManager;
-            this.setupStepFactory = new SetupStepFactory(certificateRetriever);
+            this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever);
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
