@@ -19,6 +19,8 @@ namespace Naos.Deployment.Core
     {
         private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
         private const string AmiIdKeyForSystemSpecificDictionary = "amiId";
+
+        private readonly CloudInfrastructureManagerSettings settings;
         private readonly ITrackComputingInfrastructure tracker;
 
         private CredentialContainer credentials;
@@ -26,9 +28,11 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Initializes a new instance of the <see cref="CloudInfrastructureManager"/> class.
         /// </summary>
+        /// <param name="settings">Settings for things like instance type maps, etc.</param>
         /// <param name="tracker">Tracking the resources manager.</param>
-        public CloudInfrastructureManager(ITrackComputingInfrastructure tracker)
+        public CloudInfrastructureManager(CloudInfrastructureManagerSettings settings, ITrackComputingInfrastructure tracker)
         {
+            this.settings = settings;
             this.tracker = tracker;
         }
 
@@ -151,19 +155,14 @@ namespace Naos.Deployment.Core
 
             Func<string, string> getDeviceNameFromDriveLetter = delegate(string driveLetter)
                 {
-                    switch (driveLetter)
+                    string mapResult;
+                    var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out mapResult);
+                    if (!foundResult)
                     {
-                        case "C":
-                            return "/dev/sda1";
-                        case "D":
-                            return "xvdb";
-                        case "E":
-                            return "xvdc";
-                        case "F":
-                            return "xvdd";
-                        default:
-                            throw new NotSupportedException("Drive letter not supported: " + driveLetter);
+                        throw new NotSupportedException("Drive letter not supported: " + driveLetter);
                     }
+
+                    return mapResult;
                 };
 
             var mappedVolumes =
@@ -179,7 +178,7 @@ namespace Naos.Deployment.Core
                             VirtualName = _.DriveLetter
                         }).ToList();
 
-            var awsInstanceType = GetAwsInstanceType(deploymentConfiguration.InstanceType);
+            var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
             var instancePrivateDns = namer.GetPrivateDns();
             var instanceName = namer.GetInstanceName();
             var existing = this.tracker.GetInstanceIdByName(instanceName);
@@ -223,7 +222,7 @@ namespace Naos.Deployment.Core
                                                  };
             }
 
-            var userData = new UserData() { Data = this.GetUserData(name) };
+            var userData = new UserData() { Data = this.settings.GetInstanceCreationUserData(name) };
 
             var createdInstance = instanceToCreate.Create(userData, this.credentials);
 
@@ -280,99 +279,19 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="instanceType">Instance type to use as basis.</param>
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
-        public static string GetAwsInstanceType(InstanceType instanceType)
+        public string GetAwsInstanceType(InstanceType instanceType)
         {
-            var theDatasheet = new[]
-                                   {
-                                       new { AwsType = "t1.micro", RamInGb = 0.613, VirtualCores = 1 },
-                                       new { AwsType = "t2.medium", RamInGb = 4.0, VirtualCores = 2 },
-                                       new { AwsType = "t2.micro", RamInGb = 1.0, VirtualCores = 1 },
-                                       new { AwsType = "t2.small", RamInGb = 2.0, VirtualCores = 1 },
-                                       new { AwsType = "m1.small", RamInGb = 1.7, VirtualCores = 1 },
-                                       new { AwsType = "m1.medium", RamInGb = 3.75, VirtualCores = 1 },
-                                       new { AwsType = "m1.large", RamInGb = 7.5, VirtualCores = 2 },
-                                       new { AwsType = "m1.xlarge", RamInGb = 15.0, VirtualCores = 4 },
-                                       new { AwsType = "m2.xlarge", RamInGb = 17.1, VirtualCores = 2 },
-                                       new { AwsType = "m2.2xlarge", RamInGb = 34.2, VirtualCores = 4 },
-                                       new { AwsType = "m2.4xlarge", RamInGb = 68.4, VirtualCores = 8 },
-                                       new { AwsType = "m3.large", RamInGb = 7.5, VirtualCores = 2 },
-                                       new { AwsType = "m3.medium", RamInGb = 3.75, VirtualCores = 1 },
-                                       new { AwsType = "m3.xlarge", RamInGb = 15.0, VirtualCores = 4 },
-                                       new { AwsType = "m3.2xlarge", RamInGb = 30.0, VirtualCores = 8 },
-                                       new { AwsType = "c1.medium", RamInGb = 1.7, VirtualCores = 2 },
-                                       new { AwsType = "c1.xlarge", RamInGb = 7.0, VirtualCores = 8 },
-                                       new { AwsType = "c3.large", RamInGb = 3.75, VirtualCores = 2 },
-                                       new { AwsType = "c3.xlarge", RamInGb = 7.5, VirtualCores = 4 },
-                                       new { AwsType = "c3.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
-                                       new { AwsType = "c3.4xlarge", RamInGb = 30.0, VirtualCores = 16 },
-                                       new { AwsType = "c3.8xlarge", RamInGb = 60.0, VirtualCores = 32 },
-                                       new { AwsType = "c4.large", RamInGb = 3.75, VirtualCores = 2 },
-                                       new { AwsType = "c4.xlarge", RamInGb = 7.5, VirtualCores = 4 },
-                                       new { AwsType = "c4.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
-                                       new { AwsType = "c4.4xlarge", RamInGb = 30.0, VirtualCores = 16 },
-                                       new { AwsType = "c4.8xlarge", RamInGb = 60.0, VirtualCores = 36 },
-                                       new { AwsType = "g2.2xlarge", RamInGb = 15.0, VirtualCores = 8 },
-                                       new { AwsType = "r3.large", RamInGb = 15.25, VirtualCores = 2 },
-                                       new { AwsType = "r3.xlarge", RamInGb = 30.5, VirtualCores = 4 },
-                                       new { AwsType = "r3.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
-                                       new { AwsType = "r3.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
-                                       new { AwsType = "r3.8xlarge", RamInGb = 244.0, VirtualCores = 32 },
-                                       new { AwsType = "i2.xlarge", RamInGb = 30.5, VirtualCores = 4 },
-                                       new { AwsType = "i2.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
-                                       new { AwsType = "i2.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
-                                       new { AwsType = "i2.8xlarge", RamInGb = 244.0, VirtualCores = 32 },
-                                       new { AwsType = "d2.xlarge", RamInGb = 30.5, VirtualCores = 4 },
-                                       new { AwsType = "d2.2xlarge", RamInGb = 61.0, VirtualCores = 8 },
-                                       new { AwsType = "d2.4xlarge", RamInGb = 122.0, VirtualCores = 16 },
-                                       new { AwsType = "d2.8xlarge", RamInGb = 244.0, VirtualCores = 36 },
-                                   };
-
-            foreach (var type in theDatasheet)
+            foreach (var type in this.settings.AwsInstanceTypes)
             {
                 if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
                 {
-                    return type.AwsType;
+                    return type.AwsInstanceTypeDescriptor;
                 }
             }
 
             throw new NotSupportedException(
                 "Could not find an AWS instance type that could support the specified needs; VirtualCores: "
                 + instanceType.VirtualCores + ", RamInGb: " + instanceType.RamInGb);
-        }
-
-        private string GetUserData(string name)
-        {
-            return @"
-<powershell>
-# BLOCK NAME: powershellBlock-enableRemoting
-winrm quickconfig -q
-winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=""300""}'
-winrm set winrm/config '@{MaxTimeoutms=""1800000""}'
-netsh advfirewall firewall add rule name=""WinRM 5985"" protocol=TCP dir=in localport=5985 action=allow
-netsh advfirewall firewall add rule name=""WinRM 5986"" protocol=TCP dir=in localport=5986 action=allow
-net stop winrm
-sc.exe config winrm start=auto
-net start winrm
-
-# BLOCK NAME: powershellBlock-enableScriptExecution
-Set-ExecutionPolicy 'Unrestricted' -Force
-
-# ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY
-$windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings
-$windowsUpdateSettings.NotificationLevel = 4
-$windowsUpdateSettings.Save()
-
-# ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)
-NET STOP W32Time
-NET START W32Time
-
-# ADDING COMMAND TO INSTALL CHOCOLATEY FOR APPLICATION INSTALLS LATER
-iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))
-
-# ADDING RENAME COMMAND BECAUSE 'computerName' WAS PRESENT IN CONFIG
-Rename-Computer -NewName '" + name + @"' -Force
-</powershell>
-                    ";
         }
 
         /// <inheritdoc />

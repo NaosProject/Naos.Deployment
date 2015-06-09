@@ -93,9 +93,12 @@ namespace Naos.Deployment.Console
             var packagesToDeploy =
                 Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);
 
+            var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
+            var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
+
             var tracker = new ComputingInfrastructureTracker(trackingFilePath);
             var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
-            var cloudManager = new CloudInfrastructureManager(tracker).InitializeCredentials(credentials);
+            var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
             var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.WorkingDirectory");
@@ -108,7 +111,6 @@ namespace Naos.Deployment.Console
             var packageManager = new PackageManager(repoConfig, unzipDirPath);
             var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
-            var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var deploymentManager = new DeploymentManager(
                 tracker,
                 cloudManager,
