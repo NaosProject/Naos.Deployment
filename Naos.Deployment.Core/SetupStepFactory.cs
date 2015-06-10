@@ -222,8 +222,19 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams)
                 });
 
+            var restartSqlServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
+            var restartSqlServerParams = new[] { this.settings.DatabaseServerSettings.SqlServiceName };
+            databaseSteps.Add(
+                new SetupStep
+                {
+                    Description = "Restart SQL server for account change(s) to take effect.",
+                    SetupAction =
+                        machineManager =>
+                        machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams)
+                });
+
             var connectionString = "Server=localhost; user id=sa; password=" + databaseStrategy.AdministratorPassword;
-            var databaseFileNameSettings = databaseStrategy.DatabaseSettings.DatabaseFileNameSettings
+            var databaseFileNameSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileNameSettings
                                             ?? new DatabaseFileNameSettings
                                                    {
                                                        DataFileLogicalName = databaseStrategy.DatabaseName + "Dat",
@@ -231,7 +242,7 @@ namespace Naos.Deployment.Core
                                                        LogFileLogicalName = databaseStrategy.DatabaseName + "Log",
                                                        LogFileNameOnDisk = databaseStrategy.DatabaseName + ".log"
                                                    };
-            var databaseFileSizeSettings = databaseStrategy.DatabaseSettings.DatabaseFileSizeSettings
+            var databaseFileSizeSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileSizeSettings
                                             ?? this.settings.DefaultDatabaseFileSizeSettings;
             var databaseConfiguration = new DatabaseConfiguration
                                             {
@@ -249,13 +260,17 @@ namespace Naos.Deployment.Core
                                                 LogFileGrowthSizeInKb = databaseFileSizeSettings.LogFileGrowthSizeInKb
                                             };
             databaseSteps.Add(
-                new SetupStep 
-                {
-                    Description = "Create database: " + databaseStrategy.DatabaseName,
-                    SetupAction =
-                        machineManager =>
-                        DatabaseManager.Create(connectionString, databaseConfiguration)
-                });
+                new SetupStep
+                    {
+                        Description = "Create database: " + databaseStrategy.DatabaseName,
+                        SetupAction = machineManager =>
+                            {
+                                var realRemoteConnectionString = connectionString.Replace(
+                                    "localhost",
+                                    machineManager.IpAddress);
+                                DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                            }
+                    });
 
             // TODO: finish out these optional scenarios...
             // Create/add necessary users (and roles)?

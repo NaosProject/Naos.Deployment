@@ -37,6 +37,21 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Designed to chain with the constructor this will make sure the default working directory is cleaned up (for failed previous runs).
+        /// </summary>
+        /// <returns>Current object to allow chaining with constructor.</returns>
+        public PackageManager WithCleanWorkingDirectory()
+        {
+            if (Directory.Exists(this.defaultWorkingDirectory))
+            {
+                Directory.Delete(this.defaultWorkingDirectory, true);
+            }
+
+            Directory.CreateDirectory(this.defaultWorkingDirectory);
+            return this;
+        }
+
+        /// <summary>
         /// Compares the distinct package IDs of two sets for equality.
         /// </summary>
         /// <param name="firstSet">First set of packages to compare.</param>
@@ -115,6 +130,11 @@ namespace Naos.Deployment.Core
             var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
             var packageManager = new NuGet.PackageManager(repo, workingDirectory);
 
+            if (!Directory.Exists(workingDirectory))
+            {
+                Directory.CreateDirectory(workingDirectory);
+            }
+
             var workingDirectorySnapshotBefore = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
 
             foreach (var packageDescription in packageDescriptions)
@@ -137,15 +157,17 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public byte[] GetPackageFile(PackageDescription packageDescription, bool bundleAllDependencies = false)
         {
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageDownload-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss--fff"));
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "Down-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss--fff"));
             byte[] ret;
             if (bundleAllDependencies)
             {
                 var packageFilePaths = this.DownloadPackages(new[] { packageDescription }, workingDirectory, true);
-                var bundleStagePath = Path.Combine(workingDirectory, "BundleStage");
+                var bundleStagePath = Path.Combine(workingDirectory, "Bundle");
                 foreach (var packageFilePath in packageFilePaths)
                 {
-                    ZipFile.ExtractToDirectory(packageFilePath, bundleStagePath);
+                    var packageName = new FileInfo(packageFilePath).Name.Replace(".nupkg", string.Empty);
+                    var targetPath = Path.Combine(bundleStagePath, packageName);
+                    ZipFile.ExtractToDirectory(packageFilePath, targetPath);
                 }
 
                 var bundledFilePath = Path.Combine(workingDirectory, packageDescription.Id + "_DependenciesBundled.zip");

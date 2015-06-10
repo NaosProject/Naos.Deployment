@@ -47,9 +47,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.6\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.WinRM, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.WinRM, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.WinRM.1.0.16\lib\45\Naos.WinRM.dll</HintPath>
+      <HintPath>..\packages\Naos.WinRM.1.0.17\lib\45\Naos.WinRM.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

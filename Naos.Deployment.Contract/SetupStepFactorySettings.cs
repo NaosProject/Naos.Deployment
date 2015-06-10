@@ -35,6 +35,11 @@ namespace Naos.Deployment.Contract
     public class DatabaseServerSettings
     {
         /// <summary>
+        /// Gets or sets the Windows service name that is running SQL Server.
+        /// </summary>
+        public string SqlServiceName { get; set; }
+
+        /// <summary>
         /// Gets or sets the Windows account that is running SQL Server.
         /// </summary>
         public string SqlServiceAccount { get; set; }
@@ -79,6 +84,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the script block to unzip a file.
         /// </summary>
         public ScriptBlockDescription UnzipFile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to restart a windows service.
+        /// </summary>
+        public ScriptBlockDescription RestartWindowsService { get; set; }
     }
 
     /// <summary>

@@ -101,14 +101,14 @@ namespace Naos.Deployment.Console
             var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
-            var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.WorkingDirectory");
+            var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
             var messageBusHandlerHarnessPackageDescription =
                 Serializer.Deserialize<PackageDescriptionWithOverrides>(messageBusHandlerHarnessPackageDescriptionJson);
 
-            var packageManager = new PackageManager(repoConfig, unzipDirPath);
+            var packageManager = new PackageManager(repoConfig, unzipDirPath).WithCleanWorkingDirectory();
             var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
             var deploymentManager = new DeploymentManager(
