@@ -216,7 +216,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep 
                 {
-                    Description = "Enable SA account and set password.",
+                    Description = "Turn on Mixed Mode Auth, enable SA account, and set password.",
                     SetupAction =
                         machineManager =>
                         machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams)
