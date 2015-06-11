@@ -168,6 +168,14 @@ namespace Naos.Deployment.Core
                     var packageName = new FileInfo(packageFilePath).Name.Replace(".nupkg", string.Empty);
                     var targetPath = Path.Combine(bundleStagePath, packageName);
                     ZipFile.ExtractToDirectory(packageFilePath, targetPath);
+                    
+                    // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35 - only keep net45...).
+                    var libPath = Path.Combine(targetPath, "lib");
+                    var unnecessaryFrameworks = Directory.GetDirectories(libPath).OrderByDescending(_ => _).Skip(1).ToList();
+                    foreach (var unnecessaryFramework in unnecessaryFrameworks)
+                    {
+                        Directory.Delete(unnecessaryFramework, true);
+                    }
                 }
 
                 var bundledFilePath = Path.Combine(workingDirectory, packageDescription.Id + "_DependenciesBundled.zip");
