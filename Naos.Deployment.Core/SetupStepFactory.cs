@@ -312,13 +312,20 @@ namespace Naos.Deployment.Core
                                         "localhost",
                                         machineManager.IpAddress);
 
-                                    var restoreFilePath = Path.GetTempFileName();
+                                    var localRestoreFilePath = Path.GetTempFileName();
                                     var regionEndpoint = RegionEndpoint.GetBySystemName(awsRestore.Region);
                                     var client = new AmazonS3Client(awsRestore.DownloadAccessKey, awsRestore.DownloadSecretKey, regionEndpoint);
                                     var transferUtility = new TransferUtility(client);
-                                    transferUtility.Download(restoreFilePath, awsRestore.BucketName, awsRestore.FileName);
-                                    var restoreFileUri = new Uri(restoreFilePath);
+                                    transferUtility.Download(localRestoreFilePath, awsRestore.BucketName, awsRestore.FileName);
+                                    var restoreFileBytes = File.ReadAllBytes(localRestoreFilePath);
+                                    File.Delete(localRestoreFilePath);
+                                    var restoreFilePath = Path.Combine(
+                                        databaseStrategy.BackupDirectory,
+                                        awsRestore.FileName);
 
+                                    machineManager.SendFile(restoreFilePath, restoreFileBytes);
+
+                                    var restoreFileUri = new Uri(restoreFilePath);
                                     var restoreDetails = new RestoreDetails
                                                              {
                                                                  ChecksumOption = ChecksumOption.Checksum,
@@ -327,7 +334,7 @@ namespace Naos.Deployment.Core
                                                                  DataFilePath = null,
                                                                  LogFilePath = null,
                                                                  RecoveryOption = RecoveryOption.NoRecovery,
-                                                                 ReplaceOption = ReplaceOption.DoNotReplaceExistingDatabaseAndThrow,
+                                                                 ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
                                                                  RestoreFrom = restoreFileUri,
                                                                  RestrictedUserOption = RestrictedUserOption.Normal
                                                              };
@@ -336,9 +343,7 @@ namespace Naos.Deployment.Core
                                         realRemoteConnectionString,
                                         databaseStrategy.Name,
                                         restoreDetails);
-
-                                    File.Delete(restoreFilePath);
-                                }
+                               }
                         });
             }
 
