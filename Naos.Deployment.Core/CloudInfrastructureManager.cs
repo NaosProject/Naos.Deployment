@@ -134,7 +134,7 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public InstanceDescription CreateNewInstance(string name, string environment, DeploymentConfiguration deploymentConfiguration)
         {
-            var instanceDetails = this.tracker.CreateInstanceDetails(deploymentConfiguration);
+            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(deploymentConfiguration);
             var privateDnsRootDomain = this.tracker.GetInstancePrivateDnsRootDomain();
 
             var imageStrategy = new AmiSearchStrategy()
@@ -159,7 +159,7 @@ namespace Naos.Deployment.Core
                     var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out mapResult);
                     if (!foundResult)
                     {
-                        throw new NotSupportedException("Drive letter not supported: " + driveLetter);
+                        throw new DeploymentException("Drive letter not supported: " + driveLetter);
                     }
 
                     return mapResult;
@@ -289,7 +289,7 @@ namespace Naos.Deployment.Core
                 }
             }
 
-            throw new NotSupportedException(
+            throw new DeploymentException(
                 "Could not find an AWS instance type that could support the specified needs; VirtualCores: "
                 + instanceType.VirtualCores + ", RamInGb: " + instanceType.RamInGb);
         }

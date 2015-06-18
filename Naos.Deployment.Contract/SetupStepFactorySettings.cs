@@ -45,6 +45,11 @@ namespace Naos.Deployment.Contract
         public string SqlServiceAccount { get; set; }
 
         /// <summary>
+        /// Gets or sets the Windows account that is running the backup process.
+        /// </summary>
+        public string BackupProcessServiceAccount { get; set; }
+
+        /// <summary>
         /// Gets or sets the default directory to save data files.
         /// </summary>
         public string DefaultDataDirectory { get; set; }

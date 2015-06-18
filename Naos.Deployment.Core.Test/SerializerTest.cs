@@ -49,7 +49,8 @@ namespace Naos.Deployment.Core.Test
 		""SizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""DatabaseName"": ""Monkey"",
+		""Name"": ""Monkey"",
+		""Version"": 11,
 	}],
 }
 ";
@@ -57,7 +58,7 @@ namespace Naos.Deployment.Core.Test
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyDatabase), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().DatabaseName);
+            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().Name);
         }
 
         [Fact]

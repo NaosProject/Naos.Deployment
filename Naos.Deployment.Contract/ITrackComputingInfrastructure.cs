@@ -33,7 +33,7 @@ namespace Naos.Deployment.Contract
         /// </summary>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
         /// <returns>Object holding information necessary to create an instance.</returns>
-        InstanceDetails CreateInstanceDetails(DeploymentConfiguration deploymentConfiguration);
+        InstanceCreationDetails GetNewInstanceCreationDetails(DeploymentConfiguration deploymentConfiguration);
 
         /// <summary>
         /// Adds the instance to the tracking system.

@@ -29,13 +29,13 @@ namespace Naos.Deployment.Core
             for (int idx = container.StartIpsAfter + 1; idx < 256; idx++)
             {
                 var sampleIp = container.Cidr.Replace("0/24", idx.ToString());
-                if (this.Instances.All(_ => _.InstanceDetails.PrivateIpAddress != sampleIp))
+                if (this.Instances.All(_ => _.InstanceCreationDetails.PrivateIpAddress != sampleIp))
                 {
                     return sampleIp;
                 }
             }
 
-            throw new NotSupportedException("Can't find an IPAddress that isn't taken");
+            throw new DeploymentException("Can't find an IPAddress that isn't taken");
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Naos.Deployment.Core
             var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.WindowsSku, out searchPattern);
             if (!success)
             {
-                throw new NotSupportedException("Unsupported Windows SKU: " + deploymentConfig.WindowsSku);
+                throw new DeploymentException("Unsupported Windows SKU: " + deploymentConfig.WindowsSku);
             }
 
             return searchPattern;

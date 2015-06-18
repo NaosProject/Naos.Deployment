@@ -2,6 +2,7 @@
     "DatabaseServerSettings": {
         "SqlServiceName": "MSSQLSERVER",
         "SqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
+        "BackupProcessServiceAccount":  "IIS_IUSRS",
         "DefaultBackupDirectory": "D:\\SqlBackup\\",
         "DefaultDataDirectory": "D:\\SqlData\\"
     },
@@ -346,7 +347,7 @@
                 "param([string] $DirectoryPath, [string] $UserToGiveFullControlTo)",
                 "try",
                 "{",
-                "    md $DirectoryPath",
+                "    if (-not (Test-Path $DirectoryPath)) { md $DirectoryPath }",
                 "    $acl = Get-Acl $DirectoryPath",
                 "    $permission = $UserToGiveFullControlTo, 'FullControl', 'Allow'",
                 "    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission",

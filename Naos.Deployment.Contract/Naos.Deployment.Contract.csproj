@@ -65,7 +65,7 @@
     <Compile Include="InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategyWeb.cs" />
     <Compile Include="InstanceDescription.cs" />
-    <Compile Include="InstanceDetails.cs" />
+    <Compile Include="InstanceCreationDetails.cs" />
     <Compile Include="InstanceType.cs" />
     <Compile Include="ITrackComputingInfrastructure.cs" />
     <Compile Include="ItsConfigOverride.cs" />

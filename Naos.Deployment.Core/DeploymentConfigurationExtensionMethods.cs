@@ -237,7 +237,7 @@ namespace Naos.Deployment.Core
                 return WindowsSku.Core;
             }
 
-            throw new NotSupportedException(
+            throw new DeploymentException(
                 "Could not find the appropriate Windows SKU from the list (perhaps there is an unsupported type in there): "
                 + string.Join(",", windowsSkus));
         }

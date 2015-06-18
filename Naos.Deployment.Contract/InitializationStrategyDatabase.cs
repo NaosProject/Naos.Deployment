@@ -14,12 +14,12 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the name of the database.
         /// </summary>
-        public string DatabaseName { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Gets or sets the migration number to run the migration up to, null will skip.
         /// </summary>
-        public long? MigrationNumber { get; set; }
+        public long? Version { get; set; }
 
         /// <summary>
         /// Gets or sets the administrator password to use.

@@ -90,7 +90,7 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException("The initialization strategy type is not supported: " + strategy.GetType());
+                throw new DeploymentException("The initialization strategy type is not supported: " + strategy.GetType());
             }
 
             return ret;
@@ -198,6 +198,17 @@ namespace Naos.Deployment.Core
                             machineManager =>
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams)
                     });
+            var backupProcessAccount = this.settings.DatabaseServerSettings.BackupProcessServiceAccount;
+            var addBackupProcessAclsToBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var addBackupProcessAclsToBackupDirParams = new[] { backupDirectory, backupProcessAccount };
+            databaseSteps.Add(
+                new SetupStep 
+                    {
+                        Description = "Add rights to " + backupDirectory + " for backup process account.",
+                        SetupAction =
+                            machineManager =>
+                            machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams)
+                    });
 
             var dataDirectory = databaseStrategy.DataDirectory ?? this.settings.DatabaseServerSettings.DefaultDataDirectory;
             var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
@@ -237,16 +248,16 @@ namespace Naos.Deployment.Core
             var databaseFileNameSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileNameSettings
                                             ?? new DatabaseFileNameSettings
                                                    {
-                                                       DataFileLogicalName = databaseStrategy.DatabaseName + "Dat",
-                                                       DataFileNameOnDisk = databaseStrategy.DatabaseName + ".mdb",
-                                                       LogFileLogicalName = databaseStrategy.DatabaseName + "Log",
-                                                       LogFileNameOnDisk = databaseStrategy.DatabaseName + ".log"
+                                                       DataFileLogicalName = databaseStrategy.Name + "Dat",
+                                                       DataFileNameOnDisk = databaseStrategy.Name + ".mdb",
+                                                       LogFileLogicalName = databaseStrategy.Name + "Log",
+                                                       LogFileNameOnDisk = databaseStrategy.Name + ".log"
                                                    };
             var databaseFileSizeSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileSizeSettings
                                             ?? this.settings.DefaultDatabaseFileSizeSettings;
             var databaseConfiguration = new DatabaseConfiguration
                                             {
-                                                DatabaseName = databaseStrategy.DatabaseName,
+                                                DatabaseName = databaseStrategy.Name,
                                                 DatabaseType = DatabaseType.User,
                                                 DataFileLogicalName = databaseFileNameSettings.DataFileLogicalName,
                                                 DataFilePath = Path.Combine(dataDirectory, databaseFileNameSettings.DataFileNameOnDisk),
@@ -262,7 +273,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create database: " + databaseStrategy.DatabaseName,
+                        Description = "Create database: " + databaseStrategy.Name,
                         SetupAction = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace(
