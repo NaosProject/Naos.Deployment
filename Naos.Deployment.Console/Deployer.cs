@@ -120,6 +120,7 @@ namespace Naos.Deployment.Console
                 defaultDeploymentConfig,
                 messageBusHandlerHarnessPackageDescription,
                 messageBusPersistenceConnectionString,
+                cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine);
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
