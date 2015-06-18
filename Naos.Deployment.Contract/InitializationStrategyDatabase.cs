@@ -17,6 +17,11 @@ namespace Naos.Deployment.Contract
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets restore information to apply prior to a migration.
+        /// </summary>
+        public DatabaseRestoreBase Restore { get; set; }
+
+        /// <summary>
         /// Gets or sets the migration number to run the migration up to, null will skip.
         /// </summary>
         public long? Version { get; set; }

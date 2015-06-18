@@ -47,6 +47,7 @@
     <Compile Include="AutoStartProvider.cs" />
     <Compile Include="CloudInfrastructureManagerSettings.cs" />
     <Compile Include="ContainerDetails.cs" />
+    <Compile Include="DatabaseRestoreBase.cs" />
     <Compile Include="DatabaseSettings.cs" />
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentConfiguration.cs" />

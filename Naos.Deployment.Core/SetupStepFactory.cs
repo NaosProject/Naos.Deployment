@@ -12,7 +12,12 @@ namespace Naos.Deployment.Core
     using System.Linq;
     using System.Text;
 
+    using Amazon;
+    using Amazon.S3;
+    using Amazon.S3.Transfer;
+
     using Naos.Database.Tools;
+    using Naos.Database.Tools.Backup;
     using Naos.Deployment.Contract;
 
     /// <summary>
@@ -283,9 +288,62 @@ namespace Naos.Deployment.Core
                             }
                     });
 
+            if (databaseStrategy.Restore != null)
+            {
+                var awsRestore = databaseStrategy.Restore as DatabaseRestoreFromS3;
+                if (awsRestore == null)
+                {
+                    throw new NotSupportedException(
+                        "Currently no support for type of database restore: " + databaseStrategy.Restore.GetType());
+                }
+
+                databaseSteps.Add(
+                    new SetupStep
+                        {
+                            Description =
+                                string.Format(
+                                    "Restore - Region: {0}; Bucket: {1}; File: {2}",
+                                    awsRestore.Region,
+                                    awsRestore.BucketName,
+                                    awsRestore.FileName),
+                            SetupAction = machineManager =>
+                                {
+                                    var realRemoteConnectionString = connectionString.Replace(
+                                        "localhost",
+                                        machineManager.IpAddress);
+
+                                    var restoreFilePath = Path.GetTempFileName();
+                                    var regionEndpoint = RegionEndpoint.GetBySystemName(awsRestore.Region);
+                                    var client = new AmazonS3Client(awsRestore.DownloadAccessKey, awsRestore.DownloadSecretKey, regionEndpoint);
+                                    var transferUtility = new TransferUtility(client);
+                                    transferUtility.Download(restoreFilePath, awsRestore.BucketName, awsRestore.FileName);
+                                    var restoreFileUri = new Uri(restoreFilePath);
+
+                                    var restoreDetails = new RestoreDetails
+                                                             {
+                                                                 ChecksumOption = ChecksumOption.Checksum,
+                                                                 Device = Device.Disk,
+                                                                 ErrorHandling = ErrorHandling.StopOnError,
+                                                                 DataFilePath = null,
+                                                                 LogFilePath = null,
+                                                                 RecoveryOption = RecoveryOption.NoRecovery,
+                                                                 ReplaceOption = ReplaceOption.DoNotReplaceExistingDatabaseAndThrow,
+                                                                 RestoreFrom = restoreFileUri,
+                                                                 RestrictedUserOption = RestrictedUserOption.Normal
+                                                             };
+
+                                    DatabaseManager.RestoreFull(
+                                        realRemoteConnectionString,
+                                        databaseStrategy.Name,
+                                        restoreDetails);
+
+                                    File.Delete(restoreFilePath);
+                                }
+                        });
+            }
+
             // TODO: finish out these optional scenarios...
             // Create/add necessary users (and roles)?
-            // Restore from backup?
             // Apply Migration?
             return databaseSteps;
         }
