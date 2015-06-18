@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
     public class SerializerTest
     {
         [Fact]
-        public static void Deserialize_SingleConsoleInitStrategy_Valid()
+        public static void Deserialize_SingleMessageBusHandlerInitStrategy_Valid()
         {
             var input = @"
 {
@@ -26,15 +26,15 @@ namespace Naos.Deployment.Core.Test
 		""SizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""Arguments"": ""/go"",
+		""ChannelsToMonitor"": [""MyChannel""],
 	}],
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
-            Assert.Equal(typeof(InitializationStrategyConsole), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("/go", deserialized.InitializationStrategies.Cast<InitializationStrategyConsole>().Single().Arguments);
+            Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
+            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single());
         }
 
         [Fact]
@@ -49,15 +49,16 @@ namespace Naos.Deployment.Core.Test
 		""SizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""DatabaseName"": ""Monkey"",
+		""Name"": ""Monkey"",
+		""Version"": 11,
 	}],
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyDatabase), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().DatabaseName);
+            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().Name);
         }
 
         [Fact]
@@ -77,7 +78,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfiguration>(input);
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyWeb), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyWeb>().Single().PrimaryDns);

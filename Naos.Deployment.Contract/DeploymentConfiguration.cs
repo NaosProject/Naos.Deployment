@@ -21,7 +21,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the accessibility of the instance.
         /// </summary>
-        public InstanceAccessibility? InstanceAccessibility { get; set; }
+        public InstanceAccessibility InstanceAccessibility { get; set; }
 
         /// <summary>
         /// Gets or sets the volumes to add to the instance.
@@ -29,13 +29,13 @@ namespace Naos.Deployment.Contract
         public ICollection<Volume> Volumes { get; set; }
 
         /// <summary>
-        /// Gets or sets the initialization strategies of the deployment.
-        /// </summary>
-        public ICollection<InitializationStrategy> InitializationStrategies { get; set; }
-
-        /// <summary>
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
-        public ICollection<PackageDescription> ChocolateyPackages { get; set; } 
+        public ICollection<PackageDescription> ChocolateyPackages { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Windows SKU to use.
+        /// </summary>
+        public WindowsSku WindowsSku { get; set; }
     }
 }

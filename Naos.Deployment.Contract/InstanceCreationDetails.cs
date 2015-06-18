@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceDetails.cs" company="Naos">
+// <copyright file="InstanceCreationDetails.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -9,7 +9,7 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Carries the information necessary to create an instance.
     /// </summary>
-    public class InstanceDetails
+    public class InstanceCreationDetails
     {
         /// <summary>
         /// Gets or sets an object holding the information for looking up an image.

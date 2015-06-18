@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Core
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
 
@@ -46,7 +45,7 @@ namespace Naos.Deployment.Core
         /// <returns>Name to apply to instance.</returns>
         public string GetInstanceName()
         {
-            var name = string.Format("instance-{0}@{1}", this.baseName, this.containerLocation);
+            var name = string.Format("instance-{2}-{0}@{1}", this.baseName, this.containerLocation, this.environment);
             return name;
         }
 
@@ -57,7 +56,7 @@ namespace Naos.Deployment.Core
         /// <returns>Name to apply to volume.</returns>
         public string GetVolumeName(string driveLetter)
         {
-            var name = string.Format("ebs-{2}-{0}@{1}", this.baseName, this.containerLocation, driveLetter);
+            var name = string.Format("ebs-{3}-{0}-{2}@{1}", this.baseName, this.containerLocation, driveLetter, this.environment);
             return name;
         }
 

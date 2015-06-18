@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceType.cs" company="Naos">
+// <copyright file="AutoStartProvider.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -7,18 +7,18 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
-    /// Model object to describe the type/caliber of machine to provision.
+    /// Model object to describe an Auto Start Provider in IIS
     /// </summary>
-    public class InstanceType
+    public class AutoStartProvider
     {
         /// <summary>
-        /// Gets or sets the minimum number of virtual cores necessary.
+        /// Gets or sets the name of the auto start provider.
         /// </summary>
-        public int? VirtualCores { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimum amount of RAM in gigabytes.
+        /// Gets or sets the type of the auto start provider (i.e. "MyNamespace.MyAutoStartProviderClass, MyAssembly").
         /// </summary>
-        public double? RamInGb { get; set; }
+        public string Type { get; set; }
     }
 }

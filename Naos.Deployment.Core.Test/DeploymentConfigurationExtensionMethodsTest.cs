@@ -49,6 +49,27 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
+        {
+            var first = new DeploymentConfiguration()
+                            {
+                                Volumes =
+                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } }
+                            };
+
+            var second = new DeploymentConfiguration()
+                             {
+                                 Volumes =
+                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50 } }
+                             };
+
+            var flattenedConfig = new[] { first, second }.Flatten();
+            Assert.Equal(1, flattenedConfig.Volumes.Count);
+            Assert.Equal("C", flattenedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(100, flattenedConfig.Volumes.Single().SizeInGb);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsConflictingAccesiblity_Throws()
         {
             var deploymentConfigs = new[]
@@ -80,6 +101,61 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_DifferentSkus_LargestWins()
+        {
+            Action<WindowsSku, WindowsSku> testSkuCombo = (smallerSku, largerSku) =>
+                {
+                    var deploymentConfigs = new[]
+                                                {
+                                                    new DeploymentConfiguration() { WindowsSku = smallerSku },
+                                                    new DeploymentConfiguration() { WindowsSku = largerSku },
+                                                };
+
+                    var flattened = deploymentConfigs.Flatten();
+                    Assert.Equal(largerSku, flattened.WindowsSku);
+                };
+
+            testSkuCombo(WindowsSku.Base, WindowsSku.Base);
+            testSkuCombo(WindowsSku.Base, WindowsSku.SqlStandard);
+            testSkuCombo(WindowsSku.Base, WindowsSku.SqlWeb);
+
+            testSkuCombo(WindowsSku.SqlWeb, WindowsSku.SqlWeb);
+            testSkuCombo(WindowsSku.SqlWeb, WindowsSku.SqlStandard);
+
+            testSkuCombo(WindowsSku.SqlStandard, WindowsSku.SqlStandard);
+        }
+
+        [Fact]
+        public static void Flatten_MultipleChocolateyPackages_MergedDistinctly()
+        {
+            var deploymentConfigs = new[]
+                                        {
+                                            new DeploymentConfiguration()
+                                                {
+                                                    ChocolateyPackages =
+                                                        new[]
+                                                            {
+                                                                new PackageDescriptionWithOverrides() { Id = "Monkeys" },
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
+                                                            }
+                                                },
+                                            new DeploymentConfiguration()
+                                                {
+                                                    ChocolateyPackages =
+                                                        new[]
+                                                            {
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
+                                                            }
+                                                },
+                                        };
+
+            var flattened = deploymentConfigs.Flatten();
+            Assert.Equal(2, flattened.ChocolateyPackages.Count);
+            Assert.Equal("Monkeys", flattened.ChocolateyPackages.First().Id);
+            Assert.Equal("PandaBears", flattened.ChocolateyPackages.Skip(1).First().Id);
+        }
+
+        [Fact]
         public static void ApplyDefaults_NullValues_BecomeDefaults()
         {
             var baseConfig = new DeploymentConfiguration();
@@ -96,8 +172,8 @@ namespace Naos.Deployment.Core.Test
                                                             SizeInGb = 50,
                                                         }
                                                 },
-                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                                        WindowsSku = WindowsSku.SqlStandard,
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
@@ -106,30 +182,27 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(1, appliedConfig.Volumes.Count);
             Assert.Equal(defaultConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
-            Assert.Equal(defaultConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
+            Assert.Equal(WindowsSku.SqlStandard, appliedConfig.WindowsSku);
         }
 
         [Fact]
         public static void ApplyDefaults_DefaultAccessibleIsNull_BecomesPrivate()
         {
             var baseConfig = new DeploymentConfiguration();
-            var defaultConfig = new DeploymentConfiguration()
-                                    {
-                                        InstanceAccessibility = null,
-                                    };
+            var defaultConfig = new DeploymentConfiguration();
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
             Assert.Equal(InstanceAccessibility.Private, appliedConfig.InstanceAccessibility);
         }
 
         [Fact]
-        public static void ApplyDefaults_DefaultAccessibleIsDoesntMatter_BecomesPrivate()
+        public static void ApplyDefaults_DefaultAccessibleIsDoesNotMatter_BecomesPrivate()
         {
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
                                     {
-                                        InstanceAccessibility = InstanceAccessibility.DoesntMatter,
+                                        InstanceAccessibility = InstanceAccessibility.DoesNotMatter,
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
@@ -139,8 +212,20 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void ApplyOverrides_EverythingOverwritten()
         {
-            var baseConfig = new DeploymentConfiguration();
-            var overrideConfig = new DeploymentConfiguration()
+            var baseConfig = new DeploymentConfiguration
+                                 {
+                                     InstanceAccessibility = InstanceAccessibility.Private,
+                                     InstanceType = new InstanceType
+                                     {
+                                         VirtualCores = 10,
+                                         RamInGb = 20,
+                                     },
+                                     Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
+                                     ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
+                                     WindowsSku = WindowsSku.SqlWeb,
+                                 };
+
+            var overrideConfig = new DeploymentConfiguration
                                     {
                                         InstanceAccessibility = InstanceAccessibility.Public,
                                         InstanceType = new InstanceType
@@ -149,18 +234,18 @@ namespace Naos.Deployment.Core.Test
                                                                RamInGb = 10,
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
-                                        InitializationStrategies = new[] { new InitializationStrategyConsole() },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                                        WindowsSku = WindowsSku.SqlStandard,
                                     };
 
-            var appliedConfig = baseConfig.ApplyDefaults(overrideConfig);
+            var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
             Assert.Equal(overrideConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
             Assert.Equal(overrideConfig.InstanceType.VirtualCores, appliedConfig.InstanceType.VirtualCores);
             Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
             Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
-            Assert.Equal(overrideConfig.InitializationStrategies.Single().GetType(), appliedConfig.InitializationStrategies.Single().GetType());
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
+            Assert.Equal(overrideConfig.WindowsSku, appliedConfig.WindowsSku);
         }
     }
 }

@@ -6,12 +6,14 @@
 
 namespace Naos.Deployment.Core
 {
+    using System.Collections.Generic;
+
     using Naos.Deployment.Contract;
 
     /// <summary>
     /// A package with its appropriate deployment configuration.
     /// </summary>
-    public class PackagedDeploymentConfiguration
+    public class PackagedDeploymentConfiguration : IHaveInitializationStrategies, IHaveItsConfigOverrides
     {
         /// <summary>
         /// Gets or sets the package.
@@ -22,5 +24,11 @@ namespace Naos.Deployment.Core
         /// Gets or sets the deployment configuration.
         /// </summary>
         public DeploymentConfiguration DeploymentConfiguration { get; set; }
+
+        /// <inheritdoc />
+        public ICollection<InitializationStrategyBase> InitializationStrategies { get; set; }
+
+        /// <inheritdoc />
+        public ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
     }
 }

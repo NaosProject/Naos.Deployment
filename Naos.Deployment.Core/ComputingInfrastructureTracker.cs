@@ -73,10 +73,10 @@ namespace Naos.Deployment.Core
 
                 var toUpdate =
                     theSafe.Instances.SingleOrDefault(
-                        _ => _.InstanceDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
                 if (toUpdate == null)
                 {
-                    throw new NullReferenceException(
+                    throw new DeploymentException(
                         "Expected to find a tracked instance (pre-creation) with private IP: "
                         + instanceDescription.PrivateIpAddress);
                 }
@@ -99,7 +99,7 @@ namespace Naos.Deployment.Core
                         _ => _.InstanceDescription.Id == systemId);
                 if (toUpdate == null)
                 {
-                    throw new NullReferenceException(
+                    throw new DeploymentException(
                         "Expected to find a tracked instance (post-creation) with system ID: "
                         + systemId);
                 }
@@ -150,13 +150,13 @@ namespace Naos.Deployment.Core
                     return null;
                 }
 
-                var containerId = wrapped.InstanceDetails.ContainerDetails.ContainerId;
+                var containerId = wrapped.InstanceCreationDetails.ContainerDetails.ContainerId;
 
                 var container = theSafe.Containers.SingleOrDefault(_ => _.ContainerId == containerId);
 
                 if (container == null)
                 {
-                    throw new NullReferenceException("Could not find Container: " + containerId);
+                    throw new DeploymentException("Could not find Container: " + containerId);
                 }
 
                 return container.PrivateKey;
@@ -202,13 +202,13 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceDetails CreateInstanceDetails(DeploymentConfiguration deploymentConfig)
+        public InstanceCreationDetails GetNewInstanceCreationDetails(DeploymentConfiguration deploymentConfig)
         {
             lock (this.fileSync)
             {
                 var theSafe = this.LoadStateFromDisk();
 
-                var ret = new InstanceDetails()
+                var ret = new InstanceCreationDetails()
                               {
                                   DefaultDriveType = "gp2",
                                   ImageDetails =
@@ -242,7 +242,7 @@ namespace Naos.Deployment.Core
                                                                        PrivateIpAddress = ret.PrivateIpAddress,
                                                                        DeployedPackages = new List<PackageDescription>(),
                                                                    },
-                                         InstanceDetails = ret,
+                                         InstanceCreationDetails = ret,
                                          DeploymentConfig = deploymentConfig,
                                      };
 
@@ -290,7 +290,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the related instance details.
         /// </summary>
-        public InstanceDetails InstanceDetails { get; set; }
+        public InstanceCreationDetails InstanceCreationDetails { get; set; }
 
         /// <summary>
         /// Gets or sets the related deployment configuration.

@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Contract;
 
-    internal class PackageDescriptionIdOnlyEqualityComparer : IEqualityComparer<PackageDescription>
+    internal class PackageDescriptionIdOnlyEqualityComparer : IEqualityComparer<PackageDescription>, IEqualityComparer<PackageDescriptionWithOverrides>
     {
         public bool Equals(PackageDescription x, PackageDescription y)
         {
@@ -26,9 +26,19 @@ namespace Naos.Deployment.Core
         public int GetHashCode(PackageDescription obj)
         {
             var id = obj == null ? null : obj.Id;
-            var version = obj == null ? null : obj.Version;
-            var hashCode = new Tuple<string, string>(id, version).GetHashCode();
+
+            var hashCode = new Tuple<string>(id).GetHashCode();
             return hashCode;
+        }
+
+        public bool Equals(PackageDescriptionWithOverrides x, PackageDescriptionWithOverrides y)
+        {
+            return this.Equals((PackageDescription)x, (PackageDescription)y);
+        }
+
+        public int GetHashCode(PackageDescriptionWithOverrides obj)
+        {
+            return this.GetHashCode((PackageDescription)obj);
         }
     }
 }

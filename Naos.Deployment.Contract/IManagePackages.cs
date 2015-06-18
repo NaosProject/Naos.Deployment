@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Methods to interface into the package repository.
     /// </summary>
@@ -20,18 +22,20 @@ namespace Naos.Deployment.Contract
         string GetFileContentsFromPackage(Package package, string searchPattern);
 
         /// <summary>
-        /// Downloads the specified package.
+        /// Downloads the specified packages.
         /// </summary>
-        /// <param name="packageDescription">Description of package to download.</param>
+        /// <param name="packageDescriptions">Description of packages to download.</param>
         /// <param name="workingDirectory">Directory to download and decompress package to.</param>
-        /// <returns>Full path to the file that was downloaded.</returns>
-        string DownloadPackage(PackageDescription packageDescription, string workingDirectory);
+        /// <param name="includeDependencies">Include dependencies when downloading (default is FALSE).</param>
+        /// <returns>Full paths to the files that were downloaded.</returns>
+        ICollection<string> DownloadPackages(ICollection<PackageDescription> packageDescriptions, string workingDirectory, bool includeDependencies = false);
 
         /// <summary>
-        /// Gets the bytes of a specified package file.
+        /// Gets package file for a package description.
         /// </summary>
-        /// <param name="packageDescription">Description of the package to retrieve.</param>
-        /// <returns>Bytes of the package (NUPKG) file from the gallery.</returns>
-        byte[] GetPackageFile(PackageDescription packageDescription);
+        /// <param name="packageDescription">Package description to get file for.</param>
+        /// <param name="bundleAllDependencies">Bundle all dependant assemblies into the package file (default is FALSE).</param>
+        /// <returns>Package (description and file).</returns>
+        Package GetPackage(PackageDescription packageDescription, bool bundleAllDependencies = false);
     }
 }

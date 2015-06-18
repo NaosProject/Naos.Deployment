@@ -7,9 +7,9 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
-    /// Custom extension of the DeploymentConfiguration to accommodate web service/site deployments.
+    /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>
-    public class InitializationStrategyWeb : InitializationStrategy
+    public class InitializationStrategyWeb : InitializationStrategyBase
     {
         /// <summary>
         /// Gets or sets the primary DNS access point of the web deployment.
@@ -20,5 +20,15 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the name of the SSL certificate to lookup and use.
         /// </summary>
         public string SslCertificateName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the application pool start mode.
+        /// </summary>
+        public ApplicationPoolStartMode AppPoolStartMode { get; set; }
+
+        /// <summary>
+        /// Gets or sets the auto start provider (if any).
+        /// </summary>
+        public AutoStartProvider AutoStartProvider { get; set; }
     }
 }

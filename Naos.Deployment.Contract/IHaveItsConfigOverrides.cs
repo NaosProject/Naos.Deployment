@@ -1,19 +1,21 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InitializationStrategyConsole.cs" company="Naos">
+// <copyright file="IHaveItsConfigOverrides.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Contract
 {
+    using System.Collections.Generic;
+
     /// <summary>
-    /// Custom extension of the DeploymentConfiguration to accommodate command line deployments.
+    /// Interface for adding Its.Configuration overrides to a class.
     /// </summary>
-    public class InitializationStrategyConsole : InitializationStrategy
+    public interface IHaveItsConfigOverrides
     {
         /// <summary>
-        /// Gets or sets the arguments 
+        /// Gets or sets a collection of Its.Configuration overrides.
         /// </summary>
-        public string Arguments { get; set; }
+        ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; } 
     }
 }

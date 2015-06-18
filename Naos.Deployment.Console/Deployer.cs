@@ -7,11 +7,14 @@
 namespace Naos.Deployment.Console
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
 
     using CLAP;
+
+    using Its.Configuration;
 
     using Naos.AWS.Contract;
     using Naos.Deployment.Contract;
@@ -57,14 +60,16 @@ namespace Naos.Deployment.Console
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
 #pragma warning disable 1591
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson,
-            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson,
-            [Aliases("")] [Description("Full file path to the tracking file of cloud properties.")] string trackingFilePath,
+            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
+            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
+            [Aliases("")] [Description("Description of package (with overrides) to use as the harness for Message Bus Handlers.")] string messageBusHandlerHarnessPackageDescriptionJson,
+            [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString, 
+            [Aliases("")] [Description("Full file path to the tracking file of cloud properties.")] string trackingFilePath, 
             [Aliases("")] [Description("Default deployment configuration to use where items are not specified in JSON.")] string defaultDeploymentConfigJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
-            [Aliases("")] [Description("Environment to deploy to.")] string environment,
-            [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
-            [Aliases("")] [Description("Optional packages to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
+            [Aliases("")] [Description("Environment to deploy to.")] string environment, 
+            [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName, 
+            [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson, 
             [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
 #pragma warning restore 1591
         {
@@ -74,28 +79,36 @@ namespace Naos.Deployment.Console
             }
 
             Console.WriteLine("PARAMETERS:");
-            Console.WriteLine("--                    cloudCredentialsJson: " + cloudCredentialsJson);
-            Console.WriteLine("-- nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
-            Console.WriteLine("--                        trackingFilePath: " + trackingFilePath);
-            Console.WriteLine("--             defaultDeploymentConfigJson: " + defaultDeploymentConfigJson);
-            Console.WriteLine("--            overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
-            Console.WriteLine("--                             environment: " + environment);
-            Console.WriteLine("--                            instanceName: " + instanceName);
-            Console.WriteLine("--                    packagesToDeployJson: " + packagesToDeployJson);
+            Console.WriteLine("--                           cloudCredentialsJson: " + cloudCredentialsJson);
+            Console.WriteLine("--        nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
+            Console.WriteLine("-- messageBusHandlerHarnessPackageDescriptionJson: " + messageBusHandlerHarnessPackageDescriptionJson);
+            Console.WriteLine("--                               trackingFilePath: " + trackingFilePath);
+            Console.WriteLine("--                    defaultDeploymentConfigJson: " + defaultDeploymentConfigJson);
+            Console.WriteLine("--                   overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
+            Console.WriteLine("--                                    environment: " + environment);
+            Console.WriteLine("--                                   instanceName: " + instanceName);
+            Console.WriteLine("--                           packagesToDeployJson: " + packagesToDeployJson);
             Console.WriteLine(string.Empty);
 
-            var packagesToDeploy = Serializer.Deserialize<PackageDescription[]>(packagesToDeployJson);
+            var packagesToDeploy =
+                Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);
+
+            var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
+            var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
 
             var tracker = new ComputingInfrastructureTracker(trackingFilePath);
             var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
-            var cloudManager = new CloudInfrastructureManager(tracker).InitializeCredentials(credentials);
+            var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
-            var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.WorkingDirectory");
+            var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
-            var packageManager = new PackageManager(repoConfig, unzipDirPath);
+            var messageBusHandlerHarnessPackageDescription =
+                Serializer.Deserialize<PackageDescriptionWithOverrides>(messageBusHandlerHarnessPackageDescriptionJson);
+
+            var packageManager = new PackageManager(repoConfig, unzipDirPath).WithCleanWorkingDirectory();
             var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
             var deploymentManager = new DeploymentManager(
@@ -103,7 +116,10 @@ namespace Naos.Deployment.Console
                 cloudManager,
                 packageManager,
                 tracker,
+                setupFactorySettings,
                 defaultDeploymentConfig,
+                messageBusHandlerHarnessPackageDescription,
+                messageBusPersistenceConnectionString,
                 Console.WriteLine);
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);

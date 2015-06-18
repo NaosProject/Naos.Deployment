@@ -44,28 +44,38 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoStartProvider.cs" />
+    <Compile Include="CloudInfrastructureManagerSettings.cs" />
     <Compile Include="ContainerDetails.cs" />
+    <Compile Include="DatabaseRestoreBase.cs" />
+    <Compile Include="DatabaseSettings.cs" />
+    <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IGetCertificates.cs" />
+    <Compile Include="IHaveInitializationStrategies.cs" />
+    <Compile Include="IHaveItsConfigOverrides.cs" />
     <Compile Include="ImageDetails.cs" />
     <Compile Include="CertificateDetails.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="IManagePackages.cs" />
-    <Compile Include="InitializationStrategy.cs" />
-    <Compile Include="InitializationStrategyConsole.cs" />
+    <Compile Include="InitializationStrategyBase.cs" />
     <Compile Include="InitializationStrategyDatabase.cs" />
+    <Compile Include="InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategyWeb.cs" />
     <Compile Include="InstanceDescription.cs" />
-    <Compile Include="InstanceDetails.cs" />
+    <Compile Include="InstanceCreationDetails.cs" />
     <Compile Include="InstanceType.cs" />
     <Compile Include="ITrackComputingInfrastructure.cs" />
+    <Compile Include="ItsConfigOverride.cs" />
     <Compile Include="Package.cs" />
     <Compile Include="PackageDescription.cs" />
+    <Compile Include="PackageDescriptionWithOverrides.cs" />
     <Compile Include="PackageRepositoryConfiguration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SetupStepFactorySettings.cs" />
     <Compile Include="Volume.cs" />
   </ItemGroup>
   <ItemGroup>
