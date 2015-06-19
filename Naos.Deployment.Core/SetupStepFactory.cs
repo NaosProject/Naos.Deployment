@@ -352,12 +352,19 @@ namespace Naos.Deployment.Core
                         });
             }
 
-            if (databaseStrategy.Version != null)
+            if (databaseStrategy.Migration != null)
             {
+                var fluentMigration = databaseStrategy.Migration as DatabaseMigrationFluentMigrator;
+                if (fluentMigration == null)
+                {
+                    throw new NotSupportedException(
+                        "Currently no support for type of database migration: " + databaseStrategy.Migration.GetType());
+                }
+
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description = "Run Database Migration to Version: " + databaseStrategy.Version,
+                            Description = "Run Database Fluent Migration to Version: " + fluentMigration.Version,
                             SetupAction = machineManager =>
                                 {
                                     var realRemoteConnectionString = connectionString.Replace(
@@ -367,16 +374,20 @@ namespace Naos.Deployment.Core
                                         this.packageManager.GetFileContentsFromPackageAsBytes(
                                             package,
                                             package.PackageDescription.Id + ".dll");
-                                    var tempFile = Path.GetTempFileName();
-                                    File.WriteAllBytes(tempFile, migrationDllBytes);
-                                    var assembly = Assembly.LoadFile(tempFile);
+                                    var migrationPdbBytes =
+                                        this.packageManager.GetFileContentsFromPackageAsBytes(
+                                            package,
+                                            package.PackageDescription.Id + ".pdb");
+
+                                    var assembly = migrationPdbBytes == null
+                                                            ? Assembly.Load(migrationDllBytes)
+                                                            : Assembly.Load(migrationDllBytes, migrationPdbBytes);
 
                                     MigrationExecutor.Up(
                                         assembly,
                                         realRemoteConnectionString,
                                         databaseStrategy.Name,
-                                        databaseStrategy.Version);
-                                    File.Delete(tempFile);
+                                        fluentMigration.Version);
                                 }
                         });
             }

@@ -411,7 +411,9 @@ namespace Naos.Deployment.Core
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
-                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages)
+                    .Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer())
+                    .ToList();
             if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
             {
                 var deployedIdList = string.Join(",", deployedPackagesToCheck.Select(_ => _.Id));
