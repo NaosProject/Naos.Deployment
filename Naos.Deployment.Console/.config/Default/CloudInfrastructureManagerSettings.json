@@ -1,4 +1,5 @@
 ﻿{
+    "PackageIdsToIgnoreDuringTerminationSearch": ["Naos.FileJanitor.MessageBus.Handlers", "Naos.Database.MessageBus.Handlers"],
     "DriveLetterVolumeDescriptorMap": {
         "C": "/dev/sda1",
         "D": "xvdb",

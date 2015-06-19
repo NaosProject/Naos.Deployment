@@ -35,6 +35,8 @@ namespace Naos.Deployment.Core
 
         private readonly string messageBusPersistenceConnectionString;
 
+        private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -46,6 +48,7 @@ namespace Naos.Deployment.Core
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
+        /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
@@ -56,16 +59,18 @@ namespace Naos.Deployment.Core
             DeploymentConfiguration defaultDeploymentConfig,
             PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
             string messageBusPersistenceConnectionString,
+            ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer)
         {
             this.tracker = tracker;
             this.cloudManager = cloudManager;
             this.packageManager = packageManager;
-            this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever);
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
+            this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
+            this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever, packageManager);
         }
 
         /// <inheritdoc />
@@ -143,7 +148,8 @@ namespace Naos.Deployment.Core
             {
                 // if we have any message bus handlers that are being deployed then we need to also deploy the harness
                 var itsConfigOverridesForHandlers =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.ItsConfigOverrides).ToList();
+                    packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
+                        _ => _.ItsConfigOverrides ?? new List<ItsConfigOverride>()).ToList();
                 var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
                     instanceName,
                     messageBusInitializations,
@@ -203,7 +209,7 @@ namespace Naos.Deployment.Core
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
                         var deploymentConfig =
                             Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
-                                this.packageManager.GetFileContentsFromPackage(package, deploymentFileSearchPattern));
+                                this.packageManager.GetFileContentsFromPackageAsString(package, deploymentFileSearchPattern));
 
                         // take overrides if present, otherwise take existing, otherwise take empty
                         var initializationStrategies = packageDescriptionWithOverrides.InitializationStrategies != null
@@ -394,16 +400,21 @@ namespace Naos.Deployment.Core
 
         private void TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
         {
+            var packagesToIgnore = this.packageIdsToIgnoreDuringTerminationSearch.Select(_ => new PackageDescription { Id = _ }).ToList();
+
             // get aws instance object by name (from the AWS object tracking storage)
-            var instancesMatchingPackagesAllEnvironments = this.tracker.GetInstancesByDeployedPackages(packagesToDeploy);
+            var packagesToCheckFor = packagesToDeploy.Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer()).ToList();
+            var instancesMatchingPackagesAllEnvironments =
+                this.tracker.GetInstancesByDeployedPackages(packagesToCheckFor).ToList();
             var instancesWithMatchingEnvironmentAndPackages =
                 instancesMatchingPackagesAllEnvironments.Where(_ => _.Environment == environment).ToList();
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
-            var deployedPackages = instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
-            if (deployedPackages.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
+            var deployedPackagesToCheck =
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
+            if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
             {
-                var deployedIdList = string.Join(",", deployedPackages.Select(_ => _.Id));
+                var deployedIdList = string.Join(",", deployedPackagesToCheck.Select(_ => _.Id));
                 var deployingIdList = string.Join(",", packagesToDeploy.Select(_ => _.Id));
                 throw new DeploymentException(
                     "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed; Running: "

@@ -10,12 +10,14 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
 
     using Amazon;
     using Amazon.S3;
     using Amazon.S3.Transfer;
 
+    using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Database.Tools.Backup;
     using Naos.Deployment.Contract;
@@ -34,10 +36,13 @@ namespace Naos.Deployment.Core
 
         private readonly SetupStepFactorySettings settings;
 
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateManager)
+        private readonly IManagePackages packageManager;
+
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateManager, IManagePackages packageManager)
         {
             this.certificateManager = certificateManager;
             this.settings = settings;
+            this.packageManager = packageManager;
         }
 
         /// <summary>
@@ -86,7 +91,7 @@ namespace Naos.Deployment.Core
             }
             else if (strategy.GetType() == typeof(InitializationStrategyDatabase))
             {
-                var databaseSteps = this.GetDatabaseSpecificSteps((InitializationStrategyDatabase)strategy);
+                var databaseSteps = this.GetDatabaseSpecificSteps((InitializationStrategyDatabase)strategy, packagedConfig.Package);
                 ret.AddRange(databaseSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
@@ -187,7 +192,7 @@ namespace Naos.Deployment.Core
             return webSteps;
         }
 
-        private List<SetupStep> GetDatabaseSpecificSteps(InitializationStrategyDatabase databaseStrategy)
+        private List<SetupStep> GetDatabaseSpecificSteps(InitializationStrategyDatabase databaseStrategy, Package package)
         {
             var databaseSteps = new List<SetupStep>();
             var sqlServiceAccount = this.settings.DatabaseServerSettings.SqlServiceAccount;
@@ -347,9 +352,35 @@ namespace Naos.Deployment.Core
                         });
             }
 
-            // TODO: finish out these optional scenarios...
-            // Create/add necessary users (and roles)?
-            // Apply Migration?
+            if (databaseStrategy.Version != null)
+            {
+                databaseSteps.Add(
+                    new SetupStep
+                        {
+                            Description = "Run Database Migration to Version: " + databaseStrategy.Version,
+                            SetupAction = machineManager =>
+                                {
+                                    var realRemoteConnectionString = connectionString.Replace(
+                                        "localhost",
+                                        machineManager.IpAddress);
+                                    var migrationDllBytes =
+                                        this.packageManager.GetFileContentsFromPackageAsBytes(
+                                            package,
+                                            package.PackageDescription.Id + ".dll");
+                                    var tempFile = Path.GetTempFileName();
+                                    File.WriteAllBytes(tempFile, migrationDllBytes);
+                                    var assembly = Assembly.LoadFile(tempFile);
+
+                                    MigrationExecutor.Up(
+                                        assembly,
+                                        realRemoteConnectionString,
+                                        databaseStrategy.Name,
+                                        databaseStrategy.Version);
+                                    File.Delete(tempFile);
+                                }
+                        });
+            }
+
             return databaseSteps;
         }
 

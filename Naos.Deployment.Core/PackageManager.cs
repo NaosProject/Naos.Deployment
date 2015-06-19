@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Text;
 
     using Naos.Deployment.Contract;
 
@@ -72,7 +73,22 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetFileContentsFromPackage(Package package, string searchPattern)
+        public string GetFileContentsFromPackageAsString(Package package, string searchPattern, Encoding encoding = null)
+        {
+            encoding = encoding ?? Encoding.ASCII;
+            var retBytes = this.GetFileContentsFromPackageAsBytes(package, searchPattern);
+
+            if (retBytes == null)
+            {
+                return null;
+            }
+
+            var retString = encoding.GetString(retBytes);
+            return retString;
+        }
+
+        /// <inheritdoc />
+        public byte[] GetFileContentsFromPackageAsBytes(Package package, string searchPattern)
         {
             // download package (decompressed)
             var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
@@ -96,16 +112,16 @@ namespace Naos.Deployment.Core
                         normalizedSlashesSearchPattern,
                         CompareOptions.IgnoreCase) >= 0);
 
-            string fileContents = null;
+            byte[] bytes = null;
             if (fileToGetContentsFor != null)
             {
-                fileContents = File.ReadAllText(fileToGetContentsFor);
+                bytes = File.ReadAllBytes(fileToGetContentsFor);
             }
             
             // clean up temp files
             Directory.Delete(workingDirectory, true);
 
-            return fileContents;
+            return bytes;
         }
 
         /// <inheritdoc />

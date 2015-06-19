@@ -30,6 +30,11 @@ namespace Naos.Deployment.Contract
         public ICollection<string> InstanceCreationUserDataLines { get; set; }
 
         /// <summary>
+        /// Gets or sets a list of package ID's that should be disregarded when looking to replace packages with instance terminations.
+        /// </summary>
+        public ICollection<string> PackageIdsToIgnoreDuringTerminationSearch { get; set; }
+
+        /// <summary>
         /// Combines the lines of user data and replaces the token '{ComputerName}' with the name provided.
         /// </summary>
         /// <param name="computerName">Name of the computer to use when re-naming in user data script.</param>
