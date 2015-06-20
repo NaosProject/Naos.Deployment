@@ -146,7 +146,8 @@ namespace Naos.Deployment.Core
                     _ => _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
             if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
             {
-                // if we have any message bus handlers that are being deployed then we need to also deploy the harness
+                this.announce("Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
+
                 var itsConfigOverridesForHandlers =
                     packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
                         _ => _.ItsConfigOverrides ?? new List<ItsConfigOverride>()).ToList();
@@ -411,7 +412,9 @@ namespace Naos.Deployment.Core
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
-                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages).ToList();
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages)
+                    .Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer())
+                    .ToList();
             if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())
             {
                 var deployedIdList = string.Join(",", deployedPackagesToCheck.Select(_ => _.Id));
