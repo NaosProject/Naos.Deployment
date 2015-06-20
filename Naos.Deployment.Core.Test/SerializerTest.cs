@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core.Test
 	}],
 	""InitializationStrategies"": [{
 		""Name"": ""Monkey"",
-		""Version"": 11,
+		""AdministratorPassword"": ""MyPassWord1234"",
 	}],
 }
 ";
