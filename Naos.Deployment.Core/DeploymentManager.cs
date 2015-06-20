@@ -146,7 +146,8 @@ namespace Naos.Deployment.Core
                     _ => _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
             if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
             {
-                // if we have any message bus handlers that are being deployed then we need to also deploy the harness
+                this.announce("Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
+
                 var itsConfigOverridesForHandlers =
                     packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
                         _ => _.ItsConfigOverrides ?? new List<ItsConfigOverride>()).ToList();
