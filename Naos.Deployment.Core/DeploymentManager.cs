@@ -151,6 +151,7 @@ namespace Naos.Deployment.Core
                 var itsConfigOverridesForHandlers =
                     packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
                         _ => _.ItsConfigOverrides ?? new List<ItsConfigOverride>()).ToList();
+
                 var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
                     instanceName,
                     messageBusInitializations,
@@ -203,6 +204,7 @@ namespace Naos.Deployment.Core
                 packageDescriptionWithOverrides =>
                     {
                         // decide whether we need to get all of the dependencies or just the normal package
+                        // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = packageDescriptionWithOverrides.InitializationStrategies != null
                                                     && packageDescriptionWithOverrides
                                                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
@@ -264,7 +266,9 @@ namespace Naos.Deployment.Core
 
             var privateQueueName = instanceName;
             var channelsToMonitor =
-                new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor)).ToList();
+                new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor))
+                    .Distinct()
+                    .ToList();
 
             var executorRoleSettings = new[]
                                            {
