@@ -61,8 +61,13 @@ namespace Naos.Deployment.Core
                 ret.Add(installChocoStep);
             }
 
-            var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
-            ret.Add(deployUnzippedFileStep);
+            // don't include the package push for databases only since they will be deployed remotely...
+            if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategyDatabase>().Count()
+                != packagedConfig.InitializationStrategies.Count)
+            {
+                var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
+                ret.Add(deployUnzippedFileStep);
+            }
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
