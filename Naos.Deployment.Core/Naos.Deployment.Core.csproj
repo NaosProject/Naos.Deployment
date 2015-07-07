@@ -66,13 +66,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.Database.Tools.1.0.43\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.29\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.31\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.29\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.31\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.19.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
