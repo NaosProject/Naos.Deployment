@@ -134,7 +134,7 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public InstanceDescription CreateNewInstance(string name, string environment, DeploymentConfiguration deploymentConfiguration)
         {
-            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(deploymentConfiguration);
+            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration);
             var privateDnsRootDomain = this.tracker.GetInstancePrivateDnsRootDomain();
 
             var imageStrategy = new AmiSearchStrategy()

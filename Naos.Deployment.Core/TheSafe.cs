@@ -21,11 +21,12 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Finds the correct IP address based on configuration.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>IP Address to use to create an instance.</returns>
-        public string FindIpAddress(DeploymentConfiguration deploymentConfig)
+        public string FindIpAddress(string environment, DeploymentConfiguration deploymentConfig)
         {
-            var container = this.GetContainer(deploymentConfig);
+            var container = this.GetContainer(environment, deploymentConfig);
             for (int idx = container.StartIpsAfter + 1; idx < 256; idx++)
             {
                 var sampleIp = container.Cidr.Replace("0/24", idx.ToString());
@@ -41,64 +42,73 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Find the encryption key name.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Encryption key name.</returns>
-        public string FindKeyName(DeploymentConfiguration deploymentConfig)
+        public string FindKeyName(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(deploymentConfig).KeyName;
+            return this.GetContainer(environment, deploymentConfig).KeyName;
         }
 
         /// <summary>
         /// Find the security group ID to use.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Security group ID to use.</returns>
-        public string FindSecurityGroupId(DeploymentConfiguration deploymentConfig)
+        public string FindSecurityGroupId(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(deploymentConfig).SecurityGroupId;
+            return this.GetContainer(environment, deploymentConfig).SecurityGroupId;
         }
 
         /// <summary>
         /// Find the location to use.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Location to use.</returns>
-        public string FindLocation(DeploymentConfiguration deploymentConfig)
+        public string FindLocation(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(deploymentConfig).Location;
+            return this.GetContainer(environment, deploymentConfig).Location;
         }
 
         /// <summary>
         /// Find the container ID to use.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Container ID to use.</returns>
-        public string FindContainerId(DeploymentConfiguration deploymentConfig)
+        public string FindContainerId(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(deploymentConfig).ContainerId;
+            return this.GetContainer(environment, deploymentConfig).ContainerId;
         }
 
         /// <summary>
         /// Find the container location to use.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Container location to use.</returns>
-        public string FindContainerLocation(DeploymentConfiguration deploymentConfig)
+        public string FindContainerLocation(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(deploymentConfig).ContainerLocation;
+            return this.GetContainer(environment, deploymentConfig).ContainerLocation;
         }
 
-        private ContainerDetails GetContainer(DeploymentConfiguration deploymentConfig)
+        private ContainerDetails GetContainer(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.Containers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
+            return
+                this.Containers.Single(
+                    _ =>
+                    _.Environment == environment && _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
 
         /// <summary>
         /// Find the image search pattern to use.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfig">Deployment configuration in question.</param>
         /// <returns>Image search pattern to use.</returns>
-        public string FindImageSearchPattern(DeploymentConfiguration deploymentConfig)
+        public string FindImageSearchPattern(string environment, DeploymentConfiguration deploymentConfig)
         {
             string searchPattern;
             var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.WindowsSku, out searchPattern);
