@@ -31,9 +31,10 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets instance details necessary to hand off to the cloud provider.
         /// </summary>
+        /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
         /// <returns>Object holding information necessary to create an instance.</returns>
-        InstanceCreationDetails GetNewInstanceCreationDetails(DeploymentConfiguration deploymentConfiguration);
+        InstanceCreationDetails GetNewInstanceCreationDetails(string environment, DeploymentConfiguration deploymentConfiguration);
 
         /// <summary>
         /// Adds the instance to the tracking system.

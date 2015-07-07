@@ -12,6 +12,11 @@ namespace Naos.Deployment.Contract
     public class ContainerDetails
     {
         /// <summary>
+        /// Gets or sets the environment being serviced by the container.
+        /// </summary>
+        public string Environment { get; set; }
+
+        /// <summary>
         /// Gets or sets the configured location.
         /// </summary>
         public string Location { get; set; }

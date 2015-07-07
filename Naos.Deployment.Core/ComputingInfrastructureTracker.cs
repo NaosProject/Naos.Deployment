@@ -202,11 +202,19 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceCreationDetails GetNewInstanceCreationDetails(DeploymentConfiguration deploymentConfig)
+        public InstanceCreationDetails GetNewInstanceCreationDetails(string environment, DeploymentConfiguration deploymentConfig)
         {
             lock (this.fileSync)
             {
                 var theSafe = this.LoadStateFromDisk();
+
+                var amiSearchPattern = theSafe.FindImageSearchPattern(environment, deploymentConfig);
+                var privateIpAddress = theSafe.FindIpAddress(environment, deploymentConfig);
+                var keyName = theSafe.FindKeyName(environment, deploymentConfig);
+                var securityGroupId = theSafe.FindSecurityGroupId(environment, deploymentConfig);
+                var location = theSafe.FindLocation(environment, deploymentConfig);
+                var containerLocation = theSafe.FindContainerLocation(environment, deploymentConfig);
+                var containerId = theSafe.FindContainerId(environment, deploymentConfig);
 
                 var ret = new InstanceCreationDetails()
                               {
@@ -215,22 +223,18 @@ namespace Naos.Deployment.Core
                                       new ImageDetails()
                                           {
                                               OwnerAlias = "amazon",
-                                              SearchPattern = theSafe.FindImageSearchPattern(deploymentConfig),
+                                              SearchPattern = amiSearchPattern,
                                               ShouldHaveSingleMatch = false,
                                           },
-                                  PrivateIpAddress = theSafe.FindIpAddress(deploymentConfig),
-                                  KeyName = theSafe.FindKeyName(deploymentConfig),
-                                  SecurityGroupId = theSafe.FindSecurityGroupId(deploymentConfig),
-                                  Location = theSafe.FindLocation(deploymentConfig),
+                                  PrivateIpAddress = privateIpAddress,
+                                  KeyName = keyName,
+                                  SecurityGroupId = securityGroupId,
+                                  Location = location,
                                   ContainerDetails =
                                       new ContainerDetails()
                                           {
-                                              ContainerId =
-                                                  theSafe.FindContainerId(
-                                                      deploymentConfig),
-                                              ContainerLocation =
-                                                  theSafe.FindContainerLocation(
-                                                      deploymentConfig),
+                                              ContainerId = containerId,
+                                              ContainerLocation = containerLocation,
                                           },
                               };
 
