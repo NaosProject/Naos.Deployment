@@ -90,15 +90,17 @@ namespace Naos.Deployment.Core
                                               deploymentConfigs.Max(
                                                   _ =>
                                                   _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
+                                          WindowsSku =
+                                              GetLargestWindowsSku(
+                                                deploymentConfigs
+                                                    .Where(_ => _.InstanceType != null)
+                                                    .Select(_ => _.InstanceType.WindowsSku)
+                                                    .Distinct()
+                                                    .ToList()),
                                       },
                               InstanceAccessibility = accessibilityToUse,
                               Volumes = volumes,
                               ChocolateyPackages = chocolateyPackagesToUse,
-                              WindowsSku =
-                                  GetLargestWindowsSku(
-                                      deploymentConfigs.Select(_ => _.WindowsSku)
-                                  .Distinct()
-                                  .ToList()),
                           };
 
             return ret;
@@ -126,8 +128,8 @@ namespace Naos.Deployment.Core
                 instanceAccessibility = overrideAccessibility;
             }
 
-            var windowsSku = deploymentConfigInitial.WindowsSku;
-            var overrideWindowsSku = deploymentConfigOverride.WindowsSku;
+            var windowsSku = deploymentConfigInitial.InstanceType.WindowsSku;
+            var overrideWindowsSku = deploymentConfigOverride.InstanceType.WindowsSku;
             if (overrideWindowsSku != WindowsSku.DoesNotMatter)
             {
                 windowsSku = overrideWindowsSku;
@@ -145,8 +147,9 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages =
                                   deploymentConfigOverride.ChocolateyPackages
                                   ?? deploymentConfigInitial.ChocolateyPackages,
-                              WindowsSku = windowsSku,
                           };
+
+            ret.InstanceType.WindowsSku = windowsSku;
 
             return ret;
         }
@@ -178,13 +181,13 @@ namespace Naos.Deployment.Core
                 accessibilityValue = InstanceAccessibility.Private;
             }
 
-            var windowsSku = deploymentConfigInitial == null
+            var windowsSku = deploymentConfigInitial == null || deploymentConfigInitial.InstanceType == null
                                  ? WindowsSku.DoesNotMatter
-                                 : deploymentConfigInitial.WindowsSku;
+                                 : deploymentConfigInitial.InstanceType.WindowsSku;
 
-            if (windowsSku == WindowsSku.DoesNotMatter)
+            if (windowsSku == WindowsSku.DoesNotMatter && defaultDeploymentConfig.InstanceType != null)
             {
-                windowsSku = defaultDeploymentConfig.WindowsSku;
+                windowsSku = defaultDeploymentConfig.InstanceType.WindowsSku;
             }
 
             var ret = new DeploymentConfiguration()
@@ -199,8 +202,12 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages = 
                                   (deploymentConfigInitial == null ? null : deploymentConfigInitial.ChocolateyPackages)
                                   ?? defaultDeploymentConfig.ChocolateyPackages,
-                              WindowsSku = windowsSku,
                           };
+
+            if (ret.InstanceType != null)
+            {
+                ret.InstanceType.WindowsSku = windowsSku;
+            }
 
             return ret;
         }

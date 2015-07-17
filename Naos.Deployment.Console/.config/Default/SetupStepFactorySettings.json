@@ -15,6 +15,26 @@
         "LogFileGrowthSizeInKb": 10000
     },
     "DeploymentScriptBlocks": {
+        "InstallChocolatey": {
+            "ParameterNames": ["Packages"],
+            "ScriptTextLines": [
+                "{",
+                "param([Array] $Packages)",
+                "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) > $null 2>&1",
+                "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -y }",
+                "   $Packages | ?{![String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -Version $_.Version -y }",
+                "}"
+            ]
+        },
+        "DownloadS3Object": {
+            "ParameterNames": ["BucketName", "ObjectKey", "FilePath", "Region", "AccessKey", "SecretKey"],
+            "ScriptTextLines": [
+                "{",
+                    "param([string] $BucketName, [string] $ObjectKey, [string] $FilePath, [string] $Region, [string] $AccessKey, [string] $SecretKey)",
+                    "Read-S3Object -BucketName $BucketName -Key $ObjectKey -File $FilePath -Region $Region -AccessKey $AccessKey -SecretKey $SecretKey",
+                "}"
+            ]
+        },
         "UpdateItsConfigPrecedence": {
             "ParameterNames": [
                 "FilePath",

@@ -107,12 +107,12 @@ namespace Naos.Deployment.Core.Test
                 {
                     var deploymentConfigs = new[]
                                                 {
-                                                    new DeploymentConfiguration() { WindowsSku = smallerSku },
-                                                    new DeploymentConfiguration() { WindowsSku = largerSku },
+                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { WindowsSku = smallerSku } },
+                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { WindowsSku = largerSku } },
                                                 };
 
                     var flattened = deploymentConfigs.Flatten();
-                    Assert.Equal(largerSku, flattened.WindowsSku);
+                    Assert.Equal(largerSku, flattened.InstanceType.WindowsSku);
                 };
 
             testSkuCombo(WindowsSku.Base, WindowsSku.Base);
@@ -161,7 +161,12 @@ namespace Naos.Deployment.Core.Test
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
                                     {
-                                        InstanceType = new InstanceType { VirtualCores = 2, RamInGb = 4 },
+                                        InstanceType = new InstanceType
+                                        {
+                                            VirtualCores = 2,
+                                            RamInGb = 4,
+                                            WindowsSku = WindowsSku.SqlStandard,
+                                        },
                                         InstanceAccessibility = InstanceAccessibility.Private,
                                         Volumes =
                                             new[]
@@ -173,7 +178,6 @@ namespace Naos.Deployment.Core.Test
                                                         }
                                                 },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
-                                        WindowsSku = WindowsSku.SqlStandard,
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
@@ -183,7 +187,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(defaultConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
-            Assert.Equal(WindowsSku.SqlStandard, appliedConfig.WindowsSku);
+            Assert.Equal(WindowsSku.SqlStandard, appliedConfig.InstanceType.WindowsSku);
         }
 
         [Fact]
@@ -219,10 +223,10 @@ namespace Naos.Deployment.Core.Test
                                      {
                                          VirtualCores = 10,
                                          RamInGb = 20,
+                                         WindowsSku = WindowsSku.SqlWeb,
                                      },
                                      Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
                                      ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
-                                     WindowsSku = WindowsSku.SqlWeb,
                                  };
 
             var overrideConfig = new DeploymentConfiguration
@@ -232,10 +236,10 @@ namespace Naos.Deployment.Core.Test
                                                            {
                                                                VirtualCores = 4,
                                                                RamInGb = 10,
+                                                               WindowsSku = WindowsSku.SqlStandard,
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
-                                        WindowsSku = WindowsSku.SqlStandard,
                                     };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
@@ -245,7 +249,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
-            Assert.Equal(overrideConfig.WindowsSku, appliedConfig.WindowsSku);
+            Assert.Equal(overrideConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
         }
     }
 }

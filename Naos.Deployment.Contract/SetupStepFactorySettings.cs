@@ -66,6 +66,11 @@ namespace Naos.Deployment.Contract
     public class DeploymentScriptBlockSet
     {
         /// <summary>
+        /// Gets or sets the script block to download an S3 object to a path.
+        /// </summary>
+        public ScriptBlockDescription DownloadS3Object { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to update the Its.Configuration precedence in a config file.
         /// </summary>
         public ScriptBlockDescription UpdateItsConfigPrecedence { get; set; }
@@ -94,6 +99,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the script block to restart a windows service.
         /// </summary>
         public ScriptBlockDescription RestartWindowsService { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to install Chocolatey so that the packages may be installed.
+        /// </summary>
+        public ScriptBlockDescription InstallChocolatey { get; set; }
     }
 
     /// <summary>

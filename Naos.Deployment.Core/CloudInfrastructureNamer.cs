@@ -21,22 +21,18 @@ namespace Naos.Deployment.Core
 
         private readonly string containerLocation;
 
-        private readonly string privateDnsRootDomain;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CloudInfrastructureNamer"/> class.
         /// </summary>
         /// <param name="baseName">Base name to use.</param>
         /// <param name="environment">Environment being used.</param>
         /// <param name="containerLocation">Container location of the property.</param>
-        /// <param name="privateDnsRootDomain">The root domain to register the private DNS entry for; e.g. 'machines.my-company.com'.</param>
-        public CloudInfrastructureNamer(string baseName, string environment, string containerLocation, string privateDnsRootDomain)
+        public CloudInfrastructureNamer(string baseName, string environment, string containerLocation)
         {
             ThrowOnInvalidName(baseName);
             this.baseName = baseName;
             this.environment = environment;
             this.containerLocation = containerLocation;
-            this.privateDnsRootDomain = privateDnsRootDomain;
         }
 
         /// <summary>
@@ -57,16 +53,6 @@ namespace Naos.Deployment.Core
         public string GetVolumeName(string driveLetter)
         {
             var name = string.Format("ebs-{3}-{0}-{2}@{1}", this.baseName, this.containerLocation, driveLetter, this.environment);
-            return name;
-        }
-
-        /// <summary>
-        /// Gets a private DNS entry name to use for the instance.
-        /// </summary>
-        /// <returns>DNS entry to use for private IP address.</returns>
-        public string GetPrivateDns()
-        {
-            var name = this.baseName + "." + this.environment + "." + this.privateDnsRootDomain;
             return name;
         }
 

@@ -19,7 +19,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets information about the container the instance lives in.
         /// </summary>
-        public ContainerDetails ContainerDetails { get; set; }
+        public CloudContainerDescription CloudContainerDescription { get; set; }
 
         /// <summary>
         /// Gets or sets the location to use.

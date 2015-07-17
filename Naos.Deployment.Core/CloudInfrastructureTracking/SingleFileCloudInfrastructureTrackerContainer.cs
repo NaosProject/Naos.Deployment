@@ -1,22 +1,21 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="TheSafe.cs" company="Naos">
+// <copyright file="SingleFileCloudInfrastructureTrackerContainer.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.Core.CloudInfrastructureTracking
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
 
     using Naos.Deployment.Contract;
-    using Naos.WinRM;
 
     /// <summary>
     /// File to keep all state for ComputingInfrastructureTracker.
     /// </summary>
-    public class TheSafe
+    public class SingleFileCloudInfrastructureTrackerContainer
     {
         /// <summary>
         /// Finds the correct IP address based on configuration.
@@ -69,7 +68,7 @@ namespace Naos.Deployment.Core
         /// <returns>Location to use.</returns>
         public string FindLocation(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return this.GetContainer(environment, deploymentConfig).Location;
+            throw new NotImplementedException("Removed for replacement system, will remove entire single file system when finished.");
         }
 
         /// <summary>
@@ -94,12 +93,16 @@ namespace Naos.Deployment.Core
             return this.GetContainer(environment, deploymentConfig).ContainerLocation;
         }
 
-        private ContainerDetails GetContainer(string environment, DeploymentConfiguration deploymentConfig)
+        private CloudContainerDescription GetContainer(string environment, DeploymentConfiguration deploymentConfig)
         {
-            return
-                this.Containers.Single(
-                    _ =>
-                    _.Environment == environment && _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
+            ICollection<CloudContainerDescription> outCollection;
+            var found = this.EnvironmentCloudContainerMap.TryGetValue(environment, out outCollection);
+            if (!found)
+            {
+                return null;
+            }
+
+            return outCollection.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
 
         /// <summary>
@@ -111,10 +114,10 @@ namespace Naos.Deployment.Core
         public string FindImageSearchPattern(string environment, DeploymentConfiguration deploymentConfig)
         {
             string searchPattern;
-            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.WindowsSku, out searchPattern);
+            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.InstanceType.WindowsSku, out searchPattern);
             if (!success)
             {
-                throw new DeploymentException("Unsupported Windows SKU: " + deploymentConfig.WindowsSku);
+                throw new DeploymentException("Unsupported Windows SKU: " + deploymentConfig.InstanceType.WindowsSku);
             }
 
             return searchPattern;
@@ -123,7 +126,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the configured container ID.
         /// </summary>
-        public ICollection<ContainerDetails> Containers { get; set; }
+        public IDictionary<string, ICollection<CloudContainerDescription>> EnvironmentCloudContainerMap { get; set; }
 
         /// <summary>
         /// Gets or sets a map of root domains and their hosting ID.
@@ -141,51 +144,8 @@ namespace Naos.Deployment.Core
         public List<InstanceWrapper> Instances { get; set; }
 
         /// <summary>
-        /// Gets or sets the certificates.
-        /// </summary>
-        public List<CertificateContainer> Certificates { get; set; }
-
-        /// <summary>
         /// Gets or sets the instance private DNS root domain to use (e.g. machines.my-company.com).
         /// </summary>
         public string InstancePrivateDnsRootDomain { get; set; }
-    }
-
-    /// <summary>
-    /// Class to allow TheSafe to be serialized and deserialized but still provide a CertificateDetails object.
-    /// </summary>
-    public class CertificateContainer
-    {
-        /// <summary>
-        /// Converts the container to a certificate details class.
-        /// </summary>
-        /// <returns>Converted details version.</returns>
-        public CertificateDetails ToCertificateDetails()
-        {
-            var ret = new CertificateDetails
-                          {
-                              Name = this.Name,
-                              CertificatePassword =
-                                  MachineManager.ConvertStringToSecureString(this.Password),
-                              FileBytes = Convert.FromBase64String(this.Base64Bytes),
-                          };
-
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets or sets the name.
-        /// </summary>
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets the password.
-        /// </summary>
-        public string Password { get; set; }
-
-        /// <summary>
-        /// Gets or sets the bytes in Base64 format.
-        /// </summary>
-        public string Base64Bytes { get; set; }
     }
 }

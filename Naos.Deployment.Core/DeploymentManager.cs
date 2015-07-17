@@ -37,6 +37,8 @@ namespace Naos.Deployment.Core
 
         private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
 
+        private readonly LogProcessorSettings handlerHarnessLogProcessorSettings;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -47,6 +49,7 @@ namespace Naos.Deployment.Core
         /// <param name="setupStepFactorySettings">Settings for the setup step factory.</param>
         /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
+        /// <param name="handlerHarnessLogProcessorSettings">Log processor settings to be used when deploying a message bus handler harness.</param>
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
@@ -58,6 +61,7 @@ namespace Naos.Deployment.Core
             SetupStepFactorySettings setupStepFactorySettings,
             DeploymentConfiguration defaultDeploymentConfig,
             PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
+            LogProcessorSettings handlerHarnessLogProcessorSettings,
             string messageBusPersistenceConnectionString,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer)
@@ -67,6 +71,7 @@ namespace Naos.Deployment.Core
             this.packageManager = packageManager;
             this.defaultDeploymentConfig = defaultDeploymentConfig;
             this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
+            this.handlerHarnessLogProcessorSettings = handlerHarnessLogProcessorSettings;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
@@ -123,12 +128,11 @@ namespace Naos.Deployment.Core
 
             // create new aws instance(s)
             this.announce("Creating new instance; Name: " + instanceName);
-            var createdInstanceDescription = this.cloudManager.CreateNewInstance(instanceName, environment, configToCreateWith);
+            var createdInstanceDescription = this.cloudManager.CreateNewInstance(environment, instanceName, configToCreateWith);
 
             this.announce(
                 "Created new instance (waiting for Administrator password to be available); ID: "
-                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress
-                + ", Private DNS: " + createdInstanceDescription.PrivateDns);
+                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress);
             var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
             // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
@@ -176,6 +180,7 @@ namespace Naos.Deployment.Core
              
                 // Mark the instance as having the successfully deployed packages
                 this.tracker.ProcessDeployedPackage(
+                    environment,
                     createdInstanceDescription.Id,
                     packagedConfig.Package.PackageDescription);
             }
@@ -188,9 +193,27 @@ namespace Naos.Deployment.Core
             foreach (var webInitialization in webInitializations)
             {
                 this.cloudManager.UpsertDnsEntry(
+                    environment,
                     createdInstanceDescription.Location,
                     webInitialization.PrimaryDns,
                     new[] { createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress });
+            }
+
+            // get all initializations to update any private DNS entries on the private IP address.
+            var allInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .GetInitializationStrategiesOf<InitializationStrategyBase>();
+            foreach (var initialization in allInitializations)
+            {
+                var privateDnsEntries = initialization.PrivateDnsEntries ?? new List<string>();
+                foreach (var privateDnsEntry in privateDnsEntries)
+                {
+                    this.cloudManager.UpsertDnsEntry(
+                        environment,
+                        createdInstanceDescription.Location,
+                        privateDnsEntry,
+                        new[] { createdInstanceDescription.PrivateIpAddress });
+                }
             }
 
             this.announce("Finished deployment.");
@@ -238,11 +261,7 @@ namespace Naos.Deployment.Core
             return packagedDeploymentConfigs;
         }
 
-        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(
-            string instanceName,
-            ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations,
-            ICollection<ItsConfigOverride> itsConfigOverrides, 
-            DeploymentConfiguration configToCreateWith)
+        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(string instanceName, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and 
             // TODO:        only update the private channel to monitor and directory of packages...
@@ -284,16 +303,15 @@ namespace Naos.Deployment.Core
                                                                .InstanceType
                                                                .VirtualCores ?? 1,
                                                        PollingTimeSpan =
-                                                           TimeSpan.FromMinutes(1)
+                                                           TimeSpan.FromMinutes(1),
                                                    }
                                            };
 
             var messageBusHandlerSettings = new MessageBusHarnessSettings
                                                 {
-                                                    PersistenceConnectionString =
-                                                        this
-                                                        .messageBusPersistenceConnectionString,
-                                                    RoleSettings = executorRoleSettings
+                                                    PersistenceConnectionString = this.messageBusPersistenceConnectionString,
+                                                    RoleSettings = executorRoleSettings,
+                                                    LogProcessorSettings = this.handlerHarnessLogProcessorSettings
                                                 };
 
             // add the override that will activate the harness in executor mode.
@@ -376,7 +394,7 @@ namespace Naos.Deployment.Core
         {
             string adminPassword = null;
             var sleepTimeInSeconds = 30d;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Id);
+            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Environment, createdInstanceDescription.Id);
             while (adminPassword == null)
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
@@ -410,7 +428,7 @@ namespace Naos.Deployment.Core
             // get aws instance object by name (from the AWS object tracking storage)
             var packagesToCheckFor = packagesToDeploy.Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer()).ToList();
             var instancesMatchingPackagesAllEnvironments =
-                this.tracker.GetInstancesByDeployedPackages(packagesToCheckFor).ToList();
+                this.tracker.GetInstancesByDeployedPackages(environment, packagesToCheckFor).ToList();
             var instancesWithMatchingEnvironmentAndPackages =
                 instancesMatchingPackagesAllEnvironments.Where(_ => _.Environment == environment).ToList();
 
@@ -432,7 +450,7 @@ namespace Naos.Deployment.Core
             foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
             {
                 this.announce("Terminating instance; ID: " + instanceDescription.Id + ", Name: " + instanceDescription.Name);
-                this.cloudManager.Terminate(instanceDescription.Id, instanceDescription.Location, true);
+                this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
             }
         }
 
@@ -445,7 +463,7 @@ namespace Naos.Deployment.Core
         {
             string adminPassword = null;
             var sleepTimeInSeconds = .25;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceToSearchFor.Id);
+            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceToSearchFor.Environment, instanceToSearchFor.Id);
             while (adminPassword == null)
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 2;

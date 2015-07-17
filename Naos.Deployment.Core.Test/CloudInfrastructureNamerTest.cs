@@ -19,7 +19,7 @@ namespace Naos.Deployment.Core.Test
         {
             var expected = "instance-demo-theComputer@use-east-1a";
             var actual =
-                new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a", "boxes.monkey.com").GetInstanceName();
+                new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a").GetInstanceName();
             Assert.Equal(expected, actual);
         }
 
@@ -28,17 +28,8 @@ namespace Naos.Deployment.Core.Test
         {
             var expected = "ebs-demo-theComputer-G@use-east-1a";
             var actual =
-                new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a", "boxes.monkey.com").GetVolumeName(
+                new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a").GetVolumeName(
                     "G");
-            Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public static void GetPrviateDns_ValidInputs_ValidName()
-        {
-            var expected = "theComputer.demo.boxes.monkey.com";
-            var actual =
-                new CloudInfrastructureNamer("theComputer", "demo", "use-east-1a", "boxes.monkey.com").GetPrivateDns();
             Assert.Equal(expected, actual);
         }
 
@@ -77,8 +68,7 @@ namespace Naos.Deployment.Core.Test
                     var neverGotten = new CloudInfrastructureNamer(
                         invalidName,
                         "demo",
-                        "use-east-1a",
-                        "boxes.monkey.com");
+                        "use-east-1a");
 
                     throw new NotSupportedException("An invalid name was allowed. Name: " + invalidName);
                 }

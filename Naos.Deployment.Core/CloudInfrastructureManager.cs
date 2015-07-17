@@ -107,9 +107,9 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void Terminate(string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
+        public void Terminate(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
-            var instanceDescription = this.tracker.GetInstanceDescriptionById(systemId);
+            var instanceDescription = this.tracker.GetInstanceDescriptionById(environment, systemId);
             if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
             {
                 // has a public IP that needs to be dissassociated and released before moving on...
@@ -128,30 +128,18 @@ namespace Naos.Deployment.Core
 
             var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
             instanceToTerminate.Terminate(this.credentials);
-            this.tracker.ProcessInstanceTermination(instanceToTerminate.Id);
+            this.tracker.ProcessInstanceTermination(environment, instanceToTerminate.Id);
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string name, string environment, DeploymentConfiguration deploymentConfiguration)
+        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration)
         {
             var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration);
-            var privateDnsRootDomain = this.tracker.GetInstancePrivateDnsRootDomain();
-
-            var imageStrategy = new AmiSearchStrategy()
-                                    {
-                                        OwnerAlias = instanceDetails.ImageDetails.OwnerAlias,
-                                        SearchPattern = instanceDetails.ImageDetails.SearchPattern,
-                                        MultipleFoundBehavior =
-                                            instanceDetails.ImageDetails.ShouldHaveSingleMatch
-                                                ? MultipleAmiFoundBehavior.Throw
-                                                : MultipleAmiFoundBehavior.FirstSortedDescending,
-                                    };
 
             var namer = new CloudInfrastructureNamer(
                 name,
                 environment,
-                instanceDetails.ContainerDetails.ContainerLocation,
-                privateDnsRootDomain);
+                instanceDetails.CloudContainerDescription.ContainerLocation);
 
             Func<string, string> getDeviceNameFromDriveLetter = delegate(string driveLetter)
                 {
@@ -178,10 +166,14 @@ namespace Naos.Deployment.Core
                             VirtualName = _.DriveLetter
                         }).ToList();
 
-            var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
-            var instancePrivateDns = namer.GetPrivateDns();
+            // if we don't have a specific instance type then look one up, otherwise use the specific one...
+            var awsInstanceType = string.IsNullOrEmpty(
+                deploymentConfiguration.InstanceType.SpecificInstanceTypeSystemId)
+                                      ? this.GetAwsInstanceType(deploymentConfiguration.InstanceType)
+                                      : deploymentConfiguration.InstanceType.SpecificInstanceTypeSystemId;
+
             var instanceName = namer.GetInstanceName();
-            var existing = this.tracker.GetInstanceIdByName(instanceName);
+            var existing = this.tracker.GetInstanceIdByName(environment, instanceName);
             if (existing != null)
             {
                 throw new DeploymentException(
@@ -189,19 +181,40 @@ namespace Naos.Deployment.Core
                     + " but an instance with this name already exists; ID: " + existing);
             }
 
+            var ami = new Ami()
+                          {
+                              Region = instanceDetails.Location,
+                          };
+
+            // if we don't have a specific image then create the search strategy otherwise just use specific one...
+            if (string.IsNullOrEmpty(instanceDetails.ImageDetails.ImageSystemId))
+            {
+                var imageStrategy = new AmiSearchStrategy()
+                {
+                    OwnerAlias = instanceDetails.ImageDetails.OwnerAlias,
+                    SearchPattern = instanceDetails.ImageDetails.SearchPattern,
+                    MultipleFoundBehavior =
+                        instanceDetails.ImageDetails.ShouldHaveSingleMatch
+                            ? MultipleAmiFoundBehavior.Throw
+                            : MultipleAmiFoundBehavior.FirstSortedDescending,
+                };
+
+                ami.SearchStrategy = imageStrategy;
+            }
+            else
+            {
+                ami.Id = instanceDetails.ImageDetails.ImageSystemId;
+            }
+
             var instanceToCreate = new Instance()
                                        {
                                            Name = instanceName,
                                            Ami =
-                                               new Ami()
-                                                   {
-                                                       Region = instanceDetails.Location,
-                                                       SearchStrategy = imageStrategy
-                                                   },
+                                               ami,
                                            ContainingSubnet = new Subnet()
                                                                   {
-                                                                      Id = instanceDetails.ContainerDetails.ContainerId,
-                                                                      AvailabilityZone = instanceDetails.ContainerDetails.ContainerLocation, 
+                                                                      Id = instanceDetails.CloudContainerDescription.ContainerId,
+                                                                      AvailabilityZone = instanceDetails.CloudContainerDescription.ContainerLocation, 
                                                                   },
                                            Key = new KeyPair() { KeyName = instanceDetails.KeyName },
                                            PrivateIpAddress = instanceDetails.PrivateIpAddress,
@@ -239,12 +252,6 @@ namespace Naos.Deployment.Core
                 systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);
             }
 
-            // add private dns entry for the machine.
-            this.UpsertDnsEntry(
-                createdInstance.Region,
-                instancePrivateDns,
-                new[] { createdInstance.PrivateIpAddress });
-
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,
@@ -257,7 +264,6 @@ namespace Naos.Deployment.Core
                         : createdInstance.ElasticIp.PublicIpAddress,
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
                 DeployedPackages = new List<PackageDescription>(),
-                PrivateDns = instancePrivateDns,
                 SystemSpecificDetails = systemSpecificDetails,
             };
 
@@ -267,10 +273,10 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescription(string name)
+        public InstanceDescription GetInstanceDescription(string environment, string name)
         {
-            var id = this.tracker.GetInstanceIdByName(name);
-            var ret = this.tracker.GetInstanceDescriptionById(id);
+            var id = this.tracker.GetInstanceIdByName(environment, name);
+            var ret = this.tracker.GetInstanceDescriptionById(environment, id);
             return ret;
         }
 
@@ -309,7 +315,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void UpsertDnsEntry(string location, string domain, ICollection<string> ipAddresses)
+        public void UpsertDnsEntry(string environment, string location, string domain, ICollection<string> ipAddresses)
         {
             // from: http://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net
             var host = new Uri("http://" + domain).Host;
@@ -323,7 +329,7 @@ namespace Naos.Deployment.Core
             // need root domain to lookup zone id
             var rootDomain = host.Substring(index + 1); 
 
-            var hostingId = this.tracker.GetDomainZoneId(rootDomain);
+            var hostingId = this.tracker.GetDomainZoneId(environment, rootDomain);
             var dnsManager = new Route53Manager(this.credentials);
             dnsManager.UpsertDnsEntry(location, hostingId, Route53EntryType.A, domain, ipAddresses);
         }

@@ -7,12 +7,12 @@
         "F": "xvdd"
     },
     "AwsInstanceTypes": [
+        { "AwsInstanceTypeDescriptor": "m1.medium", "RamInGb": 3.75, "VirtualCores": 1 },
+        { "AwsInstanceTypeDescriptor": "m1.small", "RamInGb": 1.7, "VirtualCores": 1 },
         { "AwsInstanceTypeDescriptor": "t1.micro", "RamInGb": 0.613, "VirtualCores": 1 },
         { "AwsInstanceTypeDescriptor": "t2.medium", "RamInGb": 4.0, "VirtualCores": 2 },
         { "AwsInstanceTypeDescriptor": "t2.micro", "RamInGb": 1.0, "VirtualCores": 1 },
         { "AwsInstanceTypeDescriptor": "t2.small", "RamInGb": 2.0, "VirtualCores": 1 },
-        { "AwsInstanceTypeDescriptor": "m1.small", "RamInGb": 1.7, "VirtualCores": 1 },
-        { "AwsInstanceTypeDescriptor": "m1.medium", "RamInGb": 3.75, "VirtualCores": 1 },
         { "AwsInstanceTypeDescriptor": "m1.large", "RamInGb": 7.5, "VirtualCores": 2 },
         { "AwsInstanceTypeDescriptor": "m1.xlarge", "RamInGb": 15.0, "VirtualCores": 4 },
         { "AwsInstanceTypeDescriptor": "m2.xlarge", "RamInGb": 17.1, "VirtualCores": 2 },
@@ -69,8 +69,6 @@
         "# ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)",
         "NET STOP W32Time",
         "NET START W32Time",
-        "# ADDING COMMAND TO INSTALL CHOCOLATEY FOR APPLICATION INSTALLS LATER",
-        "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
         "# ADDING RENAME COMMAND BECAUSE 'computerName' WAS PRESENT IN CONFIG",
         "Rename-Computer -NewName {ComputerName} -Force",
         "</powershell>"

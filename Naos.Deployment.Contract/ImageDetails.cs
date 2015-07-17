@@ -25,5 +25,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets a value indicating whether or not to throw on multiple matches.
         /// </summary>
         public bool ShouldHaveSingleMatch { get; set; }
+
+        /// <summary>
+        /// Gets or sets a specific system ID (will override search logic).
+        /// </summary>
+        public string ImageSystemId { get; set; }
     }
 }

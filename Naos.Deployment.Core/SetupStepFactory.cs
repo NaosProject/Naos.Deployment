@@ -13,10 +13,6 @@ namespace Naos.Deployment.Core
     using System.Reflection;
     using System.Text;
 
-    using Amazon;
-    using Amazon.S3;
-    using Amazon.S3.Transfer;
-
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Database.Tools.Backup;
@@ -55,7 +51,7 @@ namespace Naos.Deployment.Core
         {
             var ret = new List<SetupStep>();
 
-            var installChocoStep = GetChocolateySetupStep(packagedConfig);
+            var installChocoStep = this.GetChocolateySetupStep(packagedConfig);
             if (installChocoStep != null)
             {
                 ret.Add(installChocoStep);
@@ -322,23 +318,32 @@ namespace Naos.Deployment.Core
                                         "localhost",
                                         machineManager.IpAddress);
 
-                                    var localRestoreFilePath = Path.GetTempFileName();
-                                    var regionEndpoint = RegionEndpoint.GetBySystemName(awsRestore.Region);
-                                    var client = new AmazonS3Client(awsRestore.DownloadAccessKey, awsRestore.DownloadSecretKey, regionEndpoint);
-                                    var transferUtility = new TransferUtility(client);
-                                    transferUtility.Download(localRestoreFilePath, awsRestore.BucketName, awsRestore.FileName);
-                                    var restoreFileBytes = File.ReadAllBytes(localRestoreFilePath);
-                                    File.Delete(localRestoreFilePath);
                                     var restoreFilePath = Path.Combine(
                                         databaseStrategy.BackupDirectory,
                                         awsRestore.FileName);
+                                    var remoteDownloadBackupScriptBlock = this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
+                                    var remoteDownloadBackupScriptParams = new[]
+                                                                               {
+                                                                                   awsRestore.BucketName,
+                                                                                   awsRestore.FileName, 
+                                                                                   restoreFilePath,
+                                                                                   awsRestore.Region,
+                                                                                   awsRestore.DownloadAccessKey,
+                                                                                   awsRestore.DownloadSecretKey
+                                                                               };
 
-                                    machineManager.SendFile(restoreFilePath, restoreFileBytes);
+                                    var checksumOption = awsRestore.RunChecksum
+                                                             ? ChecksumOption.Checksum
+                                                             : ChecksumOption.NoChecksum;
+
+                                    machineManager.RunScript(
+                                        remoteDownloadBackupScriptBlock,
+                                        remoteDownloadBackupScriptParams);
 
                                     var restoreFileUri = new Uri(restoreFilePath);
                                     var restoreDetails = new RestoreDetails
                                                              {
-                                                                 ChecksumOption = ChecksumOption.Checksum,
+                                                                 ChecksumOption = checksumOption,
                                                                  Device = Device.Disk,
                                                                  ErrorHandling = ErrorHandling.StopOnError,
                                                                  DataFilePath = null,
@@ -424,41 +429,33 @@ namespace Naos.Deployment.Core
             return deployUnzippedFileStep;
         }
 
-        private static SetupStep GetChocolateySetupStep(PackagedDeploymentConfiguration packagedConfig)
+        private SetupStep GetChocolateySetupStep(PackagedDeploymentConfiguration packagedConfig)
         {
             SetupStep installChocoStep = null;
             if (packagedConfig.DeploymentConfiguration.ChocolateyPackages != null
                 && packagedConfig.DeploymentConfiguration.ChocolateyPackages.Any())
             {
                 installChocoStep = new SetupStep
-                {
-                    Description =
-                        "Install Chocolatey Packages: "
-                        + string.Join(
-                            ",",
-                            packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                              .Select(_ => _.GetIdDotVersionString())),
-                    SetupAction = machineManager =>
-                    {
-                        var installChocolateyPackagesLines =
-                            packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                                .Select(
-                                    _ =>
-                                    _.Version == null
-                                        ? "choco install " + _.Id + " -y"
-                                        : "choco install " + _.Id + " -Version "
-                                          + _.Version + " -y");
-                        var installChocolateyPackagesScriptBlock = "{"
-                                                                   + string.Join(
-                                                                       Environment
-                                                                         .NewLine,
-                                                                       installChocolateyPackagesLines)
-                                                                   + "}";
-                        machineManager.RunScript(
-                            installChocolateyPackagesScriptBlock,
-                            new object[0]);
-                    }
-                };
+                                       {
+                                           Description =
+                                               "Install Chocolatey Packages: "
+                                               + string.Join(
+                                                   ",",
+                                                   packagedConfig.DeploymentConfiguration.ChocolateyPackages
+                                                     .Select(_ => _.GetIdDotVersionString())),
+                                           SetupAction = machineManager =>
+                                               {
+                                                   var scriptBlockParameters =
+                                                       packagedConfig.DeploymentConfiguration
+                                                           .ChocolateyPackages.Select(_ => _ as object)
+                                                           .ToArray();
+
+                                                   machineManager.RunScript(
+                                                       this.settings.DeploymentScriptBlocks.InstallChocolatey
+                                                           .ScriptText,
+                                                       scriptBlockParameters);
+                                               }
+                                       };
             }
 
             return installChocoStep;
