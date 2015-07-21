@@ -50,13 +50,13 @@
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Contract, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Contract, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.7\lib\45\Naos.AWS.Contract.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.10\lib\45\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Core, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Core.1.0.7\lib\45\Naos.AWS.Core.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Core.1.0.10\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Database.Migrator">
       <HintPath>..\packages\Naos.Database.Migrator.1.0.43\lib\45\Naos.Database.Migrator.dll</HintPath>
@@ -90,9 +90,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NLog.Extended.4.0.0.1\lib\net45-full\NLog.Extended.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Core, Version=2.8.60318.667, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="NuGet.Core, Version=2.8.60717.93, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NuGet.Core.2.8.5\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <HintPath>..\packages\NuGet.Core.2.8.6\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
     <Reference Include="Spritely.Redo">
       <HintPath>..\packages\Spritely.Redo.0.1.0\lib\net45\Spritely.Redo.dll</HintPath>
