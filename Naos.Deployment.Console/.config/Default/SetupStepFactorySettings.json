@@ -408,6 +408,7 @@
                 "   $smoServer.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed",
                 "   $smoServer.Alter()",
                 "   $sqlCmdExe = 'C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\110\\Tools\\Binn\\SQLCMD.EXE'",
+                "   if (-not (Test-Path $sqlCmdExe)){ $sqlCmdExe = 'C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\100\\Tools\\Binn\\SQLCMD.EXE' }",
                 "   $statementEnable = 'ALTER LOGIN sa ENABLE'",
                 "   &$sqlCmdExe -Q \"$statementEnable\" -E",
                 "   if($lastExitCode -ne 0) { throw \"Exitcode was expected 0 but was $lastExitCode - failed to run $sqlCmdExe -Q $statementEnable -E\" }",
