@@ -18,6 +18,8 @@ namespace Naos.Deployment.Core
     using Naos.Database.Tools.Backup;
     using Naos.Deployment.Contract;
 
+    using Spritely.Redo;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -287,10 +289,14 @@ namespace Naos.Deployment.Core
                         Description = "Create database: " + databaseStrategy.Name,
                         SetupAction = machineManager =>
                             {
-                                var realRemoteConnectionString = connectionString.Replace(
-                                    "localhost",
-                                    machineManager.IpAddress);
-                                DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                                Try.Running(
+                                    () =>
+                                        {
+                                            var realRemoteConnectionString = connectionString.Replace(
+                                                "localhost",
+                                                machineManager.IpAddress);
+                                            DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                                        }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
                             }
                     });
 
@@ -314,51 +320,61 @@ namespace Naos.Deployment.Core
                                     awsRestore.FileName),
                             SetupAction = machineManager =>
                                 {
-                                    var realRemoteConnectionString = connectionString.Replace(
-                                        "localhost",
-                                        machineManager.IpAddress);
-
                                     var restoreFilePath = Path.Combine(
                                         databaseStrategy.BackupDirectory,
                                         awsRestore.FileName);
-                                    var remoteDownloadBackupScriptBlock = this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
-                                    var remoteDownloadBackupScriptParams = new[]
-                                                                               {
-                                                                                   awsRestore.BucketName,
-                                                                                   awsRestore.FileName, 
-                                                                                   restoreFilePath,
-                                                                                   awsRestore.Region,
-                                                                                   awsRestore.DownloadAccessKey,
-                                                                                   awsRestore.DownloadSecretKey
-                                                                               };
 
-                                    var checksumOption = awsRestore.RunChecksum
-                                                             ? ChecksumOption.Checksum
-                                                             : ChecksumOption.NoChecksum;
+                                    Try.Running(
+                                        () =>
+                                            {
+                                                var remoteDownloadBackupScriptBlock =
+                                                    this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
+                                                var remoteDownloadBackupScriptParams = new[]
+                                                                                           {
+                                                                                               awsRestore.BucketName,
+                                                                                               awsRestore.FileName,
+                                                                                               restoreFilePath,
+                                                                                               awsRestore.Region,
+                                                                                               awsRestore
+                                                                                                   .DownloadAccessKey,
+                                                                                               awsRestore
+                                                                                                   .DownloadSecretKey
+                                                                                           };
 
-                                    machineManager.RunScript(
-                                        remoteDownloadBackupScriptBlock,
-                                        remoteDownloadBackupScriptParams);
+                                                machineManager.RunScript(
+                                                    remoteDownloadBackupScriptBlock,
+                                                    remoteDownloadBackupScriptParams);
+                                            }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
 
-                                    var restoreFileUri = new Uri(restoreFilePath);
-                                    var restoreDetails = new RestoreDetails
-                                                             {
-                                                                 ChecksumOption = checksumOption,
-                                                                 Device = Device.Disk,
-                                                                 ErrorHandling = ErrorHandling.StopOnError,
-                                                                 DataFilePath = null,
-                                                                 LogFilePath = null,
-                                                                 RecoveryOption = RecoveryOption.NoRecovery,
-                                                                 ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
-                                                                 RestoreFrom = restoreFileUri,
-                                                                 RestrictedUserOption = RestrictedUserOption.Normal
-                                                             };
+                                    Try.Running(
+                                        () =>
+                                            {
+                                                var realRemoteConnectionString = connectionString.Replace(
+                                                    "localhost",
+                                                    machineManager.IpAddress);
 
-                                    DatabaseManager.RestoreFull(
-                                        realRemoteConnectionString,
-                                        databaseStrategy.Name,
-                                        restoreDetails);
-                               }
+                                                var restoreFileUri = new Uri(restoreFilePath);
+                                                var checksumOption = awsRestore.RunChecksum
+                                                                         ? ChecksumOption.Checksum
+                                                                         : ChecksumOption.NoChecksum;
+                                                var restoreDetails = new RestoreDetails
+                                                                         {
+                                                                             ChecksumOption = checksumOption,
+                                                                             Device = Device.Disk,
+                                                                             ErrorHandling = ErrorHandling.StopOnError,
+                                                                             DataFilePath = null,
+                                                                             LogFilePath = null,
+                                                                             RecoveryOption = RecoveryOption.NoRecovery,
+                                                                             ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
+                                                                             RestoreFrom = restoreFileUri,
+                                                                             RestrictedUserOption = RestrictedUserOption.Normal
+                                                                         };
+                                                DatabaseManager.RestoreFull(
+                                                    realRemoteConnectionString,
+                                                    databaseStrategy.Name,
+                                                    restoreDetails);
+                                            }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
+                                }
                         });
             }
 
