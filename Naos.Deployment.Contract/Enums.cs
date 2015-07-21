@@ -54,11 +54,6 @@ namespace Naos.Deployment.Contract
     public enum WindowsSku
     {
         /// <summary>
-        /// Unused because a specific image was supplied.
-        /// </summary>
-        SpecificImageSupplied,
-
-        /// <summary>
         /// Indicates that it's irrelevant to this deployment.
         /// </summary>
         DoesNotMatter,
@@ -87,5 +82,10 @@ namespace Naos.Deployment.Contract
         /// SQL Enterprise SKU.
         /// </summary>
         SqlEnterprise,
+
+        /// <summary>
+        /// Unused because a specific image was supplied.
+        /// </summary>
+        SpecificImageSupplied,
     }
 }
