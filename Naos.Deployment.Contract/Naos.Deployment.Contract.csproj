@@ -46,7 +46,7 @@
   <ItemGroup>
     <Compile Include="AutoStartProvider.cs" />
     <Compile Include="CloudInfrastructureManagerSettings.cs" />
-    <Compile Include="ContainerDetails.cs" />
+    <Compile Include="CloudContainerDescription.cs" />
     <Compile Include="DatabaseMigrationBase.cs" />
     <Compile Include="DatabaseRestoreBase.cs" />
     <Compile Include="DatabaseSettings.cs" />

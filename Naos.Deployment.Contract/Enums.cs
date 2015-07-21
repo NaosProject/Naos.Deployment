@@ -77,5 +77,15 @@ namespace Naos.Deployment.Contract
         /// SQL Standard SKU.
         /// </summary>
         SqlStandard,
+
+        /// <summary>
+        /// SQL Enterprise SKU.
+        /// </summary>
+        SqlEnterprise,
+
+        /// <summary>
+        /// Unused because a specific image was supplied.
+        /// </summary>
+        SpecificImageSupplied,
     }
 }

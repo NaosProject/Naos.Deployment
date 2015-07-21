@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ContainerDetails.cs" company="Naos">
+// <copyright file="CloudContainerDescription.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -9,18 +9,8 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Object with supporting information about the container an instance should live in.
     /// </summary>
-    public class ContainerDetails
+    public class CloudContainerDescription
     {
-        /// <summary>
-        /// Gets or sets the environment being serviced by the container.
-        /// </summary>
-        public string Environment { get; set; }
-
-        /// <summary>
-        /// Gets or sets the configured location.
-        /// </summary>
-        public string Location { get; set; }
-
         /// <summary>
         /// Gets or sets the ID of the container.
         /// </summary>

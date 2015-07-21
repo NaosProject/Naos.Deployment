@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>

@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core.Test
 {
+    using System.Collections.Generic;
     using System.Linq;
 
     using Naos.Deployment.Contract;
@@ -14,6 +15,24 @@ namespace Naos.Deployment.Core.Test
 
     public class SerializerTest
     {
+        [Fact]
+        public static void Deserialize_PrivateDnsEntries_Valid()
+        {
+            var input = @"
+[{
+	""Id"": ""CoMetrics.Database.Something"",
+	""InitializationStrategies"": [{
+		""PrivateDnsEntries"": [""something.database.development.cometrics.com""],
+		""Name"": ""CoopMetrics"",
+		""AdministratorPassword"": ""myPassword"",
+		""BackupDirectory"": ""D:\\Backups""
+	}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+        }
+
         [Fact]
         public static void Deserialize_SingleMessageBusHandlerInitStrategy_Valid()
         {

@@ -19,6 +19,9 @@ namespace Naos.Deployment.Console
     using Naos.AWS.Contract;
     using Naos.Deployment.Contract;
     using Naos.Deployment.Core;
+    using Naos.Deployment.Core.CertificateManagement;
+    using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.MessageBus.HandlingContract;
 
     using OBeautifulCode.Libs.Collections;
 
@@ -63,8 +66,10 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
             [Aliases("")] [Description("Description of package (with overrides) to use as the harness for Message Bus Handlers.")] string messageBusHandlerHarnessPackageDescriptionJson,
-            [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString, 
-            [Aliases("")] [Description("Full file path to the tracking file of cloud properties.")] string trackingFilePath, 
+            [Aliases("")] [Description("LogProcessorSettings to use with the harness for Message Bus Handlers to wire in specified settings.")] string messageBusHandlerHarnessLogProcessorSettingsJson,
+            [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString,
+            [Aliases("")] [Description("Full file path of the certificate certificate retriever managing file.")] string certificateRetrieverFilePath,
+            [Aliases("")] [Description("Full folder path of the location of persistence for tracking system for cloud properties.")] string trackingSystemRootFolder, 
             [Aliases("")] [Description("Default deployment configuration to use where items are not specified in JSON.")] string defaultDeploymentConfigJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
@@ -79,15 +84,17 @@ namespace Naos.Deployment.Console
             }
 
             Console.WriteLine("PARAMETERS:");
-            Console.WriteLine("--                           cloudCredentialsJson: " + cloudCredentialsJson);
-            Console.WriteLine("--        nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
-            Console.WriteLine("-- messageBusHandlerHarnessPackageDescriptionJson: " + messageBusHandlerHarnessPackageDescriptionJson);
-            Console.WriteLine("--                               trackingFilePath: " + trackingFilePath);
-            Console.WriteLine("--                    defaultDeploymentConfigJson: " + defaultDeploymentConfigJson);
-            Console.WriteLine("--                   overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
-            Console.WriteLine("--                                    environment: " + environment);
-            Console.WriteLine("--                                   instanceName: " + instanceName);
-            Console.WriteLine("--                           packagesToDeployJson: " + packagesToDeployJson);
+            Console.WriteLine("--                              cloudCredentialsJson: " + cloudCredentialsJson);
+            Console.WriteLine("--           nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
+            Console.WriteLine("--    messageBusHandlerHarnessPackageDescriptionJson: " + messageBusHandlerHarnessPackageDescriptionJson);
+            Console.WriteLine("--  messageBusHandlerHarnessLogProcessorSettingsJson: " + messageBusHandlerHarnessLogProcessorSettingsJson);
+            Console.WriteLine("--                      certificateRetrieverFilePath: " + certificateRetrieverFilePath);
+            Console.WriteLine("--                          trackingSystemRootFolder: " + trackingSystemRootFolder);
+            Console.WriteLine("--                       defaultDeploymentConfigJson: " + defaultDeploymentConfigJson);
+            Console.WriteLine("--                      overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
+            Console.WriteLine("--                                       environment: " + environment);
+            Console.WriteLine("--                                      instanceName: " + instanceName);
+            Console.WriteLine("--                              packagesToDeployJson: " + packagesToDeployJson);
             Console.WriteLine(string.Empty);
 
             var packagesToDeploy =
@@ -96,7 +103,9 @@ namespace Naos.Deployment.Console
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
 
-            var tracker = new ComputingInfrastructureTracker(trackingFilePath);
+            var tracker = new RootFolderEnvironmentFolderInstanceFileTracker(trackingSystemRootFolder);
+            var certManager = new CertificateRetriever(certificateRetrieverFilePath);
+
             var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
             var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);
 
@@ -108,6 +117,9 @@ namespace Naos.Deployment.Console
             var messageBusHandlerHarnessPackageDescription =
                 Serializer.Deserialize<PackageDescriptionWithOverrides>(messageBusHandlerHarnessPackageDescriptionJson);
 
+            var messageBusHandlerHarnessLogProcessorSettings =
+                Serializer.Deserialize<LogProcessorSettings>(messageBusHandlerHarnessLogProcessorSettingsJson);
+
             var packageManager = new PackageManager(repoConfig, unzipDirPath).WithCleanWorkingDirectory();
             var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
@@ -115,10 +127,11 @@ namespace Naos.Deployment.Console
                 tracker,
                 cloudManager,
                 packageManager,
-                tracker,
+                certManager,
                 setupFactorySettings,
                 defaultDeploymentConfig,
                 messageBusHandlerHarnessPackageDescription,
+                messageBusHandlerHarnessLogProcessorSettings,
                 messageBusPersistenceConnectionString,
                 cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine);

@@ -1,12 +1,11 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ComputingInfrastructureTracker.cs" company="Naos">
+// <copyright file="SingleFileCloudInfrastructureTracker.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.Core.CloudInfrastructureTracking
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -14,22 +13,22 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Contract;
 
     /// <inheritdoc />
-    public class ComputingInfrastructureTracker : ITrackComputingInfrastructure, IGetCertificates
+    public class SingleFileCloudInfrastructureTracker : ITrackComputingInfrastructure
     {
         private readonly object fileSync = new object();
         private readonly string filePath;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ComputingInfrastructureTracker"/> class.
+        /// Initializes a new instance of the <see cref="SingleFileCloudInfrastructureTracker"/> class.
         /// </summary>
         /// <param name="filePath">Path to save all state to.</param>
-        public ComputingInfrastructureTracker(string filePath)
+        public SingleFileCloudInfrastructureTracker(string filePath)
         {
             this.filePath = filePath;
         }
 
         /// <inheritdoc />
-        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(ICollection<PackageDescription> packages)
+        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(string environment, ICollection<PackageDescription> packages)
         {
             lock (this.fileSync)
             {
@@ -38,7 +37,8 @@ namespace Naos.Deployment.Core
                 var instancesThatHaveAnyOfTheProvidedPackages =
                     theSafe.Instances.Where(
                         _ =>
-                        _.InstanceDescription.DeployedPackages.Intersect(
+                        _.InstanceDescription.Environment == environment
+                        && _.InstanceDescription.DeployedPackages.Intersect(
                             packages,
                             new PackageDescriptionIdOnlyEqualityComparer()).Any()).ToList();
 
@@ -48,7 +48,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceTermination(string systemId)
+        public void ProcessInstanceTermination(string environment, string systemId)
         {
             lock (this.fileSync)
             {
@@ -88,7 +88,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void ProcessDeployedPackage(string systemId, PackageDescription package)
+        public void ProcessDeployedPackage(string environment, string systemId, PackageDescription package)
         {
             lock (this.fileSync)
             {
@@ -111,7 +111,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescriptionById(string systemId)
+        public InstanceDescription GetInstanceDescriptionById(string environment, string systemId)
         {
             lock (this.fileSync)
             {
@@ -124,7 +124,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetInstanceIdByName(string name)
+        public string GetInstanceIdByName(string environment, string name)
         {
             lock (this.fileSync)
             {
@@ -137,7 +137,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetPrivateKeyOfInstanceById(string systemId)
+        public string GetPrivateKeyOfInstanceById(string environment, string systemId)
         {
             lock (this.fileSync)
             {
@@ -150,9 +150,11 @@ namespace Naos.Deployment.Core
                     return null;
                 }
 
-                var containerId = wrapped.InstanceCreationDetails.ContainerDetails.ContainerId;
+                var containerId = wrapped.InstanceCreationDetails.CloudContainerDescription.ContainerId;
 
-                var container = theSafe.Containers.SingleOrDefault(_ => _.ContainerId == containerId);
+                var container =
+                    theSafe.EnvironmentCloudContainerMap.SelectMany(_ => _.Value)
+                        .SingleOrDefault(_ => _.ContainerId == containerId);
 
                 if (container == null)
                 {
@@ -164,20 +166,20 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetDomainZoneId(string domain)
+        public string GetDomainZoneId(string environment, string domain)
         {
             lock (this.fileSync)
             {
                 var theSafe = this.LoadStateFromDisk();
 
-                string ret = null;
+                string ret;
                 var found = theSafe.RootDomainHostingIdMap.TryGetValue(domain, out ret);
                 return found ? ret : null;
             }
         }
 
         /// <inheritdoc />
-        public string GetInstancePrivateDnsRootDomain()
+        public string GetInstancePrivateDnsRootDomain(string environment)
         {
             lock (this.fileSync)
             {
@@ -185,19 +187,6 @@ namespace Naos.Deployment.Core
 
                 var ret = theSafe.InstancePrivateDnsRootDomain;
                 return ret;
-            }
-        }
-
-        /// <inheritdoc />
-        public CertificateDetails GetCertificateByName(string name)
-        {
-            lock (this.fileSync)
-            {
-                var theSafe = this.LoadStateFromDisk();
-
-                var certContainer = theSafe.Certificates.SingleOrDefault(_ => _.Name == name);
-                var certDetails = certContainer == null ? null : certContainer.ToCertificateDetails();
-                return certDetails;
             }
         }
 
@@ -230,8 +219,8 @@ namespace Naos.Deployment.Core
                                   KeyName = keyName,
                                   SecurityGroupId = securityGroupId,
                                   Location = location,
-                                  ContainerDetails =
-                                      new ContainerDetails()
+                                  CloudContainerDescription =
+                                      new CloudContainerDescription()
                                           {
                                               ContainerId = containerId,
                                               ContainerLocation = containerLocation,
@@ -257,15 +246,15 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private TheSafe LoadStateFromDisk()
+        private SingleFileCloudInfrastructureTrackerContainer LoadStateFromDisk()
         {
             if (!File.Exists(this.filePath))
             {
-                this.SaveStateToDisk(new TheSafe());
+                this.SaveStateToDisk(new SingleFileCloudInfrastructureTrackerContainer());
             }
 
             var raw = File.ReadAllText(this.filePath);
-            var ret = Serializer.Deserialize<TheSafe>(raw);
+            var ret = Serializer.Deserialize<SingleFileCloudInfrastructureTrackerContainer>(raw);
             if (ret.Instances == null)
             {
                 ret.Instances = new List<InstanceWrapper>();
@@ -274,9 +263,9 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private void SaveStateToDisk(TheSafe theSafe)
+        private void SaveStateToDisk(SingleFileCloudInfrastructureTrackerContainer singleFileCloudInfrastructureTrackerContainer)
         {
-            var serialized = Serializer.Serialize(theSafe);
+            var serialized = Serializer.Serialize(singleFileCloudInfrastructureTrackerContainer);
             File.WriteAllText(this.filePath, serialized);
         }
     }

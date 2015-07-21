@@ -13,14 +13,12 @@ namespace Naos.Deployment.Core
     using System.Reflection;
     using System.Text;
 
-    using Amazon;
-    using Amazon.S3;
-    using Amazon.S3.Transfer;
-
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Database.Tools.Backup;
     using Naos.Deployment.Contract;
+
+    using Spritely.Redo;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -55,7 +53,7 @@ namespace Naos.Deployment.Core
         {
             var ret = new List<SetupStep>();
 
-            var installChocoStep = GetChocolateySetupStep(packagedConfig);
+            var installChocoStep = this.GetChocolateySetupStep(packagedConfig);
             if (installChocoStep != null)
             {
                 ret.Add(installChocoStep);
@@ -291,10 +289,14 @@ namespace Naos.Deployment.Core
                         Description = "Create database: " + databaseStrategy.Name,
                         SetupAction = machineManager =>
                             {
-                                var realRemoteConnectionString = connectionString.Replace(
-                                    "localhost",
-                                    machineManager.IpAddress);
-                                DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                                Try.Running(
+                                    () =>
+                                        {
+                                            var realRemoteConnectionString = connectionString.Replace(
+                                                "localhost",
+                                                machineManager.IpAddress);
+                                            DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                                        }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
                             }
                     });
 
@@ -318,42 +320,61 @@ namespace Naos.Deployment.Core
                                     awsRestore.FileName),
                             SetupAction = machineManager =>
                                 {
-                                    var realRemoteConnectionString = connectionString.Replace(
-                                        "localhost",
-                                        machineManager.IpAddress);
-
-                                    var localRestoreFilePath = Path.GetTempFileName();
-                                    var regionEndpoint = RegionEndpoint.GetBySystemName(awsRestore.Region);
-                                    var client = new AmazonS3Client(awsRestore.DownloadAccessKey, awsRestore.DownloadSecretKey, regionEndpoint);
-                                    var transferUtility = new TransferUtility(client);
-                                    transferUtility.Download(localRestoreFilePath, awsRestore.BucketName, awsRestore.FileName);
-                                    var restoreFileBytes = File.ReadAllBytes(localRestoreFilePath);
-                                    File.Delete(localRestoreFilePath);
                                     var restoreFilePath = Path.Combine(
                                         databaseStrategy.BackupDirectory,
                                         awsRestore.FileName);
 
-                                    machineManager.SendFile(restoreFilePath, restoreFileBytes);
+                                    Try.Running(
+                                        () =>
+                                            {
+                                                var remoteDownloadBackupScriptBlock =
+                                                    this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
+                                                var remoteDownloadBackupScriptParams = new[]
+                                                                                           {
+                                                                                               awsRestore.BucketName,
+                                                                                               awsRestore.FileName,
+                                                                                               restoreFilePath,
+                                                                                               awsRestore.Region,
+                                                                                               awsRestore
+                                                                                                   .DownloadAccessKey,
+                                                                                               awsRestore
+                                                                                                   .DownloadSecretKey
+                                                                                           };
 
-                                    var restoreFileUri = new Uri(restoreFilePath);
-                                    var restoreDetails = new RestoreDetails
-                                                             {
-                                                                 ChecksumOption = ChecksumOption.Checksum,
-                                                                 Device = Device.Disk,
-                                                                 ErrorHandling = ErrorHandling.StopOnError,
-                                                                 DataFilePath = null,
-                                                                 LogFilePath = null,
-                                                                 RecoveryOption = RecoveryOption.NoRecovery,
-                                                                 ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
-                                                                 RestoreFrom = restoreFileUri,
-                                                                 RestrictedUserOption = RestrictedUserOption.Normal
-                                                             };
+                                                machineManager.RunScript(
+                                                    remoteDownloadBackupScriptBlock,
+                                                    remoteDownloadBackupScriptParams);
+                                            }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
 
-                                    DatabaseManager.RestoreFull(
-                                        realRemoteConnectionString,
-                                        databaseStrategy.Name,
-                                        restoreDetails);
-                               }
+                                    Try.Running(
+                                        () =>
+                                            {
+                                                var realRemoteConnectionString = connectionString.Replace(
+                                                    "localhost",
+                                                    machineManager.IpAddress);
+
+                                                var restoreFileUri = new Uri(restoreFilePath);
+                                                var checksumOption = awsRestore.RunChecksum
+                                                                         ? ChecksumOption.Checksum
+                                                                         : ChecksumOption.NoChecksum;
+                                                var restoreDetails = new RestoreDetails
+                                                                         {
+                                                                             ChecksumOption = checksumOption,
+                                                                             Device = Device.Disk,
+                                                                             ErrorHandling = ErrorHandling.StopOnError,
+                                                                             DataFilePath = null,
+                                                                             LogFilePath = null,
+                                                                             RecoveryOption = RecoveryOption.NoRecovery,
+                                                                             ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
+                                                                             RestoreFrom = restoreFileUri,
+                                                                             RestrictedUserOption = RestrictedUserOption.Normal
+                                                                         };
+                                                DatabaseManager.RestoreFull(
+                                                    realRemoteConnectionString,
+                                                    databaseStrategy.Name,
+                                                    restoreDetails);
+                                            }).With(new ConstantDelayRetryStrategy(3, TimeSpan.FromSeconds(20)));
+                                }
                         });
             }
 
@@ -424,41 +445,33 @@ namespace Naos.Deployment.Core
             return deployUnzippedFileStep;
         }
 
-        private static SetupStep GetChocolateySetupStep(PackagedDeploymentConfiguration packagedConfig)
+        private SetupStep GetChocolateySetupStep(PackagedDeploymentConfiguration packagedConfig)
         {
             SetupStep installChocoStep = null;
             if (packagedConfig.DeploymentConfiguration.ChocolateyPackages != null
                 && packagedConfig.DeploymentConfiguration.ChocolateyPackages.Any())
             {
                 installChocoStep = new SetupStep
-                {
-                    Description =
-                        "Install Chocolatey Packages: "
-                        + string.Join(
-                            ",",
-                            packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                              .Select(_ => _.GetIdDotVersionString())),
-                    SetupAction = machineManager =>
-                    {
-                        var installChocolateyPackagesLines =
-                            packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                                .Select(
-                                    _ =>
-                                    _.Version == null
-                                        ? "choco install " + _.Id + " -y"
-                                        : "choco install " + _.Id + " -Version "
-                                          + _.Version + " -y");
-                        var installChocolateyPackagesScriptBlock = "{"
-                                                                   + string.Join(
-                                                                       Environment
-                                                                         .NewLine,
-                                                                       installChocolateyPackagesLines)
-                                                                   + "}";
-                        machineManager.RunScript(
-                            installChocolateyPackagesScriptBlock,
-                            new object[0]);
-                    }
-                };
+                                       {
+                                           Description =
+                                               "Install Chocolatey Packages: "
+                                               + string.Join(
+                                                   ",",
+                                                   packagedConfig.DeploymentConfiguration.ChocolateyPackages
+                                                     .Select(_ => _.GetIdDotVersionString())),
+                                           SetupAction = machineManager =>
+                                               {
+                                                   var scriptBlockParameters =
+                                                       packagedConfig.DeploymentConfiguration
+                                                           .ChocolateyPackages.Select(_ => _ as object)
+                                                           .ToArray();
+
+                                                   machineManager.RunScript(
+                                                       this.settings.DeploymentScriptBlocks.InstallChocolatey
+                                                           .ScriptText,
+                                                       scriptBlockParameters);
+                                               }
+                                       };
             }
 
             return installChocoStep;

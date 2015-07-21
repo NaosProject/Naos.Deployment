@@ -45,5 +45,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the secret key needed to authenticate.
         /// </summary>
         public string DownloadSecretKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to run a checksum on the restore.
+        /// </summary>
+        public bool RunChecksum { get; set; }
     }
 }

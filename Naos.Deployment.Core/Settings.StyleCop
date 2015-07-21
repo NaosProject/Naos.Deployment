@@ -3,6 +3,8 @@
     <StringProperty Name="MergeSettingsFiles">NoMerge</StringProperty>
     <CollectionProperty Name="RecognizedWords">
       <Value>Naos</Value>
+      <Value>arcology</Value>
+      <Value>Sku</Value>
       <Value>AppVeyor</Value>
       <Value>Aws</Value>
       <Value>bool</Value>

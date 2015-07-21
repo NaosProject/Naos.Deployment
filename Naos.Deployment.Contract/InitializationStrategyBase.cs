@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.Collections.Generic;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -16,5 +17,9 @@ namespace Naos.Deployment.Contract
     [KnownType(typeof(InitializationStrategyWeb))]
     public abstract class InitializationStrategyBase
     {
+        /// <summary>
+        /// Gets or sets DNS entries to be applied to the private IP address of the created instance.
+        /// </summary>
+        public ICollection<string> PrivateDnsEntries { get; set; }
     }
 }
