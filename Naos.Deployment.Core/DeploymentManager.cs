@@ -190,16 +190,24 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyWeb>();
 
+            this.announce("Updating DNS for web initializations (if applicable)");
             foreach (var webInitialization in webInitializations)
             {
+                var ipAddress = createdInstanceDescription.PublicIpAddress
+                                ?? createdInstanceDescription.PrivateIpAddress;
+                var dns = webInitialization.PrimaryDns;
+
+                this.announce(string.Format(" - Pointing {0} at {1}.", dns, ipAddress));
+
                 this.cloudManager.UpsertDnsEntry(
                     environment,
                     createdInstanceDescription.Location,
-                    webInitialization.PrimaryDns,
-                    new[] { createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress });
+                    dns,
+                    new[] { ipAddress });
             }
 
             // get all initializations to update any private DNS entries on the private IP address.
+            this.announce("Updating private DNS for all initializations (if applicable)");
             var allInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyBase>();
@@ -208,11 +216,13 @@ namespace Naos.Deployment.Core
                 var privateDnsEntries = initialization.PrivateDnsEntries ?? new List<string>();
                 foreach (var privateDnsEntry in privateDnsEntries)
                 {
+                    var ipAddress = createdInstanceDescription.PrivateIpAddress;
+                    this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
                     this.cloudManager.UpsertDnsEntry(
                         environment,
                         createdInstanceDescription.Location,
                         privateDnsEntry,
-                        new[] { createdInstanceDescription.PrivateIpAddress });
+                        new[] { ipAddress });
                 }
             }
 
