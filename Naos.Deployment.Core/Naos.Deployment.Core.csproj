@@ -94,9 +94,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NuGet.Core.2.8.6\lib\net40-Client\NuGet.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Spritely.Redo">
-      <HintPath>..\packages\Spritely.Redo.0.1.0\lib\net45\Spritely.Redo.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
