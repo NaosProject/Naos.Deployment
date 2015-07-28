@@ -9,13 +9,14 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Runtime.Serialization;
 
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
     using Newtonsoft.Json.Serialization;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Specific serialization settings encapsulated for needs when using objects from this project..
@@ -98,6 +99,7 @@ namespace Naos.Deployment.Core
                                                       true
                                               },
                                           new KnownTypeConverter(),
+                                          new SecureStringJsonConverter(),
                                       }
             };
 
@@ -122,7 +124,7 @@ namespace Naos.Deployment.Core
             /// <inheritdoc />
             public override bool CanConvert(Type objectType)
             {
-                return System.Attribute.GetCustomAttributes(objectType).Any(v => v is KnownTypeAttribute);
+                return Attribute.GetCustomAttributes(objectType).Any(v => v is KnownTypeAttribute);
             }
 
             /// <inheritdoc />

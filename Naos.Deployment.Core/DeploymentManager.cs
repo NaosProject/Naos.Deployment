@@ -105,6 +105,7 @@ namespace Naos.Deployment.Core
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = string.Format(".config/{0}/DeploymentConfigurationWithStrategies.json", environment);
 
+            this.announce("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
 
             // apply default values to any nulls
@@ -252,7 +253,9 @@ namespace Naos.Deployment.Core
                                                        && packageDescriptionWithOverrides.InitializationStrategies.Count
                                                        > 0
                                                            ? packageDescriptionWithOverrides.InitializationStrategies
-                                                           : deploymentConfig.InitializationStrategies
+                                                           : (deploymentConfig
+                                                              ?? new DeploymentConfigurationWithStrategies())
+                                                                 .InitializationStrategies
                                                              ?? new List<InitializationStrategyBase>();
 
                         var newItem = new PackagedDeploymentConfiguration
@@ -293,11 +296,7 @@ namespace Naos.Deployment.Core
             var messageBusHandlerPackage =
                 this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
 
-            var privateQueueName = instanceName;
-            var channelsToMonitor =
-                new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor))
-                    .Distinct()
-                    .ToList();
+            var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
             var executorRoleSettings = new[]
                                            {

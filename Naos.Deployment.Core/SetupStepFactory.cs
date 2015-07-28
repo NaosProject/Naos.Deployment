@@ -345,8 +345,8 @@ namespace Naos.Deployment.Core
                                                                  ChecksumOption = checksumOption,
                                                                  Device = Device.Disk,
                                                                  ErrorHandling = ErrorHandling.StopOnError,
-                                                                 DataFilePath = null,
-                                                                 LogFilePath = null,
+                                                                 DataFilePath = databaseConfiguration.DataFilePath,
+                                                                 LogFilePath = databaseConfiguration.LogFilePath,
                                                                  RecoveryOption = RecoveryOption.NoRecovery,
                                                                  ReplaceOption =
                                                                      ReplaceOption.ReplaceExistingDatabase,

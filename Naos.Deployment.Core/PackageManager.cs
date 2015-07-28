@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Net;
     using System.Text;
 
     using Naos.Deployment.Contract;
@@ -139,7 +140,8 @@ namespace Naos.Deployment.Core
                     .Password
             };
             var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource });
-            var credentialProvider = new SettingsCredentialProvider(NullCredentialProvider.Instance, packageSourceProvider);
+            var customCredentialProvider = new CustomCredentialProvider(this.repoConfig); // NullCredentialProvider.Instance;
+            var credentialProvider = new SettingsCredentialProvider(customCredentialProvider, packageSourceProvider);
             HttpClient.DefaultCredentialProvider = credentialProvider;
 
             // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
@@ -242,6 +244,27 @@ namespace Naos.Deployment.Core
                           };
 
             return ret;
+        }
+    }
+
+    public class CustomCredentialProvider : ICredentialProvider
+    {
+        private PackageRepositoryConfiguration repoConfig;
+
+        public CustomCredentialProvider(PackageRepositoryConfiguration repoConfig)
+        {
+            this.repoConfig = repoConfig;
+        }
+
+        public ICredentials GetCredentials(Uri uri, IWebProxy proxy, CredentialType credentialType, bool retrying)
+        {
+            var credentialCache = new CredentialCache();
+            var uriPrefix = new Uri(this.repoConfig.Source);
+            credentialCache.Add(
+                uriPrefix,
+                "Basic",
+                new NetworkCredential(this.repoConfig.Username, this.repoConfig.Password));
+            return credentialCache;
         }
     }
 }
