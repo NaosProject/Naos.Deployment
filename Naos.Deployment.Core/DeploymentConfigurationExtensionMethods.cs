@@ -128,8 +128,8 @@ namespace Naos.Deployment.Core
                 instanceAccessibility = overrideAccessibility;
             }
 
-            var windowsSku = deploymentConfigInitial.InstanceType.WindowsSku;
-            var overrideWindowsSku = deploymentConfigOverride.InstanceType.WindowsSku;
+            var windowsSku = (deploymentConfigInitial.InstanceType ?? new InstanceType()).WindowsSku;
+            var overrideWindowsSku = (deploymentConfigOverride.InstanceType ?? new InstanceType()).WindowsSku;
             if (overrideWindowsSku != WindowsSku.DoesNotMatter)
             {
                 windowsSku = overrideWindowsSku;

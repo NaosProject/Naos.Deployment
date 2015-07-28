@@ -105,6 +105,7 @@ namespace Naos.Deployment.Core
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = string.Format(".config/{0}/DeploymentConfigurationWithStrategies.json", environment);
 
+            this.announce("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
 
             // apply default values to any nulls
@@ -190,16 +191,24 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyWeb>();
 
+            this.announce("Updating DNS for web initializations (if applicable)");
             foreach (var webInitialization in webInitializations)
             {
+                var ipAddress = createdInstanceDescription.PublicIpAddress
+                                ?? createdInstanceDescription.PrivateIpAddress;
+                var dns = webInitialization.PrimaryDns;
+
+                this.announce(string.Format(" - Pointing {0} at {1}.", dns, ipAddress));
+
                 this.cloudManager.UpsertDnsEntry(
                     environment,
                     createdInstanceDescription.Location,
-                    webInitialization.PrimaryDns,
-                    new[] { createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress });
+                    dns,
+                    new[] { ipAddress });
             }
 
             // get all initializations to update any private DNS entries on the private IP address.
+            this.announce("Updating private DNS for all initializations (if applicable)");
             var allInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyBase>();
@@ -208,11 +217,13 @@ namespace Naos.Deployment.Core
                 var privateDnsEntries = initialization.PrivateDnsEntries ?? new List<string>();
                 foreach (var privateDnsEntry in privateDnsEntries)
                 {
+                    var ipAddress = createdInstanceDescription.PrivateIpAddress;
+                    this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
                     this.cloudManager.UpsertDnsEntry(
                         environment,
                         createdInstanceDescription.Location,
                         privateDnsEntry,
-                        new[] { createdInstanceDescription.PrivateIpAddress });
+                        new[] { ipAddress });
                 }
             }
 
@@ -242,7 +253,9 @@ namespace Naos.Deployment.Core
                                                        && packageDescriptionWithOverrides.InitializationStrategies.Count
                                                        > 0
                                                            ? packageDescriptionWithOverrides.InitializationStrategies
-                                                           : deploymentConfig.InitializationStrategies
+                                                           : (deploymentConfig
+                                                              ?? new DeploymentConfigurationWithStrategies())
+                                                                 .InitializationStrategies
                                                              ?? new List<InitializationStrategyBase>();
 
                         var newItem = new PackagedDeploymentConfiguration
@@ -283,11 +296,7 @@ namespace Naos.Deployment.Core
             var messageBusHandlerPackage =
                 this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
 
-            var privateQueueName = instanceName;
-            var channelsToMonitor =
-                new[] { privateQueueName }.Concat(messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor))
-                    .Distinct()
-                    .ToList();
+            var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
             var executorRoleSettings = new[]
                                            {

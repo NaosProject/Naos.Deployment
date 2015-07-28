@@ -214,7 +214,63 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void ApplyOverrides_EverythingOverwritten()
+        public static void ApplyOverrides_NullOverridePropertiesAllowed_NothingOverwritten()
+        {
+            var baseConfig = new DeploymentConfiguration
+            {
+                InstanceAccessibility = InstanceAccessibility.Private,
+                InstanceType = new InstanceType
+                {
+                    VirtualCores = 10,
+                    RamInGb = 20,
+                    WindowsSku = WindowsSku.SqlWeb,
+                },
+                Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
+                ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
+            };
+
+            var overrideConfig = new DeploymentConfiguration();
+
+            var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
+            Assert.Equal(baseConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
+            Assert.Equal(baseConfig.InstanceType.VirtualCores, appliedConfig.InstanceType.VirtualCores);
+            Assert.Equal(baseConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
+            Assert.Equal(baseConfig.Volumes.First().DriveLetter, appliedConfig.Volumes.First().DriveLetter);
+            Assert.Equal(baseConfig.Volumes.First().SizeInGb, appliedConfig.Volumes.First().SizeInGb);
+            Assert.Equal(baseConfig.ChocolateyPackages.First().Id, appliedConfig.ChocolateyPackages.First().Id);
+            Assert.Equal(baseConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+        }
+
+        [Fact]
+        public static void ApplyOverrides_NoPropertiesSet_EverythingOverwritten()
+        {
+            var baseConfig = new DeploymentConfiguration();
+
+            var overrideConfig = new DeploymentConfiguration
+                                    {
+                                        InstanceAccessibility = InstanceAccessibility.Public,
+                                        InstanceType = new InstanceType
+                                                           {
+                                                               VirtualCores = 4,
+                                                               RamInGb = 10,
+                                                               WindowsSku = WindowsSku.SqlStandard,
+                                                           },
+                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
+                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                                    };
+
+            var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
+            Assert.Equal(overrideConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
+            Assert.Equal(overrideConfig.InstanceType.VirtualCores, appliedConfig.InstanceType.VirtualCores);
+            Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
+            Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
+            Assert.Equal(overrideConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+        }
+
+        [Fact]
+        public static void ApplyOverrides_AllPropertiesSet_EverythingOverwritten()
         {
             var baseConfig = new DeploymentConfiguration
                                  {
