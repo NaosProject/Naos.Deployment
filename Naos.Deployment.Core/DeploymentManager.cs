@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
 
@@ -141,21 +142,46 @@ namespace Naos.Deployment.Core
             this.RebootInstance(machineManager);
 
             // get all message bus handler initializations to know if we need a handler.
-            var messageBusInitializations =
+            var packagesWithMessageBusInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
+
+            var messageBusInitializations =
+                packagesWithMessageBusInitializations
                     .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
 
             // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
             var notAlreadyDeployingTheSamePackageAsHandlersUse =
                 packagedDeploymentConfigsWithDefaultsAndOverrides.All(
                     _ => _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
+
             if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
             {
                 this.announce("Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
 
-                var itsConfigOverridesForHandlers =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(
-                        _ => _.ItsConfigOverrides ?? new List<ItsConfigOverride>()).ToList();
+                var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
+
+                this.announce(
+                    "Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
+                foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
+                {
+                    itsConfigOverridesForHandlers.AddRange(packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
+
+                    var itsConfigEnvironmentFolderPattern = string.Format(".config/{0}/", environment);
+                    var itsConfigFilesFromPackage =
+                        this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                            packageWithMessageBusInitializations.Package,
+                            itsConfigEnvironmentFolderPattern);
+
+                    itsConfigOverridesForHandlers.AddRange(
+                        itsConfigFilesFromPackage.Select(
+                            _ =>
+                            new ItsConfigOverride
+                                {
+                                    FileNameWithoutExtension = Path.GetFileNameWithoutExtension(_.Key),
+                                    FileContentsJson = _.Value
+                                }));
+                }
 
                 var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
                     instanceName,
@@ -244,9 +270,13 @@ namespace Naos.Deployment.Core
                                                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
 
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var deploymentConfigJson =
+                            this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                package,
+                                deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
+
                         var deploymentConfig =
-                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
-                                this.packageManager.GetFileContentsFromPackageAsString(package, deploymentFileSearchPattern));
+                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(deploymentConfigJson);
 
                         // take overrides if present, otherwise take existing, otherwise take empty
                         var initializationStrategies = packageDescriptionWithOverrides.InitializationStrategies != null
