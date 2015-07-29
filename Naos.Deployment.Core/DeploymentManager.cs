@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Threading;
 
@@ -160,9 +161,12 @@ namespace Naos.Deployment.Core
 
                 var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
 
+                this.announce(
+                    "Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
                 foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
                 {
-                    itsConfigOverridesForHandlers.AddRange(packageWithMessageBusInitializations.ItsConfigOverrides);
+                    itsConfigOverridesForHandlers.AddRange(packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
+
                     var itsConfigEnvironmentFolderPattern = string.Format(".config/{0}/", environment);
                     var itsConfigFilesFromPackage =
                         this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
@@ -174,7 +178,7 @@ namespace Naos.Deployment.Core
                             _ =>
                             new ItsConfigOverride
                                 {
-                                    FileNameWithoutExtension = _.Key.Replace(".json", string.Empty),
+                                    FileNameWithoutExtension = Path.GetFileNameWithoutExtension(_.Key),
                                     FileContentsJson = _.Value
                                 }));
                 }
