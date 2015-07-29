@@ -74,58 +74,6 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public string GetFileContentsFromPackageAsString(Package package, string searchPattern, Encoding encoding = null)
-        {
-            encoding = encoding ?? Encoding.ASCII;
-            var retBytes = this.GetFileContentsFromPackageAsBytes(package, searchPattern);
-
-            if (retBytes == null)
-            {
-                return null;
-            }
-
-            var retString = encoding.GetString(retBytes);
-            return retString;
-        }
-
-        /// <inheritdoc />
-        public byte[] GetFileContentsFromPackageAsBytes(Package package, string searchPattern)
-        {
-            // download package (decompressed)
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
-            var packageFilePath = Path.Combine(workingDirectory, "Package.zip");
-            Directory.CreateDirectory(workingDirectory);
-            File.WriteAllBytes(packageFilePath, package.PackageFileBytes);
-            ZipFile.ExtractToDirectory(packageFilePath, Directory.GetParent(packageFilePath).FullName);
-
-            // get list of files as fullpath strings
-            var files = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
-
-            // normalize slashes in searchPattern AND in file list
-            var normalizedSlashesSearchPattern = searchPattern.Replace(@"\", "/");
-            var normalizedSlashesFiles = files.Select(_ => _.Replace(@"\", "/"));
-
-            var fileToGetContentsFor =
-                normalizedSlashesFiles.SingleOrDefault(
-                    _ =>
-                    CultureInfo.CurrentCulture.CompareInfo.IndexOf(
-                        _,
-                        normalizedSlashesSearchPattern,
-                        CompareOptions.IgnoreCase) >= 0);
-
-            byte[] bytes = null;
-            if (fileToGetContentsFor != null)
-            {
-                bytes = File.ReadAllBytes(fileToGetContentsFor);
-            }
-            
-            // clean up temp files
-            Directory.Delete(workingDirectory, true);
-
-            return bytes;
-        }
-
-        /// <inheritdoc />
         public ICollection<string> DownloadPackages(ICollection<PackageDescription> packageDescriptions, string workingDirectory, bool includeDependencies = false)
         {
             // credential override for below taken from: http://stackoverflow.com/questions/18594613/setting-the-package-credentials-using-nuget-core-dll
@@ -242,6 +190,49 @@ namespace Naos.Deployment.Core
                               PackageFileBytes = this.GetPackageFile(packageDescription, bundleAllDependencies),
                               PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
                           };
+
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public IDictionary<string, string> GetMultipleFileContentsFromPackageAsStrings(Package package, string searchPattern, Encoding encoding = null)
+        {
+            encoding = encoding ?? Encoding.Unicode;
+
+            var dictionaryBytes = this.GetMultipleFileContentsFromPackageAsBytes(package, searchPattern);
+            var dictionaryStrings = dictionaryBytes.ToDictionary(_ => _.Key, _ => encoding.GetString(_.Value));
+
+            return dictionaryStrings;
+        }
+
+        /// <inheritdoc />
+        public IDictionary<string, byte[]> GetMultipleFileContentsFromPackageAsBytes(Package package, string searchPattern)
+        {
+            // download package (decompressed)
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
+            var packageFilePath = Path.Combine(workingDirectory, "Package.zip");
+            Directory.CreateDirectory(workingDirectory);
+            File.WriteAllBytes(packageFilePath, package.PackageFileBytes);
+            ZipFile.ExtractToDirectory(packageFilePath, Directory.GetParent(packageFilePath).FullName);
+
+            // get list of files as fullpath strings
+            var files = Directory.GetFiles(workingDirectory, "*", SearchOption.AllDirectories);
+
+            // normalize slashes in searchPattern AND in file list
+            var normalizedSlashesSearchPattern = searchPattern.Replace(@"\", "/");
+            var normalizedSlashesFiles = files.Select(_ => _.Replace(@"\", "/"));
+            var filesToGetContentsFor =
+                normalizedSlashesFiles.Where(
+                    _ =>
+                    CultureInfo.CurrentCulture.CompareInfo.IndexOf(
+                        _,
+                        normalizedSlashesSearchPattern,
+                        CompareOptions.IgnoreCase) >= 0);
+
+            var ret = filesToGetContentsFor.ToDictionary(_ => _, File.ReadAllBytes);
+            
+            // clean up temp files
+            Directory.Delete(workingDirectory, true);
 
             return ret;
         }

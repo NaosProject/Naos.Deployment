@@ -64,6 +64,20 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Retrieves the items that contain an initialization strategy matching the specified type.
+        /// </summary>
+        /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
+        /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
+        /// <returns>Filtered collection of where the initialization strategies match the type specified.</returns>
+        public static ICollection<PackagedDeploymentConfiguration> WhereContainsInitializationStrategyOf<T>(
+            this ICollection<PackagedDeploymentConfiguration> baseCollection) where T : InitializationStrategyBase
+        {
+            var ret = baseCollection.Where(_ => _.GetInitializationStrategiesOf<T>().Count > 0).ToList();
+
+            return ret;
+        }
+
+        /// <summary>
         /// Overrides the deployment config in a collection of packaged configurations.
         /// </summary>
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>

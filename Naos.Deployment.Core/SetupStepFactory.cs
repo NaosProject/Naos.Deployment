@@ -381,13 +381,13 @@ namespace Naos.Deployment.Core
                                         "localhost",
                                         machineManager.IpAddress);
                                     var migrationDllBytes =
-                                        this.packageManager.GetFileContentsFromPackageAsBytes(
+                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(
                                             package,
-                                            package.PackageDescription.Id + ".dll");
+                                            package.PackageDescription.Id + ".dll").Select(_ => _.Value).SingleOrDefault();
                                     var migrationPdbBytes =
-                                        this.packageManager.GetFileContentsFromPackageAsBytes(
+                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(
                                             package,
-                                            package.PackageDescription.Id + ".pdb");
+                                            package.PackageDescription.Id + ".pdb").Select(_ => _.Value).SingleOrDefault();
 
                                     var assembly = migrationPdbBytes == null
                                                             ? Assembly.Load(migrationDllBytes)
