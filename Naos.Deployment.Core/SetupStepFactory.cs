@@ -134,7 +134,7 @@ namespace Naos.Deployment.Core
                     itsConfigOverride.FileNameWithoutExtension);
 
                 var itsFilePath = Path.Combine(webRootPath, itsFileSubPath);
-                var itsFileBytes = Encoding.Unicode.GetBytes(itsConfigOverride.FileContentsJson);
+                var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
 
                 webSteps.Add(
                     new SetupStep 

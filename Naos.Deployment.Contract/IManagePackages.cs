@@ -36,7 +36,7 @@ namespace Naos.Deployment.Contract
         /// </summary>
         /// <param name="package">Package to find the file(s) in.</param>
         /// <param name="searchPattern">Infix pattern to use for searching for files.</param>
-        /// <param name="encoding">Optional encoding to use (Unicode is default).</param>
+        /// <param name="encoding">Optional encoding to use (UTF-8 [no BOM] is default).</param>
         /// <returns>Dictionary of file name and contents of the file found as a string.</returns>
         IDictionary<string, string> GetMultipleFileContentsFromPackageAsStrings(Package package, string searchPattern, Encoding encoding = null);
 

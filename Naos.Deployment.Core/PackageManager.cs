@@ -197,7 +197,7 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public IDictionary<string, string> GetMultipleFileContentsFromPackageAsStrings(Package package, string searchPattern, Encoding encoding = null)
         {
-            encoding = encoding ?? Encoding.Unicode;
+            encoding = encoding ?? Encoding.UTF8;
 
             var dictionaryBytes = this.GetMultipleFileContentsFromPackageAsBytes(package, searchPattern);
             var dictionaryStrings = dictionaryBytes.ToDictionary(_ => _.Key, _ => encoding.GetString(_.Value));
