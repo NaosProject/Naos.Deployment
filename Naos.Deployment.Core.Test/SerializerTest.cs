@@ -45,7 +45,7 @@ namespace Naos.Deployment.Core.Test
 		""SizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""ChannelsToMonitor"": [""MyChannel""],
+		""ChannelsToMonitor"": [{""Name"":""MyChannel""}],
 	}],
 }
 ";
@@ -53,7 +53,7 @@ namespace Naos.Deployment.Core.Test
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single());
+            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single().Name);
         }
 
         [Fact]
