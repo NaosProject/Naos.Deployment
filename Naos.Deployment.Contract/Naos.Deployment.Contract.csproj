@@ -34,6 +34,9 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Contract.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Naos.MessageBus.DataContract">
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.50\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
@@ -80,6 +83,7 @@
     <Compile Include="Volume.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Settings.StyleCop" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

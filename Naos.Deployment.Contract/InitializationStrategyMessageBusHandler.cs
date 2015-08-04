@@ -8,6 +8,8 @@ namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
 
+    using Naos.MessageBus.DataContract;
+
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate message bus handler deployments.
     /// </summary>
@@ -16,6 +18,6 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the channels to monitor on the message bus system.
         /// </summary>
-        public ICollection<string> ChannelsToMonitor { get; set; }
+        public ICollection<Channel> ChannelsToMonitor { get; set; }
     }
 }
