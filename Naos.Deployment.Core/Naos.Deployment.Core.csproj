@@ -59,21 +59,21 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.10\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.44.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Migrator, Version=1.0.46.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.44\lib\45\Naos.Database.Migrator.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.46\lib\45\Naos.Database.Migrator.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.44.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Tools, Version=1.0.46.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Tools.1.0.44\lib\45\Naos.Database.Tools.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Tools.1.0.46\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.50.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.50\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.56\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.50.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.50\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.56\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.22.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

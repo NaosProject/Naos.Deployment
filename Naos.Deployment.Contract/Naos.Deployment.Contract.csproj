@@ -34,8 +34,9 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Contract.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Naos.MessageBus.DataContract">
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.50\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.56\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -56,6 +57,7 @@
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />
+    <Compile Include="DirectoryToCreateDetails.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IGetCertificates.cs" />
     <Compile Include="IHaveInitializationStrategies.cs" />

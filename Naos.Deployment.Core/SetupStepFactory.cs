@@ -57,6 +57,18 @@ namespace Naos.Deployment.Core
                 ret.Add(installChocoStep);
             }
 
+            var certSteps = this.GetArbitraryCertificateSteps(packagedConfig);
+            if (certSteps != null)
+            {
+                ret.AddRange(certSteps);
+            }
+
+            var dirSteps = this.GetArbitraryDirectoriesSteps(packagedConfig);
+            if (dirSteps != null)
+            {
+                ret.AddRange(dirSteps);
+            }
+
             // don't include the package push for databases only since they will be deployed remotely...
             if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategyDatabase>().Count()
                 != packagedConfig.InitializationStrategies.Count)
@@ -72,6 +84,82 @@ namespace Naos.Deployment.Core
             }
 
             return ret;
+        }
+
+        private ICollection<SetupStep> GetArbitraryDirectoriesSteps(PackagedDeploymentConfiguration packagedConfig)
+        {
+            var dirSteps = new List<SetupStep>();
+
+            var dirs =
+                (packagedConfig.InitializationStrategies ?? new List<InitializationStrategyBase>()).SelectMany(
+                    _ => _.DirectoriesToCreate ?? new List<DirectoryToCreateDetails>());
+
+            foreach (var dir in dirs)
+            {
+                var dirParams = new object[] { dir.FullPath, dir.FullControlAccount };
+
+                dirSteps.Add(
+                    new SetupStep
+                        {
+                            Description =
+                                "Creating directory: " + dir.FullPath + " with full control granted to: "
+                                + dir.FullControlAccount,
+                            SetupAction =
+                                machineManager =>
+                                machineManager.RunScript(
+                                    this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
+                                    .ScriptText,
+                                    dirParams)
+                        });
+            }
+
+            return dirSteps;
+        }
+
+        private List<SetupStep> GetArbitraryCertificateSteps(PackagedDeploymentConfiguration packagedConfig)
+        {
+            var certSteps = new List<SetupStep>();
+            var packageDirectoryPath = GetPackageDirectoryPath(packagedConfig);
+
+            var certificateNames =
+                (packagedConfig.InitializationStrategies ?? new List<InitializationStrategyBase>()).SelectMany(
+                    _ => _.CertificatesToInstall ?? new List<string>());
+
+            foreach (var certificateName in certificateNames)
+            {
+                var certDetails = this.certificateManager.GetCertificateByName(certificateName);
+                if (certDetails == null)
+                {
+                    throw new DeploymentException("Could not find certificate by name: " + certificateName);
+                }
+
+                var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
+                certSteps.Add(
+                    new SetupStep
+                        {
+                            Description =
+                                "Send certificate file (removed after installation): "
+                                + certDetails.GenerateFileName(),
+                            SetupAction =
+                                machineManager =>
+                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
+                        });
+
+                var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword };
+
+                certSteps.Add(
+                    new SetupStep
+                        {
+                            Description = "Installing certificate: " + certificateName,
+                            SetupAction =
+                                machineManager =>
+                                machineManager.RunScript(
+                                    this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText,
+                                    installCertificateParams)
+                        });
+            }
+
+            return certSteps;
         }
 
         private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment)

@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Contract
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
 
     /// <summary>
@@ -23,6 +24,16 @@ namespace Naos.Deployment.Contract
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details.
         /// </summary>
         public ICollection<AwsInstanceType> AwsInstanceTypes { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
+        /// </summary>
+        public ICollection<AwsInstanceType> AwsInstanceTypesForSqlWeb { get; set; }
+
+        /// <summary>
+        /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
+        /// </summary>
+        public ICollection<AwsInstanceType> AwsInstanceTypesForSqlStandard { get; set; }
 
         /// <summary>
         /// Gets or sets the user data to use when creating an instance (list allows for keeping multiple lines in JSON format).

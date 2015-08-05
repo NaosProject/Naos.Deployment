@@ -76,6 +76,11 @@ namespace Naos.Deployment.Contract
         public ScriptBlockDescription UpdateItsConfigPrecedence { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to install a certificate.
+        /// </summary>
+        public ScriptBlockDescription InstallCertificate { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to install and configure a website in IIS.
         /// </summary>
         public ScriptBlockDescription InstallAndConfigureWebsite { get; set; }
