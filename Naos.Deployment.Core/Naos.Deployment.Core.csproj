@@ -17,17 +17,21 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Naos.Deployment.Core.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Naos.Deployment.Core.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="AWSSDK, Version=2.3.47.0, Culture=neutral, PublicKeyToken=9f476d3089b52be3, processorArchitecture=MSIL">
@@ -118,10 +122,12 @@
     <Compile Include="CloudInfrastructureManager.cs" />
     <Compile Include="CloudInfrastructureNamer.cs" />
     <Compile Include="CloudInfrastructureTracking\Arcology.cs" />
+    <Compile Include="CloudInfrastructureTracking\InstanceWrapper.cs" />
     <Compile Include="CloudInfrastructureTracking\RootFolderEnvironmentFolderInstanceFileTracker.cs" />
-    <Compile Include="CloudInfrastructureTracking\SingleFileCloudInfrastructureTracker.cs" />
+    <Compile Include="CloudInfrastructureTracking\ArcologyInfo.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />
+    <Compile Include="NuGetConfigFile.cs" />
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />
@@ -132,7 +138,6 @@
     <Compile Include="Serializer.cs" />
     <Compile Include="SetupStep.cs" />
     <Compile Include="SetupStepFactory.cs" />
-    <Compile Include="CloudInfrastructureTracking\SingleFileCloudInfrastructureTrackerContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

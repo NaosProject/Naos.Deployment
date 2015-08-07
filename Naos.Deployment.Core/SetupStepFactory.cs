@@ -28,15 +28,21 @@ namespace Naos.Deployment.Core
         /// </summary>
         public const string RootDeploymentPath = @"D:\Deployments\";
 
-        private readonly IGetCertificates certificateManager;
+        private readonly IGetCertificates certificateRetriever;
 
         private readonly SetupStepFactorySettings settings;
 
         private readonly IManagePackages packageManager;
 
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateManager, IManagePackages packageManager)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SetupStepFactory"/> class.
+        /// </summary>
+        /// <param name="settings">Settings for the factory.</param>
+        /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
+        /// <param name="packageManager">Package manager to use for getting package files contents.</param>
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IManagePackages packageManager)
         {
-            this.certificateManager = certificateManager;
+            this.certificateRetriever = certificateRetriever;
             this.settings = settings;
             this.packageManager = packageManager;
         }
@@ -127,7 +133,7 @@ namespace Naos.Deployment.Core
 
             foreach (var certificateName in certificateNames)
             {
-                var certDetails = this.certificateManager.GetCertificateByName(certificateName);
+                var certDetails = this.certificateRetriever.GetCertificateByName(certificateName);
                 if (certDetails == null)
                 {
                     throw new DeploymentException("Could not find certificate by name: " + certificateName);
@@ -234,7 +240,7 @@ namespace Naos.Deployment.Core
                         });
             }
 
-            var certDetails = this.certificateManager.GetCertificateByName(webStrategy.SslCertificateName);
+            var certDetails = this.certificateRetriever.GetCertificateByName(webStrategy.SslCertificateName);
             if (certDetails == null)
             {
                 throw new DeploymentException("Could not find certificate by name: " + webStrategy.SslCertificateName);
