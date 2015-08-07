@@ -73,7 +73,7 @@ namespace Naos.Deployment.Core.Test
                                      Source = "http://theurl",
                                      SourceName = "MyCustomSource",
                                      Username = "A.User",
-                                     Password = "DontForgetMe"
+                                     ClearTextPassword = "DontForgetMe"
                                  };
 
             var config = NuGetConfigFile.BuildConfigFileFromRepositoryConfiguration(repoConfig);
@@ -91,7 +91,7 @@ namespace Naos.Deployment.Core.Test
 "  <packageSourceCredentials>" + Environment.NewLine +
 "    <" + repoConfig.SourceName + ">" + Environment.NewLine +
 "      <add key=\"Username\" value=\"" + repoConfig.Username + "\" />" + Environment.NewLine +
-"      <add key=\"Password\" value=\"" + repoConfig.Password + "\" />" + Environment.NewLine +
+"      <add key=\"Password\" value=\"" + repoConfig.ClearTextPassword + "\" />" + Environment.NewLine +
 "    </" + repoConfig.SourceName + ">" + Environment.NewLine +
 "  </packageSourceCredentials>" + Environment.NewLine +
 "</configuration>";

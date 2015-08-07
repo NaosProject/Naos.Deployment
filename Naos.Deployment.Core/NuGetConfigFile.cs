@@ -47,7 +47,7 @@ namespace Naos.Deployment.Core
             var ret = stringBuilder.ToString();
             ret = ret.Replace(
                 "packageSourceCredentialKeys",
-                config.PackageSources.Single(_ => _.Key != NuGetPublicGalleryName).Key).Replace("utf-16", "utf-8");
+                config.ActivePackageSource.Single(_ => _.Key != NuGetPublicGalleryName).Key).Replace("utf-16", "utf-8");
             return ret;
         }
 
@@ -58,31 +58,23 @@ namespace Naos.Deployment.Core
         /// <returns>NuGetConfigFile object(to be serialized to disk)</returns>
         public static NuGetConfigFile BuildConfigFileFromRepositoryConfiguration(PackageRepositoryConfiguration packageRepositoryConfiguration)
         {
+            var packageSources = new AddKeyValue[]
+                                                    {
+                                                        new AddKeyValue
+                                                            {
+                                                                Key = NuGetPublicGalleryName,
+                                                                Value = NuGetPublicGalleryUrl
+                                                            },
+                                                        new AddKeyValue
+                                                            {
+                                                                Key = packageRepositoryConfiguration.SourceName,
+                                                                Value = packageRepositoryConfiguration.Source
+                                                            }
+                                                    };
             var ret = new NuGetConfigFile
             {
-                ActivePackageSource =
-                    new AddKeyValue[]
-                                      {
-                                          new AddKeyValue
-                                              {
-                                                  Key = NuGetPublicGalleryName,
-                                                  Value = NuGetPublicGalleryUrl
-                                              }
-                                      },
-                PackageSources =
-                    new AddKeyValue[]
-                                      {
-                                          new AddKeyValue
-                                              {
-                                                  Key = NuGetPublicGalleryName,
-                                                  Value = NuGetPublicGalleryUrl
-                                              },
-                                          new AddKeyValue
-                                              {
-                                                  Key = packageRepositoryConfiguration.SourceName,
-                                                  Value = packageRepositoryConfiguration.Source
-                                              }
-                                      },
+                PackageSources = packageSources,
+                ActivePackageSource = packageSources,
                 PackageSourceCredentialContainer =
                     new PackageSourceCredentialContainer
                     {
@@ -96,8 +88,13 @@ namespace Naos.Deployment.Core
                                                           },
                                                       new AddKeyValue
                                                           {
+                                                              Key = "ClearTextPassword",
+                                                              Value = packageRepositoryConfiguration.ClearTextPassword
+                                                          },
+                                                      new AddKeyValue
+                                                          {
                                                               Key = "Password",
-                                                              Value = packageRepositoryConfiguration.Password
+                                                              Value = string.Empty
                                                           }
                                                   }
                     }
