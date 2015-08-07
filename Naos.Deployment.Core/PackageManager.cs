@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
     using System.IO.Compression;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Text;
 
     using Naos.Deployment.Contract;
@@ -74,26 +75,36 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public ICollection<string> DownloadPackages(ICollection<PackageDescription> packageDescriptions, string workingDirectory, bool includeDependencies = false)
+        public ICollection<string> DownloadPackages(
+            ICollection<PackageDescription> packageDescriptions,
+            string workingDirectory,
+            bool includeDependencies = false)
         {
-            // credential override for below taken from: http://stackoverflow.com/questions/18594613/setting-the-package-credentials-using-nuget-core-dll
+            /*
+             * This doesn't actually work, most likely because of the type of credentials I'm returning in the credential provider but I'm hacking around it for now...
+                // credential override for below taken from: http://stackoverflow.com/questions/18594613/setting-the-package-credentials-using-nuget-core-dll
+             */
             var settings = Settings.LoadDefaultSettings(null, null, null);
             var packageSource = new PackageSource(this.repoConfig.Source, this.repoConfig.SourceName)
-            {
-                UserName =
-                    this.repoConfig
-                    .Username,
-                Password =
-                    this.repoConfig
-                    .Password
-            };
+                                    {
+                                        UserName = this.repoConfig.Username,
+                                        Password = this.repoConfig.ClearTextPassword,
+                                        IsPasswordClearText = true
+                                    };
+
             var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource });
-            var customCredentialProvider = new CustomCredentialProvider(this.repoConfig); // NullCredentialProvider.Instance;
+            var customCredentialProvider = new CustomCredentialProvider(this.repoConfig);
             var credentialProvider = new SettingsCredentialProvider(customCredentialProvider, packageSourceProvider);
+
             HttpClient.DefaultCredentialProvider = credentialProvider;
 
             // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
             var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
+            var nugetSourcesFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA") ?? ".", "Nuget\\NuGet.Config");
+            var nugetSourcesFileObject = NuGetConfigFile.BuildConfigFileFromRepositoryConfiguration(this.repoConfig);
+            var nugetSourcesFileContents = NuGetConfigFile.Serialize(nugetSourcesFileObject);
+            File.WriteAllText(nugetSourcesFilePath, nugetSourcesFileContents, Encoding.UTF8);
+
             var packageManager = new NuGet.PackageManager(repo, workingDirectory);
 
             if (!Directory.Exists(workingDirectory))
@@ -238,24 +249,35 @@ namespace Naos.Deployment.Core
         }
     }
 
+    /// <summary>
+    /// Custom credential provider in an attempt to provide supplied credentials directly to NuGet.Core.
+    /// </summary>
     public class CustomCredentialProvider : ICredentialProvider
     {
-        private PackageRepositoryConfiguration repoConfig;
+        // this doesn't work because it's getting the wrong type of credential provider back, might try to fix one day...
+        private readonly PackageRepositoryConfiguration repoConfig;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CustomCredentialProvider"/> class.
+        /// </summary>
+        /// <param name="repoConfig">Repository config to use to create the credentials.</param>
         public CustomCredentialProvider(PackageRepositoryConfiguration repoConfig)
         {
             this.repoConfig = repoConfig;
         }
 
+        /// <inheritdoc />
         public ICredentials GetCredentials(Uri uri, IWebProxy proxy, CredentialType credentialType, bool retrying)
         {
-            var credentialCache = new CredentialCache();
-            var uriPrefix = new Uri(this.repoConfig.Source);
-            credentialCache.Add(
-                uriPrefix,
-                "Basic",
-                new NetworkCredential(this.repoConfig.Username, this.repoConfig.Password));
-            return credentialCache;
+            if (this.repoConfig.Source == uri.OriginalString.TrimEnd('/'))
+            {
+                var networkCredential = new NetworkCredential(
+                    this.repoConfig.Username,
+                    this.repoConfig.ClearTextPassword);
+                return networkCredential;
+            }
+
+            throw new NotSupportedException("Uri not supported: " + uri);
         }
     }
 }

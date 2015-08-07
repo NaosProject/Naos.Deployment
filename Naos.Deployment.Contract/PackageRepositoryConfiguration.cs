@@ -29,6 +29,6 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the password.
         /// </summary>
-        public string Password { get; set; }
+        public string ClearTextPassword { get; set; }
     }
 }

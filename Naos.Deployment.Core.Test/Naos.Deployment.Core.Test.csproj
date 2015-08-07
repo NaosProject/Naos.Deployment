@@ -51,8 +51,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.10\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract">
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.50\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.56\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.22.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

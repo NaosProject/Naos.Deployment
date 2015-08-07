@@ -276,7 +276,24 @@ namespace Naos.Deployment.Core
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
 
                         var deploymentConfig =
-                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(deploymentConfigJson);
+                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
+                                (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
+
+                        // re-check the extracted config to make sure it doesn't change the decision about bundling...
+                        var bundleAllDependenciesReCheck = deploymentConfig.InitializationStrategies != null
+                                                           && deploymentConfig
+                                                                  .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>()
+                                                                  .Any();
+
+                        if (!bundleAllDependencies && bundleAllDependenciesReCheck)
+                        {
+                            // since we previously didn't bundle the packages dependencies 
+                            //        AND found in the extraced config that we need to 
+                            //       THEN we need to re-download with dependencies bundled...
+                            package = this.packageManager.GetPackage(
+                                packageDescriptionWithOverrides,
+                                true);
+                        }
 
                         // take overrides if present, otherwise take existing, otherwise take empty
                         var initializationStrategies = packageDescriptionWithOverrides.InitializationStrategies != null
@@ -343,6 +360,8 @@ namespace Naos.Deployment.Core
                                                                .VirtualCores ?? 1,
                                                        PollingTimeSpan =
                                                            TimeSpan.FromMinutes(1),
+                                                       MessageTypeMatchStrategy = MessageTypeMatchStrategy.NamespaceAndName,
+                                                       RetryCount = 0
                                                    }
                                            };
 

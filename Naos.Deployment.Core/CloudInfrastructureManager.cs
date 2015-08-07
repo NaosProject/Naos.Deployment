@@ -287,11 +287,34 @@ namespace Naos.Deployment.Core
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
         public string GetAwsInstanceType(InstanceType instanceType)
         {
-            foreach (var type in this.settings.AwsInstanceTypes)
+            if (instanceType.WindowsSku == WindowsSku.SqlWeb)
             {
-                if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
+                foreach (var type in this.settings.AwsInstanceTypesForSqlWeb)
                 {
-                    return type.AwsInstanceTypeDescriptor;
+                    if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
+                    {
+                        return type.AwsInstanceTypeDescriptor;
+                    }
+                }
+            } 
+            else if (instanceType.WindowsSku == WindowsSku.SqlStandard)
+            {
+                foreach (var type in this.settings.AwsInstanceTypesForSqlStandard)
+                {
+                    if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
+                    {
+                        return type.AwsInstanceTypeDescriptor;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var type in this.settings.AwsInstanceTypes)
+                {
+                    if (type.VirtualCores >= instanceType.VirtualCores && type.RamInGb >= instanceType.RamInGb)
+                    {
+                        return type.AwsInstanceTypeDescriptor;
+                    }
                 }
             }
 

@@ -17,6 +17,12 @@ namespace Naos.Deployment.Core
     /// </summary>
     public static class PackagedDeploymentConfigurationExtensionMethods
     {
+        /// <summary>
+        /// Apply default deployment configuration to list of packaged configurations (overwrite missing properties).
+        /// </summary>
+        /// <param name="packagedConfigs">List of configurations to check.</param>
+        /// <param name="defaultDeploymentConfig">Default configuration to use for missing properties.</param>
+        /// <returns>List of configurations with defaults applied.</returns>
         public static ICollection<PackagedDeploymentConfiguration> ApplyDefaults(
             this ICollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)

@@ -155,17 +155,17 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
 
             var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
             var instances = instanceFiles.Select(_ => Serializer.Deserialize<InstanceWrapper>(File.ReadAllText(_))).ToList();
-            var rootInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
-            var rootInfoText = File.ReadAllText(rootInfoFilePath);
-            var rootInfo = Serializer.Deserialize<RootInfo>(rootInfoText);
+            var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
+            var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
+            var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
 
             var ret = new Arcology
                           {
                               Environment = environment,
-                              CloudContainers = rootInfo.CloudContainers,
-                              RootDomainHostingIdMap = rootInfo.RootDomainHostingIdMap,
-                              Location = rootInfo.Location,
-                              WindowsSkuSearchPatternMap = rootInfo.WindowsSkuSearchPatternMap,
+                              CloudContainers = arcologyInfo.CloudContainers,
+                              RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap,
+                              Location = arcologyInfo.Location,
+                              WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap,
                               Instances = instances
                           };
 
@@ -222,17 +222,6 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         {
             var arcologyFolderPath = Path.Combine(this.rootFolderPath, environment);
             return arcologyFolderPath;
-        }
-
-        public class RootInfo
-        {
-            public ICollection<CloudContainerDescription> CloudContainers { get; set; }
-
-            public IDictionary<string, string> RootDomainHostingIdMap { get; set; }
-
-            public string Location { get; set; }
-
-            public IDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
         }
     }
 }
