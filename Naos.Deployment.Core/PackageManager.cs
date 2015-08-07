@@ -95,7 +95,7 @@ namespace Naos.Deployment.Core
             var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource });
             var customCredentialProvider = new CustomCredentialProvider(this.repoConfig);
             var credentialProvider = new SettingsCredentialProvider(customCredentialProvider, packageSourceProvider);
-            //var credentialProvider = NullCredentialProvider.Instance;
+
             HttpClient.DefaultCredentialProvider = credentialProvider;
 
             // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
@@ -269,9 +269,11 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public ICredentials GetCredentials(Uri uri, IWebProxy proxy, CredentialType credentialType, bool retrying)
         {
-            if (this.repoConfig.Source == (uri.OriginalString.TrimEnd('/')))
+            if (this.repoConfig.Source == uri.OriginalString.TrimEnd('/'))
             {
-                var networkCredential = new NetworkCredential(this.repoConfig.Username, this.repoConfig.ClearTextPassword);
+                var networkCredential = new NetworkCredential(
+                    this.repoConfig.Username,
+                    this.repoConfig.ClearTextPassword);
                 return networkCredential;
             }
 
