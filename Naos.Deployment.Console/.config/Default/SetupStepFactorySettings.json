@@ -158,6 +158,8 @@
                 "   }",
                 "   $cert = Get-Item $(Join-Path $certStoreLocation $certResult.Thumbprint)",
                 "   New-Item -Path \"IIS:\\SslBindings\\!443!$Domain\" -Value $cert -SSLFlags $sslFlags",
+                "   Write-Output 'Performing IIS RESET to make sure everything is up and running correctly'",
+                "   iisreset",
                 "   $site = Get-Item $sitePath -ErrorAction SilentlyContinue",
                 "   $newSitePath = $site.physicalPath",
                 "   if ($newSitePath -ne $WebRootPath)",
