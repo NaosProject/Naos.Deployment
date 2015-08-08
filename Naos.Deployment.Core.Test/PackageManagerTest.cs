@@ -83,6 +83,7 @@ namespace Naos.Deployment.Core.Test
 "<configuration>" + Environment.NewLine +
 "  <activePackageSource>" + Environment.NewLine +
 "    <add key=\"nuget.org\" value=\"https://www.nuget.org/api/v2/\" />" + Environment.NewLine +
+"    <add key=\"" + repoConfig.SourceName + "\" value=\"" + repoConfig.Source + "\" />" + Environment.NewLine +
 "  </activePackageSource>" + Environment.NewLine +
 "  <packageSources>" + Environment.NewLine +
 "    <add key=\"nuget.org\" value=\"https://www.nuget.org/api/v2/\" />" + Environment.NewLine +
@@ -91,7 +92,8 @@ namespace Naos.Deployment.Core.Test
 "  <packageSourceCredentials>" + Environment.NewLine +
 "    <" + repoConfig.SourceName + ">" + Environment.NewLine +
 "      <add key=\"Username\" value=\"" + repoConfig.Username + "\" />" + Environment.NewLine +
-"      <add key=\"Password\" value=\"" + repoConfig.ClearTextPassword + "\" />" + Environment.NewLine +
+"      <add key=\"ClearTextPassword\" value=\"" + repoConfig.ClearTextPassword + "\" />" + Environment.NewLine +
+"      <add key=\"Password\" value=\"\" />" + Environment.NewLine +
 "    </" + repoConfig.SourceName + ">" + Environment.NewLine +
 "  </packageSourceCredentials>" + Environment.NewLine +
 "</configuration>";
