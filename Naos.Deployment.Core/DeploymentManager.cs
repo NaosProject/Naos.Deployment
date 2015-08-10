@@ -280,10 +280,9 @@ namespace Naos.Deployment.Core
                                 (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
 
                         // re-check the extracted config to make sure it doesn't change the decision about bundling...
-                        var bundleAllDependenciesReCheck = deploymentConfig.InitializationStrategies != null
-                                                           && deploymentConfig
-                                                                  .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>()
-                                                                  .Any();
+                        var bundleAllDependenciesReCheck = deploymentConfig != null
+                                                           && deploymentConfig.InitializationStrategies != null
+                                                           && deploymentConfig.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
 
                         if (!bundleAllDependencies && bundleAllDependenciesReCheck)
                         {
