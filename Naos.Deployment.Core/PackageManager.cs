@@ -99,11 +99,13 @@ namespace Naos.Deployment.Core
             HttpClient.DefaultCredentialProvider = credentialProvider;
 
             // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
-            var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
             var nugetSourcesFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA") ?? ".", "Nuget\\NuGet.Config");
             var nugetSourcesFileObject = NuGetConfigFile.BuildConfigFileFromRepositoryConfiguration(this.repoConfig);
             var nugetSourcesFileContents = NuGetConfigFile.Serialize(nugetSourcesFileObject);
             File.WriteAllText(nugetSourcesFilePath, nugetSourcesFileContents, Encoding.UTF8);
+
+            // This is where the file get evaluated so it must exist before reaching here...
+            var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
 
             var packageManager = new NuGet.PackageManager(repo, workingDirectory);
 
