@@ -344,6 +344,9 @@ namespace Naos.Deployment.Core
 
             var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
+            var workerCount = messageBusInitializations.Min(_ => _.WorkerCount);
+            workerCount = workerCount == 0 ? 1 : workerCount;
+
             var executorRoleSettings = new[]
                                            {
                                                new MessageBusHarnessRoleSettingsExecutor
@@ -353,10 +356,7 @@ namespace Naos.Deployment.Core
                                                        HandlerAssemblyPath =
                                                            SetupStepFactory
                                                            .RootDeploymentPath,
-                                                       WorkerCount =
-                                                           configToCreateWith
-                                                               .InstanceType
-                                                               .VirtualCores ?? 1,
+                                                       WorkerCount = workerCount,
                                                        PollingTimeSpan =
                                                            TimeSpan.FromMinutes(1),
                                                        MessageTypeMatchStrategy = MessageTypeMatchStrategy.NamespaceAndName,
