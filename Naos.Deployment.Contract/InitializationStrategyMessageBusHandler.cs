@@ -19,5 +19,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the channels to monitor on the message bus system.
         /// </summary>
         public ICollection<Channel> ChannelsToMonitor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the worker count of the handler harness.
+        /// </summary>
+        public int WorkerCount { get; set; }
     }
 }
