@@ -91,22 +91,32 @@ namespace Naos.Deployment.Core
                                         Password = this.repoConfig.ClearTextPassword,
                                         IsPasswordClearText = true
                                     };
+            var publicPackageSource = new PackageSource(NuGetConfigFile.NuGetPublicGalleryUrl, NuGetConfigFile.NuGetPublicGalleryName);
 
-            var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource });
+            var packageSourceProvider = new PackageSourceProvider(settings, new[] { packageSource, publicPackageSource });
             var customCredentialProvider = new CustomCredentialProvider(this.repoConfig);
             var credentialProvider = new SettingsCredentialProvider(customCredentialProvider, packageSourceProvider);
 
             HttpClient.DefaultCredentialProvider = credentialProvider;
-
-            // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
-            var nugetSourcesFilePath = Path.Combine(Environment.GetEnvironmentVariable("APPDATA") ?? ".", "Nuget\\NuGet.Config");
+            /*
+             * This was necessary for a while, it's unclear why it started working so leaving this for reference if necessary...
+            var nugetSourcesFileDirectory = Path.Combine(Environment.GetEnvironmentVariable("APPDATA") ?? ".", "NuGet");
+            var nugetSourcesFilePath = Path.Combine(nugetSourcesFileDirectory, "NuGet.Config");
             var nugetSourcesFileObject = NuGetConfigFile.BuildConfigFileFromRepositoryConfiguration(this.repoConfig);
             var nugetSourcesFileContents = NuGetConfigFile.Serialize(nugetSourcesFileObject);
+
+            if (!Directory.Exists(nugetSourcesFileDirectory))
+            {
+                Directory.CreateDirectory(nugetSourcesFileDirectory);
+            }
+
             File.WriteAllText(nugetSourcesFilePath, nugetSourcesFileContents, Encoding.UTF8);
+            */
 
             // This is where the file get evaluated so it must exist before reaching here...
             var repo = packageSourceProvider.CreateAggregateRepository(PackageRepositoryFactory.Default, true);
 
+            // logic taken from: http://blog.nuget.org/20130520/Play-with-packages.html
             var packageManager = new NuGet.PackageManager(repo, workingDirectory);
 
             if (!Directory.Exists(workingDirectory))
