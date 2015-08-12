@@ -25,7 +25,9 @@ namespace Naos.Deployment.Core
         public static ICollection<T> GetInitializationStrategiesOf<T>(
             this IHaveInitializationStrategies objectWithInitializationStrategies) where T : InitializationStrategyBase
         {
-            var ret = objectWithInitializationStrategies.InitializationStrategies.Select(strat => strat as T).Where(_ => _ != null).ToList();
+            var ret =
+                (objectWithInitializationStrategies.InitializationStrategies ?? new List<InitializationStrategyBase>())
+                    .Select(strat => strat as T).Where(_ => _ != null).ToList();
 
             return ret;
         }
