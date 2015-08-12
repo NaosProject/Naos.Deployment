@@ -410,8 +410,10 @@ namespace Naos.Deployment.Core
         {
             var sleepTimeInSeconds = 1d;
             var rebootCallSucceeded = false;
+            var tries = 0;
             while (!rebootCallSucceeded)
             {
+                tries = tries + 1;
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
                 Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
 
@@ -420,9 +422,12 @@ namespace Naos.Deployment.Core
                     machineManager.Reboot();
                     rebootCallSucceeded = true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    /* no-op */
+                    if (tries > 100)
+                    {
+                        this.announce(ex.ToString());
+                    }
                 }
             }
 
