@@ -236,7 +236,7 @@ namespace Naos.Deployment.Core
                             Description =
                                 "(Over)write Its.Config file: " + itsConfigOverride.FileNameWithoutExtension,
                             SetupAction =
-                                machineManager => machineManager.SendFile(itsFilePath, itsFileBytes)
+                                machineManager => machineManager.SendFile(itsFilePath, itsFileBytes, false, true)
                         });
             }
 
