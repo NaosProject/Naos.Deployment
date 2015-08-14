@@ -7,14 +7,8 @@
 namespace Naos.Deployment.Core
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Runtime.Serialization;
 
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json.Serialization;
 
     using Spritely.Recipes;
 
@@ -23,6 +17,10 @@ namespace Naos.Deployment.Core
     /// </summary>
     public static class Serializer
     {
+        private static readonly object SyncDefaultSettings = new object();
+
+        private static bool defaultSettingsApplied = false;
+
         /// <summary>
         /// Gets the object from the JSON with specific settings needed for project objects.
         /// </summary>
@@ -36,9 +34,10 @@ namespace Naos.Deployment.Core
                 return null;
             }
 
-            var serializerSettings = GetJsonSerializerSettings();
+            SetupDefaultSettings();
+            
+            var ret = JsonConvert.DeserializeObject<T>(json);
 
-            var ret = JsonConvert.DeserializeObject<T>(json, serializerSettings);
             return ret;
         }
 
@@ -55,9 +54,10 @@ namespace Naos.Deployment.Core
                 return null;
             }
 
-            var serializerSettings = GetJsonSerializerSettings();
+            SetupDefaultSettings();
 
-            var ret = JsonConvert.DeserializeObject(json, type, serializerSettings);
+            var ret = JsonConvert.DeserializeObject(json, type);
+
             return ret;
         }
 
@@ -70,106 +70,25 @@ namespace Naos.Deployment.Core
         /// <returns>String of JSON.</returns>
         public static string Serialize<T>(T objectToSerialize, bool indented = true) where T : class
         {
-            var serializerSettings = GetJsonSerializerSettings(indented);
+            SetupDefaultSettings();
 
-            var ret = JsonConvert.SerializeObject(objectToSerialize, serializerSettings);
-            return ret;
-        }
-
-        /// <summary>
-        /// Sets the default settings for JsonConvert to be the custom settings.
-        /// </summary>
-        public static void UpdateNewtonsoftJsonConvertDefaultsToCustomSettings()
-        {
-            JsonConvert.DefaultSettings = () => GetJsonSerializerSettings(true);
-        }
-
-        private static JsonSerializerSettings GetJsonSerializerSettings(bool indented = true)
-        {
-            var ret = new JsonSerializerSettings
-            {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                Converters =
-                    new List<JsonConverter>
-                                      {
-                                          new StringEnumConverter
-                                              {
-                                                  CamelCaseText
-                                                      =
-                                                      true
-                                              },
-                                          new KnownTypeConverter(),
-                                          new SecureStringJsonConverter(),
-                                      }
-            };
-
-            if (indented)
-            {
-                ret.Formatting = Formatting.Indented;
-            }
+            var ret = JsonConvert.SerializeObject(objectToSerialize);
 
             return ret;
         }
 
-        /// <summary>
-        /// TAKEN FROM: http://StackOverflow.com/a/17247339/1442829
-        /// ---
-        /// This requires the base type it's used on to declare all of the types it might use...
-        /// ---
-        /// Use KnownType Attribute to match a derived class based on the class given to the serializer
-        /// Selected class will be the first class to match all properties in the json object.
-        /// </summary>
-        public class KnownTypeConverter : JsonConverter
+        private static void SetupDefaultSettings()
         {
-            /// <inheritdoc />
-            public override bool CanConvert(Type objectType)
+            if (!defaultSettingsApplied)
             {
-                return Attribute.GetCustomAttributes(objectType).Any(v => v is KnownTypeAttribute);
-            }
-
-            /// <inheritdoc />
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-            {
-                // Load JObject from stream
-                var jsonObject = JObject.Load(reader);
-
-                // Create target object based on JObject
-                var attributes = Attribute.GetCustomAttributes(objectType);
-
-                // Displaying output. 
-                foreach (var attribute in attributes)
+                lock (SyncDefaultSettings)
                 {
-                    if (attribute is KnownTypeAttribute)
+                    if (!defaultSettingsApplied)
                     {
-                        var knownTypeAttribute = (KnownTypeAttribute)attribute;
-                        var props = knownTypeAttribute.Type.GetProperties();
-                        var found = true;
-                        foreach (var f in jsonObject)
-                        {
-                            if (!props.Any(z => z.Name == f.Key))
-                            {
-                                found = false;
-                                break;
-                            }
-                        }
-
-                        if (found)
-                        {
-                            var target = Activator.CreateInstance(knownTypeAttribute.Type);
-                            serializer.Populate(jsonObject.CreateReader(), target);
-                            return target;
-                        }
+                        JsonConvert.DefaultSettings = () => JsonConfiguration.SerializerSettings;
+                        defaultSettingsApplied = true;
                     }
                 }
-
-                throw new ArgumentException("Invalid scenario encountered trying to deserialize: " + reader.ToString());
-            }
-
-            /// <inheritdoc />
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                var jsonObject = JObject.FromObject(value);
-                jsonObject.WriteTo(writer);
             }
         }
     }

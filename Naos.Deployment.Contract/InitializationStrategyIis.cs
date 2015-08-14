@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InitializationStrategyWeb.cs" company="Naos">
+// <copyright file="InitializationStrategyIis.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>
-    public class InitializationStrategyWeb : InitializationStrategyBase
+    public class InitializationStrategyIis : InitializationStrategyBase
     {
         /// <summary>
         /// Gets or sets the primary DNS access point of the web deployment.

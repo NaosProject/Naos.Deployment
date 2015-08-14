@@ -215,7 +215,7 @@ namespace Naos.Deployment.Core
             // get all web initializations to update any DNS entries on the public IP address.
             var webInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
-                    .GetInitializationStrategiesOf<InitializationStrategyWeb>();
+                    .GetInitializationStrategiesOf<InitializationStrategyIis>();
 
             this.announce("Updating DNS for web initializations (if applicable)");
             foreach (var webInitialization in webInitializations)
@@ -233,24 +233,25 @@ namespace Naos.Deployment.Core
                     new[] { ipAddress });
             }
 
-            // get all initializations to update any private DNS entries on the private IP address.
+            // get all DNS initializations to update any private DNS entries on the private IP address.
             this.announce("Updating private DNS for all initializations (if applicable)");
-            var allInitializations =
+            var dnsInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
-                    .GetInitializationStrategiesOf<InitializationStrategyBase>();
-            foreach (var initialization in allInitializations)
+                    .GetInitializationStrategiesOf<InitializationStrategyPrivateDnsEntry>();
+            foreach (var initialization in dnsInitializations)
             {
-                var privateDnsEntries = initialization.PrivateDnsEntries ?? new List<string>();
-                foreach (var privateDnsEntry in privateDnsEntries)
+                if (string.IsNullOrEmpty(initialization.PrivateDnsEntry))
                 {
-                    var ipAddress = createdInstanceDescription.PrivateIpAddress;
-                    this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
-                    this.cloudManager.UpsertDnsEntry(
-                        environment,
-                        createdInstanceDescription.Location,
-                        privateDnsEntry,
-                        new[] { ipAddress });
+                    throw new ArgumentException("Cannot create DNS entry of empty or null string.");
                 }
+
+                var ipAddress = createdInstanceDescription.PrivateIpAddress;
+                this.announce(string.Format(" - Pointing {0} at {1}.", initialization.PrivateDnsEntry, ipAddress));
+                this.cloudManager.UpsertDnsEntry(
+                    environment,
+                    createdInstanceDescription.Location,
+                    initialization.PrivateDnsEntry,
+                    new[] { ipAddress });
             }
 
             this.announce("Finished deployment.");
@@ -396,7 +397,7 @@ namespace Naos.Deployment.Core
             // apply instance name replacement if applicable on DNS
             foreach (
                 var initializationStrategy in
-                    harnessPackagedConfig.GetInitializationStrategiesOf<InitializationStrategyWeb>())
+                    harnessPackagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>())
             {
                 initializationStrategy.PrimaryDns = initializationStrategy.PrimaryDns.Replace(
                     "{instanceName}",

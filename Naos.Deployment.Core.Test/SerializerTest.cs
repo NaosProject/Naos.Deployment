@@ -16,21 +16,70 @@ namespace Naos.Deployment.Core.Test
     public class SerializerTest
     {
         [Fact]
-        public static void Deserialize_PrivateDnsEntries_Valid()
+        public static void Deserialize_PrivateDnsEntry_Valid()
         {
             var input = @"
 [{
-	""Id"": ""CoMetrics.Database.Something"",
-	""InitializationStrategies"": [{
-		""PrivateDnsEntries"": [""something.database.development.cometrics.com""],
-		""Name"": ""CoopMetrics"",
-		""AdministratorPassword"": ""myPassword"",
-		""BackupDirectory"": ""D:\\Backups""
+	""id"": ""Naos.Something"",
+	""initializationStrategies"": [{
+		""privateDnsEntry"": ""something.database.development.cometrics.com""
 	}]
 }]";
             var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
 
             Assert.NotNull(deserialized);
+            var actualDns =
+                deserialized.Single()
+                    .InitializationStrategies.OfType<InitializationStrategyPrivateDnsEntry>()
+                    .Single()
+                    .PrivateDnsEntry;
+            Assert.Equal("something.database.development.cometrics.com", actualDns);
+        }
+
+        [Fact]
+        public static void Deserialize_DirectoryToCreate_Valid()
+        {
+            var input = @"
+[{
+	""id"": ""Naos.Something"",
+	""initializationStrategies"": [{
+		""directoryToCreate"": {""fullPath"": ""C:\\MyPath\\Is\\Here"", ""FullControlAccount"": ""Administrator"" }
+	}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+            var actualPath =
+                deserialized.Single()
+                    .InitializationStrategies.OfType<InitializationStrategyDirectoryToCreate>()
+                    .Single()
+                    .DirectoryToCreate.FullPath;
+            Assert.Equal("C:\\MyPath\\Is\\Here", actualPath);
+            var actualAccount = deserialized.Single()
+                .InitializationStrategies.OfType<InitializationStrategyDirectoryToCreate>()
+                .Single()
+                .DirectoryToCreate.FullControlAccount;
+            Assert.Equal("Administrator", actualAccount);
+        }
+
+        [Fact]
+        public static void Deserialize_CertificateToInstall_Valid()
+        {
+            var input = @"
+[{
+	""id"": ""Naos.Something"",
+	""initializationStrategies"": [{
+		""certificateToInstall"": ""ThisIsTheNameOfTheCertInCertRetriever...""
+	}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+            var actualCert = deserialized.Single()
+                .InitializationStrategies.OfType<InitializationStrategyCertificateToInstall>()
+                .Single()
+                .CertificateToInstall;
+            Assert.Equal("ThisIsTheNameOfTheCertInCertRetriever...", actualCert);
         }
 
         [Fact]
@@ -38,14 +87,14 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
-	""IsPubliclyAccessible"": false,
-	""Volumes"": [{
-		""DriveLetter"": ""C"",
-		""SizeInGb"": ""50"",
+	""instanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
+	""isPubliclyAccessible"": false,
+	""volumes"": [{
+		""driveLetter"": ""C"",
+		""sizeInGb"": ""50"",
 	}],
-	""InitializationStrategies"": [{
-		""ChannelsToMonitor"": [{""Name"":""MyChannel""}],
+	""initializationStrategies"": [{
+		""channelsToMonitor"": [{""Name"":""MyChannel""}],
 	}],
 }
 ";
@@ -61,23 +110,23 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
-	""IsPubliclyAccessible"": false,
-	""Volumes"": [{
-		""DriveLetter"": ""C"",
-		""SizeInGb"": ""50"",
+	""instanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
+	""isPubliclyAccessible"": false,
+	""volumes"": [{
+		""driveLetter"": ""C"",
+		""sizeInGb"": ""50"",
 	}],
-	""InitializationStrategies"": [{
-		""Name"": ""Monkey"",
-		""AdministratorPassword"": ""MyPassWord1234"",
+	""initializationStrategies"": [{
+		""name"": ""Monkey"",
+		""administratorPassword"": ""MyPassWord1234"",
 	}],
 }
 ";
 
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
-            Assert.Equal(typeof(InitializationStrategyDatabase), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategyDatabase>().Single().Name);
+            Assert.Equal(typeof(InitializationStrategySqlServer), deserialized.InitializationStrategies.Single().GetType());
+            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategySqlServer>().Single().Name);
         }
 
         [Fact]
@@ -85,22 +134,22 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 {
-	""InstanceType"": { ""VirtualCores"": 2, ""RamInGb"": 3, },
-	""IsPubliclyAccessible"": false,
-	""Volumes"": [{
-		""DriveLetter"": ""C"",
-		""SizeInGb"": ""50"",
+	""instanceType"": { ""virtualCores"": 2, ""ramInGb"": 3, },
+	""isPubliclyAccessible"": false,
+	""volumes"": [{
+		""driveLetter"": ""C"",
+		""sizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""PrimaryDns"": ""reports.coopmetrics.coop"",
+		""primaryDns"": ""reports.coopmetrics.coop"",
 	}],
 }
 ";
 
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
-            Assert.Equal(typeof(InitializationStrategyWeb), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyWeb>().Single().PrimaryDns);
+            Assert.Equal(typeof(InitializationStrategyIis), deserialized.InitializationStrategies.Single().GetType());
+            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyIis>().Single().PrimaryDns);
         }
     }
 }
