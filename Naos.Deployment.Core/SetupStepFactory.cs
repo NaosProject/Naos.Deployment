@@ -63,20 +63,8 @@ namespace Naos.Deployment.Core
                 ret.Add(installChocoStep);
             }
 
-            var certSteps = this.GetArbitraryCertificateSteps(packagedConfig);
-            if (certSteps != null)
-            {
-                ret.AddRange(certSteps);
-            }
-
-            var dirSteps = this.GetArbitraryDirectoriesSteps(packagedConfig);
-            if (dirSteps != null)
-            {
-                ret.AddRange(dirSteps);
-            }
-
             // don't include the package push for databases only since they will be deployed remotely...
-            if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategyDatabase>().Count()
+            if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Count()
                 != packagedConfig.InitializationStrategies.Count)
             {
                 var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
@@ -92,106 +80,47 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private ICollection<SetupStep> GetArbitraryDirectoriesSteps(PackagedDeploymentConfiguration packagedConfig)
-        {
-            var dirSteps = new List<SetupStep>();
-
-            var dirs =
-                (packagedConfig.InitializationStrategies ?? new List<InitializationStrategyBase>()).SelectMany(
-                    _ => _.DirectoriesToCreate ?? new List<DirectoryToCreateDetails>());
-
-            foreach (var dir in dirs)
-            {
-                var dirParams = new object[] { dir.FullPath, dir.FullControlAccount };
-
-                dirSteps.Add(
-                    new SetupStep
-                        {
-                            Description =
-                                "Creating directory: " + dir.FullPath + " with full control granted to: "
-                                + dir.FullControlAccount,
-                            SetupAction =
-                                machineManager =>
-                                machineManager.RunScript(
-                                    this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
-                                    .ScriptText,
-                                    dirParams)
-                        });
-            }
-
-            return dirSteps;
-        }
-
-        private List<SetupStep> GetArbitraryCertificateSteps(PackagedDeploymentConfiguration packagedConfig)
-        {
-            var certSteps = new List<SetupStep>();
-            var packageDirectoryPath = GetPackageDirectoryPath(packagedConfig);
-
-            var certificateNames =
-                (packagedConfig.InitializationStrategies ?? new List<InitializationStrategyBase>()).SelectMany(
-                    _ => _.CertificatesToInstall ?? new List<string>());
-
-            foreach (var certificateName in certificateNames)
-            {
-                var certDetails = this.certificateRetriever.GetCertificateByName(certificateName);
-                if (certDetails == null)
-                {
-                    throw new DeploymentException("Could not find certificate by name: " + certificateName);
-                }
-
-                var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
-                certSteps.Add(
-                    new SetupStep
-                        {
-                            Description =
-                                "Send certificate file (removed after installation): "
-                                + certDetails.GenerateFileName(),
-                            SetupAction =
-                                machineManager =>
-                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
-                        });
-
-                var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword };
-
-                certSteps.Add(
-                    new SetupStep
-                        {
-                            Description = "Installing certificate: " + certificateName,
-                            SetupAction =
-                                machineManager =>
-                                machineManager.RunScript(
-                                    this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText,
-                                    installCertificateParams)
-                        });
-            }
-
-            return certSteps;
-        }
-
         private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment)
         {
             var ret = new List<SetupStep>();
             var packageDirectoryPath = GetPackageDirectoryPath(packagedConfig);
 
-            if (strategy.GetType() == typeof(InitializationStrategyWeb))
+            if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
                 var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
                 var webSteps = this.GetWebSpecificSetupSteps(
-                    (InitializationStrategyWeb)strategy,
+                    (InitializationStrategyIis)strategy,
                     packagedConfig.ItsConfigOverrides,
                     packageDirectoryPath,
                     webRootPath,
                     environment);
                 ret.AddRange(webSteps);
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyDatabase))
+            else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
             {
-                var databaseSteps = this.GetDatabaseSpecificSteps((InitializationStrategyDatabase)strategy, packagedConfig.Package);
+                var databaseSteps = this.GetDatabaseSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.Package);
                 ret.AddRange(databaseSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyPrivateDnsEntry))
+            {
+                /* No additional steps necessary as the DeploymentManager performs this operation at the end */
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
+            {
+                var dirSteps = this.GetDirectoryToCreateSpecificSteps((InitializationStrategyDirectoryToCreate)strategy);
+                ret.AddRange(dirSteps);
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
+            {
+                var certSteps =
+                    this.GetCertificateToInstallSpecificSteps(
+                        (InitializationStrategyCertificateToInstall)strategy,
+                        packageDirectoryPath);
+                ret.AddRange(certSteps);
             }
             else
             {
@@ -201,7 +130,68 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private List<SetupStep> GetWebSpecificSetupSteps(InitializationStrategyWeb webStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment)
+        private List<SetupStep> GetCertificateToInstallSpecificSteps(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath)
+        {
+            var certSteps = new List<SetupStep>();
+
+            var certificateName = certToInstallStrategy.CertificateToInstall;
+
+            var certDetails = this.certificateRetriever.GetCertificateByName(certificateName);
+            if (certDetails == null)
+            {
+                throw new DeploymentException("Could not find certificate by name: " + certificateName);
+            }
+
+            var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
+            certSteps.Add(
+                new SetupStep
+                    {
+                        Description =
+                            "Send certificate file (removed after installation): "
+                            + certDetails.GenerateFileName(),
+                        SetupAction =
+                            machineManager =>
+                            machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
+                    });
+
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword };
+
+            certSteps.Add(
+                new SetupStep
+                    {
+                        Description = "Installing certificate: " + certificateName,
+                        SetupAction =
+                            machineManager =>
+                            machineManager.RunScript(
+                                this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText,
+                                installCertificateParams)
+                    });
+
+            return certSteps;
+        }
+
+        private List<SetupStep> GetDirectoryToCreateSpecificSteps(
+            InitializationStrategyDirectoryToCreate directoryToCreateStrategy)
+        {
+            var dir = directoryToCreateStrategy.DirectoryToCreate;
+            var dirParams = new object[] { dir.FullPath, dir.FullControlAccount };
+            var ret = new SetupStep
+                          {
+                              Description =
+                                  "Creating directory: " + dir.FullPath + " with full control granted to: "
+                                  + dir.FullControlAccount,
+                              SetupAction =
+                                  machineManager =>
+                                  machineManager.RunScript(
+                                      this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
+                                      .ScriptText,
+                                      dirParams)
+                          };
+
+            return new[] { ret }.ToList();
+        }
+
+        private List<SetupStep> GetWebSpecificSetupSteps(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment)
         {
             var webSteps = new List<SetupStep>();
 
@@ -240,29 +230,29 @@ namespace Naos.Deployment.Core
                         });
             }
 
-            var certDetails = this.certificateRetriever.GetCertificateByName(webStrategy.SslCertificateName);
+            var certDetails = this.certificateRetriever.GetCertificateByName(iisStrategy.SslCertificateName);
             if (certDetails == null)
             {
-                throw new DeploymentException("Could not find certificate by name: " + webStrategy.SslCertificateName);
+                throw new DeploymentException("Could not find certificate by name: " + iisStrategy.SslCertificateName);
             }
 
             var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
-            var appPoolStartMode = webStrategy.AppPoolStartMode == ApplicationPoolStartMode.None
+            var appPoolStartMode = iisStrategy.AppPoolStartMode == ApplicationPoolStartMode.None
                                        ? ApplicationPoolStartMode.OnDemand
-                                       : webStrategy.AppPoolStartMode;
+                                       : iisStrategy.AppPoolStartMode;
 
-            var autoStartProviderName = webStrategy.AutoStartProvider == null
+            var autoStartProviderName = iisStrategy.AutoStartProvider == null
                                             ? null
-                                            : webStrategy.AutoStartProvider.Name;
-            var autoStartProviderType = webStrategy.AutoStartProvider == null
+                                            : iisStrategy.AutoStartProvider.Name;
+            var autoStartProviderType = iisStrategy.AutoStartProvider == null
                                             ? null
-                                            : webStrategy.AutoStartProvider.Type;
+                                            : iisStrategy.AutoStartProvider.Type;
 
             const bool EnableSni = false;
             const bool AddHostHeaders = true;
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, webStrategy.PrimaryDns, certificateTargetPath,
+                                               webRootPath, iisStrategy.PrimaryDns, certificateTargetPath,
                                                certDetails.CertificatePassword, appPoolStartMode, autoStartProviderName,
                                                autoStartProviderType, EnableSni, AddHostHeaders
                                            };
@@ -287,12 +277,12 @@ namespace Naos.Deployment.Core
             return webSteps;
         }
 
-        private List<SetupStep> GetDatabaseSpecificSteps(InitializationStrategyDatabase databaseStrategy, Package package)
+        private List<SetupStep> GetDatabaseSpecificSteps(InitializationStrategySqlServer sqlServerStrategy, Package package)
         {
             var databaseSteps = new List<SetupStep>();
             var sqlServiceAccount = this.settings.DatabaseServerSettings.SqlServiceAccount;
 
-            var backupDirectory = databaseStrategy.BackupDirectory ?? this.settings.DatabaseServerSettings.DefaultBackupDirectory;
+            var backupDirectory = sqlServerStrategy.BackupDirectory ?? this.settings.DatabaseServerSettings.DefaultBackupDirectory;
             var createBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createBackupDirParams = new[] { backupDirectory, sqlServiceAccount };
             databaseSteps.Add(
@@ -315,7 +305,7 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams)
                     });
 
-            var dataDirectory = databaseStrategy.DataDirectory ?? this.settings.DatabaseServerSettings.DefaultDataDirectory;
+            var dataDirectory = sqlServerStrategy.DataDirectory ?? this.settings.DatabaseServerSettings.DefaultDataDirectory;
             var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createDatabaseDirParams = new[] { dataDirectory, sqlServiceAccount };
             databaseSteps.Add(
@@ -328,7 +318,7 @@ namespace Naos.Deployment.Core
                 });
 
             var enableSaSetPasswordScript = this.settings.DeploymentScriptBlocks.EnableSaAccountAndSetPassword;
-            var enableSaSetPasswordParams = new[] { databaseStrategy.AdministratorPassword };
+            var enableSaSetPasswordParams = new[] { sqlServerStrategy.AdministratorPassword };
             databaseSteps.Add(
                 new SetupStep 
                 {
@@ -349,20 +339,20 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams)
                 });
 
-            var connectionString = "Server=localhost; user id=sa; password=" + databaseStrategy.AdministratorPassword;
-            var databaseFileNameSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileNameSettings
+            var connectionString = "Server=localhost; user id=sa; password=" + sqlServerStrategy.AdministratorPassword;
+            var databaseFileNameSettings = (sqlServerStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileNameSettings
                                             ?? new DatabaseFileNameSettings
                                                    {
-                                                       DataFileLogicalName = databaseStrategy.Name + "Dat",
-                                                       DataFileNameOnDisk = databaseStrategy.Name + ".mdb",
-                                                       LogFileLogicalName = databaseStrategy.Name + "Log",
-                                                       LogFileNameOnDisk = databaseStrategy.Name + ".log"
+                                                       DataFileLogicalName = sqlServerStrategy.Name + "Dat",
+                                                       DataFileNameOnDisk = sqlServerStrategy.Name + ".mdb",
+                                                       LogFileLogicalName = sqlServerStrategy.Name + "Log",
+                                                       LogFileNameOnDisk = sqlServerStrategy.Name + ".log"
                                                    };
-            var databaseFileSizeSettings = (databaseStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileSizeSettings
+            var databaseFileSizeSettings = (sqlServerStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileSizeSettings
                                             ?? this.settings.DefaultDatabaseFileSizeSettings;
             var databaseConfiguration = new DatabaseConfiguration
                                             {
-                                                DatabaseName = databaseStrategy.Name,
+                                                DatabaseName = sqlServerStrategy.Name,
                                                 DatabaseType = DatabaseType.User,
                                                 DataFileLogicalName = databaseFileNameSettings.DataFileLogicalName,
                                                 DataFilePath = Path.Combine(dataDirectory, databaseFileNameSettings.DataFileNameOnDisk),
@@ -378,7 +368,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create database: " + databaseStrategy.Name,
+                        Description = "Create database: " + sqlServerStrategy.Name,
                         SetupAction = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace(
@@ -388,13 +378,13 @@ namespace Naos.Deployment.Core
                             }
                     });
 
-            if (databaseStrategy.Restore != null)
+            if (sqlServerStrategy.Restore != null)
             {
-                var awsRestore = databaseStrategy.Restore as DatabaseRestoreFromS3;
+                var awsRestore = sqlServerStrategy.Restore as DatabaseRestoreFromS3;
                 if (awsRestore == null)
                 {
                     throw new NotSupportedException(
-                        "Currently no support for type of database restore: " + databaseStrategy.Restore.GetType());
+                        "Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
                 }
 
                 databaseSteps.Add(
@@ -409,7 +399,7 @@ namespace Naos.Deployment.Core
                             SetupAction = machineManager =>
                                 {
                                     var restoreFilePath = Path.Combine(
-                                        databaseStrategy.BackupDirectory,
+                                        sqlServerStrategy.BackupDirectory,
                                         awsRestore.FileName);
 
                                     var remoteDownloadBackupScriptBlock =
@@ -450,19 +440,19 @@ namespace Naos.Deployment.Core
                                                              };
                                     DatabaseManager.RestoreFull(
                                         realRemoteConnectionString,
-                                        databaseStrategy.Name,
+                                        sqlServerStrategy.Name,
                                         restoreDetails);
                                 }
                         });
             }
 
-            if (databaseStrategy.Migration != null)
+            if (sqlServerStrategy.Migration != null)
             {
-                var fluentMigration = databaseStrategy.Migration as DatabaseMigrationFluentMigrator;
+                var fluentMigration = sqlServerStrategy.Migration as DatabaseMigrationFluentMigrator;
                 if (fluentMigration == null)
                 {
                     throw new NotSupportedException(
-                        "Currently no support for type of database migration: " + databaseStrategy.Migration.GetType());
+                        "Currently no support for type of database migration: " + sqlServerStrategy.Migration.GetType());
                 }
 
                 databaseSteps.Add(
@@ -490,7 +480,7 @@ namespace Naos.Deployment.Core
                                     MigrationExecutor.Up(
                                         assembly,
                                         realRemoteConnectionString,
-                                        databaseStrategy.Name,
+                                        sqlServerStrategy.Name,
                                         fluentMigration.Version);
                                 }
                         });

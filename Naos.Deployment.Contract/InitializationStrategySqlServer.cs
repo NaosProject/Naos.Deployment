@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InitializationStrategyDatabase.cs" company="Naos">
+// <copyright file="InitializationStrategySqlServer.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
     /// </summary>
-    public class InitializationStrategyDatabase : InitializationStrategyBase
+    public class InitializationStrategySqlServer : InitializationStrategyBase
     {
         /// <summary>
         /// Gets or sets the name of the database.

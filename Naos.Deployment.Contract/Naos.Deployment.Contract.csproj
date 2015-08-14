@@ -34,9 +34,9 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Contract.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.58.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.62.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.58\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.62\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -68,9 +68,12 @@
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="IManagePackages.cs" />
     <Compile Include="InitializationStrategyBase.cs" />
-    <Compile Include="InitializationStrategyDatabase.cs" />
+    <Compile Include="InitializationStrategyCertificateToInstall.cs" />
+    <Compile Include="InitializationStrategyDirectoryToCreate.cs" />
+    <Compile Include="InitializationStrategyPrivateDnsEntry.cs" />
+    <Compile Include="InitializationStrategySqlServer.cs" />
     <Compile Include="InitializationStrategyMessageBusHandler.cs" />
-    <Compile Include="InitializationStrategyWeb.cs" />
+    <Compile Include="InitializationStrategyIis.cs" />
     <Compile Include="InstanceDescription.cs" />
     <Compile Include="InstanceCreationDetails.cs" />
     <Compile Include="InstanceType.cs" />
