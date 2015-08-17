@@ -10,16 +10,14 @@
 
 namespace Spritely.Recipes
 {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
-    using System.CodeDom.Compiler;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     ///     Significantly rewritten from original source at: http://StackOverflow.com/a/17247339/1442829
@@ -30,11 +28,10 @@ namespace Spritely.Recipes
     ///     Selected class will be the first class to match all properties in the json object.
     /// </summary>
 #if !RecipesProject
-    [DebuggerStepThrough]
-    [ExcludeFromCodeCoverage]
-    [GeneratedCode("Spritely.Recipes", "See package version number")]
+    [System.Diagnostics.DebuggerStepThrough]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
 #endif
-
     internal partial class InheritedTypeJsonConverter : JsonConverter
     {
         private readonly ConcurrentDictionary<Type, IReadOnlyCollection<Type>> allChildTypes =
@@ -44,15 +41,25 @@ namespace Spritely.Recipes
         {
             if (!this.allChildTypes.ContainsKey(type))
             {
-                var childTypes =
-                    AppDomain.CurrentDomain.GetAssemblies()
-                        .Where(_ => !_.FullName.Contains("Microsoft.GeneratedCode"))
-                        .SelectMany(a => a.GetTypes())
-                        .Where(
-                            t =>
-                            t.IsClass && !t.IsAbstract && t != type && type.IsAssignableFrom(t)
-                            && t.GetConstructor(Type.EmptyTypes) != null)
-                        .ToList();
+                var childTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(a => !a.FullName.Contains("Microsoft.GeneratedCode"))
+                    .SelectMany(
+                        a =>
+                        {
+                            try
+                            {
+                                return a.GetTypes();
+                            }
+                            catch (ReflectionTypeLoadException)
+                            {
+                                return new Type[] { };
+                            }
+                        })
+                    .Where(
+                        t =>
+                            t != null && t.IsClass && !t.IsAbstract && t != type && type.IsAssignableFrom(t) &&
+                            t.GetConstructor(Type.EmptyTypes) != null)
+                    .ToList();
 
                 this.allChildTypes.AddOrUpdate(type, t => childTypes, (t, cts) => childTypes);
             }
@@ -100,11 +107,43 @@ namespace Spritely.Recipes
 
         private static JObject Serialize(JsonSerializer serializer, object instance)
         {
+            // Copy everything except NullValueHandling (need to make sure all keys are included in serialized json)
+            var jsonSerializer = new JsonSerializer
+            {
+                Binder = serializer.Binder,
+                CheckAdditionalContent = serializer.CheckAdditionalContent,
+                ConstructorHandling = serializer.ConstructorHandling,
+                Context = serializer.Context,
+                ContractResolver = serializer.ContractResolver,
+                Culture = serializer.Culture,
+                DateFormatHandling = serializer.DateFormatHandling,
+                DateFormatString = serializer.DateFormatString,
+                DateParseHandling = serializer.DateParseHandling,
+                DateTimeZoneHandling = serializer.DateTimeZoneHandling,
+                DefaultValueHandling = serializer.DefaultValueHandling,
+                EqualityComparer = serializer.EqualityComparer,
+                FloatFormatHandling = serializer.FloatFormatHandling,
+                FloatParseHandling = serializer.FloatParseHandling,
+                Formatting = serializer.Formatting,
+                MaxDepth = serializer.MaxDepth,
+                MetadataPropertyHandling = serializer.MetadataPropertyHandling,
+                MissingMemberHandling = serializer.MissingMemberHandling,
+                NullValueHandling = NullValueHandling.Include,
+                ObjectCreationHandling = serializer.ObjectCreationHandling,
+                PreserveReferencesHandling = serializer.PreserveReferencesHandling,
+                ReferenceLoopHandling = serializer.ReferenceLoopHandling,
+                ReferenceResolver = serializer.ReferenceResolver,
+                StringEscapeHandling = serializer.StringEscapeHandling,
+                TraceWriter = serializer.TraceWriter,
+                TypeNameAssemblyFormat = serializer.TypeNameAssemblyFormat,
+                TypeNameHandling = serializer.TypeNameHandling
+            };
+
+            serializer.Converters.ForEach(jsonSerializer.Converters.Add);
+
             using (var writer = new StringWriter())
             {
-                var jsonWriter = new JsonTextWriter(writer);
-
-                serializer.Serialize(jsonWriter, instance);
+                jsonSerializer.Serialize(writer, instance);
                 var json = writer.ToString();
                 var parsed = JObject.Parse(json);
                 return parsed;

@@ -23,7 +23,6 @@ namespace Spritely.Recipes
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
 #endif
-
     internal static partial class JsonConfiguration
     {
         /// <summary>
@@ -31,9 +30,23 @@ namespace Spritely.Recipes
         /// </summary>
         static JsonConfiguration()
         {
-            SerializerSettings = new JsonSerializerSettings
+            DefaultSerializerSettings = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
+                NullValueHandling = NullValueHandling.Include,
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                Converters = new List<JsonConverter>
+                {
+                    new StringEnumConverter { CamelCaseText = true },
+                    new SecureStringJsonConverter(),
+                    new InheritedTypeJsonConverter()
+                }
+            };
+
+            CompactSerializerSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.None,
+                NullValueHandling = NullValueHandling.Ignore,
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 Converters = new List<JsonConverter>
                 {
@@ -45,11 +58,19 @@ namespace Spritely.Recipes
         }
 
         /// <summary>
-        ///     Gets or sets the JSON serialization settings.
+        ///     Gets or sets the default JSON serialization settings.
         /// </summary>
         /// <value>
         ///     The JSON serialization settings.
         /// </value>
-        public static JsonSerializerSettings SerializerSettings { get; set; }
+        public static JsonSerializerSettings DefaultSerializerSettings { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the compact JSON serialization settings.
+        /// </summary>
+        /// <value>
+        ///     The JSON serialization settings.
+        /// </value>
+        public static JsonSerializerSettings CompactSerializerSettings { get; set; }
     }
 }
