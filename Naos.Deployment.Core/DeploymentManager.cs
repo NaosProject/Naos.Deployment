@@ -246,11 +246,12 @@ namespace Naos.Deployment.Core
                 }
 
                 var ipAddress = createdInstanceDescription.PrivateIpAddress;
-                this.announce(string.Format(" - Pointing {0} at {1}.", initialization.PrivateDnsEntry, ipAddress));
+                var privateDnsEntry = ApplyDnsTokenReplacements(initialization.PrivateDnsEntry, instanceName);
+                this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
                 this.cloudManager.UpsertDnsEntry(
                     environment,
                     createdInstanceDescription.Location,
-                    initialization.PrivateDnsEntry,
+                    privateDnsEntry,
                     new[] { ipAddress });
             }
 
@@ -399,12 +400,18 @@ namespace Naos.Deployment.Core
                 var initializationStrategy in
                     harnessPackagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>())
             {
-                initializationStrategy.PrimaryDns = initializationStrategy.PrimaryDns.Replace(
-                    "{instanceName}",
+                initializationStrategy.PrimaryDns = ApplyDnsTokenReplacements(
+                    initializationStrategy.PrimaryDns,
                     instanceName);
             }
 
             return harnessPackagedConfig;
+        }
+
+        private static string ApplyDnsTokenReplacements(string potentiallyTokenizedDns, string instanceName)
+        {
+            var ret = potentiallyTokenizedDns.Replace("{instanceName}", instanceName);
+            return ret;
         }
 
         private void RebootInstance(MachineManager machineManager)
