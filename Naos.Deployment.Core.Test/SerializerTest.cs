@@ -83,6 +83,27 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Deserialize_Databserestore_Valid()
+        {
+            var input = @"
+[{ 
+""id"": ""Naos.Something"", 
+""initializationStrategies"": 
+    [{""name"": ""DatabaseName"",      ""restore"": {""runChecksum"":true    }}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+            var actualRestore = deserialized.Single()
+                .InitializationStrategies.OfType<InitializationStrategySqlServer>()
+                .Single()
+                .Restore;
+            var actualS3Restore = Assert.IsType<DatabaseRestoreFromS3>(actualRestore);
+            Assert.NotNull(actualS3Restore);
+            Assert.True(actualS3Restore.RunChecksum);
+        }
+
+        [Fact]
         public static void Deserialize_SingleMessageBusHandlerInitStrategy_Valid()
         {
             var input = @"
