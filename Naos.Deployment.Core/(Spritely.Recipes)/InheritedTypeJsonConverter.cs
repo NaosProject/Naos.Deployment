@@ -13,6 +13,8 @@ namespace Spritely.Recipes
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -37,39 +39,15 @@ namespace Spritely.Recipes
         private readonly ConcurrentDictionary<Type, IReadOnlyCollection<Type>> allChildTypes =
             new ConcurrentDictionary<Type, IReadOnlyCollection<Type>>();
 
-        private IEnumerable<Type> GetChildTypes(Type type)
-        {
-            if (!this.allChildTypes.ContainsKey(type))
-            {
-                var childTypes = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => !a.FullName.Contains("Microsoft.GeneratedCode"))
-                    .SelectMany(
-                        a =>
-                        {
-                            try
-                            {
-                                return a.GetTypes();
-                            }
-                            catch (ReflectionTypeLoadException)
-                            {
-                                return new Type[] { };
-                            }
-                        })
-                    .Where(
-                        t =>
-                            t != null && t.IsClass && !t.IsAbstract && t != type && type.IsAssignableFrom(t) &&
-                            t.GetConstructor(Type.EmptyTypes) != null)
-                    .ToList();
-
-                this.allChildTypes.AddOrUpdate(type, t => childTypes, (t, cts) => childTypes);
-            }
-
-            return this.allChildTypes[type];
-        }
-
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
+            var attributes = Attribute.GetCustomAttributes(objectType, typeof(BindableAttribute));
+            if (!attributes.Any())
+            {
+                return false;
+            }
+
             var childTypes = this.GetChildTypes(objectType);
 
             return childTypes.Any();
@@ -97,12 +75,20 @@ namespace Spritely.Recipes
 
             if (target == null)
             {
-                throw new JsonSerializationException(string.Format("Unable to deserialize to type {0}, value: {1}", objectType, jsonObject));
+                throw new JsonSerializationException(
+                    string.Format(CultureInfo.InvariantCulture, "Unable to deserialize to type {0}, value: {1}", objectType, jsonObject));
             }
 
             serializer.Populate(jsonObject.CreateReader(), target.TestObject.Instance);
 
             return target.TestObject.Instance;
+        }
+
+        /// <inheritdoc />
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            var jsonObject = JObject.FromObject(value, serializer);
+            jsonObject.WriteTo(writer);
         }
 
         private static JObject Serialize(JsonSerializer serializer, object instance)
@@ -141,7 +127,7 @@ namespace Spritely.Recipes
 
             serializer.Converters.ForEach(jsonSerializer.Converters.Add);
 
-            using (var writer = new StringWriter())
+            using (var writer = new StringWriter(CultureInfo.InvariantCulture))
             {
                 jsonSerializer.Serialize(writer, instance);
                 var json = writer.ToString();
@@ -162,11 +148,34 @@ namespace Spritely.Recipes
             return list;
         }
 
-        /// <inheritdoc />
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        private IEnumerable<Type> GetChildTypes(Type type)
         {
-            var jsonObject = JObject.FromObject(value, serializer);
-            jsonObject.WriteTo(writer);
+            if (!this.allChildTypes.ContainsKey(type))
+            {
+                var childTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(a => !a.FullName.Contains("Microsoft.GeneratedCode"))
+                    .SelectMany(
+                        a =>
+                        {
+                            try
+                            {
+                                return a.GetTypes();
+                            }
+                            catch (ReflectionTypeLoadException)
+                            {
+                                return new Type[] { };
+                            }
+                        })
+                    .Where(
+                        t =>
+                            t != null && t.IsClass && !t.IsAbstract && !t.IsGenericTypeDefinition && t != type && type.IsAssignableFrom(t) &&
+                            t.GetConstructor(Type.EmptyTypes) != null)
+                    .ToList();
+
+                this.allChildTypes.AddOrUpdate(type, t => childTypes, (t, cts) => childTypes);
+            }
+
+            return this.allChildTypes[type];
         }
     }
 }

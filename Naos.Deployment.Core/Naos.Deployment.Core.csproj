@@ -39,6 +39,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\AWSSDK.2.3.47.0\lib\net45\AWSSDK.dll</HintPath>
     </Reference>
+    <Reference Include="Conditions">
+      <HintPath>..\packages\Conditions.2.0.0\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Conditions.dll</HintPath>
+    </Reference>
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
@@ -64,21 +67,21 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.10\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Migrator, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.52\lib\45\Naos.Database.Migrator.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.55\lib\45\Naos.Database.Migrator.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Tools, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Tools.1.0.52\lib\45\Naos.Database.Tools.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Tools.1.0.55\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.65.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.63\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.65\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.65.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.63\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.65\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -87,14 +90,6 @@
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NLog.4.0.1\lib\net45\NLog.dll</HintPath>
-    </Reference>
-    <Reference Include="NLog.Extended, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\NLog.Extended.4.0.0.1\lib\net45-full\NLog.Extended.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Core, Version=2.8.60717.93, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
