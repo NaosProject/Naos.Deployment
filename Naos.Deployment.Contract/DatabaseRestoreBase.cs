@@ -6,12 +6,14 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.ComponentModel;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Base class to describe a restore of a database.
     /// </summary>
     [KnownType(typeof(DatabaseRestoreFromS3))]
+    [Bindable(BindableSupport.Default)]
     public abstract class DatabaseRestoreBase
     {
     }
