@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.ComponentModel;
     using System.Runtime.Serialization;
 
     /// <summary>
@@ -17,6 +18,7 @@ namespace Naos.Deployment.Contract
     [KnownType(typeof(InitializationStrategyPrivateDnsEntry))]
     [KnownType(typeof(InitializationStrategyDirectoryToCreate))]
     [KnownType(typeof(InitializationStrategyCertificateToInstall))]
+    [Bindable(BindableSupport.Default)]
     public abstract class InitializationStrategyBase
     {
     }
