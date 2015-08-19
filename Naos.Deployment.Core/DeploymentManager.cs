@@ -108,6 +108,19 @@ namespace Naos.Deployment.Core
 
             this.announce("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
+            foreach (var config in packagedDeploymentConfigs)
+            {
+                if (config.DeploymentConfiguration == null)
+                {
+                    this.announce(
+                        "   - Did NOT find config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                }
+                else
+                {
+                    this.announce(
+                        "   - Found config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                }
+            }
 
             // apply default values to any nulls
             this.announce("Applying default deployment configuration options.");
@@ -276,11 +289,18 @@ namespace Naos.Deployment.Core
                                                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
 
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var nuSpecSearchPattern = packageDescriptionWithOverrides.Id + ".nuspec";
+                        var nuSpecFileContents = this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                package,
+                                nuSpecSearchPattern).Select(_ => _.Value).SingleOrDefault();
+                        var actualVersion = nuSpecFileContents == null
+                                                ? packageDescriptionWithOverrides.Version
+                                                : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+
                         var deploymentConfigJson =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
                                 package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
-
                         var deploymentConfig =
                             Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
                                 (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
@@ -309,6 +329,9 @@ namespace Naos.Deployment.Core
                                                               ?? new DeploymentConfigurationWithStrategies())
                                                                  .InitializationStrategies
                                                              ?? new List<InitializationStrategyBase>();
+
+                        // Overwrite w/ specific version if able to find...
+                        package.PackageDescription.Version = actualVersion;
 
                         var newItem = new PackagedDeploymentConfiguration
                                           {
