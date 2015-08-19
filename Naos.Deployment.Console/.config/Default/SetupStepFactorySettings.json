@@ -71,7 +71,7 @@
                 "    }",
                 "    else",
                 "    {",
-                "       $n.value = $Environment",
+                "       $n.value = $precedence",
                 "    }",
                 "    $c.Save($FilePath)",
                 "}"
