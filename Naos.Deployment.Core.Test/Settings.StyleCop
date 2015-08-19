@@ -65,6 +65,7 @@
           <Value>on</Value>
           <Value>to</Value>
           <Value>ui</Value>
+          <Value>nu</Value>
         </CollectionProperty>
       </AnalyzerSettings>
     </Analyzer>

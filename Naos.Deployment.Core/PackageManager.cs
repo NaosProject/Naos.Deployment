@@ -15,6 +15,8 @@ namespace Naos.Deployment.Core
     using System.Net;
     using System.Reflection;
     using System.Text;
+    using System.Xml;
+    using System.Xml.XPath;
 
     using Naos.Deployment.Contract;
 
@@ -258,6 +260,75 @@ namespace Naos.Deployment.Core
             Directory.Delete(workingDirectory, true);
 
             return ret;
+        }
+
+        /// <inheritdoc />
+        public string GetVersionFromNuSpecFile(string nuSpecFileContents)
+        {
+            if (string.IsNullOrEmpty(nuSpecFileContents))
+            {
+                return null;
+            }
+
+            var missingMetaDataMessage = "Could not find metadata in the provided NuSpec.";
+            var multipleMetaDataMessage = "Found multiple metadata nodes in the provided NuSpec.";
+            var missingVersionMessage = "Could not find the version in the provided NuSpec.";
+            var multipleVersionMessage = "Found multiple version nodes in the provided NuSpec.";
+
+            try
+            {
+                var xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(nuSpecFileContents);
+
+                var xpath = "/*[local-name()='package']/*[local-name()='metadata']";
+                var nodes = xmlDoc.SelectNodes(xpath);
+
+                if (nodes == null || nodes.Count == 0)
+                {
+                    throw new ArgumentException(missingMetaDataMessage);
+                }
+
+                if (nodes.Count > 1)
+                {
+                    throw new ArgumentException(multipleMetaDataMessage);
+                }
+
+                // only one node now
+                var childNodes = nodes[0];
+
+                var versionNodes = new List<XmlNode>();
+                foreach (XmlNode childNode in childNodes)
+                {
+                    if (childNode.Name == "version")
+                    {
+                        versionNodes.Add(childNode);
+                    }
+                }
+
+                if (versionNodes.Count == 0)
+                {
+                    throw new ArgumentException(missingVersionMessage);
+                }
+
+                if (versionNodes.Count > 1)
+                {
+                    throw new ArgumentException(multipleVersionMessage);
+                }
+
+                var ret = versionNodes.Single().InnerText;
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == missingMetaDataMessage || ex.Message == multipleMetaDataMessage
+                    || ex.Message == missingVersionMessage || ex.Message == multipleVersionMessage)
+                {
+                    throw;
+                }
+
+                throw new ArgumentException("NuSpec contents is not valid to be parsed.", ex);
+            }
         }
     }
 

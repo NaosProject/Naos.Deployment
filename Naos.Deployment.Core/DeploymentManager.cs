@@ -108,6 +108,19 @@ namespace Naos.Deployment.Core
 
             this.announce("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
+            foreach (var config in packagedDeploymentConfigs)
+            {
+                if (config.DeploymentConfiguration == null)
+                {
+                    this.announce(
+                        "   - Did NOT find config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                }
+                else
+                {
+                    this.announce(
+                        "   - Found config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                }
+            }
 
             // apply default values to any nulls
             this.announce("Applying default deployment configuration options.");
@@ -130,7 +143,11 @@ namespace Naos.Deployment.Core
 
             // create new aws instance(s)
             this.announce("Creating new instance; Name: " + instanceName);
-            var createdInstanceDescription = this.cloudManager.CreateNewInstance(environment, instanceName, configToCreateWith);
+            var createdInstanceDescription = this.cloudManager.CreateNewInstance(
+                environment,
+                instanceName,
+                configToCreateWith,
+                packagesToDeploy.Select(_ => _ as PackageDescription).ToList());
 
             this.announce(
                 "Created new instance (waiting for Administrator password to be available); ID: "
@@ -272,11 +289,18 @@ namespace Naos.Deployment.Core
                                                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
 
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var nuSpecSearchPattern = packageDescriptionWithOverrides.Id + ".nuspec";
+                        var nuSpecFileContents = this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                package,
+                                nuSpecSearchPattern).Select(_ => _.Value).SingleOrDefault();
+                        var actualVersion = nuSpecFileContents == null
+                                                ? packageDescriptionWithOverrides.Version
+                                                : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+
                         var deploymentConfigJson =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
                                 package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
-
                         var deploymentConfig =
                             Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
                                 (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
@@ -305,6 +329,9 @@ namespace Naos.Deployment.Core
                                                               ?? new DeploymentConfigurationWithStrategies())
                                                                  .InitializationStrategies
                                                              ?? new List<InitializationStrategyBase>();
+
+                        // Overwrite w/ specific version if able to find...
+                        package.PackageDescription.Version = actualVersion;
 
                         var newItem = new PackagedDeploymentConfiguration
                                           {
@@ -504,7 +531,7 @@ namespace Naos.Deployment.Core
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
-                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages)
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages.Values)
                     .Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer())
                     .ToList();
             if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())

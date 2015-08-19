@@ -47,5 +47,12 @@ namespace Naos.Deployment.Contract
         /// <param name="searchPattern">Infix pattern to use for searching for files.</param>
         /// <returns>Dictionary of file name and contents of the file found as a byte array.</returns>
         IDictionary<string, byte[]> GetMultipleFileContentsFromPackageAsBytes(Package package, string searchPattern);
+
+        /// <summary>
+        /// Gets the version of a package by reading it's NuSpec file.
+        /// </summary>
+        /// <param name="nuSpecFileContents">Contents of the NuSpec file to read from.</param>
+        /// <returns>Version of the package as declared in the NuSpec file.</returns>
+        string GetVersionFromNuSpecFile(string nuSpecFileContents);
     }
 }

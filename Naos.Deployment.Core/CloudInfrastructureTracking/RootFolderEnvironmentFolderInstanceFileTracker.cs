@@ -71,10 +71,11 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         /// <inheritdoc />
         public InstanceCreationDetails GetNewInstanceCreationDetails(
             string environment,
-            DeploymentConfiguration deploymentConfiguration)
+            DeploymentConfiguration deploymentConfiguration,
+            ICollection<PackageDescription> intendedPackages)
         {
             var arcology = this.GetArcologyByEnvironmentName(environment);
-            var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration);
+            var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
             this.SaveArcology(arcology);
             return ret;
         }
@@ -96,7 +97,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                arcology.AddPackageToInstanceDeploymentList(systemId, package);
+                arcology.UpdatePackageVerificationInInstanceDeploymentList(systemId, package);
                 this.SaveArcology(arcology);
             }
         }

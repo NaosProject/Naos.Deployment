@@ -97,6 +97,11 @@
   <ItemGroup>
     <None Include=".config\Default\CloudInfrastructureManagerSettings.json" />
     <None Include=".config\Default\SetupStepFactorySettings.json" />
+    <Compile Include="%28Spritely.Recipes%29\Functional.cs" />
+    <Compile Include="%28Spritely.Recipes%29\InheritedTypeJsonConverter.cs" />
+    <Compile Include="%28Spritely.Recipes%29\JsonConfiguration.cs" />
+    <Compile Include="%28Spritely.Recipes%29\SecureString.cs" />
+    <Compile Include="%28Spritely.Recipes%29\SecureStringJsonConverter.cs" />
     <Compile Include="Deployer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -132,9 +132,9 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration)
+        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
         {
-            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration);
+            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration, intendedPackages);
 
             var namer = new CloudInfrastructureNamer(
                 name,
@@ -252,6 +252,16 @@ namespace Naos.Deployment.Core
                 systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);
             }
 
+            var deployedPackages = intendedPackages.ToDictionary(
+                item => item.Id,
+                _ =>
+                new PackageDescriptionWithDeploymentStatus
+                    {
+                        Id = _.Id,
+                        Version = _.Version,
+                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
+                    });
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,
@@ -263,7 +273,7 @@ namespace Naos.Deployment.Core
                         ? null
                         : createdInstance.ElasticIp.PublicIpAddress,
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
-                DeployedPackages = new List<PackageDescription>(),
+                DeployedPackages = deployedPackages,
                 SystemSpecificDetails = systemSpecificDetails,
             };
 

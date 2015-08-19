@@ -10,6 +10,8 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     using System.Collections.Generic;
     using System.Linq;
 
+    using Amazon.SimpleDB.Model;
+
     using Naos.Deployment.Contract;
 
     /// <summary>
@@ -37,7 +39,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
             var instancesThatHaveAnyOfTheProvidedPackages =
                 this.Instances.Where(
                     _ =>
-                    _.InstanceDescription.DeployedPackages.Intersect(
+                    _.InstanceDescription.DeployedPackages.Values.Intersect(
                         packages,
                         new PackageDescriptionIdOnlyEqualityComparer()).Any()).ToList();
 
@@ -126,8 +128,9 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         /// Gets instance details necessary to hand off to the cloud provider.
         /// </summary>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
+        /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <returns>Object holding information necessary to create an instance.</returns>
-        public InstanceCreationDetails MakeNewInstanceCreationDetails(DeploymentConfiguration deploymentConfiguration)
+        public InstanceCreationDetails MakeNewInstanceCreationDetails(DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
         {
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
@@ -178,17 +181,28 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                     },
             };
 
+            var deployedPackages = intendedPackages.ToDictionary(
+                item => item.Id,
+                _ =>
+                new PackageDescriptionWithDeploymentStatus
+                    {
+                        Id = _.Id,
+                        Version = _.Version,
+                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
+                    });
+
             var newTracked = new InstanceWrapper()
-            {
-                InstanceDescription = new InstanceDescription()
-                {
-                    Location = ret.Location,
-                    PrivateIpAddress = ret.PrivateIpAddress,
-                    DeployedPackages = new List<PackageDescription>(),
-                },
-                InstanceCreationDetails = ret,
-                DeploymentConfig = deploymentConfiguration,
-            };
+                                 {
+                                     InstanceDescription =
+                                         new InstanceDescription()
+                                             {
+                                                 Location = ret.Location,
+                                                 PrivateIpAddress = ret.PrivateIpAddress,
+                                                 DeployedPackages = deployedPackages,
+                                             },
+                                     InstanceCreationDetails = ret,
+                                     DeploymentConfig = deploymentConfiguration,
+                                 };
 
             this.Instances.Add(newTracked);
             return ret;
@@ -219,7 +233,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         /// </summary>
         /// <param name="systemId">ID from the cloud provider of the instance.</param>
         /// <param name="package">Package that was successfully deployed.</param>
-        public void AddPackageToInstanceDeploymentList(string systemId, PackageDescription package)
+        public void UpdatePackageVerificationInInstanceDeploymentList(string systemId, PackageDescription package)
         {
             var toUpdate = this.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
 
@@ -230,7 +244,28 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                     + systemId);
             }
 
-            toUpdate.InstanceDescription.DeployedPackages.Add(package);
+            PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
+            var existing =
+                toUpdate.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value, package)).ToList();
+            if (existing.Any())
+            {
+                var existingSingle = existing.Single().Key;
+                toUpdate.InstanceDescription.DeployedPackages[existingSingle].DeploymentStatus =
+                    PackageDeploymentStatus.DeployedSuccessfully;
+            }
+            else
+            {
+                var toAdd = new PackageDescriptionWithDeploymentStatus
+                                {
+                                    Id = package.Id,
+                                    Version = package.Version,
+                                    DeploymentStatus =
+                                        PackageDeploymentStatus
+                                        .DeployedSuccessfully
+                                };
+
+                toUpdate.InstanceDescription.DeployedPackages.Add(package.Id, toAdd);
+            }
         }
 
         private string FindImageSearchPattern(DeploymentConfiguration deploymentConfig)

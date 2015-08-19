@@ -7,6 +7,27 @@
 namespace Naos.Deployment.Contract
 {
     /// <summary>
+    /// Enumeration of the types of deployed status of a package.
+    /// </summary>
+    public enum PackageDeploymentStatus
+    {
+        /// <summary>
+        /// Nothing specified.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        /// Package is known to not yet be deployed.
+        /// </summary>
+        NotYetDeployed,
+
+        /// <summary>
+        /// Package was deployed successfully.
+        /// </summary>
+        DeployedSuccessfully
+    }
+
+    /// <summary>
     /// Enumeration of the types of startup modes for IIS Application Pools.
     /// </summary>
     public enum ApplicationPoolStartMode
