@@ -252,6 +252,16 @@ namespace Naos.Deployment.Core
                 systemSpecificDetails.Add(ElasticIpIdKeyForSystemSpecificDictionary, createdInstance.ElasticIp.Id);
             }
 
+            var deployedPackages = intendedPackages.ToDictionary(
+                item => item.Id,
+                _ =>
+                new PackageDescriptionWithDeploymentStatus
+                    {
+                        Id = _.Id,
+                        Version = _.Version,
+                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
+                    });
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,
@@ -263,7 +273,7 @@ namespace Naos.Deployment.Core
                         ? null
                         : createdInstance.ElasticIp.PublicIpAddress,
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
-                DeployedPackages = intendedPackages.ToDictionary(item => item, _ => false),
+                DeployedPackages = deployedPackages,
                 SystemSpecificDetails = systemSpecificDetails,
             };
 
