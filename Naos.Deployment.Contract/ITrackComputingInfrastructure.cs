@@ -35,8 +35,9 @@ namespace Naos.Deployment.Contract
         /// </summary>
         /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
+        /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <returns>Object holding information necessary to create an instance.</returns>
-        InstanceCreationDetails GetNewInstanceCreationDetails(string environment, DeploymentConfiguration deploymentConfiguration);
+        InstanceCreationDetails GetNewInstanceCreationDetails(string environment, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages);
 
         /// <summary>
         /// Adds the instance to the tracking system.

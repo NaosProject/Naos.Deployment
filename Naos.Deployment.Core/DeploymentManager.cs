@@ -130,7 +130,11 @@ namespace Naos.Deployment.Core
 
             // create new aws instance(s)
             this.announce("Creating new instance; Name: " + instanceName);
-            var createdInstanceDescription = this.cloudManager.CreateNewInstance(environment, instanceName, configToCreateWith);
+            var createdInstanceDescription = this.cloudManager.CreateNewInstance(
+                environment,
+                instanceName,
+                configToCreateWith,
+                packagesToDeploy.Select(_ => _ as PackageDescription).ToList());
 
             this.announce(
                 "Created new instance (waiting for Administrator password to be available); ID: "
@@ -504,7 +508,7 @@ namespace Naos.Deployment.Core
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
-                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages)
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages.Keys)
                     .Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer())
                     .ToList();
             if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())

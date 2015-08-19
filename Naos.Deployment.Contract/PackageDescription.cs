@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.Contract
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Model object of a packaged piece of software.
     /// </summary>

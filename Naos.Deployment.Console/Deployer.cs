@@ -23,7 +23,11 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Core.CloudInfrastructureTracking;
     using Naos.MessageBus.HandlingContract;
 
+    using Newtonsoft.Json;
+
     using OBeautifulCode.Libs.Collections;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Deployment logic to be invoked from the console harness.
@@ -96,6 +100,9 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                      instanceName: " + instanceName);
             Console.WriteLine("--                              packagesToDeployJson: " + packagesToDeployJson);
             Console.WriteLine(string.Empty);
+
+            JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
+            Settings.Deserialize = Serializer.Deserialize;
 
             var packagesToDeploy =
                 Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);

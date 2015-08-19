@@ -28,8 +28,9 @@ namespace Naos.Deployment.Contract
         /// <param name="environment">Environment being deployed to.</param>
         /// <param name="name">Name of the instance.</param>
         /// <param name="deploymentConfiguration">Deployment configuration to use to build a new instance.</param>
+        /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <returns>Description of created instance.</returns>
-        InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration);
+        InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages);
 
         /// <summary>
         /// Gets the instance description by the name provided (null if not found).

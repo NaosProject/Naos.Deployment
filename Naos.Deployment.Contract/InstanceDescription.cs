@@ -34,9 +34,9 @@ namespace Naos.Deployment.Contract
         public string Environment { get; set; }
 
         /// <summary>
-        /// Gets or sets the deployed packages on this instance.
+        /// Gets or sets the deployed packages on this instance mapped against verification.
         /// </summary>
-        public ICollection<PackageDescription> DeployedPackages { get; set; }
+        public IDictionary<PackageDescription, bool> DeployedPackages { get; set; }
 
         /// <summary>
         /// Gets or sets the public IP address.
