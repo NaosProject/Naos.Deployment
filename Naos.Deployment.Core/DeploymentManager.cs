@@ -204,7 +204,8 @@ namespace Naos.Deployment.Core
                     instanceName,
                     messageBusInitializations,
                     itsConfigOverridesForHandlers,
-                    configToCreateWith);
+                    configToCreateWith,
+                    environment);
 
                 packagedDeploymentConfigsWithDefaultsAndOverrides.Add(
                     harnessPackagedConfig);
@@ -263,7 +264,7 @@ namespace Naos.Deployment.Core
                 }
 
                 var ipAddress = createdInstanceDescription.PrivateIpAddress;
-                var privateDnsEntry = ApplyDnsTokenReplacements(initialization.PrivateDnsEntry, instanceName);
+                var privateDnsEntry = ApplyDnsTokenReplacements(initialization.PrivateDnsEntry, instanceName, environment);
                 this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
                 this.cloudManager.UpsertDnsEntry(
                     environment,
@@ -349,7 +350,7 @@ namespace Naos.Deployment.Core
             return packagedDeploymentConfigs;
         }
 
-        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(string instanceName, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith)
+        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(string instanceName, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, string environment)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and 
             // TODO:        only update the private channel to monitor and directory of packages...
@@ -429,15 +430,16 @@ namespace Naos.Deployment.Core
             {
                 initializationStrategy.PrimaryDns = ApplyDnsTokenReplacements(
                     initializationStrategy.PrimaryDns,
-                    instanceName);
+                    instanceName,
+                    environment);
             }
 
             return harnessPackagedConfig;
         }
 
-        private static string ApplyDnsTokenReplacements(string potentiallyTokenizedDns, string instanceName)
+        private static string ApplyDnsTokenReplacements(string potentiallyTokenizedDns, string instanceName, string environment)
         {
-            var ret = potentiallyTokenizedDns.Replace("{instanceName}", instanceName);
+            var ret = potentiallyTokenizedDns.Replace("{instanceName}", instanceName).Replace("{environment}", environment);
             return ret;
         }
 
