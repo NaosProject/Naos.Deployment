@@ -1,46 +1,53 @@
 ﻿{
-    "DatabaseServerSettings": {
-        "SqlServiceName": "MSSQLSERVER",
-        "SqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
-        "BackupProcessServiceAccount": "IIS_IUSRS",
-        "DefaultBackupDirectory": "D:\\SqlBackup\\",
-        "DefaultDataDirectory": "D:\\SqlData\\"
+    "databaseServerSettings": {
+        "sqlServiceName": "MSSQLSERVER",
+        "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
+        "backupProcessServiceAccount": "IIS_IUSRS",
+        "defaultBackupDirectory": "D:\\SqlBackup\\",
+        "defaultDataDirectory": "D:\\SqlData\\"
     },
-    "DefaultDatabaseFileSizeSettings": {
-        "DataFileCurrentSizeInKb": 100000,
-        "DataFileMaxSizeInKb": 10000000,
-        "DataFileGrowthSizeInKb": 10000,
-        "LogFileCurrentSizeInKb": 100000,
-        "LogFileMaxSizeInKb": 10000000,
-        "LogFileGrowthSizeInKb": 10000
+    "defaultDatabaseFileSizeSettings": {
+        "dataFileCurrentSizeInKb": 100000,
+        "dataFileMaxSizeInKb": 10000000,
+        "dataFileGrowthSizeInKb": 10000,
+        "logFileCurrentSizeInKb": 100000,
+        "logFileMaxSizeInKb": 10000000,
+        "logFileGrowthSizeInKb": 10000
     },
-    "DeploymentScriptBlocks": {
-        "InstallChocolatey": {
-            "ParameterNames": [ "Packages" ],
-            "ScriptTextLines": [
+    "deploymentScriptBlocks": {
+        "installChocolatey": {
+            "parameterNames": [ "Packages" ],
+            "scriptTextLines": [
                 "{",
                 "param([Array] $Packages)",
+                " try",
+                " {",
                 "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) > $null 2>&1",
                 "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -y }",
                 "   $Packages | ?{![String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -Version $_.Version -y }",
+                " }",
+                " catch",
+                " {",
+                "   Write-Output $_",
+                " }",
                 "}"
             ]
         },
-        "DownloadS3Object": {
-            "ParameterNames": [ "BucketName", "ObjectKey", "FilePath", "Region", "AccessKey", "SecretKey" ],
-            "ScriptTextLines": [
+        "downloadS3Object": {
+            "parameterNames": [ "BucketName", "ObjectKey", "FilePath", "Region", "AccessKey", "SecretKey" ],
+            "scriptTextLines": [
                 "{",
                 "param([string] $BucketName, [string] $ObjectKey, [string] $FilePath, [string] $Region, [string] $AccessKey, [string] $SecretKey)",
                 "Read-S3Object -BucketName $BucketName -Key $ObjectKey -File $FilePath -Region $Region -AccessKey $AccessKey -SecretKey $SecretKey",
                 "}"
             ]
         },
-        "UpdateItsConfigPrecedence": {
-            "ParameterNames": [
+        "updateItsConfigPrecedence": {
+            "parameterNames": [
                 "FilePath",
                 "Environment"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $FilePath, [string] $Environment)",
                 "    $appSettingsNodeName = 'appSettings'",
@@ -70,12 +77,12 @@
                 "}"
             ]
         },
-        "InstallCertificate": {
-            "ParameterNames": [
+        "installCertificate": {
+            "parameterNames": [
                 "CertPath",
                 "CertPassword"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $CertPath, [SecureString] $CertPassword)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
@@ -86,8 +93,8 @@
                 "}"
             ]
         },
-        "InstallAndConfigureWebsite": {
-            "ParameterNames": [
+        "installAndConfigureWebsite": {
+            "parameterNames": [
                 "WebRootPath",
                 "Domain",
                 "CertPath",
@@ -98,7 +105,7 @@
                 "EnableSNI",
                 "AddHostHeaders"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $WebRootPath, [string] $Domain, [string] $CertPath, [SecureString] $CertPassword, [string] $AppPoolStartMode, [string] $AutoStartProviderName, [string] $AutoStartProviderType, [switch] $EnableSNI, [switch] $AddHostHeaders)",
                 "   Write-Output \"Beginning Deployment of a Website:\"",
@@ -219,12 +226,12 @@
                 "}"
             ]
         },
-        "UnzipFile": {
-            "ParameterNames": [
+        "unzipFile": {
+            "parameterNames": [
                 "FilePath",
                 "TargetDirectoryPath"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $FilePath, [string] $TargetDirectoryPath)",
                 "   $shell_app=new-object -com shell.application",
@@ -234,11 +241,11 @@
                 "}"
             ]
         },
-        "RestartWindowsService": {
-            "ParameterNames": [
+        "restartWindowsService": {
+            "parameterNames": [
                 "ServiceName"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $ServiceName)",
                 "if ([string]::IsNullOrEmpty($ServiceName))",
@@ -296,12 +303,12 @@
                 "}"
             ]
         },
-        "CreateDirectoryWithFullControl": {
-            "ParameterNames": [
+        "createDirectoryWithFullControl": {
+            "parameterNames": [
                 "DirectoryPath",
                 "UserToGiveFullControlTo"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $DirectoryPath, [string] $UserToGiveFullControlTo)",
                 "    if (-not (Test-Path $DirectoryPath)) { md $DirectoryPath }",
@@ -313,11 +320,11 @@
                 "}"
             ]
         },
-        "EnableSaAccountAndSetPassword": {
-            "ParameterNames": [
+        "enableSaAccountAndSetPassword": {
+            "parameterNames": [
                 "SaPassword"
             ],
-            "ScriptTextLines": [
+            "scriptTextLines": [
                 "{",
                 "param([string] $SaPassword)",
                 "   [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null",
