@@ -83,7 +83,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Deserialize_Databserestore_Valid()
+        public static void Deserialize_DatabaseRestore_Valid()
         {
             var input = @"
 [{ 
@@ -101,6 +101,28 @@ namespace Naos.Deployment.Core.Test
             var actualS3Restore = Assert.IsType<DatabaseRestoreFromS3>(actualRestore);
             Assert.NotNull(actualS3Restore);
             Assert.True(actualS3Restore.RunChecksum);
+        }
+
+        [Fact]
+        public static void Deserialize_DatabaseMigration_Valid()
+        {
+            var input = @"
+[{ 
+""id"": ""Naos.Something"", 
+""initializationStrategies"": 
+    [{""name"": ""DatabaseName"", ""administratorPassword"":""hello"",      ""migration"": {""version"":17}}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+            var actualMigration = deserialized.Single()
+                .InitializationStrategies.OfType<InitializationStrategySqlServer>()
+                .Single()
+                .Migration;
+            Assert.NotNull(actualMigration);
+            var actualFluentMigration = Assert.IsType<DatabaseMigrationFluentMigrator>(actualMigration);
+            Assert.NotNull(actualFluentMigration);
+            Assert.Equal(17, actualFluentMigration.Version);
         }
 
         [Fact]

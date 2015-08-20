@@ -6,12 +6,14 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System.ComponentModel;
     using System.Runtime.Serialization;
 
     /// <summary>
     /// Base class to describe a migration of a database.
     /// </summary>
     [KnownType(typeof(DatabaseMigrationFluentMigrator))]
+    [Bindable(BindableSupport.Default)]
     public class DatabaseMigrationBase
     {
     }

@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.Contract
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
     /// </summary>
