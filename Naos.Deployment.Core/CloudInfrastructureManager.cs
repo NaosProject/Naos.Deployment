@@ -262,6 +262,8 @@ namespace Naos.Deployment.Core
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
                     });
 
+            createdInstance.AddTagInAws("Environment", environment, this.credentials);
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,
