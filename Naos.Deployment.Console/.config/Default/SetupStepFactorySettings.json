@@ -1,4 +1,7 @@
 ﻿{
+    "harnessSettings": { 
+        "harnessAccount": "IIS_IUSRS"
+    },
     "databaseServerSettings": {
         "sqlServiceName": "MSSQLSERVER",
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
