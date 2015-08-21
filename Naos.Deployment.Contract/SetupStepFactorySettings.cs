@@ -27,6 +27,22 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the server settings of the database.
         /// </summary>
         public DatabaseServerSettings DatabaseServerSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the harness settings.
+        /// </summary>
+        public HarnessSettings HarnessSettings { get; set; }
+    }
+
+    /// <summary>
+    /// Settings class to provide information about the harness
+    /// </summary>
+    public class HarnessSettings
+    {
+        /// <summary>
+        /// Gets or sets account the message bus handler harness is running as.
+        /// </summary>
+        public string HarnessAccount { get; set; }
     }
 
     /// <summary>
