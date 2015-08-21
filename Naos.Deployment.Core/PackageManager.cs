@@ -160,6 +160,10 @@ namespace Naos.Deployment.Core
                     var targetPath = Path.Combine(bundleStagePath, packageName);
                     ZipFile.ExtractToDirectory(packageFilePath, targetPath);
                     
+                    // delete tools dir to avoid unnecessary issues with unrelated assemblies
+                    var toolsPath = Path.Combine(targetPath, "tools");
+                    Directory.Delete(toolsPath);
+
                     // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep net45...).
                     var libPath = Path.Combine(targetPath, "lib");
                     var frameworkDirectories = Directory.Exists(libPath)
@@ -214,6 +218,7 @@ namespace Naos.Deployment.Core
                               PackageDescription = packageDescription,
                               PackageFileBytes = this.GetPackageFile(packageDescription, bundleAllDependencies),
                               PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
+                              AreDependenciesBundled = bundleAllDependencies
                           };
 
             return ret;
