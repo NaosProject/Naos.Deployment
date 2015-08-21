@@ -13,10 +13,8 @@ namespace Naos.Deployment.Core
     using System.IO.Compression;
     using System.Linq;
     using System.Net;
-    using System.Reflection;
     using System.Text;
     using System.Xml;
-    using System.Xml.XPath;
 
     using Naos.Deployment.Contract;
 
@@ -162,7 +160,10 @@ namespace Naos.Deployment.Core
                     
                     // delete tools dir to avoid unnecessary issues with unrelated assemblies
                     var toolsPath = Path.Combine(targetPath, "tools");
-                    Directory.Delete(toolsPath);
+                    if (Directory.Exists(toolsPath))
+                    {
+                        Directory.Delete(toolsPath);
+                    }
 
                     // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep net45...).
                     var libPath = Path.Combine(targetPath, "lib");
