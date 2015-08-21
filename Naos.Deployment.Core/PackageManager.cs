@@ -162,7 +162,7 @@ namespace Naos.Deployment.Core
                     var toolsPath = Path.Combine(targetPath, "tools");
                     if (Directory.Exists(toolsPath))
                     {
-                        Directory.Delete(toolsPath);
+                        Directory.Delete(toolsPath, true);
                     }
 
                     // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep net45...).
@@ -185,6 +185,18 @@ namespace Naos.Deployment.Core
                                                                                              StringComparison.InvariantCultureIgnoreCase);
                                                                     return includeInWhere;
                                                                 }).OrderByDescending(_ => _).FirstOrDefault();
+
+                        if (frameworkFolderToKeep == null)
+                        {
+                            // this will happen with a package that doesn't honor the 'NET' prefix on framework folders...
+                            frameworkFolderToKeep = frameworkDirectories.Where(
+                                directoryPath =>
+                                    {
+                                        var directoryName = Path.GetFileName(directoryPath);
+                                        var includeInWhere = directoryName != null;
+                                        return includeInWhere;
+                                    }).OrderByDescending(_ => _).FirstOrDefault();
+                        }
 
                         var unnecessaryFrameworks =
                             frameworkDirectories.Except(new[] { frameworkFolderToKeep }).ToList();
