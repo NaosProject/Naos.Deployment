@@ -100,7 +100,7 @@ namespace Naos.Deployment.Core
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
-                "Downloading packages that are to be deployed; IDs: "
+                "Downloading packages that are to be deployed => IDs: "
                 + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
@@ -142,7 +142,7 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
             // create new aws instance(s)
-            this.announce("Creating new instance; MachineName: " + instanceName);
+            this.announce("Creating new instance => MachineName: " + instanceName);
             var createdInstanceDescription = this.cloudManager.CreateNewInstance(
                 environment,
                 instanceName,
@@ -151,7 +151,7 @@ namespace Naos.Deployment.Core
 
             this.announce(
                 string.Format(
-                    "Created new instance; CloudName: {0}, ID: {1}, Private IP: {2}",
+                    "Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}",
                     createdInstanceDescription.Name,
                     createdInstanceDescription.Id,
                     createdInstanceDescription.PrivateIpAddress));
@@ -549,14 +549,14 @@ namespace Naos.Deployment.Core
                 var deployedIdList = string.Join(",", deployedPackagesToCheck.Select(_ => _.Id));
                 var deployingIdList = string.Join(",", packagesToDeploy.Select(_ => _.Id));
                 throw new DeploymentException(
-                    "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed; Running: "
+                    "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed => Running: "
                     + deployedIdList + " Deploying: " + deployingIdList);
             }
 
             // terminate instance(s) if necessary (if it exists)
             foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
             {
-                this.announce("Terminating instance; ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+                this.announce("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
                 this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
             }
         }
