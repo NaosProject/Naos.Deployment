@@ -156,11 +156,11 @@ namespace Naos.Deployment.Core
                     createdInstanceDescription.Id,
                     createdInstanceDescription.PrivateIpAddress));
 
-            this.announce("Waiting for Administrator password to be available. (takes a few minutes for this).");
+            this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
             var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
             // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
-            this.announce("Rebooting new instance to finalize any items from user data setup.");
+            this.announce("Rebooting new instance to finalize any items from user data setup (requires connectivity - make sure VPN is up if applicable).");
             this.RebootInstance(machineManager);
 
             // get all message bus handler initializations to know if we need a handler.
