@@ -111,7 +111,9 @@ namespace Naos.Deployment.Core
             }
             else if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
             {
-                var dirSteps = this.GetDirectoryToCreateSpecificSteps((InitializationStrategyDirectoryToCreate)strategy);
+                var dirSteps = this.GetDirectoryToCreateSpecificSteps(
+                    (InitializationStrategyDirectoryToCreate)strategy,
+                    this.settings.HarnessSettings.HarnessAccount);
                 ret.AddRange(dirSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
@@ -170,16 +172,16 @@ namespace Naos.Deployment.Core
             return certSteps;
         }
 
-        private List<SetupStep> GetDirectoryToCreateSpecificSteps(
-            InitializationStrategyDirectoryToCreate directoryToCreateStrategy)
+        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string harnessAccount)
         {
             var dir = directoryToCreateStrategy.DirectoryToCreate;
-            var dirParams = new object[] { dir.FullPath, dir.FullControlAccount };
+            var fullControlAccount = dir.FullControlAccount.Replace("{harnessAccount}", harnessAccount);
+            var dirParams = new object[] { dir.FullPath, fullControlAccount };
             var ret = new SetupStep
                           {
                               Description =
                                   "Creating directory: " + dir.FullPath + " with full control granted to: "
-                                  + dir.FullControlAccount,
+                                  + fullControlAccount,
                               SetupAction =
                                   machineManager =>
                                   machineManager.RunScript(
