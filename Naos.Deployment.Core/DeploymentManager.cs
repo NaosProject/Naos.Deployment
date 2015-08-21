@@ -142,7 +142,7 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
             // create new aws instance(s)
-            this.announce("Creating new instance; Name: " + instanceName);
+            this.announce("Creating new instance; MachineName: " + instanceName);
             var createdInstanceDescription = this.cloudManager.CreateNewInstance(
                 environment,
                 instanceName,
@@ -150,8 +150,13 @@ namespace Naos.Deployment.Core
                 packagesToDeploy.Select(_ => _ as PackageDescription).ToList());
 
             this.announce(
-                "Created new instance (waiting for Administrator password to be available); ID: "
-                + createdInstanceDescription.Id + ", Private IP:" + createdInstanceDescription.PrivateIpAddress);
+                string.Format(
+                    "Created new instance; CloudName: {0}, ID: {1}, Private IP: {2}",
+                    createdInstanceDescription.Name,
+                    createdInstanceDescription.Id,
+                    createdInstanceDescription.PrivateIpAddress));
+
+            this.announce("Waiting for Administrator password to be available. (takes a few minutes for this).");
             var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
             // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
@@ -551,7 +556,7 @@ namespace Naos.Deployment.Core
             // terminate instance(s) if necessary (if it exists)
             foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
             {
-                this.announce("Terminating instance; ID: " + instanceDescription.Id + ", Name: " + instanceDescription.Name);
+                this.announce("Terminating instance; ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
                 this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
             }
         }
