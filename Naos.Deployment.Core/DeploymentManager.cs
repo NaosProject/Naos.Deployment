@@ -184,7 +184,10 @@ namespace Naos.Deployment.Core
                 {
                     itsConfigOverridesForHandlers.AddRange(packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
 
-                    var itsConfigEnvironmentFolderPattern = string.Format(".config/{0}/", environment);
+                    var itsConfigEnvironmentFolderPattern = packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                                                                ? string.Format("{1}/.config/{0}/", environment, packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString())
+                                                                : string.Format(".config/{0}/", environment);
+
                     var itsConfigFilesFromPackage =
                         this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
                             packageWithMessageBusInitializations.Package,
