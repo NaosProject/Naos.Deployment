@@ -96,8 +96,6 @@ namespace Naos.Deployment.Core
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
-            this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment);
-
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
                 "Downloading packages that are to be deployed => IDs: "
@@ -140,6 +138,9 @@ namespace Naos.Deployment.Core
             // apply newly constructed configs across all configs
             var packagedDeploymentConfigsWithDefaultsAndOverrides =
                 packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
+
+            // terminate existing instances...
+            this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment);
 
             // create new aws instance(s)
             this.announce("Creating new instance => MachineName: " + instanceName);
