@@ -293,8 +293,8 @@ namespace Naos.Deployment.Core
             Func<IHaveInitializationStrategies, bool> figureOutIfNeedToBundleDependencies =
                 hasStrategies =>
                 hasStrategies != null
-                && hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
-                && hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any();
+                && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
+                    || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any());
 
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
