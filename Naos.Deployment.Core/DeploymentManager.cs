@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -289,15 +290,18 @@ namespace Naos.Deployment.Core
             ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string deploymentFileSearchPattern)
         {
+            Func<IHaveInitializationStrategies, bool> figureOutIfNeedToBundleDependencies =
+                hasStrategies =>
+                hasStrategies != null
+                && hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
+                && hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any();
+
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
                     {
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
-                        var bundleAllDependencies = packageDescriptionWithOverrides.InitializationStrategies != null
-                                                    && packageDescriptionWithOverrides
-                                                           .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
-
+                        var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
                         var nuSpecSearchPattern = packageDescriptionWithOverrides.Id + ".nuspec";
                         var nuSpecFileContents = this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
@@ -316,9 +320,7 @@ namespace Naos.Deployment.Core
                                 (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
 
                         // re-check the extracted config to make sure it doesn't change the decision about bundling...
-                        var bundleAllDependenciesReCheck = deploymentConfig != null
-                                                           && deploymentConfig.InitializationStrategies != null
-                                                           && deploymentConfig.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any();
+                        var bundleAllDependenciesReCheck = figureOutIfNeedToBundleDependencies(deploymentConfig);
 
                         if (!bundleAllDependencies && bundleAllDependenciesReCheck)
                         {
