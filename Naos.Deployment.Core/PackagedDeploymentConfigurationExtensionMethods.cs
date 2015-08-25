@@ -70,6 +70,20 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Retrieves the initialization strategies matching the specified type.
+        /// </summary>
+        /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
+        /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
+        /// <returns>Collection of initialization strategies matching the type specified.</returns>
+        public static ICollection<T> GetInitializationStrategiesOf<T>(
+            this ICollection<IHaveInitializationStrategies> baseCollection) where T : InitializationStrategyBase
+        {
+            var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
+
+            return ret;
+        }
+
+        /// <summary>
         /// Retrieves the items that contain an initialization strategy matching the specified type.
         /// </summary>
         /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
