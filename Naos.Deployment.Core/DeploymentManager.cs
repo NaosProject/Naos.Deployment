@@ -230,7 +230,26 @@ namespace Naos.Deployment.Core
                 foreach (var setupStep in setupSteps)
                 {
                     this.announce("  - " + setupStep.Description);
-                    setupStep.SetupAction(machineManager);
+                    var tries = 0;
+                    var maxTries = 5;
+                    while (tries < maxTries)
+                    {
+                        try
+                        {
+                            tries = tries + 1;
+                            setupStep.SetupAction(machineManager);
+                            break;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (tries > 2)
+                            {
+                                this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex));
+                            }
+
+                            Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
+                        }
+                    }
                 }
              
                 // Mark the instance as having the successfully deployed packages
