@@ -419,7 +419,7 @@ namespace Naos.Deployment.Core
                                                        WorkerCount = workerCount,
                                                        PollingTimeSpan =
                                                            TimeSpan.FromMinutes(1),
-                                                       MessageTypeMatchStrategy = MessageTypeMatchStrategy.NamespaceAndName,
+                                                       TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
                                                        RetryCount = 0
                                                    }
                                            };
