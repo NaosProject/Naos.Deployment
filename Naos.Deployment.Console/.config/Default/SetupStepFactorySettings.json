@@ -23,16 +23,9 @@
             "scriptTextLines": [
                 "{",
                 "param([Array] $Packages)",
-                " try",
-                " {",
                 "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) > $null 2>&1",
                 "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -y }",
                 "   $Packages | ?{![String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -Version $_.Version -y }",
-                " }",
-                " catch",
-                " {",
-                "   Write-Output $_",
-                " }",
                 "}"
             ]
         },
