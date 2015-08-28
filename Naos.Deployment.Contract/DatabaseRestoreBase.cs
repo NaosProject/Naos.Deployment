@@ -16,6 +16,17 @@ namespace Naos.Deployment.Contract
     [Bindable(BindableSupport.Default)]
     public abstract class DatabaseRestoreBase
     {
+        // split apart file size and name settings because of the way defaults are generated internally.
+
+        /// <summary>
+        /// Gets or sets the file name settings.
+        /// </summary>
+        public DatabaseFileNameSettings DatabaseFileNameSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the file size settings.
+        /// </summary>
+        public DatabaseFileSizeSettings DatabaseFileSizeSettings { get; set; }
     }
 
     /// <summary>

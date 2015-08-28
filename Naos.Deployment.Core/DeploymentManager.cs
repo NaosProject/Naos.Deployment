@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Core
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -322,13 +321,7 @@ namespace Naos.Deployment.Core
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
                         var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
-                        var nuSpecSearchPattern = packageDescriptionWithOverrides.Id + ".nuspec";
-                        var nuSpecFileContents = this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                package,
-                                nuSpecSearchPattern).Select(_ => _.Value).SingleOrDefault();
-                        var actualVersion = nuSpecFileContents == null
-                                                ? packageDescriptionWithOverrides.Version
-                                                : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+                        var actualVersion = this.GetActualVersionFromPackage(package);
 
                         var deploymentConfigJson =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
@@ -380,6 +373,19 @@ namespace Naos.Deployment.Core
             return packagedDeploymentConfigs;
         }
 
+        private string GetActualVersionFromPackage(Package package)
+        {
+            var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
+            var nuSpecFileContents =
+                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
+                    .Select(_ => _.Value)
+                    .SingleOrDefault();
+            var actualVersion = nuSpecFileContents == null
+                                    ? "[FAILED TO EXTRACT FROM PACKAGE"
+                                    : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+            return actualVersion;
+        }
+
         private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(string instanceName, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, string environment)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and 
@@ -402,6 +408,9 @@ namespace Naos.Deployment.Core
             var messageBusHandlerPackage =
                 this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
 
+            var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage);
+            messageBusHandlerPackage.PackageDescription.Version = actualVersion;
+
             var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
             var workerCount = messageBusInitializations.Min(_ => _.WorkerCount);
@@ -414,7 +423,7 @@ namespace Naos.Deployment.Core
                                                        ChannelsToMonitor =
                                                            channelsToMonitor,
                                                        HandlerAssemblyPath =
-                                                           SetupStepFactory
+                                                           this.setupStepFactory
                                                            .RootDeploymentPath,
                                                        WorkerCount = workerCount,
                                                        PollingTimeSpan =

@@ -22,6 +22,11 @@ namespace Naos.Deployment.Contract
         public DatabaseRestoreBase Restore { get; set; }
 
         /// <summary>
+        /// Gets or sets the database settings to use.
+        /// </summary>
+        public Create Create { get; set; }
+
+        /// <summary>
         /// Gets or sets the schema/data migration information, null will skip.
         /// </summary>
         public DatabaseMigrationBase Migration { get; set; }
@@ -40,10 +45,5 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the directory to save data files in.
         /// </summary>
         public string DataDirectory { get; set; }
-
-        /// <summary>
-        /// Gets or sets the database settings to use.
-        /// </summary>
-        public DatabaseSettings DatabaseSettings { get; set; }
     }
 }

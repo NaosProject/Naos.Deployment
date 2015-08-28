@@ -1,5 +1,6 @@
 ﻿{
-    "harnessSettings": { 
+    "rootDeploymentPath": "D:\\Deployments",
+    "harnessSettings": {
         "harnessAccount": "IIS_IUSRS"
     },
     "databaseServerSettings": {
@@ -24,8 +25,22 @@
                 "{",
                 "param([Array] $Packages)",
                 "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) > $null 2>&1",
-                "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -y }",
-                "   $Packages | ?{![String]::IsNullOrEmpty($_.Version)} | %{ cinst $_.Id -Version $_.Version -y }",
+                "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ ",
+                "      try {",
+                "         cinst $_.Id -y",
+                "      }",
+                "      catch {",
+                "         Write-Output $_",
+                "      }",
+                "   }",
+                "   $Packages | ?{![String]::IsNullOrEmpty($_.Version)} | %{ ",
+                "      try {",
+                "         cinst $_.Id -Version $_.Version -y",
+                "      }",
+                "      catch {",
+                "         Write-Output $_",
+                "      }",
+                "   }",
                 "}"
             ]
         },
@@ -129,7 +144,6 @@
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
                 "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
-                "   rm $CertPath -Force",
                 "   Write-Output \"Cert installed with Thumbprint: $($certResult.Thumbprint) - Deleted file\"",
                 "   # cutting to first 50 chars to avoid the 64 char limit...",
                 "   $limit = 50",
@@ -223,6 +237,8 @@
                 "   $xmlWriter.Flush()",
                 "   $xmlWriter.Close()",
                 "   Write-Output \"Finished successfully\"",
+                "   # save for end in case it's retried...",
+                "   rm $CertPath -Force",
                 "}"
             ]
         },
