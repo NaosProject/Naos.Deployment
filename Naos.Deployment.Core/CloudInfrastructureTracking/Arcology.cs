@@ -119,7 +119,9 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         /// <returns>ID of instance by name if found.</returns>
         public string GetInstanceIdByName(string name)
         {
-            var wrapped = this.Instances.FirstOrDefault(_ => _.InstanceDescription.Name == name);
+            var wrapped =
+                this.Instances.FirstOrDefault(
+                    _ => string.Equals(_.InstanceDescription.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
             return wrapped == null ? null : wrapped.InstanceDescription.Id;
         }
