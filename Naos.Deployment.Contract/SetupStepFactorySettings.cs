@@ -32,6 +32,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the harness settings.
         /// </summary>
         public HarnessSettings HarnessSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the root deployment path.
+        /// </summary>
+        public string RootDeploymentPath { get; set; }
     }
 
     /// <summary>

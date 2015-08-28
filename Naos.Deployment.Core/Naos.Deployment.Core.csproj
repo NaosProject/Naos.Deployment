@@ -56,6 +56,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\FluentMigrator.Runner.1.6.0\lib\40\FluentMigrator.Runner.dll</HintPath>
     </Reference>
+    <Reference Include="Its.Log">
+      <HintPath>..\packages\Its.Log.2.8.3\lib\net40\Its.Log.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
@@ -67,13 +70,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.10\lib\45\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.71.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Migrator, Version=1.0.78.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.71\lib\45\Naos.Database.Migrator.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.78\lib\45\Naos.Database.Migrator.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.71.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Database.Tools, Version=1.0.78.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.Database.Tools.1.0.71\lib\45\Naos.Database.Tools.dll</HintPath>
+      <HintPath>..\packages\Naos.Database.Tools.1.0.78\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.DataContract, Version=1.0.69.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

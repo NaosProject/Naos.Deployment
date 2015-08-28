@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DatabaseSettings.cs" company="Naos">
+// <copyright file="Create.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -9,7 +9,7 @@ namespace Naos.Deployment.Contract
     /// <summary>
     /// Class to consolidate database settings.
     /// </summary>
-    public class DatabaseSettings
+    public class Create
     {
         // split apart file size and name settings because of the way defaults are generated internally.
 

@@ -53,7 +53,7 @@
     <Compile Include="CloudContainerDescription.cs" />
     <Compile Include="DatabaseMigrationBase.cs" />
     <Compile Include="DatabaseRestoreBase.cs" />
-    <Compile Include="DatabaseSettings.cs" />
+    <Compile Include="Create.cs" />
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />

@@ -23,11 +23,6 @@ namespace Naos.Deployment.Core
     /// </summary>
     public class SetupStepFactory
     {
-        /// <summary>
-        /// Root path that all packages are deployed to.
-        /// </summary>
-        public const string RootDeploymentPath = @"D:\Deployments\";
-
         private readonly IGetCertificates certificateRetriever;
 
         private readonly SetupStepFactorySettings settings;
@@ -45,6 +40,17 @@ namespace Naos.Deployment.Core
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
             this.packageManager = packageManager;
+        }
+
+        /// <summary>
+        /// Gets the root deployment path.
+        /// </summary>
+        public string RootDeploymentPath
+        {
+            get
+            {
+                return this.settings.RootDeploymentPath;
+            }
         }
 
         /// <summary>
@@ -83,7 +89,7 @@ namespace Naos.Deployment.Core
         private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment)
         {
             var ret = new List<SetupStep>();
-            var packageDirectoryPath = GetPackageDirectoryPath(packagedConfig);
+            var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
 
             if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
@@ -281,6 +287,12 @@ namespace Naos.Deployment.Core
 
         private List<SetupStep> GetDatabaseSpecificSteps(InitializationStrategySqlServer sqlServerStrategy, Package package)
         {
+            if (sqlServerStrategy.Create != null && sqlServerStrategy.Restore != null)
+            {
+                throw new NotSupportedException(
+                    "A create and restore on a single database initialization strategy is not supported.");
+            }
+
             var databaseSteps = new List<SetupStep>();
             var sqlServiceAccount = this.settings.DatabaseServerSettings.SqlServiceAccount;
 
@@ -342,43 +354,27 @@ namespace Naos.Deployment.Core
                 });
 
             var connectionString = "Server=localhost; user id=sa; password=" + sqlServerStrategy.AdministratorPassword;
-            var databaseFileNameSettings = (sqlServerStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileNameSettings
-                                            ?? new DatabaseFileNameSettings
-                                                   {
-                                                       DataFileLogicalName = sqlServerStrategy.Name + "Dat",
-                                                       DataFileNameOnDisk = sqlServerStrategy.Name + ".mdb",
-                                                       LogFileLogicalName = sqlServerStrategy.Name + "Log",
-                                                       LogFileNameOnDisk = sqlServerStrategy.Name + ".log"
-                                                   };
-            var databaseFileSizeSettings = (sqlServerStrategy.DatabaseSettings ?? new DatabaseSettings()).DatabaseFileSizeSettings
-                                            ?? this.settings.DefaultDatabaseFileSizeSettings;
-            var databaseConfiguration = new DatabaseConfiguration
-                                            {
-                                                DatabaseName = sqlServerStrategy.Name,
-                                                DatabaseType = DatabaseType.User,
-                                                DataFileLogicalName = databaseFileNameSettings.DataFileLogicalName,
-                                                DataFilePath = Path.Combine(dataDirectory, databaseFileNameSettings.DataFileNameOnDisk),
-                                                DataFileCurrentSizeInKb = databaseFileSizeSettings.DataFileCurrentSizeInKb,
-                                                DataFileMaxSizeInKb = databaseFileSizeSettings.DataFileMaxSizeInKb,
-                                                DataFileGrowthSizeInKb = databaseFileSizeSettings.DataFileGrowthSizeInKb,
-                                                LogFileLogicalName = databaseFileNameSettings.LogFileLogicalName,
-                                                LogFilePath = Path.Combine(dataDirectory, databaseFileNameSettings.LogFileNameOnDisk),
-                                                LogFileCurrentSizeInKb = databaseFileSizeSettings.LogFileCurrentSizeInKb,
-                                                LogFileMaxSizeInKb = databaseFileSizeSettings.LogFileMaxSizeInKb,
-                                                LogFileGrowthSizeInKb = databaseFileSizeSettings.LogFileGrowthSizeInKb
-                                            };
-            databaseSteps.Add(
-                new SetupStep
-                    {
-                        Description = "Create database: " + sqlServerStrategy.Name,
-                        SetupAction = machineManager =>
-                            {
-                                var realRemoteConnectionString = connectionString.Replace(
-                                    "localhost",
-                                    machineManager.IpAddress);
-                                DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
-                            }
-                    });
+            if (sqlServerStrategy.Create != null)
+            {
+                var databaseConfiguration = this.BuildDatabaseConfiguration(
+                    sqlServerStrategy.Name,
+                    dataDirectory,
+                    sqlServerStrategy.Create.DatabaseFileNameSettings,
+                    sqlServerStrategy.Create.DatabaseFileSizeSettings);
+
+                databaseSteps.Add(
+                    new SetupStep
+                        {
+                            Description = "Create database: " + sqlServerStrategy.Name,
+                            SetupAction = machineManager =>
+                                {
+                                    var realRemoteConnectionString = connectionString.Replace(
+                                        "localhost",
+                                        machineManager.IpAddress);
+                                    DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
+                                }
+                        });
+            }
 
             if (sqlServerStrategy.Restore != null)
             {
@@ -389,6 +385,11 @@ namespace Naos.Deployment.Core
                         "Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
                 }
 
+                var databaseConfiguration = this.BuildDatabaseConfiguration(
+                    sqlServerStrategy.Name,
+                    dataDirectory,
+                    sqlServerStrategy.Restore.DatabaseFileNameSettings,
+                    sqlServerStrategy.Restore.DatabaseFileSizeSettings);
                 databaseSteps.Add(
                     new SetupStep
                         {
@@ -491,9 +492,45 @@ namespace Naos.Deployment.Core
             return databaseSteps;
         }
 
+        private DatabaseConfiguration BuildDatabaseConfiguration(
+            string databaseName,
+            string dataDirectory,
+            DatabaseFileNameSettings databaseFileNameSettings,
+            DatabaseFileSizeSettings databaseFileSizeSettings)
+        {
+            var localDatabaseFileNameSettings = databaseFileNameSettings
+                                                ?? new DatabaseFileNameSettings
+                                                       {
+                                                           DataFileLogicalName = databaseName + "Dat",
+                                                           DataFileNameOnDisk = databaseName + ".mdf",
+                                                           LogFileLogicalName = databaseName + "Log",
+                                                           LogFileNameOnDisk = databaseName + ".log"
+                                                       };
+
+            var localDatabaseFileSizeSettings = databaseFileSizeSettings
+                                                ?? this.settings.DefaultDatabaseFileSizeSettings;
+
+            var databaseConfiguration = new DatabaseConfiguration
+                                            {
+                                                DatabaseName = databaseName,
+                                                DatabaseType = DatabaseType.User,
+                                                DataFileLogicalName = localDatabaseFileNameSettings.DataFileLogicalName,
+                                                DataFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.DataFileNameOnDisk),
+                                                DataFileCurrentSizeInKb = localDatabaseFileSizeSettings.DataFileCurrentSizeInKb,
+                                                DataFileMaxSizeInKb = localDatabaseFileSizeSettings.DataFileMaxSizeInKb,
+                                                DataFileGrowthSizeInKb = localDatabaseFileSizeSettings.DataFileGrowthSizeInKb,
+                                                LogFileLogicalName = localDatabaseFileNameSettings.LogFileLogicalName,
+                                                LogFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.LogFileNameOnDisk),
+                                                LogFileCurrentSizeInKb = localDatabaseFileSizeSettings.LogFileCurrentSizeInKb,
+                                                LogFileMaxSizeInKb = localDatabaseFileSizeSettings.LogFileMaxSizeInKb,
+                                                LogFileGrowthSizeInKb = localDatabaseFileSizeSettings.LogFileGrowthSizeInKb
+                                            };
+            return databaseConfiguration;
+        }
+
         private SetupStep GetCopyAndUnzipPackageStep(PackagedDeploymentConfiguration packagedConfig)
         {
-            var packageDirectoryPath = GetPackageDirectoryPath(packagedConfig);
+            var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
             var packageFilePath = Path.Combine(packageDirectoryPath, "Package.zip");
             var unzipScript = this.settings.DeploymentScriptBlocks.UnzipFile.ScriptText;
             var unzipParams = new[] { packageFilePath, packageDirectoryPath };
@@ -547,9 +584,9 @@ namespace Naos.Deployment.Core
             return installChocoStep;
         }
 
-        private static string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
+        private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
-            return Path.Combine(RootDeploymentPath, packagedConfig.Package.PackageDescription.Id);
+            return Path.Combine(this.RootDeploymentPath, packagedConfig.Package.PackageDescription.Id);
         }
     }
 }
