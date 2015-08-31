@@ -92,6 +92,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArcologyTest.cs" />
     <Compile Include="CloudInfrastructureNamerTest.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.cs" />
     <Compile Include="SerializerTest.cs" />
