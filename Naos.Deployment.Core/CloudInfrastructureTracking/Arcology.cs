@@ -32,6 +32,11 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         /// </summary>
         public string Environment { get; set; }
 
+        /// <summary>
+        /// Gets the list of instances that have the specified packages deployed (in any state) to them.
+        /// </summary>
+        /// <param name="packages">Package list to use for finding instances.</param>
+        /// <returns>The list of instances that have the specified packages deployed (in any state) to them.</returns>
         public ICollection<InstanceDescription> GetInstancesByDeployedPackages(ICollection<PackageDescription> packages)
         {
             var instancesThatHaveAnyOfTheProvidedPackages =
