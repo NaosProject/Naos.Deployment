@@ -568,7 +568,8 @@ namespace Naos.Deployment.Core
             var instancesMatchingPackagesAllEnvironments =
                 this.tracker.GetInstancesByDeployedPackages(environment, packagesToCheckFor).ToList();
             var instancesWithMatchingEnvironmentAndPackages =
-                instancesMatchingPackagesAllEnvironments.Where(_ => _.Environment == environment).ToList();
+                instancesMatchingPackagesAllEnvironments.Where(
+                    _ => string.Equals(_.Environment, environment, StringComparison.CurrentCultureIgnoreCase)).ToList();
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
@@ -585,10 +586,19 @@ namespace Naos.Deployment.Core
             }
 
             // terminate instance(s) if necessary (if it exists)
-            foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
+            if (instancesWithMatchingEnvironmentAndPackages.Any())
             {
-                this.announce("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
-                this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
+                foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
+                {
+                    this.announce(
+                        "Terminating instance => ID: " + instanceDescription.Id + ", CloudName: "
+                        + instanceDescription.Name);
+                    this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
+                }
+            }
+            else
+            {
+                this.announce("Did not find any existing instances for the specified package list and environment.");
             }
         }
 
