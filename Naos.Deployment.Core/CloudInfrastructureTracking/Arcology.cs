@@ -10,14 +10,12 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     using System.Collections.Generic;
     using System.Linq;
 
-    using Amazon.SimpleDB.Model;
-
     using Naos.Deployment.Contract;
 
     /// <summary>
     /// Container object for storing a single environments entire state.
     /// </summary>
-    internal class Arcology
+    public class Arcology
     {
         /// <summary>
         /// Gets or sets a map of root domains and their hosting ID.
@@ -198,6 +196,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                                      InstanceDescription =
                                          new InstanceDescription()
                                              {
+                                                 Environment = this.Environment,
                                                  Location = ret.Location,
                                                  PrivateIpAddress = ret.PrivateIpAddress,
                                                  DeployedPackages = deployedPackages,
