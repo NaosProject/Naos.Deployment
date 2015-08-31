@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
+    using System;
     using System.IO;
     using System.Linq;
 
@@ -35,7 +36,7 @@ namespace Naos.Deployment.Core.CertificateManagement
             {
                 var fileContents = File.ReadAllText(this.filePath);
                 var certificateManager = Serializer.Deserialize<CertificateManager>(fileContents);
-                var certContainer = certificateManager.Certificates.SingleOrDefault(_ => _.Name == name);
+                var certContainer = certificateManager.Certificates.SingleOrDefault(_ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
                 var certDetails = certContainer == null ? null : certContainer.ToCertificateDetails();
                 return certDetails;
             }
