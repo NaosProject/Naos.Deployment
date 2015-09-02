@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
     using System.Reflection;
     using System.Text;
 
+    using Naos.Database.Contract;
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Database.Tools.Backup;
