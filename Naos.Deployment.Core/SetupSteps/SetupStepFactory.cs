@@ -383,12 +383,10 @@ namespace Naos.Deployment.Core
                                                            .ChocolateyPackages.Select(_ => _ as object)
                                                            .ToArray();
 
-                                                   var output = machineManager.RunScript(
+                                                   machineManager.RunScript(
                                                        this.settings.DeploymentScriptBlocks.InstallChocolatey
                                                            .ScriptText,
                                                        scriptBlockParameters);
-
-                                                   // Log.Write(() => string.Join(Environment.NewLine + "   ", output));
                                                }
                                        };
             }
