@@ -76,7 +76,7 @@ namespace Naos.Deployment.Core
                 });
 
             var restartMongoServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
-            var restartMongoServerParams = new[] { this.settings.MongoServerSettings.ServiceAccount };
+            var restartMongoServerParams = new[] { this.settings.MongoServerSettings.ServiceName };
             mongoSteps.Add(
                 new SetupStep
                 {
