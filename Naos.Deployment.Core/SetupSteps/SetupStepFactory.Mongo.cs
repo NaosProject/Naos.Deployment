@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
             mongoSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create " + dataDirectory + " and grant rights to SQL service account.",
+                        Description = "Create " + dataDirectory + " and grant rights to Mongo service account.",
                         SetupAction =
                             machineManager =>
                             machineManager.RunScript(
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core
             mongoSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create " + logDirectory + " and grant rights to SQL service account.",
+                        Description = "Create " + logDirectory + " and grant rights to Mongo service account.",
                         SetupAction =
                             machineManager =>
                             machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams)
@@ -69,7 +69,7 @@ namespace Naos.Deployment.Core
             mongoSteps.Add(
                 new SetupStep
                 {
-                    Description = "Setup Mongo as Service.",
+                    Description = "Setup Mongo as service.",
                     SetupAction =
                         machineManager =>
                         machineManager.RunScript(setupMongoAsServiceScript.ScriptText, setupMongoAsServiceParams)
@@ -80,7 +80,7 @@ namespace Naos.Deployment.Core
             mongoSteps.Add(
                 new SetupStep
                 {
-                    Description = "Restart Mongo server for change(s) to take effect.",
+                    Description = "Restart Mongo service for change(s) to take effect.",
                     SetupAction =
                         machineManager =>
                         machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams)
