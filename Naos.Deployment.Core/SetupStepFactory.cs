@@ -13,12 +13,13 @@ namespace Naos.Deployment.Core
     using System.Reflection;
     using System.Text;
 
+    using Its.Log.Instrumentation;
+
     using Naos.Database.Contract;
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
-    using Naos.Database.Tools.Backup;
     using Naos.Deployment.Contract;
-    
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -131,12 +132,52 @@ namespace Naos.Deployment.Core
                         packageDirectoryPath);
                 ret.AddRange(certSteps);
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
+            {
+                var mongoSteps =
+                    this.GetMongoSpecificSteps(
+                        (InitializationStrategyMongo)strategy,
+                        packageDirectoryPath);
+                ret.AddRange(mongoSteps);
+            }
             else
             {
                 throw new DeploymentException("The initialization strategy type is not supported: " + strategy.GetType());
             }
 
             return ret;
+        }
+
+        private List<SetupStep> GetMongoSpecificSteps(InitializationStrategyMongo mongoStrategy, string packageDirectoryPath)
+        {
+            var mongoSteps = new List<SetupStep>();
+            var installMongoScript = this.settings.DeploymentScriptBlocks.InstallMongo;
+            mongoSteps.Add(
+                new SetupStep
+                    {
+                        Description = "Install Mongo Server on machine.",
+                        SetupAction =
+                            machineManager =>
+                            Log.Write(() => machineManager.RunScript(installMongoScript.ScriptText))
+                    });
+                //choco install mongodb.core.2.6
+
+
+            var sqlServiceAccount = this.settings.MongoServerSettings.ServiceAccount;
+
+            var dataDirectory = mongoStrategy.DataDirectory ?? this.settings.MongoServerSettings.DefaultDataDirectory;
+            var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var createDatabaseDirParams = new[] { dataDirectory, sqlServiceAccount };
+            mongoSteps.Add(
+                new SetupStep
+                {
+                    Description = "Create " + dataDirectory + " and grant rights to SQL service account.",
+                    SetupAction =
+                        machineManager =>
+                        machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams)
+                });
+
+            return mongoSteps;
         }
 
         private List<SetupStep> GetCertificateToInstallSpecificSteps(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath)
@@ -574,10 +615,12 @@ namespace Naos.Deployment.Core
                                                            .ChocolateyPackages.Select(_ => _ as object)
                                                            .ToArray();
 
-                                                   machineManager.RunScript(
+                                                   var output = machineManager.RunScript(
                                                        this.settings.DeploymentScriptBlocks.InstallChocolatey
                                                            .ScriptText,
                                                        scriptBlockParameters);
+
+                                                   Log.Write(() => string.Join(Environment.NewLine + "   ", output));
                                                }
                                        };
             }

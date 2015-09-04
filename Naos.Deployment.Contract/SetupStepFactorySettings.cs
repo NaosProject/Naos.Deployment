@@ -24,7 +24,7 @@ namespace Naos.Deployment.Contract
         public DeploymentScriptBlockSet DeploymentScriptBlocks { get; set; }
 
         /// <summary>
-        /// Gets or sets the server settings of the database.
+        /// Gets or sets the server settings of the database setup.
         /// </summary>
         public DatabaseServerSettings DatabaseServerSettings { get; set; }
 
@@ -37,6 +37,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the root deployment path.
         /// </summary>
         public string RootDeploymentPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the server settings of the mongo setup.
+        /// </summary>
+        public MongoServerSettings MongoServerSettings { get; set; }
     }
 
     /// <summary>
@@ -69,6 +74,27 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the Windows account that is running the backup process.
         /// </summary>
         public string BackupProcessServiceAccount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to save data files.
+        /// </summary>
+        public string DefaultDataDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to backup databases to.
+        /// </summary>
+        public string DefaultBackupDirectory { get; set; }
+    }
+
+    /// <summary>
+    /// Settings class to provide information about the mongo server.
+    /// </summary>
+    public class MongoServerSettings
+    {
+        /// <summary>
+        /// Gets or sets the Windows account that is running SQL Server.
+        /// </summary>
+        public string ServiceAccount { get; set; }
 
         /// <summary>
         /// Gets or sets the default directory to save data files.
@@ -130,6 +156,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the script block to install Chocolatey so that the packages may be installed.
         /// </summary>
         public ScriptBlockDescription InstallChocolatey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to install Mongo.
+        /// </summary>
+        public ScriptBlockDescription InstallMongo { get; set; }
     }
 
     /// <summary>

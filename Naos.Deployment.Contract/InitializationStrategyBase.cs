@@ -14,6 +14,7 @@ namespace Naos.Deployment.Contract
     /// </summary>
     [KnownType(typeof(InitializationStrategyMessageBusHandler))]
     [KnownType(typeof(InitializationStrategySqlServer))]
+    [KnownType(typeof(InitializationStrategyMongo))]
     [KnownType(typeof(InitializationStrategyIis))]
     [KnownType(typeof(InitializationStrategyPrivateDnsEntry))]
     [KnownType(typeof(InitializationStrategyDirectoryToCreate))]

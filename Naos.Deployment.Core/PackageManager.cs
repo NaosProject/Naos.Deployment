@@ -29,6 +29,11 @@ namespace Naos.Deployment.Core
         private readonly string defaultWorkingDirectory;
 
         /// <summary>
+        /// The package id for a null package that will run through without any interaction.
+        /// </summary>
+        public const string NullPackageId = "NullPackage";
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PackageManager"/> class.
         /// </summary>
         /// <param name="repoConfig">Package repository configuration.</param>
@@ -146,6 +151,11 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public byte[] GetPackageFile(PackageDescription packageDescription, bool bundleAllDependencies = false)
         {
+            if (string.Equals(packageDescription.Id, NullPackageId, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return null;
+            }
+
             var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "Down-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss--fff"));
             byte[] ret;
             if (bundleAllDependencies)
@@ -251,6 +261,11 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public IDictionary<string, byte[]> GetMultipleFileContentsFromPackageAsBytes(Package package, string searchPattern)
         {
+            if (string.Equals(package.PackageDescription.Id, NullPackageId, StringComparison.CurrentCultureIgnoreCase))
+            {
+                return new Dictionary<string, byte[]>();
+            }
+
             // download package (decompressed)
             var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
             var packageFilePath = Path.Combine(workingDirectory, "Package.zip");

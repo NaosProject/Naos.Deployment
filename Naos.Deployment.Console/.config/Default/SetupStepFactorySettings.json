@@ -3,6 +3,9 @@
     "harnessSettings": {
         "harnessAccount": "IIS_IUSRS"
     },
+    "mongoServerSettings": { 
+
+    },
     "databaseServerSettings": {
         "sqlServiceName": "MSSQLSERVER",
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
@@ -24,7 +27,7 @@
             "scriptTextLines": [
                 "{",
                 "param([Array] $Packages)",
-                "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1')) > $null 2>&1",
+                "   iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))",
                 "   $Packages | ?{[String]::IsNullOrEmpty($_.Version)} | %{ ",
                 "      try {",
                 "         cinst $_.Id -y",

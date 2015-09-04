@@ -96,6 +96,12 @@ namespace Naos.Deployment.Core
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
+            // set null package id for any 'package-less' deployments
+            foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.Id)))
+            {
+                package.Id = PackageManager.NullPackageId;
+            }
+
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
                 "Downloading packages that are to be deployed => IDs: "
@@ -429,6 +435,7 @@ namespace Naos.Deployment.Core
                                                        PollingTimeSpan =
                                                            TimeSpan.FromMinutes(1),
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
+                                                       MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
                                                        RetryCount = 0
                                                    }
                                            };
