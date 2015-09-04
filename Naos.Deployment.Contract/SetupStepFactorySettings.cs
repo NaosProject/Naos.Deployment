@@ -24,7 +24,7 @@ namespace Naos.Deployment.Contract
         public DeploymentScriptBlockSet DeploymentScriptBlocks { get; set; }
 
         /// <summary>
-        /// Gets or sets the server settings of the database.
+        /// Gets or sets the server settings of the database setup.
         /// </summary>
         public DatabaseServerSettings DatabaseServerSettings { get; set; }
 
@@ -37,6 +37,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the root deployment path.
         /// </summary>
         public string RootDeploymentPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the server settings of the mongo setup.
+        /// </summary>
+        public MongoServerSettings MongoServerSettings { get; set; }
     }
 
     /// <summary>
@@ -79,6 +84,42 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the default directory to backup databases to.
         /// </summary>
         public string DefaultBackupDirectory { get; set; }
+    }
+
+    /// <summary>
+    /// Settings class to provide information about the mongo server.
+    /// </summary>
+    public class MongoServerSettings
+    {
+        /// <summary>
+        /// Gets or sets the Windows account that is running SQL Server.
+        /// </summary>
+        public string ServiceAccount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the windows service running mongo.
+        /// </summary>
+        public string ServiceName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to save data files.
+        /// </summary>
+        public string DefaultDataDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to save log files.
+        /// </summary>
+        public string DefaultLogDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the chocolatey package for Mongo Server.
+        /// </summary>
+        public PackageDescription MongoServerPackage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the chocolatey package for Mongo Client.
+        /// </summary>
+        public PackageDescription MongoClientPackage { get; set; }
     }
 
     /// <summary>
@@ -130,6 +171,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the script block to install Chocolatey so that the packages may be installed.
         /// </summary>
         public ScriptBlockDescription InstallChocolatey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to configure and start mongo as a windows service.
+        /// </summary>
+        public ScriptBlockDescription SetupMongoAsService { get; set; }
     }
 
     /// <summary>

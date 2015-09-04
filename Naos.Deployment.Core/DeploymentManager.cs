@@ -96,6 +96,12 @@ namespace Naos.Deployment.Core
                 instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
             }
 
+            // set null package id for any 'package-less' deployments
+            foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.Id)))
+            {
+                package.Id = PackageManager.NullPackageId;
+            }
+
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.announce(
                 "Downloading packages that are to be deployed => IDs: "
@@ -375,13 +381,21 @@ namespace Naos.Deployment.Core
 
         private string GetActualVersionFromPackage(Package package)
         {
+            if (string.Equals(
+                package.PackageDescription.Id,
+                PackageManager.NullPackageId,
+                StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "[DOES NOT HAVE A VERSION]";
+            }
+
             var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
             var nuSpecFileContents =
                 this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
                     .Select(_ => _.Value)
                     .SingleOrDefault();
             var actualVersion = nuSpecFileContents == null
-                                    ? "[FAILED TO EXTRACT FROM PACKAGE"
+                                    ? "[FAILED TO EXTRACT FROM PACKAGE]"
                                     : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
             return actualVersion;
         }
@@ -429,6 +443,7 @@ namespace Naos.Deployment.Core
                                                        PollingTimeSpan =
                                                            TimeSpan.FromMinutes(1),
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
+                                                       MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
                                                        RetryCount = 0
                                                    }
                                            };
