@@ -381,13 +381,21 @@ namespace Naos.Deployment.Core
 
         private string GetActualVersionFromPackage(Package package)
         {
+            if (string.Equals(
+                package.PackageDescription.Id,
+                PackageManager.NullPackageId,
+                StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "[DOES NOT HAVE A VERSION]";
+            }
+
             var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
             var nuSpecFileContents =
                 this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
                     .Select(_ => _.Value)
                     .SingleOrDefault();
             var actualVersion = nuSpecFileContents == null
-                                    ? "[FAILED TO EXTRACT FROM PACKAGE"
+                                    ? "[FAILED TO EXTRACT FROM PACKAGE]"
                                     : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
             return actualVersion;
         }

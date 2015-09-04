@@ -12,9 +12,9 @@ namespace Naos.Deployment.Contract
     public class InitializationStrategyMongo : InitializationStrategyBase
     {
         /// <summary>
-        /// Gets or sets directories to create on file system.
+        /// Gets or sets a value indicating whether this is a mongo strategy.
         /// </summary>
-        public DirectoryToCreateDetails DirectoryToCreate { get; set; }
+        public bool IsMongo { get; set; }
 
         /// <summary>
         /// Gets or sets the administrator password to use.
@@ -22,13 +22,13 @@ namespace Naos.Deployment.Contract
         public string AdministratorPassword { get; set; }
 
         /// <summary>
-        /// Gets or sets the directory to save backup files in.
-        /// </summary>
-        public string BackupDirectory { get; set; }
-
-        /// <summary>
         /// Gets or sets the directory to save data files in.
         /// </summary>
         public string DataDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the directory to save log files in.
+        /// </summary>
+        public string LogDirectory { get; set; }
     }
 }

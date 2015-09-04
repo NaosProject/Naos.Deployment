@@ -152,8 +152,10 @@
     <Compile Include="PackageManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Serializer.cs" />
-    <Compile Include="SetupStep.cs" />
-    <Compile Include="SetupStepFactory.cs" />
+    <Compile Include="SetupSteps\SetupStep.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.Mongo.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.SqlServer.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

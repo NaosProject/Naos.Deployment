@@ -97,14 +97,29 @@ namespace Naos.Deployment.Contract
         public string ServiceAccount { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the windows service running mongo.
+        /// </summary>
+        public string ServiceName { get; set; }
+
+        /// <summary>
         /// Gets or sets the default directory to save data files.
         /// </summary>
         public string DefaultDataDirectory { get; set; }
 
         /// <summary>
-        /// Gets or sets the default directory to backup databases to.
+        /// Gets or sets the default directory to save log files.
         /// </summary>
-        public string DefaultBackupDirectory { get; set; }
+        public string DefaultLogDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the chocolatey package for Mongo Server.
+        /// </summary>
+        public PackageDescription MongoServerPackage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the chocolatey package for Mongo Client.
+        /// </summary>
+        public PackageDescription MongoClientPackage { get; set; }
     }
 
     /// <summary>
@@ -158,9 +173,9 @@ namespace Naos.Deployment.Contract
         public ScriptBlockDescription InstallChocolatey { get; set; }
 
         /// <summary>
-        /// Gets or sets the script block to install Mongo.
+        /// Gets or sets the script block to configure and start mongo as a windows service.
         /// </summary>
-        public ScriptBlockDescription InstallMongo { get; set; }
+        public ScriptBlockDescription SetupMongoAsService { get; set; }
     }
 
     /// <summary>
