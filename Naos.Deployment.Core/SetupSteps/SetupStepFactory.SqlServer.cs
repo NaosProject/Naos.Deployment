@@ -231,5 +231,38 @@ namespace Naos.Deployment.Core
 
             return databaseSteps;
         }
+
+        private DatabaseConfiguration BuildDatabaseConfiguration(string databaseName, string dataDirectory, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
+        {
+            var localDatabaseFileNameSettings = databaseFileNameSettings
+                                                ?? new DatabaseFileNameSettings
+                                                {
+                                                    DataFileLogicalName = databaseName + "Dat",
+                                                    DataFileNameOnDisk = databaseName + ".mdf",
+                                                    LogFileLogicalName = databaseName + "Log",
+                                                    LogFileNameOnDisk = databaseName + ".log"
+                                                };
+
+            var localDatabaseFileSizeSettings = databaseFileSizeSettings
+                                                ?? this.settings.DefaultDatabaseFileSizeSettings;
+
+            var databaseConfiguration = new DatabaseConfiguration
+            {
+                DatabaseName = databaseName,
+                DatabaseType = DatabaseType.User,
+                DataFileLogicalName = localDatabaseFileNameSettings.DataFileLogicalName,
+                DataFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.DataFileNameOnDisk),
+                DataFileCurrentSizeInKb = localDatabaseFileSizeSettings.DataFileCurrentSizeInKb,
+                DataFileMaxSizeInKb = localDatabaseFileSizeSettings.DataFileMaxSizeInKb,
+                DataFileGrowthSizeInKb = localDatabaseFileSizeSettings.DataFileGrowthSizeInKb,
+                LogFileLogicalName = localDatabaseFileNameSettings.LogFileLogicalName,
+                LogFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.LogFileNameOnDisk),
+                LogFileCurrentSizeInKb = localDatabaseFileSizeSettings.LogFileCurrentSizeInKb,
+                LogFileMaxSizeInKb = localDatabaseFileSizeSettings.LogFileMaxSizeInKb,
+                LogFileGrowthSizeInKb = localDatabaseFileSizeSettings.LogFileGrowthSizeInKb
+            };
+
+            return databaseConfiguration;
+        }
     }
 }
