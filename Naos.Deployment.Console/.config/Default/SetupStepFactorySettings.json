@@ -28,12 +28,29 @@
     },
     "deploymentScriptBlocks": {
         "setupMongoAsService": {
-            "parameterNames": [ "ServiceAccount", "DataDirectory", "LogDirectory" ],
+            "parameterNames": [ "ServiceAccount", "AdminPassword", "DataDirectory", "LogDirectory" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $ServiceAccount, [String] $DataDirectory, [String] $LogDirectory)",
+                "param([String] $ServiceAccount, [String] $AdminPassword, [String] $DataDirectory, [String] $LogDirectory)",
                 "   $logFilePath = Join-Path $LogDirectory mongod.log",
-                "   &C:\\mongodb\\2.6.1\\bin\\mongod --install --dbpath=\"$DataDirectory\" --logpath=\"$logFilePath\"",
+                "   # create config file",
+                "   $authTemplateToken = 'AuthTokenValue'",
+                "   $configFilePath = Join-Path $DataDirectory 'mongod.cfg'",
+                "   $configFileContentsTemplate = 'systemLog:' + [Environment]::NewLine + ' destination: file' + [Environment]::NewLine + ' path: ' + $logFilePath + [Environment]::NewLine +   'storage:' + [Environment]::NewLine +   ' dbPath: ' + $DataDirectory + [Environment]::NewLine +   'security:' + [Environment]::NewLine +' authorization: ' + $authTemplateToken + [Environment]::NewLine",
+                "   $configFileContentsNoAuth = $configFileContentsTemplate -replace $authTemplateToken, 'disabled'",
+                "   $configFileContentsAuth =  $configFileContentsTemplate -replace $authTemplateToken, 'enabled'",
+                "   $configFileContentsNoAuth | Out-File -FilePath $configFilePath",
+                "   # setup service using no auth",
+                "   &C:\\mongodb\\2.6.1\\bin\\mongod.exe --remove",
+                "   &C:\\mongodb\\2.6.1\\bin\\mongod.exe --config \"$configFilePath\" --install",
+                "   Start-Sleep 2",
+                "   Start-Service MongoDB",
+                "   # setup admin user",
+                "   $command = 'db.createUser( { user: \"sa\", pwd: \"' + $AdminPassword + '\", roles: [ { role: \"root\", db: \"admin\" }, { role: \"userAdminAnyDatabase\", db: \"admin\" } ] } );'",
+                "   &C:\\mongodb\\2.6.1\\bin\\mongo.exe 127.0.0.1:27017 --eval \"'$command'\"",
+                "   # change config to auth",
+                "   Stop-Service MongoDB",
+                "   $configFileContentsAuth | Out-File -FilePath $configFilePath",
                 "}"
             ]
         },
