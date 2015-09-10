@@ -436,9 +436,9 @@
             "scriptTextLines": [
                 "{",
                 "   # ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY",
-                "   $windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings",
-                "   $windowsUpdateSettings.NotificationLevel = 4",
-                "   $windowsUpdateSettings.Save()",
+                "   #$windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings",
+                "   #$windowsUpdateSettings.NotificationLevel = 4",
+                "   #$windowsUpdateSettings.Save()",
                 "}"
             ]
         },
