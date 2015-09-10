@@ -42,6 +42,16 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the server settings of the mongo setup.
         /// </summary>
         public MongoServerSettings MongoServerSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the max number of times to execute a setup step before throwing.
+        /// </summary>
+        public int MaxSetupStepAttempts { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
+        /// </summary>
+        public bool ThrowOnFailedSetupStep { get; set; }
     }
 
     /// <summary>
@@ -127,6 +137,31 @@ namespace Naos.Deployment.Contract
     /// </summary>
     public class DeploymentScriptBlockSet
     {
+        /// <summary>
+        /// Gets or sets the script block to enable script execution.
+        /// </summary>
+        public ScriptBlockDescription EnableScriptExecutionScriptBlock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to setup windows time to be syncing.
+        /// </summary>
+        public ScriptBlockDescription SetupWindowsTimeScriptBlock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to setup windows updates to run at night.
+        /// </summary>
+        public ScriptBlockDescription SetupWindowsUpdatesScriptBlock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to rename the computer.
+        /// </summary>
+        public ScriptBlockDescription RenameComputerScriptBlock { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to setup WinRM.
+        /// </summary>
+        public ScriptBlockDescription SetupWinRmScriptBlock { get; set; }
+
         /// <summary>
         /// Gets or sets the script block to download an S3 object to a path.
         /// </summary>

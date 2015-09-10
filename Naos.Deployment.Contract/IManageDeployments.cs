@@ -20,10 +20,6 @@ namespace Naos.Deployment.Contract
         /// <param name="environment">Environment from Its.Config to use.</param>
         /// <param name="instanceName">Name of the instance the deployment will reside on.</param>
         /// <param name="deploymentConfigOverride">Optional overrides to the deployment configuration.</param>
-        void DeployPackages(
-            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
-            string environment,
-            string instanceName,
-            DeploymentConfiguration deploymentConfigOverride = null);
+        void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
     }
 }

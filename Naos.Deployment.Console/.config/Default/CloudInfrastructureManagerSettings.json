@@ -150,27 +150,5 @@
         { "awsInstanceTypeDescriptor": "i2.8xlarge", "ramInGb": 244.0, "virtualCores": 32 }
     ],
     "instanceCreationUserDataLines": [
-        "<powershell>",
-        "# BLOCK NAME: powershellBlock-enableRemoting",
-        "winrm quickconfig -q",
-        "winrm set winrm/config/winrs '@{MaxMemoryPerShellMB=\"300\",\"\"}'",
-        "winrm set winrm/config '@{MaxTimeoutms=\"1800000\"}'",
-        "netsh advfirewall firewall add rule name=\"WinRM 5985\" protocol=TCP dir=in localport=5985 action=allow",
-        "netsh advfirewall firewall add rule name=\"WinRM 5986\" protocol=TCP dir=in localport=5986 action=allow",
-        "net stop winrm",
-        "sc.exe config winrm start=auto",
-        "net start winrm",
-        "# BLOCK NAME: powershellBlock-enableScriptExecution",
-        "Set-ExecutionPolicy 'Unrestricted' -Force",
-        "# ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY",
-        "$windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings",
-        "$windowsUpdateSettings.NotificationLevel = 4",
-        "$windowsUpdateSettings.Save()",
-        "# ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)",
-        "NET STOP W32Time",
-        "NET START W32Time",
-        "# ADDING RENAME COMMAND BECAUSE 'computerName' WAS PRESENT IN CONFIG",
-        "Rename-Computer -NewName {ComputerName} -Force",
-        "</powershell>"
     ]
 }

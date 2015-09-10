@@ -48,13 +48,11 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Combines the lines of user data and replaces the token '{ComputerName}' with the name provided.
         /// </summary>
-        /// <param name="computerName">Name of the computer to use when re-naming in user data script.</param>
         /// <returns>User data as an un-encoded string to provide to AWS for creating an instance.</returns>
-        public string GetInstanceCreationUserData(string computerName)
+        public string GetInstanceCreationUserData()
         {
             var userData = string.Join(Environment.NewLine, this.InstanceCreationUserDataLines);
-            var ret = userData.Replace("{ComputerName}", computerName);
-            return ret;
+            return userData;
         }
     }
 

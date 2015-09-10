@@ -12,9 +12,9 @@ namespace Naos.Deployment.Contract
     public class InitializationStrategyMongo : InitializationStrategyBase
     {
         /// <summary>
-        /// Gets or sets a value indicating whether this is a mongo strategy.
+        /// Gets or sets name of the document database.
         /// </summary>
-        public bool IsMongo { get; set; }
+        public string DocumentDatabaseName { get; set; }
 
         /// <summary>
         /// Gets or sets the administrator password to use.

@@ -1,4 +1,6 @@
 ﻿{
+    "maxSetupStepAttempts": 10,
+    "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
     "harnessSettings": {
         "harnessAccount": "IIS_IUSRS"
@@ -28,10 +30,10 @@
     },
     "deploymentScriptBlocks": {
         "setupMongoAsService": {
-            "parameterNames": [ "ServiceAccount", "AdminPassword", "DataDirectory", "LogDirectory" ],
+            "parameterNames": [ "ServiceAccount", "DatabaseName", "AdminPassword", "DataDirectory", "LogDirectory" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $ServiceAccount, [String] $AdminPassword, [String] $DataDirectory, [String] $LogDirectory)",
+                "param([String] $ServiceAccount, [String] $DatabaseName, [String] $AdminPassword, [String] $DataDirectory, [String] $LogDirectory)",
                 "   $logFilePath = Join-Path $LogDirectory mongod.log",
                 "   # create config file",
                 "   $authTemplateToken = 'AuthTokenValue'",
@@ -39,18 +41,21 @@
                 "   $configFileContentsTemplate = 'systemLog:' + [Environment]::NewLine + ' destination: file' + [Environment]::NewLine + ' path: ' + $logFilePath + [Environment]::NewLine +   'storage:' + [Environment]::NewLine +   ' dbPath: ' + $DataDirectory + [Environment]::NewLine +   'security:' + [Environment]::NewLine +' authorization: ' + $authTemplateToken + [Environment]::NewLine",
                 "   $configFileContentsNoAuth = $configFileContentsTemplate -replace $authTemplateToken, 'disabled'",
                 "   $configFileContentsAuth =  $configFileContentsTemplate -replace $authTemplateToken, 'enabled'",
-                "   $configFileContentsNoAuth | Out-File -FilePath $configFilePath",
+                "   $configFileContentsNoAuth | Out-File -FilePath $configFilePath -Encoding 'ASCII'",
                 "   # setup service using no auth",
                 "   &C:\\mongodb\\2.6.1\\bin\\mongod.exe --remove",
                 "   &C:\\mongodb\\2.6.1\\bin\\mongod.exe --config \"$configFilePath\" --install",
                 "   Start-Sleep 2",
                 "   Start-Service MongoDB",
+                "   # setup database",
+                "   $command = 'db.create( { name: \"$DatabaseName\" } );'",
+                "   &C:\\mongodb\\2.6.1\\bin\\mongo.exe 127.0.0.1:27017 --eval \"'$command'\"",
                 "   # setup admin user",
-                "   $command = 'db.createUser( { user: \"sa\", pwd: \"' + $AdminPassword + '\", roles: [ { role: \"root\", db: \"admin\" }, { role: \"userAdminAnyDatabase\", db: \"admin\" } ] } );'",
+                "   $command = 'db.createUser( { user: \"sa\", pwd: \"' + $AdminPassword + '\", roles: [ { role: \"root\", db: \"$DatabaseName\" }, { role: \"userAdminAnyDatabase\", db: \"$DatabaseName\" } ] } );'",
                 "   &C:\\mongodb\\2.6.1\\bin\\mongo.exe 127.0.0.1:27017 --eval \"'$command'\"",
                 "   # change config to auth",
                 "   Stop-Service MongoDB",
-                "   $configFileContentsAuth | Out-File -FilePath $configFilePath",
+                "   $configFileContentsAuth | Out-File -FilePath $configFilePath -Encoding 'ASCII'",
                 "}"
             ]
         },
@@ -404,6 +409,59 @@
                 "   $statementPassword = \"ALTER LOGIN sa WITH PASSWORD = '\" + $SaPassword + \"'\"",
                 "   &$sqlCmdExe -Q \"$statementPassword\" -E",
                 "   if($lastExitCode -ne 0) { throw \"Exitcode was expected 0 but was $lastExitCode - failed to run $sqlCmdExe -Q $statementPassword -E\" }",
+                "}"
+            ]
+        },
+        "enableScriptExecutionScriptBlock": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "   # SETTING TO UNRESTRICTED TO ALLOW FOR SCRIPTS TO BE CALLED VIA MACHINE MANAGER (WINRM)",
+                "   Set-ExecutionPolicy 'Unrestricted' -Force",
+                "}"
+            ]
+        },
+        "setupWindowsTimeScriptBlock": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "   # ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)",
+                "   NET STOP W32Time",
+                "   NET START W32Time",
+                "}"
+            ]
+        },
+        "setupWindowsUpdatesScriptBlock": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "   # ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY",
+                "   $windowsUpdateSettings = (New-Object -com 'Microsoft.Update.AutoUpdate').Settings",
+                "   $windowsUpdateSettings.NotificationLevel = 4",
+                "   $windowsUpdateSettings.Save()",
+                "}"
+            ]
+        },
+        "setupWinRmScriptBlock": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "   # SET SPECIFIC WINRM SETTINGS",
+                "   winrm set winrm/config '@{MaxTimeoutms=\"1800000\"}'",
+                "   netsh advfirewall firewall add rule name=\"WinRM 5986\" protocol=TCP dir=in localport=5986 action=allow",
+                "   net stop winrm",
+                "   sc.exe config winrm start=auto",
+                "   net start winrm",
+                "}"
+            ]
+        },
+        "renameComputerScriptBlock": {
+            "parameterNames": [ "ComputerName" ],
+            "scriptTextLines": [
+                "{",
+                "param([Array] $ComputerName)",
+                "   # WILL REBOOT ON SEPARATE STEP",
+                "   Rename-Computer -NewName \"$ComputerName\" -Force",
                 "}"
             ]
         }

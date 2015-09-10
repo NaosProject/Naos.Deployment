@@ -80,11 +80,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void DeployPackages(
-            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
-            string environment,
-            string instanceName,
-            DeploymentConfiguration deploymentConfigOverride = null)
+        public void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
         {
             if (packagesToDeploy == null)
             {
@@ -166,6 +162,11 @@ namespace Naos.Deployment.Core
             this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
             var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
+            var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
+            this.announce("Running setup actions that finalize the instance creation.");
+
+            this.RunSetupSteps(machineManager, instanceLevelSetupSteps);
+            
             // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
             this.announce("Rebooting new instance to finalize any items from user data setup (requires connectivity - make sure VPN is up if applicable).");
             this.RebootInstance(machineManager);
@@ -232,30 +233,8 @@ namespace Naos.Deployment.Core
                 this.announce(
                     "Running setup actions for package: "
                     + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
-                foreach (var setupStep in setupSteps)
-                {
-                    this.announce("  - " + setupStep.Description);
-                    var tries = 0;
-                    var maxTries = 5;
-                    while (tries < maxTries)
-                    {
-                        try
-                        {
-                            tries = tries + 1;
-                            setupStep.SetupAction(machineManager);
-                            break;
-                        }
-                        catch (Exception ex)
-                        {
-                            if (tries > 2)
-                            {
-                                this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex));
-                            }
 
-                            Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
-                        }
-                    }
-                }
+                this.RunSetupSteps(machineManager, setupSteps);
              
                 // Mark the instance as having the successfully deployed packages
                 this.tracker.ProcessDeployedPackage(
@@ -308,6 +287,50 @@ namespace Naos.Deployment.Core
             }
 
             this.announce("Finished deployment.");
+        }
+
+        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> instanceLevelSetupSteps)
+        {
+            var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
+            var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
+
+            foreach (var setupStep in instanceLevelSetupSteps)
+            {
+                this.announce("  - " + setupStep.Description);
+                var tries = 0;
+                while (tries < maxTries)
+                {
+                    try
+                    {
+                        tries = tries + 1;
+                        setupStep.SetupAction(machineManager);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (tries > (maxTries / 2))
+                        {
+                            this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex.Message));
+                        }
+
+                        Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
+
+                        if (tries == maxTries)
+                        {
+                            if (throwOnFailedSetupStep)
+                            {
+                                throw new DeploymentException(
+                                    "Failed to run setup step " + setupStep.Description + " after " + maxTries
+                                    + " attempts");
+                            }
+                            else
+                            {
+                                this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex));
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private ICollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(

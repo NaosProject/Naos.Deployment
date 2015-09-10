@@ -235,7 +235,7 @@ namespace Naos.Deployment.Core
                                                  };
             }
 
-            var userData = new UserData() { Data = this.settings.GetInstanceCreationUserData(name) };
+            var userData = new UserData() { Data = this.settings.GetInstanceCreationUserData() };
 
             var createdInstance = instanceToCreate.Create(userData, this.credentials);
 
@@ -268,6 +268,7 @@ namespace Naos.Deployment.Core
             {
                 Id = createdInstance.Id,
                 Name = instanceName,
+                ComputerName = name,
                 Environment = environment,
                 Location = createdInstance.Region,
                 PublicIpAddress =

@@ -143,6 +143,7 @@
     <Compile Include="Serializer.cs" />
     <Compile Include="SetupSteps\SetupStep.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.CertificateToInstall.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.InstanceLevel.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.DirectoryToCreate.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Iis.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Mongo.cs" />
