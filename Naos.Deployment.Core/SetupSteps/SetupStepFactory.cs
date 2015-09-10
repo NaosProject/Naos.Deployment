@@ -6,18 +6,12 @@
 
 namespace Naos.Deployment.Core
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
-    using System.Text;
 
     using Its.Log.Instrumentation;
 
-    using Naos.Database.Contract;
-    using Naos.Database.Migrator;
-    using Naos.Database.Tools;
     using Naos.Deployment.Contract;
 
     /// <summary>
@@ -52,6 +46,28 @@ namespace Naos.Deployment.Core
             get
             {
                 return this.settings.RootDeploymentPath;
+            }
+        }
+
+        /// <summary>
+        /// Gets the max number of times to execute a setup step before throwing.
+        /// </summary>
+        public int MaxSetupStepAttempts
+        {
+            get
+            {
+                return this.settings.MaxSetupStepAttempts;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
+        /// </summary>
+        public bool ThrowOnFailedSetupStep
+        {
+            get
+            {
+                return this.settings.ThrowOnFailedSetupStep;
             }
         }
 

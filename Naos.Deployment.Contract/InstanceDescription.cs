@@ -24,6 +24,11 @@ namespace Naos.Deployment.Contract
         public string Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the computer name.
+        /// </summary>
+        public string ComputerName { get; set; }
+
+        /// <summary>
         /// Gets or sets the location (per the cloud provider) of the instance the task is deployed to.
         /// </summary>
         public string Location { get; set; }

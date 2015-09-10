@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core
                     });
 
             var setupMongoAsServiceScript = this.settings.DeploymentScriptBlocks.SetupMongoAsService;
-            var setupMongoAsServiceParams = new[] { mongoServiceAccount, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory };
+            var setupMongoAsServiceParams = new[] { mongoServiceAccount, mongoStrategy.DocumentDatabaseName, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory };
             mongoSteps.Add(
                 new SetupStep
                 {
