@@ -289,12 +289,12 @@ namespace Naos.Deployment.Core
             this.announce("Finished deployment.");
         }
 
-        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> instanceLevelSetupSteps)
+        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> setupSteps)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
-            foreach (var setupStep in instanceLevelSetupSteps)
+            foreach (var setupStep in setupSteps)
             {
                 this.announce("  - " + setupStep.Description);
                 var tries = 0;
