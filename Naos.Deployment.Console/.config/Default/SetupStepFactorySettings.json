@@ -248,6 +248,8 @@
                 "   Set-ItemProperty \"IIS:\\AppPools\\$appPoolName\" managedRuntimeVersion v4.0",
                 "   Set-ItemProperty \"IIS:\\AppPools\\$appPoolName\" startMode $AppPoolStartMode",
                 "   Set-ItemProperty \"IIS:\\AppPools\\$appPoolName\" autoStart true",
+                "   Set-ItemProperty \"IIS:\\AppPools\\$appPoolName\" -Name processModel.idleTimeout -Value ([TimeSpan]::FromMinutes(0))",
+                "   Set-ItemProperty \"IIS:\\AppPools\\$appPoolName\" -Name recycling.periodicrestart.time -Value ([TimeSpan]::FromMinutes(0))",
                 "   $sslFlags = 0",
                 "   if ($EnableSNI)",
                 "   {",
