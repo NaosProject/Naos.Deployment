@@ -78,8 +78,11 @@ namespace Naos.Deployment.Core
                     allChocolateyPackages.First(_ => _.GetIdDotVersionString() == packageString));
             }
 
+            var instanceCount = deploymentConfigs.Max(_ => _.InstanceCount);
+
             var ret = new DeploymentConfiguration()
                           {
+                              InstanceCount = instanceCount,
                               InstanceType = 
                                   new InstanceType
                                       {
@@ -135,8 +138,13 @@ namespace Naos.Deployment.Core
                 windowsSku = overrideWindowsSku;
             }
 
+            var instanceCount = deploymentConfigOverride.InstanceCount == 0
+                                    ? deploymentConfigInitial.InstanceCount
+                                    : deploymentConfigOverride.InstanceCount;
+
             var ret = new DeploymentConfiguration()
                           {
+                              InstanceCount = instanceCount,
                               InstanceAccessibility = instanceAccessibility,
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
@@ -148,6 +156,11 @@ namespace Naos.Deployment.Core
                                   deploymentConfigOverride.ChocolateyPackages
                                   ?? deploymentConfigInitial.ChocolateyPackages,
                           };
+
+            if (ret.InstanceType == null)
+            {
+                ret.InstanceType = new InstanceType();
+            }
 
             ret.InstanceType.WindowsSku = windowsSku;
 
@@ -190,17 +203,33 @@ namespace Naos.Deployment.Core
                 windowsSku = defaultDeploymentConfig.InstanceType.WindowsSku;
             }
 
+            var instanceCount = deploymentConfigInitial == null || deploymentConfigInitial.InstanceCount <= 0
+                                    ? defaultDeploymentConfig.InstanceCount
+                                    : deploymentConfigInitial.InstanceCount;
+
+            if (instanceCount <= 0)
+            {
+                instanceCount = 1;
+            }
+
             var ret = new DeploymentConfiguration()
                           {
+                              InstanceCount = instanceCount,
                               InstanceAccessibility = accessibilityValue,
                               InstanceType =
-                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.InstanceType)
+                                  (deploymentConfigInitial == null
+                                       ? null
+                                       : deploymentConfigInitial.InstanceType)
                                   ?? defaultDeploymentConfig.InstanceType,
                               Volumes =
-                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.Volumes)
+                                  (deploymentConfigInitial == null
+                                       ? null
+                                       : deploymentConfigInitial.Volumes)
                                   ?? defaultDeploymentConfig.Volumes,
-                              ChocolateyPackages = 
-                                  (deploymentConfigInitial == null ? null : deploymentConfigInitial.ChocolateyPackages)
+                              ChocolateyPackages =
+                                  (deploymentConfigInitial == null
+                                       ? null
+                                       : deploymentConfigInitial.ChocolateyPackages)
                                   ?? defaultDeploymentConfig.ChocolateyPackages,
                           };
 

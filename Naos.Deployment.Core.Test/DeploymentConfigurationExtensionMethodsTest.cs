@@ -16,6 +16,16 @@ namespace Naos.Deployment.Core.Test
     public class DeploymentConfigurationExtensionMethodsTest
     {
         [Fact]
+        public static void Flatten_DifferentInstanceCount_TakesMax()
+        {
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceCount = 1 };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceCount = 2 };
+
+            var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
+            Assert.Equal(deploymentConfigTwo.InstanceCount, config.InstanceCount);
+        }
+
+        [Fact]
         public static void Flatten_DuplicateDriveLetter_Throws()
         {
             var deploymentConfig = new DeploymentConfiguration()
@@ -156,6 +166,35 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void ApplyOverrides_InstanceCount_DefaultIsOverriden()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var overrideConfig = new DeploymentConfiguration() { InstanceCount = 2 };
+            var config = baseConfig.ApplyOverrides(overrideConfig);
+            Assert.Equal(overrideConfig.InstanceCount, config.InstanceCount);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_InstanceCount_ZeroOverrideBecomesOne()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration() { InstanceCount = 0 };
+
+            var config = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(1, config.InstanceCount);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_InstanceCount_NegativeOverrideBecomesOne()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration() { InstanceCount = -1 };
+
+            var config = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(1, config.InstanceCount);
+        }
+
+        [Fact]
         public static void ApplyDefaults_NullValues_BecomeDefaults()
         {
             var baseConfig = new DeploymentConfiguration();
@@ -248,6 +287,7 @@ namespace Naos.Deployment.Core.Test
 
             var overrideConfig = new DeploymentConfiguration
                                     {
+                                        InstanceCount = 4,
                                         InstanceAccessibility = InstanceAccessibility.Public,
                                         InstanceType = new InstanceType
                                                            {
@@ -260,6 +300,7 @@ namespace Naos.Deployment.Core.Test
                                     };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
+            Assert.Equal(overrideConfig.InstanceCount, appliedConfig.InstanceCount);
             Assert.Equal(overrideConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
             Assert.Equal(overrideConfig.InstanceType.VirtualCores, appliedConfig.InstanceType.VirtualCores);
             Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);

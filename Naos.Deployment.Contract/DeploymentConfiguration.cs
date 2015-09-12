@@ -24,6 +24,11 @@ namespace Naos.Deployment.Contract
         public InstanceAccessibility InstanceAccessibility { get; set; }
 
         /// <summary>
+        /// Gets or sets the number of instances to create with specified configuration.
+        /// </summary>
+        public int InstanceCount { get; set; }
+
+        /// <summary>
         /// Gets or sets the volumes to add to the instance.
         /// </summary>
         public ICollection<Volume> Volumes { get; set; }
