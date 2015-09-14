@@ -149,7 +149,11 @@ namespace Naos.Deployment.Core
             {
                 // create new aws instance(s)
                 var numberedInstanceName = instanceCount == 1 ? instanceName : instanceName + "-" + instanceNumber;
-                this.announce("Creating new instance (" + instanceNumber + "/" + instanceCount + ") => MachineName: " + numberedInstanceName);
+                var createAnnouncementAddIn = instanceCount > 1
+                                                  ? "(" + (instanceNumber + 1) + "/" + instanceCount + ")"
+                                                  : string.Empty;
+                this.announce(
+                    "Creating new instance " + createAnnouncementAddIn + " => MachineName: " + numberedInstanceName);
 
                 var createdInstanceDescription = this.cloudManager.CreateNewInstance(
                     environment,
@@ -571,13 +575,13 @@ namespace Naos.Deployment.Core
                 }
             }
 
+            this.announce("Waiting for machine to come back up from reboot.");
             this.WaitUntilMachineIsAccessible(machineManager);
         }
 
         private void WaitUntilMachineIsAccessible(MachineManager machineManager)
         {
             // TODO: move to machineManager.BlockUntilAvailable(TimeSpan.Zero);
-            this.announce("Waiting for machine to come back up from reboot.");
             var sleepTimeInSeconds = 10d;
             var reachable = false;
             while (!reachable)
