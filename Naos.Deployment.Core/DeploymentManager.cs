@@ -167,6 +167,10 @@ namespace Naos.Deployment.Core
                 this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
                 var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
+                this.announce(
+                    "Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
+                this.WaitUntilMachineIsAccessible(machineManager);
+
                 var instanceLevelSetupSteps =
                     this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
                 this.announce("Running setup actions that finalize the instance creation.");
@@ -175,7 +179,7 @@ namespace Naos.Deployment.Core
 
                 // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
                 this.announce(
-                    "Rebooting new instance to finalize any items from user data setup (requires connectivity - make sure VPN is up if applicable).");
+                    "Rebooting new instance to finalize any items from instance setup (requires connectivity - make sure VPN is up if applicable).");
                 this.RebootInstance(machineManager);
 
                 // get all message bus handler initializations to know if we need a handler.
@@ -567,9 +571,14 @@ namespace Naos.Deployment.Core
                 }
             }
 
+            this.WaitUntilMachineIsAccessible(machineManager);
+        }
+
+        private void WaitUntilMachineIsAccessible(MachineManager machineManager)
+        {
             // TODO: move to machineManager.BlockUntilAvailable(TimeSpan.Zero);
             this.announce("Waiting for machine to come back up from reboot.");
-            sleepTimeInSeconds = 10d;
+            var sleepTimeInSeconds = 10d;
             var reachable = false;
             while (!reachable)
             {
