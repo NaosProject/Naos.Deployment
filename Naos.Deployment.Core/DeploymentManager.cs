@@ -334,25 +334,25 @@ namespace Naos.Deployment.Core
                     }
                     catch (Exception ex)
                     {
-                        if (tries > (maxTries / 2))
-                        {
-                            this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex.Message));
-                        }
-
-                        Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
-
-                        if (tries == maxTries)
+                        if (tries >= maxTries)
                         {
                             if (throwOnFailedSetupStep)
                             {
                                 throw new DeploymentException(
                                     "Failed to run setup step " + setupStep.Description + " after " + maxTries
-                                    + " attempts");
+                                    + " attempts",
+                                    ex);
                             }
                             else
                             {
                                 this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex));
                             }
+                        }
+                        else
+                        {
+                            this.announce(
+                                string.Format("    Exception on try {0}/{1} - retrying", tries, maxTries));
+                            Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
                         }
                     }
                 }

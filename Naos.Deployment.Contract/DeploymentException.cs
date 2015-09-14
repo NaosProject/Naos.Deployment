@@ -22,5 +22,15 @@ namespace Naos.Deployment.Contract
             : base(message)
         {
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeploymentException"/> class.
+        /// </summary>
+        /// <param name="message">Exception message.</param>
+        /// <param name="innerException">Inner exception.</param>
+        public DeploymentException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }
