@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.Contract
 {
-    using System.Collections.Generic;
-
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>
@@ -34,7 +32,7 @@ namespace Naos.Deployment.Contract
         public AutoStartProvider AutoStartProvider { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyIis
                           {

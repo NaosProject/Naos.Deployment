@@ -17,7 +17,7 @@ namespace Naos.Deployment.Contract
         public string CertificateToInstall { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall };
             return ret;

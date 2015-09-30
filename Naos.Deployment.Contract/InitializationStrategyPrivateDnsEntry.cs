@@ -17,7 +17,7 @@ namespace Naos.Deployment.Contract
         public string PrivateDnsEntry { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyPrivateDnsEntry { PrivateDnsEntry = this.PrivateDnsEntry };
             return ret;

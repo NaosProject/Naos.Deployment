@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
 
@@ -20,12 +21,12 @@ namespace Naos.Deployment.Contract
     [KnownType(typeof(InitializationStrategyDirectoryToCreate))]
     [KnownType(typeof(InitializationStrategyCertificateToInstall))]
     [Bindable(BindableSupport.Default)]
-    public abstract class InitializationStrategyBase
+    public abstract class InitializationStrategyBase : ICloneable
     {
         /// <summary>
         /// Clone method to duplicate the strategy in a way that can be used without damaging the original copy.
         /// </summary>
         /// <returns>A deeply clone duplicate of the object.</returns>
-        public abstract InitializationStrategyBase Clone();
+        public abstract object Clone();
     }
 }
