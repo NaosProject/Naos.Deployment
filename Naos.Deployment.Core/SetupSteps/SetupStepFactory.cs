@@ -182,9 +182,13 @@ namespace Naos.Deployment.Core
                                                                  packagedConfig.Package.PackageDescription.Id,
                                                                  PackageManager.NullPackageId))
                                                          {
+                                                             // in case we're in a retry scenario we should just overwrite...
+                                                             const bool Overwrite = true;
                                                              machineManager.SendFile(
                                                                  packageFilePath,
-                                                                 packagedConfig.Package.PackageFileBytes);
+                                                                 packagedConfig.Package.PackageFileBytes,
+                                                                 false,
+                                                                 Overwrite);
                                                              Log.Write(
                                                                  () =>
                                                                  machineManager.RunScript(unzipScript, unzipParams));
