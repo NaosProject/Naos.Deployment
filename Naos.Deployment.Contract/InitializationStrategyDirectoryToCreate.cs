@@ -17,7 +17,7 @@ namespace Naos.Deployment.Contract
         public DirectoryToCreateDetails DirectoryToCreate { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyDirectoryToCreate
                           {

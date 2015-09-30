@@ -32,7 +32,7 @@ namespace Naos.Deployment.Contract
         public string LogDirectory { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyMongo
                           {

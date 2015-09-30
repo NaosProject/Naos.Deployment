@@ -27,7 +27,7 @@ namespace Naos.Deployment.Contract
         public int WorkerCount { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategyMessageBusHandler
                           {

@@ -519,8 +519,8 @@ namespace Naos.Deployment.Core
                     });
 
             var messageBusHandlerHarnessInitializationStrategies =
-                this.handlerHarnessPackageDescriptionWithOverrides.InitializationStrategies.Select(_ => _.Clone())
-                    .ToList();
+                this.handlerHarnessPackageDescriptionWithOverrides.InitializationStrategies.Select(
+                    _ => (InitializationStrategyBase)_.Clone()).ToList();
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
                                             {
                                                 DeploymentConfiguration =

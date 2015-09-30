@@ -47,7 +47,7 @@ namespace Naos.Deployment.Contract
         public string DataDirectory { get; set; }
 
         /// <inheritdoc />
-        public override InitializationStrategyBase Clone()
+        public override object Clone()
         {
             var ret = new InitializationStrategySqlServer
                           {
