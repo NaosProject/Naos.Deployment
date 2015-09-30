@@ -82,17 +82,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.Database.Tools.1.0.104\lib\45\Naos.Database.Tools.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.75.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.81.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.75\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.81\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.75.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.81.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.75\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.81\lib\45\Naos.MessageBus.HandlingContract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.WinRM, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.WinRM, Version=1.0.28.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.WinRM.1.0.26\lib\45\Naos.WinRM.dll</HintPath>
+      <HintPath>..\packages\Naos.WinRM.1.0.28\lib\45\Naos.WinRM.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -117,11 +117,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="%28Spritely.Recipes%29\Functional.cs" />
-    <Compile Include="%28Spritely.Recipes%29\InheritedTypeJsonConverter.cs" />
-    <Compile Include="%28Spritely.Recipes%29\JsonConfiguration.cs" />
-    <Compile Include="%28Spritely.Recipes%29\SecureString.cs" />
-    <Compile Include="%28Spritely.Recipes%29\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\Functional.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
     <Compile Include="CertificateManagement\NullCertificateRetriever.cs" />
     <Compile Include="CertificateManagement\CertificateRetriever.cs" />
     <Compile Include="CertificateManagement\CertificateManager.cs" />
