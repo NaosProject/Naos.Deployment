@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
 
@@ -14,7 +15,7 @@ namespace Naos.Deployment.Contract
     /// </summary>
     [KnownType(typeof(DatabaseRestoreFromS3))]
     [Bindable(BindableSupport.Default)]
-    public abstract class DatabaseRestoreBase
+    public abstract class DatabaseRestoreBase : ICloneable
     {
         // split apart file size and name settings because of the way defaults are generated internally.
 
@@ -27,6 +28,21 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the file size settings.
         /// </summary>
         public DatabaseFileSizeSettings DatabaseFileSizeSettings { get; set; }
+
+        /// <inheritdoc />
+        public abstract object Clone();
+    }
+
+    /// <summary>
+    /// Null object implementation for testing.
+    /// </summary>
+    public class NullDatabaseRestore : DatabaseRestoreBase
+    {
+        /// <inheritdoc />
+        public override object Clone()
+        {
+            return new NullDatabaseRestore();
+        }
     }
 
     /// <summary>
@@ -63,5 +79,20 @@ namespace Naos.Deployment.Contract
         /// Gets or sets a value indicating whether or not to run a checksum on the restore.
         /// </summary>
         public bool RunChecksum { get; set; }
+
+        /// <inheritdoc />
+        public override object Clone()
+        {
+            var ret = new DatabaseRestoreFromS3
+                          {
+                              BucketName = this.BucketName,
+                              FileName = this.FileName,
+                              Region = this.Region,
+                              DownloadAccessKey = this.DownloadAccessKey,
+                              DownloadSecretKey = this.DownloadSecretKey,
+                              RunChecksum = this.RunChecksum
+                          };
+            return ret;
+        }
     }
 }

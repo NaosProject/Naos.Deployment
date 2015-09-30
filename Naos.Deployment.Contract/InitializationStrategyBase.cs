@@ -22,5 +22,10 @@ namespace Naos.Deployment.Contract
     [Bindable(BindableSupport.Default)]
     public abstract class InitializationStrategyBase
     {
+        /// <summary>
+        /// Clone method to duplicate the strategy in a way that can be used without damaging the original copy.
+        /// </summary>
+        /// <returns>A deeply clone duplicate of the object.</returns>
+        public abstract InitializationStrategyBase Clone();
     }
 }

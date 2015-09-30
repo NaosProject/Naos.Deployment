@@ -15,5 +15,12 @@ namespace Naos.Deployment.Contract
         /// Gets or sets DNS entry to be applied to the private IP address of the created instance.
         /// </summary>
         public string PrivateDnsEntry { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyPrivateDnsEntry { PrivateDnsEntry = this.PrivateDnsEntry };
+            return ret;
+        }
     }
 }

@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System;
     using System.ComponentModel;
     using System.Runtime.Serialization;
 
@@ -14,8 +15,22 @@ namespace Naos.Deployment.Contract
     /// </summary>
     [KnownType(typeof(DatabaseMigrationFluentMigrator))]
     [Bindable(BindableSupport.Default)]
-    public class DatabaseMigrationBase
+    public abstract class DatabaseMigrationBase : ICloneable
     {
+        /// <inheritdoc />
+        public abstract object Clone();
+    }
+
+    /// <summary>
+    /// Null object implementation for testing.
+    /// </summary>
+    public class NullDatabaseMigration : DatabaseMigrationBase
+    {
+        /// <inheritdoc />
+        public override object Clone()
+        {
+            return new NullDatabaseMigration();
+        }
     }
 
     /// <summary>
@@ -27,5 +42,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the version of the migration to run to.
         /// </summary>
         public long Version { get; set; }
+
+        /// <inheritdoc />
+        public override object Clone()
+        {
+            return new DatabaseMigrationFluentMigrator { Version = this.Version };
+        }
     }
 }

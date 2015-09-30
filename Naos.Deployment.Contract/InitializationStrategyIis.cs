@@ -32,5 +32,19 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the auto start provider (if any).
         /// </summary>
         public AutoStartProvider AutoStartProvider { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyIis
+                          {
+                              AutoStartProvider =
+                                  (AutoStartProvider)this.AutoStartProvider.Clone(),
+                              AppPoolStartMode = this.AppPoolStartMode,
+                              SslCertificateName = this.SslCertificateName,
+                              PrimaryDns = this.PrimaryDns
+                          };
+            return ret;
+        }
     }
 }

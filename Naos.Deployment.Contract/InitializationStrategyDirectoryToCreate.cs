@@ -15,5 +15,17 @@ namespace Naos.Deployment.Contract
         /// Gets or sets directories to create on file system.
         /// </summary>
         public DirectoryToCreateDetails DirectoryToCreate { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyDirectoryToCreate
+                          {
+                              DirectoryToCreate =
+                                  (DirectoryToCreateDetails)
+                                  this.DirectoryToCreate.Clone()
+                          };
+            return ret;
+        }
     }
 }

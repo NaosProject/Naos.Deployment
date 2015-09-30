@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using Naos.MessageBus.DataContract;
 
@@ -24,5 +25,18 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the worker count of the handler harness.
         /// </summary>
         public int WorkerCount { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyMessageBusHandler
+                          {
+                              WorkerCount = this.WorkerCount,
+                              ChannelsToMonitor =
+                                  this.ChannelsToMonitor.Select(
+                                      _ => new Channel { Name = _.Name }).ToList()
+                          };
+            return ret;
+        }
     }
 }

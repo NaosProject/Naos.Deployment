@@ -6,10 +6,12 @@
 
 namespace Naos.Deployment.Contract
 {
+    using System;
+
     /// <summary>
     /// Container to describe a directory to create.
     /// </summary>
-    public class DirectoryToCreateDetails
+    public class DirectoryToCreateDetails : ICloneable
     {
         /// <summary>
         /// Gets or sets the full path of the directory.
@@ -20,5 +22,16 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the user account name that will have "Full Control" of the directory.
         /// </summary>
         public string FullControlAccount { get; set; }
+
+        /// <inheritdoc />
+        public object Clone()
+        {
+            var ret = new DirectoryToCreateDetails
+                          {
+                              FullControlAccount = this.FullControlAccount,
+                              FullPath = this.FullPath
+                          };
+            return ret;
+        }
     }
 }
