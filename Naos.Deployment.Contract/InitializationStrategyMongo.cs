@@ -30,5 +30,18 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the directory to save log files in.
         /// </summary>
         public string LogDirectory { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyMongo
+                          {
+                              DocumentDatabaseName = this.DocumentDatabaseName,
+                              AdministratorPassword = this.AdministratorPassword,
+                              DataDirectory = this.DataDirectory,
+                              LogDirectory = this.LogDirectory
+                          };
+            return ret;
+        }
     }
 }

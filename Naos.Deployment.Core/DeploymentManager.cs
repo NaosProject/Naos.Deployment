@@ -145,6 +145,11 @@ namespace Naos.Deployment.Core
             this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment);
 
             var instanceCount = configToCreateWith.InstanceCount;
+            if (instanceCount == 0)
+            {
+                instanceCount = 1; // in case there isn't a config and an empty instance is being created...
+            }
+
             for (var instanceNumber = 0; instanceNumber < instanceCount; instanceNumber++)
             {
                 // create new aws instance(s)
@@ -513,6 +518,9 @@ namespace Naos.Deployment.Core
                         FileContentsJson = messageBusHandlerSettingsJson
                     });
 
+            var messageBusHandlerHarnessInitializationStrategies =
+                this.handlerHarnessPackageDescriptionWithOverrides.InitializationStrategies.Select(_ => _.Clone())
+                    .ToList();
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
                                             {
                                                 DeploymentConfiguration =
@@ -521,9 +529,7 @@ namespace Naos.Deployment.Core
                                                 ItsConfigOverrides =
                                                     itsConfigOverridesToUse,
                                                 InitializationStrategies =
-                                                    this
-                                                    .handlerHarnessPackageDescriptionWithOverrides
-                                                    .InitializationStrategies,
+                                                    messageBusHandlerHarnessInitializationStrategies,
                                             };
 
             // apply instance name replacement if applicable on DNS

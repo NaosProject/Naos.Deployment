@@ -45,5 +45,21 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the directory to save data files in.
         /// </summary>
         public string DataDirectory { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategySqlServer
+                          {
+                              Name = this.Name,
+                              DataDirectory = this.DataDirectory,
+                              BackupDirectory = this.BackupDirectory,
+                              AdministratorPassword = this.AdministratorPassword,
+                              Create = (Create)this.Create.Clone(),
+                              Restore = (DatabaseRestoreBase)this.Restore.Clone(),
+                              Migration = (DatabaseMigrationBase)this.Migration.Clone()
+                          };
+            return ret;
+        }
     }
 }

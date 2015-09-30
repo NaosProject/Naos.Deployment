@@ -122,12 +122,15 @@
     <Compile Include="%28Spritely.Recipes%29\JsonConfiguration.cs" />
     <Compile Include="%28Spritely.Recipes%29\SecureString.cs" />
     <Compile Include="%28Spritely.Recipes%29\SecureStringJsonConverter.cs" />
+    <Compile Include="CertificateManagement\NullCertificateRetriever.cs" />
     <Compile Include="CertificateManagement\CertificateRetriever.cs" />
     <Compile Include="CertificateManagement\CertificateManager.cs" />
-    <Compile Include="CloudInfrastructureManager.cs" />
-    <Compile Include="CloudInfrastructureNamer.cs" />
+    <Compile Include="CloundManagement\NullCloudManager.cs" />
+    <Compile Include="CloundManagement\CloudInfrastructureManager.cs" />
+    <Compile Include="CloundManagement\CloudInfrastructureNamer.cs" />
     <Compile Include="CloudInfrastructureTracking\Arcology.cs" />
     <Compile Include="CloudInfrastructureTracking\InstanceWrapper.cs" />
+    <Compile Include="CloudInfrastructureTracking\NullInfrastructureTracker.cs" />
     <Compile Include="CloudInfrastructureTracking\RootFolderEnvironmentFolderInstanceFileTracker.cs" />
     <Compile Include="CloudInfrastructureTracking\ArcologyInfo.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
@@ -163,6 +166,7 @@
       <Name>Naos.Deployment.Contract</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

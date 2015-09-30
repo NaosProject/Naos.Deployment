@@ -15,5 +15,12 @@ namespace Naos.Deployment.Contract
         /// Gets or sets certificates to install on instance.
         /// </summary>
         public string CertificateToInstall { get; set; }
+
+        /// <inheritdoc />
+        public override InitializationStrategyBase Clone()
+        {
+            var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall };
+            return ret;
+        }
     }
 }

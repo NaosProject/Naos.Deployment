@@ -96,6 +96,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InitializationStrategyCloningTest.cs" />
     <Compile Include="ArcologyTest.cs" />
     <Compile Include="CloudInfrastructureNamerTest.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.cs" />
