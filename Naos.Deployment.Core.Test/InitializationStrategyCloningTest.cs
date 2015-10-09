@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core.Test
 {
     using System.Linq;
 
+    using Naos.Cron;
     using Naos.Deployment.Contract;
     using Naos.MessageBus.DataContract;
 
@@ -120,6 +121,26 @@ namespace Naos.Deployment.Core.Test
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
             Assert.Equal(original.PrivateDnsEntry, cloned.PrivateDnsEntry);
+        }
+
+        [Fact]
+        public static void Clone_ScheduledTask_Works()
+        {
+            var original = new InitializationStrategyScheduledTask
+                               {
+                                   Description = "Description",
+                                   ExeName = "My Exe",
+                                   Arguments = "Args",
+                                   Schedule = new MinutelySchedule()
+                               };
+
+            var cloned = original.Clone() as InitializationStrategyScheduledTask;
+            Assert.NotNull(cloned);
+            Assert.NotSame(original, cloned);
+            Assert.Equal(original.Description, cloned.Description);
+            Assert.Equal(original.ExeName, cloned.ExeName);
+            Assert.Equal(original.Arguments, cloned.Arguments);
+            Assert.Equal(ScheduleCronExpressionConverter.ToCronExpression(original.Schedule), ScheduleCronExpressionConverter.ToCronExpression(cloned.Schedule));
         }
 
         [Fact]

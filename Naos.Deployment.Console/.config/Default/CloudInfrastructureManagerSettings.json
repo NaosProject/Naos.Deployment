@@ -151,13 +151,14 @@
     ],
     "instanceCreationUserDataLines": [
         "<powershell>",
-        "# firewall holes necessary to run WinRM outside same subnet address as machine...otherwise unecessary",
-        "Set-ExecutionPolicy 'Unrestricted' -Force",
         "$logPath = 'C:\\AWSUserDataLog.log'",
         "$scriptStartTime = [System.DateTime]::Now",
         "\"Started: $($scriptStartTime.ToString('yyyyMMdd-HHmm'))\" | Out-File -FilePath $logPath -Append",
+        "",
+        "# firewall holes necessary to run WinRM outside same subnet address as machine...otherwise unecessary",
         "netsh advfirewall firewall add rule name=\"WinRM 5985\" protocol=TCP dir=in localport=5985 action=allow | Out-File -FilePath $logPath -Append",
         "netsh advfirewall firewall add rule name=\"WinRM 5986\" protocol=TCP dir=in localport=5986 action=allow | Out-File -FilePath $logPath -Append",
+        "",
         "$scriptEndTime = [System.DateTime]::Now",
         "\"Finished: $($scriptEndTime.ToString('yyyyMMdd-HHmm'))\" | Out-File -FilePath $logPath -Append",
         "</powershell>"
