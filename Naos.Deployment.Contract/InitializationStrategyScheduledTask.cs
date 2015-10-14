@@ -14,6 +14,11 @@ namespace Naos.Deployment.Contract
     public class InitializationStrategyScheduledTask : InitializationStrategyBase
     {
         /// <summary>
+        /// Gets or sets the name of the task.
+        /// </summary>
+        public string Name { get; set; }
+        
+        /// <summary>
         /// Gets or sets the description of the task.
         /// </summary>
         public string Description { get; set; }
@@ -39,6 +44,7 @@ namespace Naos.Deployment.Contract
             var schedule = (ScheduleBase)this.Schedule.Clone();
             var ret = new InitializationStrategyScheduledTask
                           {
+                              Name = this.Name,
                               Description = this.Description,
                               ExeName = this.ExeName,
                               Arguments = this.Arguments,

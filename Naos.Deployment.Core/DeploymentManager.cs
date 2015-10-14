@@ -188,7 +188,7 @@ namespace Naos.Deployment.Core
 
                 // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
                 this.announce(
-                    "Rebooting new instance to finalize any items from instance setup (requires connectivity - make sure VPN is up if applicable).");
+                    "Rebooting new instance to finalize any items from instance setup.");
                 this.RebootInstance(machineManager);
 
                 // get all message bus handler initializations to know if we need a handler.

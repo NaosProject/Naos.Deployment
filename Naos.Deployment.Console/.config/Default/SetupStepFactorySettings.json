@@ -3,7 +3,7 @@
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
     "harnessSettings": {
-        "harnessAccount": "IIS_IUSRS"
+        "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE"
     },
     "mongoServerSettings": {
         "serviceAccount": "SYSTEM",
@@ -16,7 +16,7 @@
     "databaseServerSettings": {
         "sqlServiceName": "MSSQLSERVER",
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
-        "backupProcessServiceAccount": "IIS_IUSRS",
+        "backupProcessServiceAccount": "NT AUTHORITY\\NETWORKSERVICE",
         "defaultBackupDirectory": "D:\\SqlBackup\\",
         "defaultDataDirectory": "D:\\SqlData\\"
     },
@@ -29,6 +29,54 @@
         "logFileGrowthSizeInKb": 10000
     },
     "deploymentScriptBlocks": {
+        "enableScheduledTaskHistory": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "   # crazy black magic - apparently the only way to do this...",
+                "   # http://stackoverflow.com/questions/23227964/how-can-i-enable-all-tasks-history-in-powershell",
+                "   $logName = 'Microsoft-Windows-TaskScheduler/Operational'",
+                "   $log = New-Object System.Diagnostics.Eventing.Reader.EventLogConfiguration $logName",
+                "   $log.IsEnabled=$true",
+                "   $log.SaveChanges()",
+                "}"
+            ]
+        },
+        "setupScheduledTask": {
+            "parameterNames": [ "Name", "Description", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "scriptTextLines": [
+                "{",
+                "param([String] $Name, [String] $Description, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
+                "   $trigger = $null",
+                "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
+                "   {",
+                "       # Daily...",
+                "       $trigger = New-ScheduledTaskTrigger -Daily -At $DateTime -DaysInterval 1",
+                "   }",
+                "   elseif ($DaysOfWeek.Length -gt 0)",
+                "   {",
+                "       # Weekly...",
+                "       $trigger = New-ScheduledTaskTrigger -Weekly -At $DateTime -WeeksInterval 1 -DaysOfWeek $DaysOfWeek",
+                "   }",
+                "   else",
+                "   {",
+                "       # Minutely or Hourly...",
+                "       $trigger = New-ScheduledTaskTrigger -Once -At $DateTime -RepetitionDuration $([TimeSpan]::MaxValue) -RepetitionInterval $RepetitionInterval",
+                "   }",
+                "   $action = $null",
+                "   if ([String]::IsNullOrEmpty($Arguments))",
+                "   {",
+                "       $action = New-ScheduledTaskAction -Execute $ExeFullPath",
+                "   }",
+                "   else",
+                "   {",
+                "       $action = New-ScheduledTaskAction -Execute $ExeFullPath -Argument $Arguments",
+                "   }",
+                "   Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User 'NT AUTHORITY\\NETWORKSERVICE'",
+                "}"
+            ]
+        },
         "setupMongoAsService": {
             "parameterNames": [ "DatabaseName", "AdminPassword", "DataDirectory", "LogDirectory" ],
             "scriptTextLines": [

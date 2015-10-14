@@ -128,6 +128,7 @@ namespace Naos.Deployment.Core.Test
         {
             var original = new InitializationStrategyScheduledTask
                                {
+                                   Name = "Name",
                                    Description = "Description",
                                    ExeName = "My Exe",
                                    Arguments = "Args",
@@ -137,6 +138,7 @@ namespace Naos.Deployment.Core.Test
             var cloned = original.Clone() as InitializationStrategyScheduledTask;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
+            Assert.Equal(original.Name, cloned.Name);
             Assert.Equal(original.Description, cloned.Description);
             Assert.Equal(original.ExeName, cloned.ExeName);
             Assert.Equal(original.Arguments, cloned.Arguments);

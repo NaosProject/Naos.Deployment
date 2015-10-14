@@ -155,6 +155,17 @@ namespace Naos.Deployment.Core
                         (InitializationStrategyMongo)strategy);
                 ret.AddRange(mongoSteps);
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
+            {
+                var consoleRootPath = Path.Combine(packageDirectoryPath, "packagedConsoleApp"); // this needs to match how the package was built in the build system...
+                var scheduledTaskSteps =
+                    this.GetScheduledTaskSpecificSteps(
+                        (InitializationStrategyScheduledTask)strategy,
+                        packagedConfig.ItsConfigOverrides,
+                        consoleRootPath,
+                        environment);
+                ret.AddRange(scheduledTaskSteps);
+            }
             else
             {
                 throw new DeploymentException("The initialization strategy type is not supported: " + strategy.GetType());
