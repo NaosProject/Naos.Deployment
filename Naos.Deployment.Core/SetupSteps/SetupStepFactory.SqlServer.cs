@@ -94,27 +94,24 @@ namespace Naos.Deployment.Core
                 });
 
             var connectionString = "Server=localhost; user id=sa; password=" + sqlServerStrategy.AdministratorPassword;
-            if (sqlServerStrategy.Create != null)
-            {
-                var databaseConfiguration = this.BuildDatabaseConfiguration(
-                    sqlServerStrategy.Name,
-                    dataDirectory,
-                    sqlServerStrategy.Create.DatabaseFileNameSettings,
-                    sqlServerStrategy.Create.DatabaseFileSizeSettings);
+            var databaseConfigurationForCreation = this.BuildDatabaseConfiguration(
+                sqlServerStrategy.Name,
+                dataDirectory,
+                sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileNameSettings,
+                sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileSizeSettings);
 
-                databaseSteps.Add(
-                    new SetupStep
-                        {
-                            Description = "Create database: " + sqlServerStrategy.Name,
-                            SetupAction = machineManager =>
-                                {
-                                    var realRemoteConnectionString = connectionString.Replace(
-                                        "localhost",
-                                        machineManager.IpAddress);
-                                    DatabaseManager.Create(realRemoteConnectionString, databaseConfiguration);
-                                }
-                        });
-            }
+            databaseSteps.Add(
+                new SetupStep
+                    {
+                        Description = "Create database: " + sqlServerStrategy.Name,
+                        SetupAction = machineManager =>
+                            {
+                                var realRemoteConnectionString = connectionString.Replace(
+                                    "localhost",
+                                    machineManager.IpAddress);
+                                DatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
+                            }
+                    });
 
             if (sqlServerStrategy.Restore != null)
             {
@@ -125,11 +122,11 @@ namespace Naos.Deployment.Core
                         "Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
                 }
 
-                var databaseConfiguration = this.BuildDatabaseConfiguration(
+                var databaseConfigurationForRestore = this.BuildDatabaseConfiguration(
                     sqlServerStrategy.Name,
                     dataDirectory,
-                    sqlServerStrategy.Restore.DatabaseFileNameSettings,
-                    sqlServerStrategy.Restore.DatabaseFileSizeSettings);
+                sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileNameSettings,
+                sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileSizeSettings);
                 databaseSteps.Add(
                     new SetupStep
                         {
@@ -172,8 +169,8 @@ namespace Naos.Deployment.Core
                                                                  ChecksumOption = checksumOption,
                                                                  Device = Device.Disk,
                                                                  ErrorHandling = ErrorHandling.StopOnError,
-                                                                 DataFilePath = databaseConfiguration.DataFilePath,
-                                                                 LogFilePath = databaseConfiguration.LogFilePath,
+                                                                 DataFilePath = databaseConfigurationForRestore.DataFilePath,
+                                                                 LogFilePath = databaseConfigurationForRestore.LogFilePath,
                                                                  RecoveryOption = RecoveryOption.NoRecovery,
                                                                  ReplaceOption =
                                                                      ReplaceOption.ReplaceExistingDatabase,

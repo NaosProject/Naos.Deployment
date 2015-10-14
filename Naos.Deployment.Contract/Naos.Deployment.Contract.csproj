@@ -34,9 +34,13 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Contract.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.81.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.81\lib\45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.86.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.86\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -72,6 +76,7 @@
     <Compile Include="InitializationStrategyMongo.cs" />
     <Compile Include="InitializationStrategyDirectoryToCreate.cs" />
     <Compile Include="InitializationStrategyPrivateDnsEntry.cs" />
+    <Compile Include="InitializationStrategyScheduledTask.cs" />
     <Compile Include="InitializationStrategySqlServer.cs" />
     <Compile Include="InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategyIis.cs" />

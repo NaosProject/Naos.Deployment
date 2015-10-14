@@ -37,6 +37,27 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Deserialize_ScheduledTask_Valid()
+        {
+            var input = @"
+[{
+	""id"": ""Naos.Something"",
+	""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeName"":""MyConsole.exe"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args""}]
+}]";
+            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+
+            Assert.NotNull(deserialized);
+            var actualStrategy = deserialized.Single()
+                .InitializationStrategies.OfType<InitializationStrategyScheduledTask>()
+                .Single();
+            Assert.Equal("TheName", actualStrategy.Name);
+            Assert.Equal("Description To Have.", actualStrategy.Description);
+            Assert.Equal("MyConsole.exe", actualStrategy.ExeName);
+            Assert.Equal("/args", actualStrategy.Arguments);
+            Assert.Equal("* * * * *", actualStrategy.Schedule.ToCronExpression());
+        }
+
+        [Fact]
         public static void Deserialize_DirectoryToCreate_Valid()
         {
             var input = @"
