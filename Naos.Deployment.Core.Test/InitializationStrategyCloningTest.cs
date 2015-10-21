@@ -116,11 +116,12 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Clone_PrivateDnsEntry_Works()
         {
-            var original = new InitializationStrategyPrivateDnsEntry { PrivateDnsEntry = "entry" };
-            var cloned = original.Clone() as InitializationStrategyPrivateDnsEntry;
+            var original = new InitializationStrategyDnsEntry { PrivateDnsEntry = "entry", PublicDnsEntry = "here" };
+            var cloned = original.Clone() as InitializationStrategyDnsEntry;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
             Assert.Equal(original.PrivateDnsEntry, cloned.PrivateDnsEntry);
+            Assert.Equal(original.PublicDnsEntry, cloned.PublicDnsEntry);
         }
 
         [Fact]

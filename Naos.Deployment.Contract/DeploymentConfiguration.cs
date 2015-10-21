@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
+    using System.Runtime.InteropServices.WindowsRuntime;
 
     /// <summary>
     /// Model object with necessary details to deploy software to a machine.
@@ -37,5 +38,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
         public ICollection<PackageDescription> ChocolateyPackages { get; set; }
+
+        /// <summary>
+        /// Gets or sets the deployment strategy to describe how certain things should be handled.
+        /// </summary>
+        public DeploymentStrategy DeploymentStrategy { get; set; }
     }
 }

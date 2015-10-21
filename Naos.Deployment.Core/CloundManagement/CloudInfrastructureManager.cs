@@ -107,7 +107,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void Terminate(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
+        public void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
             var instanceDescription = this.tracker.GetInstanceDescriptionById(environment, systemId);
             if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
@@ -132,7 +132,29 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
+        public void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true)
+        {
+            var instanceToTurnOff = new Instance() { Id = systemId, Region = systemLocation };
+            instanceToTurnOff.Stop(this.credentials);
+            if (waitUntilOff)
+            {
+                instanceToTurnOff.WaitForState(InstanceState.Stopped, this.credentials);
+            }
+        }
+
+        /// <inheritdoc />
+        public void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true)
+        {
+            var instanceToTurnOn = new Instance() { Id = systemId, Region = systemLocation };
+            instanceToTurnOn.Start(this.credentials);
+            if (waitUntilOn)
+            {
+                instanceToTurnOn.WaitForState(InstanceState.Running, this.credentials);
+            }
+        }
+
+        /// <inheritdoc />
+        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
         {
             var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration, intendedPackages);
 
@@ -235,7 +257,13 @@ namespace Naos.Deployment.Core
                                                  };
             }
 
-            var userData = new UserData() { Data = this.settings.GetInstanceCreationUserData() };
+            var userData = new UserData
+                               {
+                                   Data =
+                                       includeInstanceInializtionScript
+                                           ? this.settings.GetInstanceCreationUserData()
+                                           : string.Empty
+                               };
 
             var createdInstance = instanceToCreate.Create(userData, this.credentials);
 

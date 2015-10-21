@@ -30,7 +30,7 @@ namespace Naos.Deployment.Core.Test
             Assert.NotNull(deserialized);
             var actualDns =
                 deserialized.Single()
-                    .InitializationStrategies.OfType<InitializationStrategyPrivateDnsEntry>()
+                    .InitializationStrategies.OfType<InitializationStrategyDnsEntry>()
                     .Single()
                     .PrivateDnsEntry;
             Assert.Equal("something.database.development.cometrics.com", actualDns);

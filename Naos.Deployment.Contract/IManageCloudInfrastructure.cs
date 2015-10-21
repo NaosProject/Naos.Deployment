@@ -20,7 +20,23 @@ namespace Naos.Deployment.Contract
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="releasePublicIpIfApplicable">Optionally release the public IP address if the instance has one (DEFAULT is false).</param>
-        void Terminate(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
+        void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
+
+        /// <summary>
+        /// Turns off an instance.
+        /// </summary>
+        /// <param name="systemId">Proprietary ID of the instance.</param>
+        /// <param name="systemLocation">Proprietary location of the instance.</param>
+        /// <param name="waitUntilOff">Wait until the machine is off.</param>
+        void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true);
+
+        /// <summary>
+        /// Turns on an instance.
+        /// </summary>
+        /// <param name="systemId">Proprietary ID of the instance.</param>
+        /// <param name="systemLocation">Proprietary location of the instance.</param>
+        /// <param name="waitUntilOn">Wait until the machine is on.</param>
+        void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true);
 
         /// <summary>
         /// Creates a new instance per the deployment configuration provided.
@@ -29,8 +45,9 @@ namespace Naos.Deployment.Contract
         /// <param name="name">Name of the instance.</param>
         /// <param name="deploymentConfiguration">Deployment configuration to use to build a new instance.</param>
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
+        /// <param name="includeInstanceInializtionScript">Include the initialization script during creation.</param>
         /// <returns>Description of created instance.</returns>
-        InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages);
+        InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript);
 
         /// <summary>
         /// Gets the instance description by the name provided (null if not found).

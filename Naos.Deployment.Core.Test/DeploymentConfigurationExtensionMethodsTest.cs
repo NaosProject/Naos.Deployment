@@ -59,6 +59,83 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_ConflictingDeploymentStrategyInitScript_Throws()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy =
+                                new DeploymentStrategy
+                                    {
+                                        IncludeInstanceInitializationScript
+                                            = true
+                                    }
+                        };
+
+            var b = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy =
+                                new DeploymentStrategy
+                                    {
+                                        IncludeInstanceInitializationScript
+                                            = false
+                                    }
+                        };
+
+            Action testCode = () => new[] { a, b }.Flatten();
+            var ex = Assert.Throws<ArgumentException>(testCode);
+            Assert.Equal("Cannot have competing IncludeInstanceInitializationScript values.", ex.Message);
+        }
+
+        [Fact]
+        public static void Flatten_ConflictingDeploymentStrategyRunSetup_Throws()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy = new DeploymentStrategy { RunSetupSteps = true }
+                        };
+
+            var b = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy =
+                                new DeploymentStrategy { RunSetupSteps = false }
+                        };
+
+            Action testCode = () => new[] { a, b }.Flatten();
+            var ex = Assert.Throws<ArgumentException>(testCode);
+            Assert.Equal("Cannot have competing RunSetupSteps values.", ex.Message);
+        }
+
+        [Fact]
+        public static void Flatten_DeploymentStrategy_Persisted()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy =
+                                new DeploymentStrategy
+                                    {
+                                        RunSetupSteps = true,
+                                        IncludeInstanceInitializationScript =
+                                            true
+                                    }
+                        };
+
+            var b = new DeploymentConfiguration()
+                        {
+                            DeploymentStrategy =
+                                new DeploymentStrategy
+                                    {
+                                        RunSetupSteps = true,
+                                        IncludeInstanceInitializationScript =
+                                            true
+                                    }
+                        };
+
+            var output = new[] { a, b }.Flatten();
+            Assert.Equal(true, output.DeploymentStrategy.IncludeInstanceInitializationScript);
+            Assert.Equal(true, output.DeploymentStrategy.RunSetupSteps);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
         {
             var first = new DeploymentConfiguration()
@@ -206,6 +283,7 @@ namespace Naos.Deployment.Core.Test
                                             RamInGb = 4,
                                             WindowsSku = WindowsSku.SqlStandard,
                                         },
+                                        DeploymentStrategy = new DeploymentStrategy { RunSetupSteps = true, IncludeInstanceInitializationScript = true },
                                         InstanceAccessibility = InstanceAccessibility.Private,
                                         Volumes =
                                             new[]
@@ -227,6 +305,8 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
             Assert.Equal(WindowsSku.SqlStandard, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal(true, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
+            Assert.Equal(true, appliedConfig.DeploymentStrategy.RunSetupSteps);
         }
 
         [Fact]
@@ -264,6 +344,7 @@ namespace Naos.Deployment.Core.Test
                     RamInGb = 20,
                     WindowsSku = WindowsSku.SqlWeb,
                 },
+                DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
                 Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
                 ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
             };
@@ -278,6 +359,10 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(baseConfig.Volumes.First().SizeInGb, appliedConfig.Volumes.First().SizeInGb);
             Assert.Equal(baseConfig.ChocolateyPackages.First().Id, appliedConfig.ChocolateyPackages.First().Id);
             Assert.Equal(baseConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal(
+                baseConfig.DeploymentStrategy.IncludeInstanceInitializationScript,
+                appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
+            Assert.Equal(baseConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
         }
 
         [Fact]

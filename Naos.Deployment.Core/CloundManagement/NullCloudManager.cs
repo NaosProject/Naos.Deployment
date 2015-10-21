@@ -14,12 +14,22 @@ namespace Naos.Deployment.Core
     public class NullCloudManager : IManageCloudInfrastructure
     {
         /// <inheritdoc />
-        public void Terminate(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
+        public void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
+        public void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true)
+        {
+        }
+
+        /// <inheritdoc />
+        public void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true)
+        {
+        }
+
+        /// <inheritdoc />
+        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
         {
             return new InstanceDescription();
         }
