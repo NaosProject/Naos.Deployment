@@ -129,7 +129,7 @@ namespace Naos.Deployment.Core
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyPrivateDnsEntry))
+            else if (strategy.GetType() == typeof(InitializationStrategyDnsEntry))
             {
                 /* No additional steps necessary as the DeploymentManager performs this operation at the end */
             }

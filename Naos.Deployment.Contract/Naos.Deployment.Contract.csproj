@@ -61,6 +61,7 @@
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentException.cs" />
+    <Compile Include="DeploymentStrategy.cs" />
     <Compile Include="DirectoryToCreateDetails.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IGetCertificates.cs" />
@@ -75,7 +76,7 @@
     <Compile Include="InitializationStrategyCertificateToInstall.cs" />
     <Compile Include="InitializationStrategyMongo.cs" />
     <Compile Include="InitializationStrategyDirectoryToCreate.cs" />
-    <Compile Include="InitializationStrategyPrivateDnsEntry.cs" />
+    <Compile Include="InitializationStrategyDnsEntry.cs" />
     <Compile Include="InitializationStrategyScheduledTask.cs" />
     <Compile Include="InitializationStrategySqlServer.cs" />
     <Compile Include="InitializationStrategyMessageBusHandler.cs" />

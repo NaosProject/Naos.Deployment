@@ -17,7 +17,7 @@ namespace Naos.Deployment.Contract
     [KnownType(typeof(InitializationStrategySqlServer))]
     [KnownType(typeof(InitializationStrategyMongo))]
     [KnownType(typeof(InitializationStrategyIis))]
-    [KnownType(typeof(InitializationStrategyPrivateDnsEntry))]
+    [KnownType(typeof(InitializationStrategyDnsEntry))]
     [KnownType(typeof(InitializationStrategyDirectoryToCreate))]
     [KnownType(typeof(InitializationStrategyCertificateToInstall))]
     [Bindable(BindableSupport.Default)]

@@ -164,7 +164,8 @@ namespace Naos.Deployment.Core
                     environment,
                     numberedInstanceName,
                     configToCreateWith,
-                    packagesToDeploy.Select(_ => _ as PackageDescription).ToList());
+                    packagesToDeploy.Select(_ => _ as PackageDescription).ToList(),
+                    configToCreateWith.DeploymentStrategy.IncludeInstanceInitializationScript);
 
                 this.announce(
                     string.Format(
@@ -173,100 +174,103 @@ namespace Naos.Deployment.Core
                         createdInstanceDescription.Id,
                         createdInstanceDescription.PrivateIpAddress));
 
-                this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
-                var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
-
-                this.announce(
-                    "Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
-                this.WaitUntilMachineIsAccessible(machineManager);
-
-                var instanceLevelSetupSteps =
-                    this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
-                this.announce("Running setup actions that finalize the instance creation.");
-
-                this.RunSetupSteps(machineManager, instanceLevelSetupSteps);
-
-                // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
-                this.announce(
-                    "Rebooting new instance to finalize any items from instance setup.");
-                this.RebootInstance(machineManager);
-
-                // get all message bus handler initializations to know if we need a handler.
-                var packagesWithMessageBusInitializations =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides
-                        .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
-
-                var messageBusInitializations =
-                    packagesWithMessageBusInitializations
-                        .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
-
-                // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
-                var notAlreadyDeployingTheSamePackageAsHandlersUse =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.All(
-                        _ => _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
-
-                if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
+                if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
                 {
-                    this.announce(
-                        "Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
-
-                    var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
+                    this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
+                    var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
 
                     this.announce(
-                        "Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
-                    foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
+                        "Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
+                    this.WaitUntilMachineIsAccessible(machineManager);
+
+                    var instanceLevelSetupSteps =
+                        this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
+                    this.announce("Running setup actions that finalize the instance creation.");
+
+                    this.RunSetupSteps(machineManager, instanceLevelSetupSteps);
+
+                    // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
+                    this.announce("Rebooting new instance to finalize any items from instance setup.");
+                    this.RebootInstance(machineManager);
+
+                    // get all message bus handler initializations to know if we need a handler.
+                    var packagesWithMessageBusInitializations =
+                        packagedDeploymentConfigsWithDefaultsAndOverrides
+                            .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
+
+                    var messageBusInitializations =
+                        packagesWithMessageBusInitializations
+                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
+
+                    // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
+                    var notAlreadyDeployingTheSamePackageAsHandlersUse =
+                        packagedDeploymentConfigsWithDefaultsAndOverrides.All(
+                            _ =>
+                            _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
+
+                    if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
                     {
-                        itsConfigOverridesForHandlers.AddRange(
-                            packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
+                        this.announce(
+                            "Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
 
-                        var packageFolderName =
-                            packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
-                        var itsConfigEnvironmentFolderPattern =
-                            packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                ? string.Format("{1}/.config/{0}/", environment, packageFolderName)
-                                : string.Format(".config/{0}/", environment);
+                        var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
 
-                        var itsConfigFilesFromPackage =
-                            this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                packageWithMessageBusInitializations.Package,
-                                itsConfigEnvironmentFolderPattern);
+                        this.announce(
+                            "Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
+                        foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
+                        {
+                            itsConfigOverridesForHandlers.AddRange(
+                                packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
 
-                        itsConfigOverridesForHandlers.AddRange(
-                            itsConfigFilesFromPackage.Select(
-                                _ =>
-                                new ItsConfigOverride
-                                    {
-                                        FileNameWithoutExtension =
-                                            Path.GetFileNameWithoutExtension(_.Key),
-                                        FileContentsJson = _.Value
-                                    }));
+                            var packageFolderName =
+                                packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
+                            var itsConfigEnvironmentFolderPattern =
+                                packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                                    ? string.Format("{1}/.config/{0}/", environment, packageFolderName)
+                                    : string.Format(".config/{0}/", environment);
+
+                            var itsConfigFilesFromPackage =
+                                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                    packageWithMessageBusInitializations.Package,
+                                    itsConfigEnvironmentFolderPattern);
+
+                            itsConfigOverridesForHandlers.AddRange(
+                                itsConfigFilesFromPackage.Select(
+                                    _ =>
+                                    new ItsConfigOverride
+                                        {
+                                            FileNameWithoutExtension =
+                                                Path.GetFileNameWithoutExtension(_.Key),
+                                            FileContentsJson = _.Value
+                                        }));
+                        }
+
+                        var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
+                            numberedInstanceName,
+                            messageBusInitializations,
+                            itsConfigOverridesForHandlers,
+                            configToCreateWith,
+                            environment,
+                            instanceNumber);
+
+                        packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
                     }
 
-                    var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
-                        numberedInstanceName,
-                        messageBusInitializations,
-                        itsConfigOverridesForHandlers,
-                        configToCreateWith,
-                        environment,
-                        instanceNumber);
+                    foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
+                    {
+                        var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
+                        this.announce(
+                            "Running setup actions for package: "
+                            + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
 
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
-                }
+                        this.RunSetupSteps(machineManager, setupSteps);
 
-                foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
-                {
-                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
-                    this.announce(
-                        "Running setup actions for package: "
-                        + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
-
-                    this.RunSetupSteps(machineManager, setupSteps);
-
-                    // Mark the instance as having the successfully deployed packages
-                    this.tracker.ProcessDeployedPackage(
-                        environment,
-                        createdInstanceDescription.Id,
-                        packagedConfig.Package.PackageDescription);
+                        // Mark the instance as having the successfully deployed packages
+                        this.tracker.ProcessDeployedPackage(
+                            environment,
+                            createdInstanceDescription.Id,
+                            packagedConfig.Package.PackageDescription);
+                    }
                 }
 
                 // get all web initializations to update any DNS entries on the public IP address.
@@ -294,26 +298,53 @@ namespace Naos.Deployment.Core
                 this.announce("Updating private DNS for all initializations (if applicable)");
                 var dnsInitializations =
                     packagedDeploymentConfigsWithDefaultsAndOverrides
-                        .GetInitializationStrategiesOf<InitializationStrategyPrivateDnsEntry>();
+                        .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
                 foreach (var initialization in dnsInitializations)
                 {
-                    if (string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                    if (string.IsNullOrEmpty(initialization.PublicDnsEntry) && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
                     {
-                        throw new ArgumentException("Cannot create DNS entry of empty or null string.");
+                        throw new ArgumentException("Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
                     }
 
-                    var ipAddress = createdInstanceDescription.PrivateIpAddress;
-                    var privateDnsEntry = ApplyDnsTokenReplacements(
-                        initialization.PrivateDnsEntry,
-                        numberedInstanceName,
-                        environment,
-                        instanceNumber);
-                    this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, ipAddress));
-                    this.cloudManager.UpsertDnsEntry(
-                        environment,
-                        createdInstanceDescription.Location,
-                        privateDnsEntry,
-                        new[] { ipAddress });
+                    if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                    {
+                        var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
+                        var privateDnsEntry = ApplyDnsTokenReplacements(
+                            initialization.PrivateDnsEntry,
+                            numberedInstanceName,
+                            environment,
+                            instanceNumber);
+
+                        this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, privateIpAddress));
+                        this.cloudManager.UpsertDnsEntry(
+                            environment,
+                            createdInstanceDescription.Location,
+                            privateDnsEntry,
+                            new[] { privateIpAddress });
+                    }
+
+                    if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
+                    {
+                        var publicIpAddress = createdInstanceDescription.PublicIpAddress;
+                        if (string.IsNullOrEmpty(publicIpAddress))
+                        {
+                            throw new ArgumentException(
+                                "Cannot assign a public DNS because there isn't a public IP address on the instance.");
+                        }
+
+                        var publicDnsEntry = ApplyDnsTokenReplacements(
+                            initialization.PublicDnsEntry,
+                            numberedInstanceName,
+                            environment,
+                            instanceNumber);
+
+                        this.announce(string.Format(" - Pointing {0} at {1}.", publicDnsEntry, publicIpAddress));
+                        this.cloudManager.UpsertDnsEntry(
+                            environment,
+                            createdInstanceDescription.Location,
+                            publicDnsEntry,
+                            new[] { publicIpAddress });
+                    }
                 }
             }
 
@@ -672,7 +703,7 @@ namespace Naos.Deployment.Core
                     this.announce(
                         "Terminating instance => ID: " + instanceDescription.Id + ", CloudName: "
                         + instanceDescription.Name);
-                    this.cloudManager.Terminate(environment, instanceDescription.Id, instanceDescription.Location, true);
+                    this.cloudManager.TerminateInstance(environment, instanceDescription.Id, instanceDescription.Location, true);
                 }
             }
             else

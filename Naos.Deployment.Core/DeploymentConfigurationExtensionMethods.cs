@@ -24,6 +24,29 @@ namespace Naos.Deployment.Core
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
         public static DeploymentConfiguration Flatten(this ICollection<DeploymentConfiguration> deploymentConfigs)
         {
+            // Makes sure we don't have competing IncludeInstanceInitializationScript values
+            if (
+                deploymentConfigs.Any(
+                    _ => (_.DeploymentStrategy ?? new DeploymentStrategy()).IncludeInstanceInitializationScript)
+                && deploymentConfigs.Any(
+                    _ => !(_.DeploymentStrategy ?? new DeploymentStrategy()).IncludeInstanceInitializationScript))
+            {
+                throw new ArgumentException("Cannot have competing IncludeInstanceInitializationScript values.");
+            }
+
+            // Makes sure we don't have competing RunSetupSteps values
+            if (
+                deploymentConfigs.Any(
+                    _ => (_.DeploymentStrategy ?? new DeploymentStrategy()).RunSetupSteps)
+                && deploymentConfigs.Any(
+                    _ => !(_.DeploymentStrategy ?? new DeploymentStrategy()).RunSetupSteps))
+            {
+                throw new ArgumentException("Cannot have competing RunSetupSteps values.");
+            }
+
+            // since both values are the same for the entire collection just take the first one...
+            var deploymentStrategy = deploymentConfigs.First().DeploymentStrategy;
+
             // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))
             {
@@ -101,6 +124,7 @@ namespace Naos.Deployment.Core
                                                     .Distinct()
                                                     .ToList()),
                                       },
+                              DeploymentStrategy = deploymentStrategy,
                               InstanceAccessibility = accessibilityToUse,
                               Volumes = volumes,
                               ChocolateyPackages = chocolateyPackagesToUse,
@@ -149,6 +173,9 @@ namespace Naos.Deployment.Core
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
                                   ?? deploymentConfigInitial.InstanceType,
+                              DeploymentStrategy =
+                                  deploymentConfigOverride.DeploymentStrategy
+                                  ?? deploymentConfigInitial.DeploymentStrategy,
                               Volumes =
                                   deploymentConfigOverride.Volumes
                                   ?? deploymentConfigInitial.Volumes,
@@ -231,6 +258,11 @@ namespace Naos.Deployment.Core
                                        ? null
                                        : deploymentConfigInitial.ChocolateyPackages)
                                   ?? defaultDeploymentConfig.ChocolateyPackages,
+                              DeploymentStrategy =
+                                  (deploymentConfigInitial == null
+                                       ? null
+                                       : deploymentConfigInitial.DeploymentStrategy)
+                                  ?? defaultDeploymentConfig.DeploymentStrategy
                           };
 
             if (ret.InstanceType != null)
