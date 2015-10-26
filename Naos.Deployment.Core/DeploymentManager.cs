@@ -295,7 +295,7 @@ namespace Naos.Deployment.Core
                 }
 
                 // get all DNS initializations to update any private DNS entries on the private IP address.
-                this.announce("Updating private DNS for all initializations (if applicable)");
+                this.announce("Updating DNS for all DNS initializations (if applicable)");
                 var dnsInitializations =
                     packagedDeploymentConfigsWithDefaultsAndOverrides
                         .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
