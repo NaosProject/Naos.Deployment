@@ -8,11 +8,13 @@
         "volumes": [
             {
                 "driveLetter": "C",
-                "sizeInGb": 50
+                "sizeInGb": 50,
+                "type": "standard"
             },
             {
                 "driveLetter": "D",
-                "sizeInGb": 100
+                "sizeInGb": 100,
+                "type": "standard"
             }
         ],
         "deploymentStrategy": {

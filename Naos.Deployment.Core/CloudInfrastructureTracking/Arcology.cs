@@ -171,7 +171,6 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
 
             var ret = new InstanceCreationDetails()
             {
-                DefaultDriveType = "gp2",
                 ImageDetails =
                     imageDetails,
                 PrivateIpAddress = privateIpAddress,

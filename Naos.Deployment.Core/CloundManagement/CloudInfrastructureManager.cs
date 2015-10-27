@@ -175,6 +175,18 @@ namespace Naos.Deployment.Core
                     return mapResult;
                 };
 
+            Func<VolumeType, string> getVolumeTypeValueFromEnum = delegate(VolumeType volumeType)
+                {
+                    string mapResult;
+                    var foundResult = this.settings.VolumeTypeValueMap.TryGetValue(volumeType, out mapResult);
+                    if (!foundResult)
+                    {
+                        throw new DeploymentException("Volume type not supported: " + volumeType);
+                    }
+
+                    return mapResult;
+                };
+
             var mappedVolumes =
                 deploymentConfiguration.Volumes.Select(
                     _ =>
@@ -184,7 +196,7 @@ namespace Naos.Deployment.Core
                             Name = namer.GetVolumeName(_.DriveLetter),
                             SizeInGb = _.SizeInGb,
                             DeviceName = getDeviceNameFromDriveLetter(_.DriveLetter),
-                            VolumeType = instanceDetails.DefaultDriveType,
+                            VolumeType = getVolumeTypeValueFromEnum(_.Type),
                             VirtualName = _.DriveLetter
                         }).ToList();
 

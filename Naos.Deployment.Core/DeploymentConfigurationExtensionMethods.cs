@@ -84,7 +84,15 @@ namespace Naos.Deployment.Core
             var volumes = new List<Volume>();
             foreach (var distinctDriveLetter in distinctDriveLetters)
             {
-                var sizeInGb = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).Max(_ => _.SizeInGb);
+                var volumesForDriveLetter = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).ToList();
+                var sizeInGb = volumesForDriveLetter.Max(_ => _.SizeInGb);
+                var distinctTypes = volumesForDriveLetter.Select(_ => _.Type).Distinct().ToList();
+                if (distinctTypes.Count > 1)
+                {
+                    throw new ArgumentException(
+                        "Cannot have competing Volume Type values for the same drive letter: " + distinctDriveLetter);
+                }
+
                 volumes.Add(new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb });
             }
 
@@ -230,6 +238,20 @@ namespace Naos.Deployment.Core
                 windowsSku = defaultDeploymentConfig.InstanceType.WindowsSku;
             }
 
+            // if the default isn't actually specifying anything then default to standard drive type (might wanna make configurable eventually...)
+            var volumes = (deploymentConfigInitial == null ? null : deploymentConfigInitial.Volumes)
+                          ?? defaultDeploymentConfig.Volumes;
+            if (volumes != null)
+            {
+                foreach (var volume in volumes)
+                {
+                    if (volume.Type == VolumeType.DoesNotMatter)
+                    {
+                        volume.Type = VolumeType.Standard;
+                    }
+                }
+            }
+
             var instanceCount = deploymentConfigInitial == null || deploymentConfigInitial.InstanceCount <= 0
                                     ? defaultDeploymentConfig.InstanceCount
                                     : deploymentConfigInitial.InstanceCount;
@@ -249,10 +271,7 @@ namespace Naos.Deployment.Core
                                        : deploymentConfigInitial.InstanceType)
                                   ?? defaultDeploymentConfig.InstanceType,
                               Volumes =
-                                  (deploymentConfigInitial == null
-                                       ? null
-                                       : deploymentConfigInitial.Volumes)
-                                  ?? defaultDeploymentConfig.Volumes,
+                                  volumes,
                               ChocolateyPackages =
                                   (deploymentConfigInitial == null
                                        ? null

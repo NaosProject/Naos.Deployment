@@ -21,6 +21,11 @@ namespace Naos.Deployment.Contract
         public Dictionary<string, string> DriveLetterVolumeDescriptorMap { get; set; }
 
         /// <summary>
+        /// Gets or sets the map of the volume type to the system specific values.
+        /// </summary>
+        public IDictionary<VolumeType, string> VolumeTypeValueMap { get; set; }
+
+        /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details.
         /// </summary>
         public ICollection<AwsInstanceType> AwsInstanceTypes { get; set; }

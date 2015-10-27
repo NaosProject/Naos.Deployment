@@ -20,5 +20,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the size of the volume in gigabytes.
         /// </summary>
         public int SizeInGb { get; set; }
+
+        /// <summary>
+        /// Gets or sets the type of volume.
+        /// </summary>
+        public VolumeType Type { get; set; }
     }
 }
