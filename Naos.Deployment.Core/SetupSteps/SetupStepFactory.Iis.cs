@@ -74,13 +74,15 @@ namespace Naos.Deployment.Core
                                             ? null
                                             : iisStrategy.AutoStartProvider.Type;
 
+            var enableHttp = iisStrategy.EnableHttp;
+
             const bool EnableSni = false;
             const bool AddHostHeaders = true;
             var installWebParameters = new object[]
                                            {
                                                webRootPath, iisStrategy.PrimaryDns, certificateTargetPath,
                                                certDetails.CertificatePassword, appPoolStartMode, autoStartProviderName,
-                                               autoStartProviderType, EnableSni, AddHostHeaders
+                                               autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
                                            };
 
             webSteps.Add(

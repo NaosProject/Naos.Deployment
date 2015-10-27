@@ -1,7 +1,47 @@
 ﻿{
-    "defaultDeploymentConfig": { "instanceType": { "virtualCores": 2, "ramInGb": 3.5 }, "instanceAccessibility": "private", "volumes": [ { "driveLetter": "C", "sizeInGb": 50, }, { "driveLetter": "D", "sizeInGb": 100, } ], "deploymentStrategy": { "includeInstanceInitializationScript": true, "runSetupSteps": true }, "chocolateyPackages": [ { "id": "GoogleChrome" }, { "id": "sublime" }, { "id": "BareTail" }, { "id": "7zip.install" } ] },
+    "defaultDeploymentConfig": {
+        "instanceType": {
+            "virtualCores": 2,
+            "ramInGb": 3.5
+        },
+        "instanceAccessibility": "private",
+        "volumes": [
+            {
+                "driveLetter": "C",
+                "sizeInGb": 50
+            },
+            {
+                "driveLetter": "D",
+                "sizeInGb": 100
+            }
+        ],
+        "deploymentStrategy": {
+            "includeInstanceInitializationScript": true,
+            "runSetupSteps": true
+        },
+        "chocolateyPackages": [
+            { "id": "GoogleChrome" },
+            { "id": "sublime" },
+            { "id": "BareTail" },
+            { "id": "7zip.install" }
+        ]
+    },
     "messageBusHandlerHarnessSettings": {
-        "package": {   "id": "Naos.MessageBus.Hangfire.Console",  "initializationStrategies": [{      "privateDnsEntry": "{instanceName}.messageBus.{environment}.cometrics.com"},{  "name": "MessageBusHandlerHarness",  "description": "Task to ensure the message bus handler harness is always running.", "exeName":"Naos.MessageBus.Hangfire.Console.exe", "schedule":{"cronExpression":"* * * * *"}    }   ]},
-        "logProcessorSettings":  { "logFilePath": "D:\\Deployments\\Naos.MessageBus.Hangfire.Console\\packagedConsoleApp\\HangfireHarnessLog.txt" }
+        "handlerHarnessProcessTimeToLive": "00:05:00",
+        "package": {
+            "id": "Naos.MessageBus.Hangfire.Console",
+            "initializationStrategies": [
+                { "privateDnsEntry": "{instanceName}.messageBus.{environment}.cometrics.com" },
+                {
+                    "name": "MessageBusHandlerHarness",
+                    "description": "Task to ensure the message bus handler harness is always running.",
+                    "exeName": "Naos.MessageBus.Hangfire.Console.exe",
+                    "schedule": { "cronExpression": "* * * * *" }
+                }
+            ]
+        },
+        "logProcessorSettings": {
+            "logFilePath": "D:\\Deployments\\Naos.MessageBus.Hangfire.Console\\packagedConsoleApp\\HangfireHarnessLog.txt"
+        }
     }
 }

@@ -38,9 +38,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.86.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.96.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.86\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.96\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

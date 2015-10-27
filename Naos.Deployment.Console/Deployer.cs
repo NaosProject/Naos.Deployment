@@ -109,6 +109,8 @@ namespace Naos.Deployment.Console
             var defaultDeploymentConfig = deploymentSettings.DefaultDeploymentConfig;
             var messageBusHandlerHarnessPackageDescription = deploymentSettings.MessageBusHandlerHarnessSettings.Package;
             var messageBusHandlerHarnessLogProcessorSettings = deploymentSettings.MessageBusHandlerHarnessSettings.LogProcessorSettings;
+            var messageBusHandlerHarnessProcessTimeToLive =
+                deploymentSettings.MessageBusHandlerHarnessSettings.HandlerHarnessProcessTimeToLive;
 
             var tracker = new RootFolderEnvironmentFolderInstanceFileTracker(trackingSystemRootFolder);
             var certManager = new CertificateRetriever(certificateRetrieverFilePath);
@@ -138,6 +140,7 @@ namespace Naos.Deployment.Console
                 messageBusHandlerHarnessPackageDescription,
                 messageBusHandlerHarnessLogProcessorSettings,
                 messageBusPersistenceConnectionString,
+                messageBusHandlerHarnessProcessTimeToLive,
                 cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine);
 

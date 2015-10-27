@@ -40,6 +40,8 @@ namespace Naos.Deployment.Core
 
         private readonly LogProcessorSettings handlerHarnessLogProcessorSettings;
 
+        private readonly TimeSpan handlerHarnessProcessTimeToLive;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -52,6 +54,7 @@ namespace Naos.Deployment.Core
         /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
         /// <param name="handlerHarnessLogProcessorSettings">Log processor settings to be used when deploying a message bus handler harness.</param>
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
+        /// <param name="handlerHarnessProcessTimeToLive">Time to allow handler harness process to stay active before cycling.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
@@ -64,6 +67,7 @@ namespace Naos.Deployment.Core
             PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
             LogProcessorSettings handlerHarnessLogProcessorSettings,
             string messageBusPersistenceConnectionString,
+            TimeSpan handlerHarnessProcessTimeToLive,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer)
         {
@@ -74,6 +78,7 @@ namespace Naos.Deployment.Core
             this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
             this.handlerHarnessLogProcessorSettings = handlerHarnessLogProcessorSettings;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
+            this.handlerHarnessProcessTimeToLive = handlerHarnessProcessTimeToLive;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
             this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever, packageManager);
@@ -529,7 +534,8 @@ namespace Naos.Deployment.Core
                                                            TimeSpan.FromMinutes(1),
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
                                                        MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
-                                                       RetryCount = 0
+                                                       RetryCount = 0,
+                                                       HarnessProcessTimeToLive = this.handlerHarnessProcessTimeToLive
                                                    }
                                            };
 
