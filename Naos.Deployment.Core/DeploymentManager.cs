@@ -172,12 +172,16 @@ namespace Naos.Deployment.Core
                     packagesToDeploy.Select(_ => _ as PackageDescription).ToList(),
                     configToCreateWith.DeploymentStrategy.IncludeInstanceInitializationScript);
 
+                var systemSpecificDetailsAsString = string.Join(
+                    ",",
+                    createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
                 this.announce(
                     string.Format(
-                        "Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}",
+                        "Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
                         createdInstanceDescription.Name,
                         createdInstanceDescription.Id,
-                        createdInstanceDescription.PrivateIpAddress));
+                        createdInstanceDescription.PrivateIpAddress,
+                        systemSpecificDetailsAsString));
 
                 if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
                 {
