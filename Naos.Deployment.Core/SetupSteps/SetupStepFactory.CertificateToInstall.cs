@@ -16,9 +16,15 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetCertificateToInstallSpecificSteps(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath)
+        private List<SetupStep> GetCertificateToInstallSpecificSteps(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath, string harnessAccount, string iisAccount)
         {
             var certSteps = new List<SetupStep>();
+
+            var userToGrantPrivateKeyAccess = certToInstallStrategy.UserToGrantPrivateKeyAccess;
+            var tokenAppliedUser = TokenSubstitutions.GetSubstitutedStringForAccounts(
+                userToGrantPrivateKeyAccess,
+                harnessAccount,
+                iisAccount);
 
             var certificateName = certToInstallStrategy.CertificateToInstall;
 
@@ -40,7 +46,7 @@ namespace Naos.Deployment.Core
                         machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
                 });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, tokenAppliedUser };
 
             certSteps.Add(
                 new SetupStep

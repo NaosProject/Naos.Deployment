@@ -16,10 +16,10 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string harnessAccount)
+        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string harnessAccount, string iisAccount)
         {
             var dir = directoryToCreateStrategy.DirectoryToCreate;
-            var fullControlAccount = dir.FullControlAccount.Replace("{harnessAccount}", harnessAccount);
+            var fullControlAccount = TokenSubstitutions.GetSubstitutedStringForAccounts(dir.FullControlAccount, harnessAccount, iisAccount);
             var dirParams = new object[] { dir.FullPath, fullControlAccount };
             var ret = new SetupStep
             {

@@ -137,7 +137,8 @@ namespace Naos.Deployment.Core
             {
                 var dirSteps = this.GetDirectoryToCreateSpecificSteps(
                     (InitializationStrategyDirectoryToCreate)strategy,
-                    this.settings.HarnessSettings.HarnessAccount);
+                    this.settings.HarnessSettings.HarnessAccount,
+                    this.settings.WebServerSettings.IisAccount);
                 ret.AddRange(dirSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
@@ -145,7 +146,9 @@ namespace Naos.Deployment.Core
                 var certSteps =
                     this.GetCertificateToInstallSpecificSteps(
                         (InitializationStrategyCertificateToInstall)strategy,
-                        packageDirectoryPath);
+                        packageDirectoryPath,
+                        this.settings.HarnessSettings.HarnessAccount,
+                        this.settings.WebServerSettings.IisAccount);
                 ret.AddRange(certSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMongo))
