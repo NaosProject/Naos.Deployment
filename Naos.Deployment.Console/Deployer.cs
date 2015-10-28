@@ -69,12 +69,9 @@ namespace Naos.Deployment.Console
         public static void Deploy(
             [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
-            [Aliases("")] [Description("Description of package (with overrides) to use as the harness for Message Bus Handlers.")] string messageBusHandlerHarnessPackageDescriptionJson,
-            [Aliases("")] [Description("LogProcessorSettings to use with the harness for Message Bus Handlers to wire in specified settings.")] string messageBusHandlerHarnessLogProcessorSettingsJson,
             [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString,
             [Aliases("")] [Description("Full file path of the certificate certificate retriever managing file.")] string certificateRetrieverFilePath,
             [Aliases("")] [Description("Full folder path of the location of persistence for tracking system for cloud properties.")] string trackingSystemRootFolder, 
-            [Aliases("")] [Description("Default deployment configuration to use where items are not specified in JSON.")] string defaultDeploymentConfigJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
@@ -92,11 +89,8 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                       workingPath: " + workingPath);
             Console.WriteLine("--                              cloudCredentialsJson: " + cloudCredentialsJson);
             Console.WriteLine("--           nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
-            Console.WriteLine("--    messageBusHandlerHarnessPackageDescriptionJson: " + messageBusHandlerHarnessPackageDescriptionJson);
-            Console.WriteLine("--  messageBusHandlerHarnessLogProcessorSettingsJson: " + messageBusHandlerHarnessLogProcessorSettingsJson);
             Console.WriteLine("--                      certificateRetrieverFilePath: " + certificateRetrieverFilePath);
             Console.WriteLine("--                          trackingSystemRootFolder: " + trackingSystemRootFolder);
-            Console.WriteLine("--                       defaultDeploymentConfigJson: " + defaultDeploymentConfigJson);
             Console.WriteLine("--                      overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
             Console.WriteLine("--                                       environment: " + environment);
             Console.WriteLine("--                                      instanceName: " + instanceName);
@@ -111,6 +105,12 @@ namespace Naos.Deployment.Console
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
+            var deploymentSettings = Settings.Get<DeploymentSettings>();
+            var defaultDeploymentConfig = deploymentSettings.DefaultDeploymentConfig;
+            var messageBusHandlerHarnessPackageDescription = deploymentSettings.MessageBusHandlerHarnessSettings.Package;
+            var messageBusHandlerHarnessLogProcessorSettings = deploymentSettings.MessageBusHandlerHarnessSettings.LogProcessorSettings;
+            var messageBusHandlerHarnessProcessTimeToLive =
+                deploymentSettings.MessageBusHandlerHarnessSettings.HandlerHarnessProcessTimeToLive;
 
             var tracker = new RootFolderEnvironmentFolderInstanceFileTracker(trackingSystemRootFolder);
             var certManager = new CertificateRetriever(certificateRetrieverFilePath);
@@ -128,14 +128,7 @@ namespace Naos.Deployment.Console
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
-            var messageBusHandlerHarnessPackageDescription =
-                Serializer.Deserialize<PackageDescriptionWithOverrides>(messageBusHandlerHarnessPackageDescriptionJson);
-
-            var messageBusHandlerHarnessLogProcessorSettings =
-                Serializer.Deserialize<LogProcessorSettings>(messageBusHandlerHarnessLogProcessorSettingsJson);
-
             var packageManager = new PackageManager(repoConfig, unzipDirPath).WithCleanWorkingDirectory();
-            var defaultDeploymentConfig = Serializer.Deserialize<DeploymentConfiguration>(defaultDeploymentConfigJson);
 
             var deploymentManager = new DeploymentManager(
                 tracker,
@@ -147,6 +140,7 @@ namespace Naos.Deployment.Console
                 messageBusHandlerHarnessPackageDescription,
                 messageBusHandlerHarnessLogProcessorSettings,
                 messageBusPersistenceConnectionString,
+                messageBusHandlerHarnessProcessTimeToLive,
                 cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine);
 

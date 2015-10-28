@@ -62,7 +62,8 @@ namespace Naos.Deployment.Core.Test
                                                Type = "Type"
                                            },
                                    PrimaryDns = "myDns",
-                                   SslCertificateName = "certName"
+                                   SslCertificateName = "certName",
+                                   EnableHttp = true
                                };
             var cloned = original.Clone() as InitializationStrategyIis;
             Assert.NotNull(cloned);
@@ -73,6 +74,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(original.AutoStartProvider.Type, cloned.AutoStartProvider.Type);
             Assert.Equal(original.PrimaryDns, cloned.PrimaryDns);
             Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
+            Assert.Equal(original.EnableHttp, cloned.EnableHttp);
         }
 
         [Fact]

@@ -109,4 +109,30 @@ namespace Naos.Deployment.Contract
         /// </summary>
         SpecificImageSupplied,
     }
+
+    /// <summary>
+    /// Enumeration of the types of volumes that can be created.
+    /// </summary>
+    public enum VolumeType
+    {
+        /// <summary>
+        /// Indicates that it's irrelevant to this deployment.
+        /// </summary>
+        DoesNotMatter,
+
+        /// <summary>
+        /// Low performance volume type.
+        /// </summary>
+        LowPerformance,
+
+        /// <summary>
+        /// Standard volume type.
+        /// </summary>
+        Standard,
+
+        /// <summary>
+        /// High performance volume type.
+        /// </summary>
+        HighPerformance
+    }
 }

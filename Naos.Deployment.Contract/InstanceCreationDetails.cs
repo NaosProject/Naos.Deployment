@@ -40,10 +40,5 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the ID of the security group to assign it to.
         /// </summary>
         public string SecurityGroupId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the default drive type to use.
-        /// </summary>
-        public string DefaultDriveType { get; set; }
     }
 }

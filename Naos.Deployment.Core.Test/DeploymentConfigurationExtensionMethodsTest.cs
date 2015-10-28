@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core.Test
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using Naos.Deployment.Contract;
@@ -157,6 +158,26 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_ConflictingVolumeTypes_Throws()
+        {
+            var a = new DeploymentConfiguration()
+                            {
+                                Volumes =
+                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } }
+                            };
+
+            var b = new DeploymentConfiguration()
+                             {
+                                 Volumes =
+                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.LowPerformance } }
+                             };
+
+            Action testCode = () => new[] { a, b }.Flatten();
+            var ex = Assert.Throws<ArgumentException>(testCode);
+            Assert.Equal("Cannot have competing Volume Type values for the same drive letter: C", ex.Message);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsConflictingAccesiblity_Throws()
         {
             var deploymentConfigs = new[]
@@ -292,6 +313,7 @@ namespace Naos.Deployment.Core.Test
                                                         {
                                                             DriveLetter = "C",
                                                             SizeInGb = 50,
+                                                            Type = VolumeType.HighPerformance
                                                         }
                                                 },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
@@ -303,6 +325,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(1, appliedConfig.Volumes.Count);
             Assert.Equal(defaultConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(defaultConfig.Volumes.Single().Type, appliedConfig.Volumes.Single().Type);
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
             Assert.Equal(WindowsSku.SqlStandard, appliedConfig.InstanceType.WindowsSku);
             Assert.Equal(true, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
@@ -310,7 +333,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void ApplyDefaults_DefaultAccessibleIsNull_BecomesPrivate()
+        public static void ApplyDefaults_DefaultAccessibleIsDefault_BecomesPrivate()
         {
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration();
@@ -330,6 +353,32 @@ namespace Naos.Deployment.Core.Test
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
             Assert.Equal(InstanceAccessibility.Private, appliedConfig.InstanceAccessibility);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_DefaultVolumeTypeIsDefault_BecomesStandard()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration()
+            {
+                Volumes = new[] { new Volume() }
+            };
+
+            var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(VolumeType.Standard, appliedConfig.Volumes.Single().Type);
+        }
+
+        [Fact]
+        public static void ApplyDefaults_DefaultVolumeTypeIsDoesNotMatter_BecomesStandard()
+        {
+            var baseConfig = new DeploymentConfiguration();
+            var defaultConfig = new DeploymentConfiguration()
+                                    {
+                                        Volumes = new[] { new Volume { Type = VolumeType.DoesNotMatter } }
+                                    };
+
+            var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
+            Assert.Equal(VolumeType.Standard, appliedConfig.Volumes.Single().Type);
         }
 
         [Fact]
@@ -407,7 +456,7 @@ namespace Naos.Deployment.Core.Test
                                          RamInGb = 20,
                                          WindowsSku = WindowsSku.SqlWeb,
                                      },
-                                     Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
+                                     Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100, Type = VolumeType.LowPerformance }, new Volume() { DriveLetter = "Q", SizeInGb = 1, Type = VolumeType.LowPerformance } },
                                      ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
                                  };
 
@@ -420,7 +469,7 @@ namespace Naos.Deployment.Core.Test
                                                                RamInGb = 10,
                                                                WindowsSku = WindowsSku.SqlStandard,
                                                            },
-                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
+                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30, Type = VolumeType.HighPerformance } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                     };
 
@@ -430,6 +479,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.InstanceType.RamInGb, appliedConfig.InstanceType.RamInGb);
             Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(overrideConfig.Volumes.Single().Type, appliedConfig.Volumes.Single().Type);
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
             Assert.Equal(overrideConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
         }

@@ -22,6 +22,11 @@ namespace Naos.Deployment.Contract
         public string SslCertificateName { get; set; }
 
         /// <summary>
+        /// Gets or sets a value indicating whether or not to enable HTTP for the site (default is NOT).
+        /// </summary>
+        public bool EnableHttp { get; set; }
+
+        /// <summary>
         /// Gets or sets the application pool start mode.
         /// </summary>
         public ApplicationPoolStartMode AppPoolStartMode { get; set; }
@@ -40,7 +45,8 @@ namespace Naos.Deployment.Contract
                                   (AutoStartProvider)this.AutoStartProvider.Clone(),
                               AppPoolStartMode = this.AppPoolStartMode,
                               SslCertificateName = this.SslCertificateName,
-                              PrimaryDns = this.PrimaryDns
+                              PrimaryDns = this.PrimaryDns,
+                              EnableHttp = this.EnableHttp
                           };
             return ret;
         }

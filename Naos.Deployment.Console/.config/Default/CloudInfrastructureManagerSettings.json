@@ -6,6 +6,11 @@
         "E": "xvdc",
         "F": "xvdd"
     },
+    "volumeTypeValueMap": {
+    "lowPerformance": "standard",
+    "standard": "gp2",
+    "highPerformance": "io1"
+    },
     "awsInstanceTypes": [
         { "awsInstanceTypeDescriptor": "t2.micro", "ramInGb": 1.0, "virtualCores": 1 },
         { "awsInstanceTypeDescriptor": "t1.micro", "ramInGb": 0.613, "virtualCores": 1 },
