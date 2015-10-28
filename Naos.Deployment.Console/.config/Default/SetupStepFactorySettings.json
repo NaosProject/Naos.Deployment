@@ -259,7 +259,7 @@
                 "",
                 "   if (-not ([String]::IsNullOrEmpty($UserToGrantPrivateKeyAccess)))",
                 "   {",
-                "      $keyname=(((gci cert:\LocalMachine\my | ? {$_.thumbprint -like $($certResult.Thumbprint)}).PrivateKey).CspKeyContainerInfo).UniqueKeyContainerName",
+                "      $keyname=(((gci $certStoreLocation | ? {$_.thumbprint -like $($certResult.Thumbprint)}).PrivateKey).CspKeyContainerInfo).UniqueKeyContainerName",
                 "      $keypath = Join-Path $env:ProgramData \"Microsoft\\Crypto\\RSA\\MachineKeys\"",
                 "      $fullpath = Join-Path $keypath $keyname",
                 "      icacls $fullpath /grant $UserToGrantPrivateKeyAccess`:RX",
