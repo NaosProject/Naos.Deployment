@@ -19,10 +19,11 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Clone_CertificateToInstall_Works()
         {
-            var original = new InitializationStrategyCertificateToInstall { CertificateToInstall = "cert" };
+            var original = new InitializationStrategyCertificateToInstall { CertificateToInstall = "cert", UserToGrantPrivateKeyAccess = "someone" };
             var cloned = original.Clone() as InitializationStrategyCertificateToInstall;
             Assert.NotNull(cloned);
             Assert.Equal(original.CertificateToInstall, cloned.CertificateToInstall);
+            Assert.Equal(original.UserToGrantPrivateKeyAccess, cloned.UserToGrantPrivateKeyAccess);
         }
 
         [Fact]

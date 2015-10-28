@@ -16,10 +16,15 @@ namespace Naos.Deployment.Contract
         /// </summary>
         public string CertificateToInstall { get; set; }
 
+        /// <summary>
+        /// Gets or sets the user to grant private key access to on the certificate (null will skip).
+        /// </summary>
+        public string UserToGrantPrivateKeyAccess { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
-            var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall };
+            var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall, UserToGrantPrivateKeyAccess = this.UserToGrantPrivateKeyAccess };
             return ret;
         }
     }

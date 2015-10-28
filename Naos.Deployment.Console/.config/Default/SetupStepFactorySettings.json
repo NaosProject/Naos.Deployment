@@ -20,6 +20,9 @@
         "defaultBackupDirectory": "D:\\SqlBackup\\",
         "defaultDataDirectory": "D:\\SqlData\\"
     },
+    "webServerSettings": {
+        "iisAccount": "IIS_IUSRS"
+    },
     "defaultDatabaseFileSizeSettings": {
         "dataFileCurrentSizeInKb": 100000,
         "dataFileMaxSizeInKb": 10000000,
@@ -244,14 +247,24 @@
         "installCertificate": {
             "parameterNames": [
                 "CertPath",
-                "CertPassword"
+                "CertPassword",
+                "UserToGrantPrivateKeyAccess"
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword)",
+                "param([string] $CertPath, [SecureString] $CertPassword, [string] $UserToGrantPrivateKeyAccess = $null)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
                 "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "",
+                "   if (-not ([String]::IsNullOrEmpty($UserToGrantPrivateKeyAccess)))",
+                "   {",
+                "      $keyname=(((gci cert:\LocalMachine\my | ? {$_.thumbprint -like $($certResult.Thumbprint)}).PrivateKey).CspKeyContainerInfo).UniqueKeyContainerName",
+                "      $keypath = Join-Path $env:ProgramData \"Microsoft\\Crypto\\RSA\\MachineKeys\"",
+                "      $fullpath = Join-Path $keypath $keyname",
+                "      icacls $fullpath /grant $UserToGrantPrivateKeyAccess`:RX",
+                "   }",
+                "",
                 "   rm $CertPath -Force",
                 "   Write-Output \"Cert installed with Thumbprint: $($certResult.Thumbprint) - Deleted file\"",
                 "}"

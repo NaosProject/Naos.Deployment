@@ -590,10 +590,11 @@ namespace Naos.Deployment.Core
 
         private static string ApplyDnsTokenReplacements(string potentiallyTokenizedDns, string instanceName, string environment, int instanceNumber)
         {
-            var ret =
-                potentiallyTokenizedDns.Replace("{instanceName}", instanceName)
-                    .Replace("{environment}", environment)
-                    .Replace("{instanceNumber}", instanceNumber.ToString());
+            var ret = TokenSubstitutions.GetSubstitutedStringForDns(
+                potentiallyTokenizedDns,
+                environment,
+                instanceName,
+                instanceNumber);
             return ret;
         }
 
