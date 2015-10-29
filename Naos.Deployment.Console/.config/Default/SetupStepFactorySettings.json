@@ -80,11 +80,11 @@
                 "}"
             ]
         },
-        "setupMongoAsService": {
-            "parameterNames": [ "DatabaseName", "AdminPassword", "DataDirectory", "LogDirectory" ],
+        "configureMongo": {
+            "parameterNames": [ "DatabaseName", "AdminPassword", "DataDirectory", "LogDirectory", "NoJournaling" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $DatabaseName, [String] $AdminPassword, [String] $DataDirectory, [String] $LogDirectory)",
+                "param([String] $DatabaseName, [String] $AdminPassword, [String] $DataDirectory, [String] $LogDirectory, [boolean] $NoJournaling)",
                 "   $logFilePath = Join-Path $LogDirectory mongod.log",
                 "",
                 "   $installLogPath = Join-Path (Split-Path $DataDirectory) 'MongoInstall.log'",
@@ -99,8 +99,11 @@
                 "      \"Error stopping mongo: $_\" | Out-File -Append -FilePath $installLogPath",
                 "    }",
                 "",
+                "   $mongoPath = 'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongo.exe'",
+                "   $mongodPath = 'C:\\Program Files\\MongoDB\\Server\\3.0\\bin\\mongod.exe'",
+                "",
                 "   # setup service using no auth",
-                "   &C:\\mongodb\\3.0.7\\bin\\mongod.exe --remove",
+                "   &$mongodPath --remove",
                 "   'Deleting db and logs directories recursively...' | Out-File -Append -FilePath $installLogPath",
                 "   Remove-Item $DataDirectory -Force -Recurse",
                 "   Remove-Item $LogDirectory -Force -Recurse",
@@ -146,17 +149,24 @@
                 "   $configFileContentsNoAuth | Out-File -Encoding ASCII -FilePath $configFilePath",
                 "",
                 "   'Installing MongoDB Service...' | Out-File -Append -FilePath $installLogPath",
-                "   &C:\\mongodb\\3.0.7\\bin\\mongod.exe --nojournal --config \"$configFilePath\" --install",
+                "   if ($NoJournaling)",
+                "   {",
+                "      &$mongodPath --nojournal --config \"$configFilePath\" --install",
+                "   }",
+                "   else",
+                "   {",
+                "      &$mongodPath --config \"$configFilePath\" --install",
+                "   }",
                 "",
                 "   'Starting MongoDB Service...' | Out-File -Append -FilePath $installLogPath",
                 "   Start-Sleep 2",
                 "   Start-Service MongoDB",
                 "",
                 "   'Create sa (superuser)...' | Out-File -Append -FilePath $installLogPath",
-                "   &C:\\mongodb\\3.0.7\\bin\\mongo.exe admin $createSuperAdminUserScriptPath",
+                "   &$mongoPath admin $createSuperAdminUserScriptPath",
                 "",
                 "   \"Create '$DatabaseName' database admin...\" | Out-File -Append -FilePath $installLogPath",
-                "   &C:\\mongodb\\3.0.7\\bin\\mongo.exe -u sa -p $AdminPassword admin $createAdminUserScriptPath",
+                "   &$mongoPath -u sa -p $AdminPassword admin $createAdminUserScriptPath",
                 "",
                 "   # change config to auth",
                 "    try {",
@@ -172,6 +182,7 @@
                 "   # Remove-Item $scriptsDir -Force -Recurse",
                 "   # Remove-Item $installLogPath -Force -Recurse",
                 "}"
+
             ]
         },
         "installChocolatey": {

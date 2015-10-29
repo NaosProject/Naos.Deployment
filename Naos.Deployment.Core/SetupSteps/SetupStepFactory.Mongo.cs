@@ -64,15 +64,15 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(installMongoScript.ScriptText, installMongoParams)
                     });
 
-            var setupMongoAsServiceScript = this.settings.DeploymentScriptBlocks.SetupMongoAsService;
-            var setupMongoAsServiceParams = new[] { mongoStrategy.DocumentDatabaseName, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory };
+            var configureMongoScript = this.settings.DeploymentScriptBlocks.ConfigureMongo;
+            var configureMongoParams = new object[] { mongoStrategy.DocumentDatabaseName, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory, mongoStrategy.NoJournaling };
             mongoSteps.Add(
                 new SetupStep
                 {
-                    Description = "Setup Mongo as service.",
+                    Description = "Configure Mongo.",
                     SetupAction =
                         machineManager =>
-                        machineManager.RunScript(setupMongoAsServiceScript.ScriptText, setupMongoAsServiceParams)
+                        machineManager.RunScript(configureMongoScript.ScriptText, configureMongoParams)
                 });
 
             var restartMongoServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;

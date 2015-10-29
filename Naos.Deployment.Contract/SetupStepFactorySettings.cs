@@ -226,7 +226,7 @@ namespace Naos.Deployment.Contract
         /// <summary>
         /// Gets or sets the script block to configure and start mongo as a windows service.
         /// </summary>
-        public ScriptBlockDescription SetupMongoAsService { get; set; }
+        public ScriptBlockDescription ConfigureMongo { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to setup a scheduled task in Windows Task Scheduler.
