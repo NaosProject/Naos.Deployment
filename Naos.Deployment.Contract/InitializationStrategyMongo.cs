@@ -31,6 +31,11 @@ namespace Naos.Deployment.Contract
         /// </summary>
         public string LogDirectory { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to disable journaling.
+        /// </summary>
+        public bool NoJournaling { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
@@ -39,7 +44,8 @@ namespace Naos.Deployment.Contract
                               DocumentDatabaseName = this.DocumentDatabaseName,
                               AdministratorPassword = this.AdministratorPassword,
                               DataDirectory = this.DataDirectory,
-                              LogDirectory = this.LogDirectory
+                              LogDirectory = this.LogDirectory,
+                              NoJournaling = this.NoJournaling
                           };
             return ret;
         }

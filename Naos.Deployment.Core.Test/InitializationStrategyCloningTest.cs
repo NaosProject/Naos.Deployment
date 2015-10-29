@@ -105,7 +105,8 @@ namespace Naos.Deployment.Core.Test
                                    AdministratorPassword = "password",
                                    DocumentDatabaseName = "name",
                                    DataDirectory = @"D:\Data",
-                                   LogDirectory = @"D:\Log"
+                                   LogDirectory = @"D:\Log",
+                                   NoJournaling = true
                                };
             var cloned = original.Clone() as InitializationStrategyMongo;
             Assert.NotNull(cloned);
@@ -114,6 +115,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(original.DocumentDatabaseName, cloned.DocumentDatabaseName);
             Assert.Equal(original.DataDirectory, cloned.DataDirectory);
             Assert.Equal(original.LogDirectory, cloned.LogDirectory);
+            Assert.Equal(original.NoJournaling, cloned.NoJournaling);
         }
 
         [Fact]
