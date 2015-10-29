@@ -19,6 +19,7 @@ namespace Naos.Deployment.Core
     {
         private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
         private const string AmiIdKeyForSystemSpecificDictionary = "amiId";
+        private const string InstanceTypeKeyForSystemSpecificDictionary = "instanceType";
 
         private readonly CloudInfrastructureManagerSettings settings;
         private readonly ITrackComputingInfrastructure tracker;
@@ -284,6 +285,10 @@ namespace Naos.Deployment.Core
                                                 {
                                                     AmiIdKeyForSystemSpecificDictionary,
                                                     createdInstance.Ami.Id
+                                                },
+                                                {
+                                                    InstanceTypeKeyForSystemSpecificDictionary,
+                                                    awsInstanceType
                                                 }
                                             };
 
