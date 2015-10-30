@@ -30,7 +30,12 @@ namespace Naos.Deployment.MessageBus.Contract
             await Task.Run(() => this.Handle(message, settings));
         }
 
-        private void Handle(StopInstanceMessage message, DeploymentMessageHandlerSettings settings)
+        /// <summary>
+        /// Handle a stop instance message.
+        /// </summary>
+        /// <param name="message">Message to handle.</param>
+        /// <param name="settings">Settings necessary to handle the message.</param>
+        public void Handle(StopInstanceMessage message, DeploymentMessageHandlerSettings settings)
         {
             var credentialsToUse = new CredentialContainer
             {

@@ -30,7 +30,12 @@ namespace Naos.Deployment.MessageBus.Contract
             await Task.Run(() => this.Handle(message, settings));
         }
 
-        private void Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings)
+        /// <summary>
+        /// Handle a change instance type message.
+        /// </summary>
+        /// <param name="message">Message to handle.</param>
+        /// <param name="settings">Settings necessary to handle the message.</param>
+        public void Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings)
         {
             var credentialsToUse = new CredentialContainer
                                        {
