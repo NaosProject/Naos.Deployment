@@ -55,6 +55,7 @@
     <Compile Include="AutoStartProvider.cs" />
     <Compile Include="CloudInfrastructureManagerSettings.cs" />
     <Compile Include="CloudContainerDescription.cs" />
+    <Compile Include="PackageDescriptionIdOnlyEqualityComparer.cs" />
     <Compile Include="PostDeploymentStrategy.cs" />
     <Compile Include="TokenSubstitutions.cs" />
     <Compile Include="DatabaseMigrationBase.cs" />

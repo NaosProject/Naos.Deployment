@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.CloudManagement
 {
     using System.Collections.Generic;
 
@@ -25,6 +25,11 @@ namespace Naos.Deployment.Core
 
         /// <inheritdoc />
         public void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true)
+        {
+        }
+
+        /// <inheritdoc />
+        public void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType)
         {
         }
 

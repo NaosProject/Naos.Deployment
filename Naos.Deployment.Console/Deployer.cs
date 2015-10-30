@@ -17,11 +17,11 @@ namespace Naos.Deployment.Console
     using Its.Configuration;
 
     using Naos.AWS.Contract;
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Core.CloudInfrastructureTracking;
-    using Naos.MessageBus.HandlingContract;
 
     using Newtonsoft.Json;
 

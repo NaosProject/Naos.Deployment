@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.CloudManagement
 {
     using System;
     using System.IO;

@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     using System.IO;
     using System.Linq;
 
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
 
     /// <summary>

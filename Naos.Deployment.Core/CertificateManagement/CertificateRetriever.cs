@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.IO;
     using System.Linq;
 
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
 
     /// <summary>
