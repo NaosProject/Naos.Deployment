@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
-    using System.Runtime.InteropServices.WindowsRuntime;
 
     /// <summary>
     /// Model object with necessary details to deploy software to a machine.
@@ -43,5 +42,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the deployment strategy to describe how certain things should be handled.
         /// </summary>
         public DeploymentStrategy DeploymentStrategy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the post deployment strategy to describe any steps to perform when the deployment is finished.
+        /// </summary>
+        public PostDeploymentStrategy PostDeploymentStrategy { get; set; }
     }
 }
