@@ -104,6 +104,10 @@
     <None Include="Settings.StyleCop" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Naos.Deployment.CloudManagement\Naos.Deployment.CloudManagement.csproj">
+      <Project>{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}</Project>
+      <Name>Naos.Deployment.CloudManagement</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Naos.Deployment.Contract\Naos.Deployment.Contract.csproj">
       <Project>{2160253A-C829-4335-BFAB-5559B6117FFE}</Project>
       <Name>Naos.Deployment.Contract</Name>

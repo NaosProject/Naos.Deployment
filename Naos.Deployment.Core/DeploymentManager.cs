@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
     using System.Threading;
 
     using Naos.AWS.Core;
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.MessageBus.HandlingContract;
     using Naos.WinRM;

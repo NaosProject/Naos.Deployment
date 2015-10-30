@@ -10,6 +10,8 @@ namespace Naos.Deployment.Core.Test
     using System.IO;
     using System.Linq;
 
+    using Naos.Deployment.CloudManagement;
+
     using Xunit;
 
     public class CloudInfrastructureNamerTest

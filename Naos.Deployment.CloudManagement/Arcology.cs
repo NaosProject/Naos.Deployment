@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core.CloudInfrastructureTracking
+namespace Naos.Deployment.CloudManagement
 {
     using System;
     using System.Collections.Generic;

@@ -39,6 +39,14 @@ namespace Naos.Deployment.Contract
         void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true);
 
         /// <summary>
+        /// Changes the type of an instance.
+        /// </summary>
+        /// <param name="systemId">Proprietary ID of the instance.</param>
+        /// <param name="systemLocation">Proprietary location of the instance.</param>
+        /// <param name="newInstanceType">New instance type for the instance.</param>
+        void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType);
+
+        /// <summary>
         /// Creates a new instance per the deployment configuration provided.
         /// </summary>
         /// <param name="environment">Environment being deployed to.</param>

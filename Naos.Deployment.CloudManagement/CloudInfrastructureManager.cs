@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.CloudManagement
 {
     using System;
     using System.Collections.Generic;
@@ -152,6 +152,20 @@ namespace Naos.Deployment.Core
             {
                 instanceToTurnOn.WaitForState(InstanceState.Running, this.credentials);
             }
+        }
+
+        /// <inheritdoc />
+        public void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType)
+        {
+            var newAwsInstanceType = this.GetAwsInstanceType(newInstanceType);
+            var instanceToChangeTypeof = new Instance()
+                                             {
+                                                 Id = systemId,
+                                                 Region = systemLocation,
+                                                 InstanceType = newAwsInstanceType
+                                             };
+
+            instanceToChangeTypeof.UpdateInstanceType(this.credentials);
         }
 
         /// <inheritdoc />
