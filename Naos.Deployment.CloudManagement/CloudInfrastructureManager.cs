@@ -9,6 +9,7 @@ namespace Naos.Deployment.CloudManagement
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.Remoting.Messaging;
 
     using Naos.AWS.Contract;
     using Naos.AWS.Core;
@@ -215,11 +216,7 @@ namespace Naos.Deployment.CloudManagement
                             VirtualName = _.DriveLetter
                         }).ToList();
 
-            // if we don't have a specific instance type then look one up, otherwise use the specific one...
-            var awsInstanceType = string.IsNullOrEmpty(
-                deploymentConfiguration.InstanceType.SpecificInstanceTypeSystemId)
-                                      ? this.GetAwsInstanceType(deploymentConfiguration.InstanceType)
-                                      : deploymentConfiguration.InstanceType.SpecificInstanceTypeSystemId;
+            var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
 
             var instanceName = namer.GetInstanceName();
             var existing = this.tracker.GetInstanceIdByName(environment, instanceName);
@@ -359,6 +356,12 @@ namespace Naos.Deployment.CloudManagement
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
         public string GetAwsInstanceType(InstanceType instanceType)
         {
+            // if we don't have a specific instance type then look one up, otherwise use the specific one...
+            if (!string.IsNullOrEmpty(instanceType.SpecificInstanceTypeSystemId))
+            {
+                return instanceType.SpecificInstanceTypeSystemId;
+            }
+
             if (instanceType.WindowsSku == WindowsSku.SqlWeb)
             {
                 foreach (var type in this.settings.AwsInstanceTypesForSqlWeb)
