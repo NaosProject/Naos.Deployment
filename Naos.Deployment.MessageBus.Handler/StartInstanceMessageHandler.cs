@@ -27,7 +27,8 @@ namespace Naos.Deployment.MessageBus.Contract
         public async Task HandleAsync(StartInstanceMessage message)
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
-            await Task.Run(() => this.Handle(message, settings));
+            var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
+            await Task.Run(() => this.Handle(message, settings, cloudInfrastructureManagerSettings));
         }
 
         /// <summary>
@@ -35,7 +36,8 @@ namespace Naos.Deployment.MessageBus.Contract
         /// </summary>
         /// <param name="message">Message to handle.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        public void Handle(StartInstanceMessage message, DeploymentMessageHandlerSettings settings)
+        /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
+        public void Handle(StartInstanceMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
         {
             var credentialsToUse = new CredentialContainer
             {
@@ -44,11 +46,9 @@ namespace Naos.Deployment.MessageBus.Contract
                 CredentialType = CredentialType.Keys
             };
 
-            // the absense of real settings will reduce what the manager can do, will move this out to a smaller manager later.
-            var managerSettings = new CloudInfrastructureManagerSettings();
             var cloudManager =
-                new CloudInfrastructureManager(managerSettings, new NullInfrastructureTracker()).InitializeCredentials(
-                    credentialsToUse);
+                new CloudInfrastructureManager(cloudInfrastructureManagerSettings, new NullInfrastructureTracker())
+                    .InitializeCredentials(credentialsToUse);
 
             cloudManager.TurnOnInstance(message.InstanceId, message.InstanceLocation, message.WaitUntilOn);
         }
