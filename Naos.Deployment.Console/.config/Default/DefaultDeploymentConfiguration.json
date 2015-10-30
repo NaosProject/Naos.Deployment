@@ -1,0 +1,29 @@
+﻿{
+    "instanceType": {
+        "virtualCores": 2,
+        "ramInGb": 3.5
+    },
+    "instanceAccessibility": "private",
+    "volumes": [
+        {
+            "driveLetter": "C",
+            "sizeInGb": 50,
+            "type": "standard"
+        },
+        {
+            "driveLetter": "D",
+            "sizeInGb": 100,
+            "type": "standard"
+        }
+    ],
+    "deploymentStrategy": {
+        "includeInstanceInitializationScript": true,
+        "runSetupSteps": true
+    },
+    "chocolateyPackages": [
+        { "id": "GoogleChrome" },
+        { "id": "sublime" },
+        { "id": "BareTail" },
+        { "id": "7zip.install" }
+    ]
+}

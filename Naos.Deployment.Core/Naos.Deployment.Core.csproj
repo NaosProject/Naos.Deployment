@@ -151,6 +151,8 @@
     <Compile Include="CloudInfrastructureTracking\ArcologyInfo.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />
+    <Compile Include="MessageBusHandlerHarnessConfiguration.cs" />
+    <Compile Include="DefaultDeploymentConfiguration.cs" />
     <Compile Include="NuGetConfigFile.cs" />
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />

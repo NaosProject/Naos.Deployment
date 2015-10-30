@@ -26,9 +26,7 @@ namespace Naos.Deployment.Core
 
         private readonly IManagePackages packageManager;
 
-        private readonly DeploymentConfiguration defaultDeploymentConfig;
-
-        private readonly PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides;
+        private readonly DeploymentConfiguration defaultDeploymentConfiguration;
 
         private readonly Action<string> announce;
 
@@ -38,9 +36,7 @@ namespace Naos.Deployment.Core
 
         private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
 
-        private readonly LogProcessorSettings handlerHarnessLogProcessorSettings;
-
-        private readonly TimeSpan handlerHarnessProcessTimeToLive;
+        private readonly MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
@@ -49,12 +45,10 @@ namespace Naos.Deployment.Core
         /// <param name="cloudManager">Manager of the cloud infrastructure (wraps custom cloud interactions).</param>
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
+        /// <param name="defaultDeploymentConfiguration">Default deployment configuration to substitute the values for any nulls.</param>
+        /// <param name="messageBusHandlerHarnessConfiguration">Settings and description of the harness to use for message bus handler initializations.</param>
         /// <param name="setupStepFactorySettings">Settings for the setup step factory.</param>
-        /// <param name="defaultDeploymentConfig">Default deployment configuration to substitute the values for any nulls.</param>
-        /// <param name="handlerHarnessPackageDescriptionWithOverrides">The package that will be used as a harness for the NAOS.MessageBus handlers that are being deployed.</param>
-        /// <param name="handlerHarnessLogProcessorSettings">Log processor settings to be used when deploying a message bus handler harness.</param>
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
-        /// <param name="handlerHarnessProcessTimeToLive">Time to allow handler harness process to stay active before cycling.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         public DeploymentManager(
@@ -62,23 +56,19 @@ namespace Naos.Deployment.Core
             IManageCloudInfrastructure cloudManager,
             IManagePackages packageManager,
             IGetCertificates certificateRetriever,
+            DefaultDeploymentConfiguration defaultDeploymentConfiguration,
+            MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration,
             SetupStepFactorySettings setupStepFactorySettings,
-            DeploymentConfiguration defaultDeploymentConfig,
-            PackageDescriptionWithOverrides handlerHarnessPackageDescriptionWithOverrides,
-            LogProcessorSettings handlerHarnessLogProcessorSettings,
             string messageBusPersistenceConnectionString,
-            TimeSpan handlerHarnessProcessTimeToLive,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer)
         {
             this.tracker = tracker;
             this.cloudManager = cloudManager;
             this.packageManager = packageManager;
-            this.defaultDeploymentConfig = defaultDeploymentConfig;
-            this.handlerHarnessPackageDescriptionWithOverrides = handlerHarnessPackageDescriptionWithOverrides;
-            this.handlerHarnessLogProcessorSettings = handlerHarnessLogProcessorSettings;
+            this.defaultDeploymentConfiguration = defaultDeploymentConfiguration;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
-            this.handlerHarnessProcessTimeToLive = handlerHarnessProcessTimeToLive;
+            this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
             this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever, packageManager);
@@ -129,7 +119,7 @@ namespace Naos.Deployment.Core
 
             // apply default values to any nulls
             this.announce("Applying default deployment configuration options.");
-            var packagedConfigsWithDefaults = packagedDeploymentConfigs.ApplyDefaults(this.defaultDeploymentConfig);
+            var packagedConfigsWithDefaults = packagedDeploymentConfigs.ApplyDefaults(this.defaultDeploymentConfiguration);
 
             // flatten configs into a single config to deploy onto an instance
             this.announce("Flattening multiple deployment configurations.");
@@ -215,7 +205,7 @@ namespace Naos.Deployment.Core
                     var notAlreadyDeployingTheSamePackageAsHandlersUse =
                         packagedDeploymentConfigsWithDefaultsAndOverrides.All(
                             _ =>
-                            _.Package.PackageDescription.Id != this.handlerHarnessPackageDescriptionWithOverrides.Id);
+                            _.Package.PackageDescription.Id != this.messageBusHandlerHarnessConfiguration.Package.Id);
 
                     if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
                     {
@@ -354,6 +344,15 @@ namespace Naos.Deployment.Core
                             publicDnsEntry,
                             new[] { publicIpAddress });
                     }
+                }
+
+                if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
+                {
+                    this.announce("Post deployment strategy: TurnOffInstance is true - shutting down instance.");
+                    this.cloudManager.TurnOffInstance(
+                        createdInstanceDescription.Id,
+                        createdInstanceDescription.Location,
+                        true);
                 }
             }
 
@@ -507,14 +506,14 @@ namespace Naos.Deployment.Core
                 itsConfigOverridesToUse.AddRange(itsConfigOverrides);
             }
 
-            if (this.handlerHarnessPackageDescriptionWithOverrides.ItsConfigOverrides != null)
+            if (this.messageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides != null)
             {
                 // merge in any overrides specified with the handler package
-                itsConfigOverridesToUse.AddRange(this.handlerHarnessPackageDescriptionWithOverrides.ItsConfigOverrides);
+                itsConfigOverridesToUse.AddRange(this.messageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides);
             }
 
             var messageBusHandlerPackage =
-                this.packageManager.GetPackage(this.handlerHarnessPackageDescriptionWithOverrides);
+                this.packageManager.GetPackage(this.messageBusHandlerHarnessConfiguration.Package);
 
             var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage);
             messageBusHandlerPackage.PackageDescription.Version = actualVersion;
@@ -539,7 +538,7 @@ namespace Naos.Deployment.Core
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
                                                        MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
                                                        RetryCount = 0,
-                                                       HarnessProcessTimeToLive = this.handlerHarnessProcessTimeToLive
+                                                       HarnessProcessTimeToLive = this.messageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive
                                                    }
                                            };
 
@@ -547,7 +546,7 @@ namespace Naos.Deployment.Core
                                                 {
                                                     PersistenceConnectionString = this.messageBusPersistenceConnectionString,
                                                     RoleSettings = executorRoleSettings,
-                                                    LogProcessorSettings = this.handlerHarnessLogProcessorSettings
+                                                    LogProcessorSettings = this.messageBusHandlerHarnessConfiguration.LogProcessorSettings
                                                 };
 
             // add the override that will activate the harness in executor mode.
@@ -560,7 +559,7 @@ namespace Naos.Deployment.Core
                     });
 
             var messageBusHandlerHarnessInitializationStrategies =
-                this.handlerHarnessPackageDescriptionWithOverrides.InitializationStrategies.Select(
+                this.messageBusHandlerHarnessConfiguration.Package.InitializationStrategies.Select(
                     _ => (InitializationStrategyBase)_.Clone()).ToList();
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
                                             {

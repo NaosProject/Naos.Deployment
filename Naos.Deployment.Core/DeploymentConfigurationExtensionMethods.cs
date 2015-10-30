@@ -44,8 +44,21 @@ namespace Naos.Deployment.Core
                 throw new ArgumentException("Cannot have competing RunSetupSteps values.");
             }
 
-            // since both values are the same for the entire collection just take the first one...
+            // Makes sure we don't have competing TurnOffInstance values
+            if (
+                deploymentConfigs.Any(
+                    _ => (_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
+                && deploymentConfigs.Any(
+                    _ => !(_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance))
+            {
+                throw new ArgumentException("Cannot have competing TurnOffInstance values.");
+            }
+
+            // since values are the same for the entire collection just take the first one...
             var deploymentStrategy = deploymentConfigs.First().DeploymentStrategy;
+
+            // since values are the same for the entire collection just take the first one...
+            var postDeploymentStrategy = deploymentConfigs.First().PostDeploymentStrategy;
 
             // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))
@@ -132,10 +145,11 @@ namespace Naos.Deployment.Core
                                                     .Distinct()
                                                     .ToList()),
                                       },
-                              DeploymentStrategy = deploymentStrategy,
                               InstanceAccessibility = accessibilityToUse,
                               Volumes = volumes,
                               ChocolateyPackages = chocolateyPackagesToUse,
+                              DeploymentStrategy = deploymentStrategy,
+                              PostDeploymentStrategy = postDeploymentStrategy
                           };
 
             return ret;
@@ -181,15 +195,18 @@ namespace Naos.Deployment.Core
                               InstanceType =
                                   deploymentConfigOverride.InstanceType
                                   ?? deploymentConfigInitial.InstanceType,
-                              DeploymentStrategy =
-                                  deploymentConfigOverride.DeploymentStrategy
-                                  ?? deploymentConfigInitial.DeploymentStrategy,
                               Volumes =
                                   deploymentConfigOverride.Volumes
                                   ?? deploymentConfigInitial.Volumes,
                               ChocolateyPackages =
                                   deploymentConfigOverride.ChocolateyPackages
                                   ?? deploymentConfigInitial.ChocolateyPackages,
+                              DeploymentStrategy =
+                                  deploymentConfigOverride.DeploymentStrategy
+                                  ?? deploymentConfigInitial.DeploymentStrategy,
+                              PostDeploymentStrategy =
+                                  deploymentConfigOverride.PostDeploymentStrategy
+                                  ?? deploymentConfigInitial.PostDeploymentStrategy
                           };
 
             if (ret.InstanceType == null)
@@ -281,7 +298,12 @@ namespace Naos.Deployment.Core
                                   (deploymentConfigInitial == null
                                        ? null
                                        : deploymentConfigInitial.DeploymentStrategy)
-                                  ?? defaultDeploymentConfig.DeploymentStrategy
+                                  ?? defaultDeploymentConfig.DeploymentStrategy,
+                              PostDeploymentStrategy =
+                                  (deploymentConfigInitial == null
+                                       ? null
+                                       : deploymentConfigInitial.PostDeploymentStrategy)
+                                  ?? defaultDeploymentConfig.PostDeploymentStrategy
                           };
 
             if (ret.InstanceType != null)

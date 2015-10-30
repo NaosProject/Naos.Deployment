@@ -88,10 +88,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" />
+    <Compile Include="DeploymentConfigurationExtensionMethodsTest.Flatten.cs" />
     <Compile Include="InitializationStrategyCloningTest.cs" />
     <Compile Include="ArcologyTest.cs" />
     <Compile Include="CloudInfrastructureNamerTest.cs" />
-    <Compile Include="DeploymentConfigurationExtensionMethodsTest.cs" />
+    <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" />
     <Compile Include="SerializerTest.cs" />
     <Compile Include="PackageManagerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

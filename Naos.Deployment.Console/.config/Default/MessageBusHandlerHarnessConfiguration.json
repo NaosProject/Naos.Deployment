@@ -1,0 +1,18 @@
+﻿{
+    "handlerHarnessProcessTimeToLive": "00:05:00",
+    "package": {
+        "id": "Naos.MessageBus.Hangfire.Console",
+        "initializationStrategies": [
+            { "privateDnsEntry": "{instanceName}.messageBus.{environment}.cometrics.com" },
+            {
+                "name": "MessageBusHandlerHarness",
+                "description": "Task to ensure the message bus handler harness is always running.",
+                "exeName": "Naos.MessageBus.Hangfire.Console.exe",
+                "schedule": { "cronExpression": "* * * * *" }
+            }
+        ]
+    },
+    "logProcessorSettings": {
+        "logFilePath": "D:\\Deployments\\Naos.MessageBus.Hangfire.Console\\packagedConsoleApp\\HangfireHarnessLog.txt"
+    }
+}
