@@ -55,13 +55,13 @@
     <Reference Include="Its.Log">
       <HintPath>..\packages\Its.Log.2.8.3\lib\net40\Its.Log.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Contract, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Contract, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.25\lib\net45\Naos.AWS.Contract.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.26\lib\net45\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Core, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Core.1.0.25\lib\net45\Naos.AWS.Core.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Core.1.0.26\lib\net45\Naos.AWS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -82,6 +82,7 @@
     <Compile Include=".Spritely.Recipes\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
     <Compile Include="Arcology.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="ArcologyInfo.cs" />
     <Compile Include="CloudInfrastructureManager.cs" />
     <Compile Include="CloudInfrastructureNamer.cs" />

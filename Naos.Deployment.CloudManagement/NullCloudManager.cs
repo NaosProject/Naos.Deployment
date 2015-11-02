@@ -46,6 +46,12 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
+        public IList<InstanceDetailsFromCloud> GetInstancesFromCloud(string environment, string systemLocation)
+        {
+            return new List<InstanceDetailsFromCloud>();
+        }
+
+        /// <inheritdoc />
         public string GetAdministratorPasswordForInstance(InstanceDescription instanceDescription, string privateKey)
         {
             return null;

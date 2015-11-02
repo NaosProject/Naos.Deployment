@@ -9,6 +9,7 @@ namespace Naos.Deployment.CloudManagement
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using System.Runtime.Remoting.Messaging;
 
     using Naos.AWS.Contract;
@@ -318,7 +319,7 @@ namespace Naos.Deployment.CloudManagement
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
                     });
 
-            createdInstance.AddTagInAws("Environment", environment, this.credentials);
+            createdInstance.AddTagInAws(Constants.EnvironmentTagKey, environment, this.credentials);
 
             var instanceDescription = new InstanceDescription()
             {
@@ -346,6 +347,25 @@ namespace Naos.Deployment.CloudManagement
         {
             var id = this.tracker.GetInstanceIdByName(environment, name);
             var ret = this.tracker.GetInstanceDescriptionById(environment, id);
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public IList<InstanceDetailsFromCloud> GetInstancesFromCloud(string environment, string systemLocation)
+        {
+            var instances = new List<Instance>().FillFromAws(systemLocation, this.credentials);
+
+            var ret =
+                instances.Select(
+                    _ =>
+                    new InstanceDetailsFromCloud
+                        {
+                            Id = _.Id,
+                            Location = _.Region,
+                            Name = _.Tags[Constants.NameTagKey],
+                            Tags = _.Tags
+                        }).ToList();
+
             return ret;
         }
 

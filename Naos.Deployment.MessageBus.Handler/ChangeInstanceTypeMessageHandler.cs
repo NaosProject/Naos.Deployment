@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Its.Configuration;
@@ -39,18 +41,29 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
         public void Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
         {
-            var credentialsToUse = new CredentialContainer
-                                       {
-                                           AccessKeyId = settings.AccessKey,
-                                           SecretAccessKey = settings.SecretKey,
-                                           CredentialType = CredentialType.Keys
-                                       };
+            if (message.NewInstanceType == null)
+            {
+                throw new ArgumentException("Must specify a new instance type to change instance to.");
+            }
 
-            var cloudManager =
-                new CloudInfrastructureManager(cloudInfrastructureManagerSettings, new NullInfrastructureTracker())
-                    .InitializeCredentials(credentialsToUse);
+            if (message == null)
+            {
+                throw new ArgumentException("Cannot have a null message.");
+            }
 
-            cloudManager.ChangeInstanceType(message.InstanceId, message.InstanceLocation, message.NewInstanceType);
+            if (string.IsNullOrEmpty(message.InstanceId) && string.IsNullOrEmpty(message.InstanceName))
+            {
+                throw new ArgumentException("Must specify EITHER the instance id or name to lookup id by.");
+            }
+
+            var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
+            var systemId = message.InstanceId;
+            if (string.IsNullOrEmpty(systemId))
+            {
+                systemId = CloudManagerHelper.GetSystemIdFromName(message.InstanceName, settings, cloudManager);
+            }
+
+            cloudManager.ChangeInstanceType(systemId, settings.SystemLocation, message.NewInstanceType);
         }
     }
 }

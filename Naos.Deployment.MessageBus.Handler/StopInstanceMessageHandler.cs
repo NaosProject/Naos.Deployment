@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
+    using System;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Its.Configuration;
@@ -39,18 +41,24 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
         public void Handle(StopInstanceMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
         {
-            var credentialsToUse = new CredentialContainer
+            if (message == null)
             {
-                AccessKeyId = settings.AccessKey,
-                SecretAccessKey = settings.SecretKey,
-                CredentialType = CredentialType.Keys
-            };
+                throw new ArgumentException("Cannot have a null message.");
+            }
 
-            var cloudManager =
-                new CloudInfrastructureManager(cloudInfrastructureManagerSettings, new NullInfrastructureTracker())
-                    .InitializeCredentials(credentialsToUse);
+            if (string.IsNullOrEmpty(message.InstanceId) && string.IsNullOrEmpty(message.InstanceName))
+            {
+                throw new ArgumentException("Must specify EITHER the instance id or name to lookup id by.");
+            }
 
-            cloudManager.TurnOffInstance(message.InstanceId, message.InstanceLocation, message.WaitUntilOff);
+            var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
+            var systemId = message.InstanceId;
+            if (string.IsNullOrEmpty(systemId))
+            {
+                systemId = CloudManagerHelper.GetSystemIdFromName(message.InstanceName, settings, cloudManager);
+            }
+
+            cloudManager.TurnOffInstance(systemId, settings.SystemLocation, message.WaitUntilOff);
         }
     }
 }

@@ -99,14 +99,19 @@ namespace Naos.Deployment.Core
             {
                 var volumesForDriveLetter = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).ToList();
                 var sizeInGb = volumesForDriveLetter.Max(_ => _.SizeInGb);
-                var distinctTypes = volumesForDriveLetter.Select(_ => _.Type).Distinct().ToList();
+                var distinctTypes =
+                    volumesForDriveLetter.Select(_ => _.Type == VolumeType.DoesNotMatter ? VolumeType.Standard : _.Type)
+                        .Distinct()
+                        .ToList();
+
                 if (distinctTypes.Count > 1)
                 {
                     throw new ArgumentException(
                         "Cannot have competing Volume Type values for the same drive letter: " + distinctDriveLetter);
                 }
 
-                volumes.Add(new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb });
+                volumes.Add(
+                    new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb, Type = distinctTypes.Single() });
             }
 
             var allChocolateyPackages =
