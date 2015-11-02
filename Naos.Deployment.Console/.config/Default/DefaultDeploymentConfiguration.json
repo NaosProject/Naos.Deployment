@@ -1,7 +1,7 @@
 ﻿{
     "instanceType": {
-        "virtualCores": 2,
-        "ramInGb": 3.5
+        "virtualCores": 1,
+        "ramInGb": 2
     },
     "instanceAccessibility": "private",
     "volumes": [
