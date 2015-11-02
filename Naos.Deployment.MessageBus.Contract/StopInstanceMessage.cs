@@ -22,13 +22,13 @@ namespace Naos.Deployment.MessageBus.Contract
         public string InstanceId { get; set; }
 
         /// <summary>
-        /// Gets or sets the location (per the cloud provider) of the instance to stop.
-        /// </summary>
-        public string InstanceLocation { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether or not to block until the instance is stopped.
         /// </summary>
         public bool WaitUntilOff { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the instance
+        /// </summary>
+        public string InstanceName { get; set; }
     }
 }

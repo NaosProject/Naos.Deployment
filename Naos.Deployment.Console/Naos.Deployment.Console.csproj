@@ -64,13 +64,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Its.Log.2.8.3\lib\net40\Its.Log.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Contract, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Contract, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.25\lib\net45\Naos.AWS.Contract.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.26\lib\net45\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Core, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Core.1.0.25\lib\net45\Naos.AWS.Core.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Core.1.0.26\lib\net45\Naos.AWS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.DataContract, Version=1.0.101.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

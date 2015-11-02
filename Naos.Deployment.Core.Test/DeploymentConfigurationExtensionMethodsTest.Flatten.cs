@@ -210,6 +210,50 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_TwoVolumesSameDriveLetter_TypeIsPersisted()
+        {
+            var first = new DeploymentConfiguration()
+                            {
+                                Volumes =
+                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } }
+                            };
+
+            var second = new DeploymentConfiguration()
+                             {
+                                 Volumes =
+                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.HighPerformance } }
+                             };
+
+            var flattenedConfig = new[] { first, second }.Flatten();
+            Assert.Equal(1, flattenedConfig.Volumes.Count);
+            Assert.Equal("C", flattenedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(100, flattenedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(VolumeType.HighPerformance, flattenedConfig.Volumes.Single().Type);
+        }
+
+        [Fact]
+        public static void Flatten_TwoVolumesSameDriveLetter_DoesntMatterChangedToStandard()
+        {
+            var first = new DeploymentConfiguration()
+                            {
+                                Volumes =
+                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } }
+                            };
+
+            var second = new DeploymentConfiguration()
+                             {
+                                 Volumes =
+                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.Standard } }
+                             };
+
+            var flattenedConfig = new[] { first, second }.Flatten();
+            Assert.Equal(1, flattenedConfig.Volumes.Count);
+            Assert.Equal("C", flattenedConfig.Volumes.Single().DriveLetter);
+            Assert.Equal(100, flattenedConfig.Volumes.Single().SizeInGb);
+            Assert.Equal(VolumeType.Standard, flattenedConfig.Volumes.Single().Type);
+        }
+
+        [Fact]
         public static void Flatten_ConflictingVolumeTypes_Throws()
         {
             var a = new DeploymentConfiguration()
