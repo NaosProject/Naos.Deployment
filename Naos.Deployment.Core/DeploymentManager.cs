@@ -39,6 +39,8 @@ namespace Naos.Deployment.Core
 
         private readonly MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration;
 
+        private readonly string[] itsConfigPrecedenceAfterEnvironment;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -72,7 +74,12 @@ namespace Naos.Deployment.Core
             this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
-            this.setupStepFactory = new SetupStepFactory(setupStepFactorySettings, certificateRetriever, packageManager);
+            this.itsConfigPrecedenceAfterEnvironment = new[] { "Common" };
+            this.setupStepFactory = new SetupStepFactory(
+                setupStepFactorySettings,
+                certificateRetriever,
+                packageManager,
+                this.itsConfigPrecedenceAfterEnvironment);
         }
 
         /// <inheritdoc />
@@ -224,15 +231,28 @@ namespace Naos.Deployment.Core
 
                             var packageFolderName =
                                 packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
-                            var itsConfigEnvironmentFolderPattern =
-                                packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                    ? string.Format("{1}/.config/{0}/", environment, packageFolderName)
-                                    : string.Format(".config/{0}/", environment);
 
-                            var itsConfigFilesFromPackage =
-                                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                    packageWithMessageBusInitializations.Package,
-                                    itsConfigEnvironmentFolderPattern);
+                            // extract appropriate files from 
+                            var itsConfigFilesFromPackage = new Dictionary<string, string>();
+                            var precedenceChain = new[] { environment }.ToList();
+                            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+                            foreach (var precedenceElement in precedenceChain)
+                            {
+                                var itsConfigFolderPattern =
+                                    packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                                        ? string.Format("{1}/.config/{0}/", precedenceElement, packageFolderName)
+                                        : string.Format(".config/{0}/", precedenceElement);
+
+                                var itsConfigFilesFromPackageForPrecedenceElement =
+                                    this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                        packageWithMessageBusInitializations.Package,
+                                        itsConfigFolderPattern);
+
+                                foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
+                                {
+                                    itsConfigFilesFromPackage.Add(item.Key, item.Value);
+                                }
+                            }
 
                             itsConfigOverridesForHandlers.AddRange(
                                 itsConfigFilesFromPackage.Select(

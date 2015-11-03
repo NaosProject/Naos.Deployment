@@ -223,11 +223,11 @@
         "updateItsConfigPrecedence": {
             "parameterNames": [
                 "FilePath",
-                "Environment"
+                "PrecedenceChain"
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $FilePath, [string] $Environment)",
+                "param([string] $FilePath, [Array] $PrecedenceChain)",
                 "    $appSettingsNodeName = 'appSettings'",
                 "    [xml] $c = Get-Content $FilePath",
                 "    # should only be one so this 'hack' works",
@@ -239,7 +239,14 @@
                 "    }",
                 "    $itsConfigPrecedenceKey = 'Its.Configuration.Settings.Precedence'",
                 "    $n = $appSettingsNode.GetElementsByTagName('add') | ?{$_.key -eq $itsConfigPrecedenceKey}",
-                "    $precedence = $Environment + '|Common'",
+                "    $precedence = ''",
+                "    $PrecedenceChain | %{",
+                "       if (-not ([string]::IsNullOrEmpty($PrecedenceChain)))",
+                "       {",
+                "           $precedence = $precedence + '|'",
+                "       }",
+                "       $precedence = $precedence + $_",
+                "    }",
                 "    if ($n -eq $null)",
                 "    {",
                 "       $n = $c.CreateElement('add') ",

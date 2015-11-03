@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
 
     using Naos.Cron;
@@ -26,7 +27,9 @@ namespace Naos.Deployment.Core
             var exeFullPath = Path.Combine(consoleRootPath, scheduledTaskStrategy.ExeName);
             var exeConfigFullPath = exeFullPath + ".config";
             var updateExeConfigScriptBlock = this.settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
-            var updateExeConfigScriptParams = new[] { exeConfigFullPath, environment };
+            var precedenceChain = new[] { environment }.ToList();
+            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+            var updateExeConfigScriptParams = new object[] { exeConfigFullPath, precedenceChain.ToArray() };
 
             scheduledTaskSetupSteps.Add(
                 new SetupStep

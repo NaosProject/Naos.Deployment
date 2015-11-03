@@ -25,17 +25,21 @@ namespace Naos.Deployment.Core
 
         private readonly IManagePackages packageManager;
 
+        private readonly string[] itsConfigPrecedenceAfterEnvironment;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SetupStepFactory"/> class.
         /// </summary>
         /// <param name="settings">Settings for the factory.</param>
         /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IManagePackages packageManager)
+        /// <param name="itsConfigPrecedenceAfterEnvironment"></param>
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IManagePackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
             this.packageManager = packageManager;
+            this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
         }
 
         /// <summary>

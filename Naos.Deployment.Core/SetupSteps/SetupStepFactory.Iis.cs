@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Text;
 
     using Naos.Deployment.Contract;
@@ -23,7 +24,9 @@ namespace Naos.Deployment.Core
 
             var webConfigPath = Path.Combine(webRootPath, "web.config");
             var updateWebConfigScriptBlock = this.settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
-            var updateWebConfigScriptParams = new[] { webConfigPath, environment };
+            var precedenceChain = new[] { environment }.ToList();
+            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+            var updateWebConfigScriptParams = new object[] { webConfigPath, precedenceChain.ToArray() };
 
             webSteps.Add(
                 new SetupStep
