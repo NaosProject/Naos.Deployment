@@ -44,7 +44,7 @@ namespace Naos.Deployment.Core
             scheduledTaskSetupSteps.Add(
                 new SetupStep
                 {
-                    Description = "Update Its.Config precedence: " + environment,
+                    Description = "Update Its.Config precedence: " + string.Join("|", precedenceChain),
                     SetupAction =
                         machineManager =>
                         machineManager.RunScript(
