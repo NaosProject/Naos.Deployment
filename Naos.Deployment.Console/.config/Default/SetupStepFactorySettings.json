@@ -241,7 +241,7 @@
                 "    $n = $appSettingsNode.GetElementsByTagName('add') | ?{$_.key -eq $itsConfigPrecedenceKey}",
                 "    $precedence = ''",
                 "    $PrecedenceChain | %{",
-                "       if (-not ([string]::IsNullOrEmpty($PrecedenceChain)))",
+                "       if (-not ([string]::IsNullOrEmpty($precedence)))",
                 "       {",
                 "           $precedence = $precedence + '|'",
                 "       }",
