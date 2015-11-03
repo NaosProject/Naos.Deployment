@@ -74,13 +74,13 @@
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Contract, Version=1.0.27.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Contract, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.27\lib\net45\Naos.AWS.Contract.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.29\lib\net45\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.27.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="Naos.AWS.Core, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Naos.AWS.Core.1.0.27\lib\net45\Naos.AWS.Core.dll</HintPath>
+      <HintPath>..\packages\Naos.AWS.Core.1.0.29\lib\net45\Naos.AWS.Core.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
