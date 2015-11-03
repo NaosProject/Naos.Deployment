@@ -7,13 +7,10 @@
 namespace Naos.Deployment.MessageBus.Contract
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
 
     using Its.Configuration;
 
-    using Naos.AWS.Contract;
-    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.MessageBus.HandlingContract;
 
