@@ -56,6 +56,8 @@ namespace Naos.Deployment.MessageBus.Handler
             var systemId = CloudManagerHelper.GetSystemIdFromTargeter(message.InstanceTargeter, settings, cloudManager);
 
             cloudManager.TurnOnInstance(systemId, settings.SystemLocation, message.WaitUntilOn);
+
+            this.InstanceTargeter = message.InstanceTargeter;
         }
     }
 }
