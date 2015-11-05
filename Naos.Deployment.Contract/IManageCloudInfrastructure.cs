@@ -66,12 +66,12 @@ namespace Naos.Deployment.Contract
         InstanceDescription GetInstanceDescription(string environment, string name);
 
         /// <summary>
-        /// Gets the instances for a given environment and location.
+        /// Gets the active (not terminated) instances for a given environment and location.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="systemLocation">System location to make calls against.</param>
         /// <returns>List of instances found in the cloud.</returns>
-        IList<InstanceDetailsFromCloud> GetInstancesFromCloud(string environment, string systemLocation);
+        IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation);
 
         /// <summary>
         /// Creates or updates the specified DNS entry to the provide IP Addresses.

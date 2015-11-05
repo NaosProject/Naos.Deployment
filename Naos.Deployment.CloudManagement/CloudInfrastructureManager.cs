@@ -351,19 +351,30 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public IList<InstanceDetailsFromCloud> GetInstancesFromCloud(string environment, string systemLocation)
+        public IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation)
         {
-            var instances = new List<Instance>().FillFromAws(systemLocation, this.credentials);
+            var instances = new List<InstanceWithState>().FillFromAws(systemLocation, this.credentials);
 
             var ret =
-                instances.Select(
+                instances.Where(_ => _.InstanceState != InstanceState.Terminated).Select(
                     _ =>
-                    new InstanceDetailsFromCloud
                         {
-                            Id = _.Id,
-                            Location = _.Region,
-                            Name = _.Tags[Constants.NameTagKey],
-                            Tags = _.Tags
+                            string name;
+                            var tags = _.Tags ?? new Dictionary<string, string>();
+                            var found = tags.TryGetValue(Constants.NameTagKey, out name);
+                            if (!found)
+                            {
+                                name = "UNNAMED-" + Guid.NewGuid().ToString().ToUpper();
+                            }
+
+                            return new InstanceDetailsFromCloud
+                                       {
+                                           Id = _.Id,
+                                           Location = _.Region,
+                                           Name = name,
+                                           Tags = tags,
+                                           InstanceState = _.InstanceState.ToString()
+                                       };
                         }).ToList();
 
             return ret;

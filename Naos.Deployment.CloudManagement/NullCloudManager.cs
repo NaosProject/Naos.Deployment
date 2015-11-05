@@ -46,7 +46,7 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public IList<InstanceDetailsFromCloud> GetInstancesFromCloud(string environment, string systemLocation)
+        public IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation)
         {
             return new List<InstanceDetailsFromCloud>();
         }

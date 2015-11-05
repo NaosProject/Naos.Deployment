@@ -8,6 +8,9 @@ namespace Naos.Deployment.MessageBus.Handler
 {
     using System.Threading.Tasks;
 
+    using Its.Log.Instrumentation;
+
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
@@ -26,6 +29,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <inheritdoc />
         public async Task HandleAsync(ShareInstanceTargeterMessage message)
         {
+            Log.Write(() => new { Info = "Sharing Targeter", MessageJson = Serializer.Serialize(message) });
             this.InstanceTargeter = await Task.FromResult(message.InstanceTargeterToShare);
         }
     }

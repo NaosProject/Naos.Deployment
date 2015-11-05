@@ -12,6 +12,7 @@ namespace Naos.Deployment.MessageBus.Contract
     using Naos.AWS.Contract;
     using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
+    using Naos.MessageBus.DataContract;
 
     /// <summary>
     /// Helper class to share methods across handlers.
@@ -59,7 +60,7 @@ namespace Naos.Deployment.MessageBus.Contract
 
             var fullInstanceName = namer.GetInstanceName();
 
-            var cloudInstances = cloudManager.GetInstancesFromCloud(settings.Environment, settings.SystemLocation);
+            var cloudInstances = cloudManager.GetActiveInstancesFromCloud(settings.Environment, settings.SystemLocation);
             var instance =
                 cloudInstances.SingleOrDefault(
                     _ => _.Tags[Constants.EnvironmentTagKey] == settings.Environment && _.Name == fullInstanceName);
