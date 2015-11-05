@@ -10,7 +10,9 @@ namespace Naos.Deployment.MessageBus.Handler
     using System.Threading.Tasks;
 
     using Its.Configuration;
+    using Its.Log.Instrumentation;
 
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
@@ -55,6 +57,7 @@ namespace Naos.Deployment.MessageBus.Handler
             var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
             var systemId = CloudManagerHelper.GetSystemIdFromTargeter(message.InstanceTargeter, settings, cloudManager);
 
+            Log.Write(() => new { Info = "Stopping Instance", MessageJson = Serializer.Serialize(message), SystemId = systemId });
             cloudManager.TurnOffInstance(systemId, settings.SystemLocation, message.WaitUntilOff);
 
             this.InstanceTargeter = message.InstanceTargeter;

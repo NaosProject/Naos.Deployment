@@ -10,7 +10,9 @@ namespace Naos.Deployment.MessageBus.Handler
     using System.Threading.Tasks;
 
     using Its.Configuration;
+    using Its.Log.Instrumentation;
 
+    using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
@@ -60,6 +62,7 @@ namespace Naos.Deployment.MessageBus.Handler
             var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
             var systemId = CloudManagerHelper.GetSystemIdFromTargeter(message.InstanceTargeter, settings, cloudManager);
 
+            Log.Write(() => new { Info = "Changing Instance Type", MessageJson = Serializer.Serialize(message), SystemId = systemId });
             cloudManager.ChangeInstanceType(systemId, settings.SystemLocation, message.NewInstanceType);
 
             this.InstanceTargeter = message.InstanceTargeter;

@@ -32,5 +32,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets a property bag of system specific details.
         /// </summary>
         public Dictionary<string, string> Tags { get; set; }
+
+        /// <summary>
+        /// Gets or sets the state (per the cloud provider) of the instance.
+        /// </summary>
+        public string InstanceState { get; set; }
     }
 }
