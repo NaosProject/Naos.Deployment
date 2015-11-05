@@ -12,6 +12,7 @@
       <Value>pluralization</Value>
       <Value>json</Value>
       <Value>ip</Value>
+      <Value>targeter</Value>
     </CollectionProperty>
     <CollectionProperty Name="DeprecatedWords">
       <Value>preprocessor,pre-processor</Value>

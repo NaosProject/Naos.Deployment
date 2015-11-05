@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.MessageBus.Contract
+namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
     using System.Threading.Tasks;
@@ -12,15 +12,19 @@ namespace Naos.Deployment.MessageBus.Contract
     using Its.Configuration;
 
     using Naos.Deployment.Contract;
+    using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
 
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
-    public class StopInstanceMessageHandler : IHandleMessages<StopInstanceMessage>
+    public class StopInstanceMessageHandler : IHandleMessages<StopInstanceMessage>, IShareInstanceTargeter
     {
         /// <inheritdoc />
         public string Description { get; set; }
+
+        /// <inheritdoc />
+        public InstanceTargeterBase InstanceTargeter { get; set; }
 
         /// <inheritdoc />
         public async Task HandleAsync(StopInstanceMessage message)
@@ -43,17 +47,13 @@ namespace Naos.Deployment.MessageBus.Contract
                 throw new ArgumentException("Cannot have a null message.");
             }
 
-            if (string.IsNullOrEmpty(message.InstanceId) && string.IsNullOrEmpty(message.InstanceName))
+            if (message.InstanceTargeter == null)
             {
-                throw new ArgumentException("Must specify EITHER the instance id or name to lookup id by.");
+                throw new ArgumentException("Must specify instance targeter to use for specifying an instance.");
             }
 
             var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
-            var systemId = message.InstanceId;
-            if (string.IsNullOrEmpty(systemId))
-            {
-                systemId = CloudManagerHelper.GetSystemIdFromName(message.InstanceName, settings, cloudManager);
-            }
+            var systemId = CloudManagerHelper.GetSystemIdFromTargeter(message.InstanceTargeter, settings, cloudManager);
 
             cloudManager.TurnOffInstance(systemId, settings.SystemLocation, message.WaitUntilOff);
         }

@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ChangeInstanceTypeMessage.cs" company="Naos">
+// <copyright file="ShareInstanceTargeterMessage.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -10,19 +10,16 @@ namespace Naos.Deployment.MessageBus.Contract
     using Naos.MessageBus.DataContract;
 
     /// <summary>
-    /// Message to be processed and turn off an instance specified.
+    /// Message to share an instance targeter.
     /// </summary>
-    public class ChangeInstanceTypeMessage : IMessage, IShareInstanceTargeter
+    public class ShareInstanceTargeterMessage : IMessage
     {
         /// <inheritdoc />
         public string Description { get; set; }
 
-        /// <inheritdoc />
-        public InstanceTargeterBase InstanceTargeter { get; set; }
-
         /// <summary>
-        /// Gets or sets the new instance type to use for the instance.
+        /// Gets or sets the instance targeter to share with other messages in the sequence.
         /// </summary>
-        public InstanceType NewInstanceType { get; set; }
+        public InstanceTargeterBase InstanceTargeterToShare { get; set; }
     }
 }

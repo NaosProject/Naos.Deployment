@@ -72,5 +72,34 @@ namespace Naos.Deployment.MessageBus.Contract
 
             return instance.Id;
         }
+
+        /// <summary>
+        /// Gets a system ID using the specified targeter.
+        /// </summary>
+        /// <param name="instanceTargeter">Targeter to use.</param>
+        /// <param name="settings">Settings necessary to handle the message.</param>
+        /// <param name="cloudManager">Cloud infrastructure manager to perform operations.</param>
+        /// <returns>System specific ID to use for operations.</returns>
+        public static string GetSystemIdFromTargeter(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageCloudInfrastructure cloudManager)
+        {
+            string ret;
+            var type = instanceTargeter.GetType();
+            if (type == typeof(InstanceTargeterSystemId))
+            {
+                var asId = (InstanceTargeterSystemId)instanceTargeter;
+                ret = asId.InstanceId;
+            }
+            else if (type == typeof(InstanceTargeterNameLookupByCloudTag))
+            {
+                var asTag = (InstanceTargeterNameLookupByCloudTag)instanceTargeter;
+                ret = GetSystemIdFromName(asTag.InstanceNameInTag, settings, cloudManager);
+            }
+            else
+            {
+                throw new NotSupportedException("InstanceTargeter not supported; type: " + type.FullName);
+            }
+
+            return ret;
+        }
     }
 }
