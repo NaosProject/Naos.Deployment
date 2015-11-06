@@ -821,24 +821,28 @@ namespace Naos.Deployment.Core
             // terminate instance(s) if necessary (if it exists)
             if (instancesWithMatchingEnvironmentAndPackages.Any())
             {
-                Parallel.ForEach(
-                    instancesWithMatchingEnvironmentAndPackages,
-                    (instanceDescription) =>
-                        {
-                            this.announce(
-                                "Terminating instance => ID: " + instanceDescription.Id + ", CloudName: "
-                                + instanceDescription.Name);
-                            this.cloudManager.TerminateInstanceAsync(
-                                environment,
-                                instanceDescription.Id,
-                                instanceDescription.Location,
-                                true);
-                        });
+                var tasks =
+                    instancesWithMatchingEnvironmentAndPackages.Select(
+                        instanceDescription => Task.Run(() => this.TerminateInstance(environment, instanceDescription)))
+                        .ToArray();
+
+                Task.WaitAll(tasks);
             }
             else
             {
                 this.announce("Did not find any existing instances for the specified package list and environment.");
             }
+        }
+
+        private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
+        {
+            this.announce("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+            await
+                this.cloudManager.TerminateInstanceAsync(
+                    environment,
+                    instanceDescription.Id,
+                    instanceDescription.Location,
+                    true);
         }
 
         /// <summary>

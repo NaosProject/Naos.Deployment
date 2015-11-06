@@ -90,13 +90,13 @@ namespace Naos.Deployment.CloudManagement
             string mfaValue)
         {
             var credentialManager = new CredentialManager();
-            var credentialsToUse = credentialManager.GetSessionTokenCredentials(
+            var credentialsToUse = Task.Run(() => credentialManager.GetSessionTokenCredentialsAsync(
                 location,
                 tokenLifespan,
                 username,
                 password,
                 virtualMfaDeviceId,
-                mfaValue);
+                mfaValue)).Result;
             return credentialsToUse;
         }
 

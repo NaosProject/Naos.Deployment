@@ -20,6 +20,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     public class RootFolderEnvironmentFolderInstanceFileTracker : ITrackComputingInfrastructure
     {
         private const string InstancePrefix = "Instance--";
+        private const string IpInfix = "ip--";
 
         // should maybe break out a lock provider and lock by environment...
         private readonly object fileSync = new object();
@@ -57,13 +58,19 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                 // once we have found the file we just need to delete the file
                 if (matchingInstance != null)
                 {
-                    var instanceFile = Path.Combine(
-                        this.rootFolderPath,
-                        arcology.Environment,
-                        InstancePrefix + matchingInstance.InstanceDescription.Name + ".json");
-                    if (File.Exists(instanceFile))
+                    var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
+                    var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
+
+                    if (File.Exists(instanceFilePathNamed))
                     {
-                        File.Delete(instanceFile);
+                        File.Delete(instanceFilePathNamed);
+                    }
+
+                    // clean up the file before it had a name (if applicable)
+                    if (File.Exists(instanceFilePathIp))
+                    {
+                        File.Delete(instanceFilePathIp);
                     }
                 }
             }
@@ -181,23 +188,18 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
         {
             var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
 
-            var ipPrefix = "--ip--";
             foreach (var instanceWrapper in arcology.Instances)
             {
                 var instanceFileContents = Serializer.Serialize(instanceWrapper);
 
-                var instanceFilePathIp = Path.Combine(
-                    arcologyFolderPath,
-                    InstancePrefix + ipPrefix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");
+                var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, instanceWrapper);
                 if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
                 {
                     File.WriteAllText(instanceFilePathIp, instanceFileContents);
                 }
                 else
                 {
-                    var instanceFilePathNamed = Path.Combine(
-                        arcologyFolderPath,
-                        InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
+                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, instanceWrapper);
 
                     File.WriteAllText(instanceFilePathNamed, instanceFileContents);
 
@@ -208,6 +210,23 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                     }
                 }
             }
+        }
+
+        private static string GetInstanceFilePathIp(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        {
+            string ipPrefix;
+            var instanceFilePathIp = Path.Combine(
+                arcologyFolderPath,
+                InstancePrefix + IpInfix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");
+            return instanceFilePathIp;
+        }
+
+        private static string GetInstanceFilePathNamed(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        {
+            var instanceFilePathNamed = Path.Combine(
+                arcologyFolderPath,
+                InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
+            return instanceFilePathNamed;
         }
 
         private string GetArcologyFolderPath(string environment)
