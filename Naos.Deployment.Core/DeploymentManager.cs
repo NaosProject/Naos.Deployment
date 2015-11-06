@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using Naos.AWS.Core;
     using Naos.Deployment.CloudManagement;
@@ -153,241 +154,332 @@ namespace Naos.Deployment.Core
                 instanceCount = 1; // in case there isn't a config and an empty instance is being created...
             }
 
-            for (var instanceNumber = 0; instanceNumber < instanceCount; instanceNumber++)
-            {
-                // create new aws instance(s)
-                var numberedInstanceName = instanceCount == 1 ? instanceName : instanceName + "-" + instanceNumber;
-                var createAnnouncementAddIn = instanceCount > 1
-                                                  ? "(" + (instanceNumber + 1) + "/" + instanceCount + ")"
-                                                  : string.Empty;
-                this.announce(
-                    "Creating new instance " + createAnnouncementAddIn + " => MachineName: " + numberedInstanceName);
+            var items = Enumerable.Range(0, instanceCount);
+            var tasks =
+                items.Select(
+                    instanceNumber =>
+                    Task.Run(
+                        () =>
+                        this.CreateNumberedInstanceAsync(
+                            instanceNumber,
+                            packagesToDeploy,
+                            environment,
+                            instanceName,
+                            instanceCount,
+                            configToCreateWith,
+                            packagedDeploymentConfigsWithDefaultsAndOverrides))).ToArray();
 
-                var createdInstanceDescription = this.cloudManager.CreateNewInstance(
+            Task.WaitAll(tasks);
+
+            this.announce("Finished deployment.");
+        }
+
+        private async Task CreateNumberedInstanceAsync(
+            int instanceNumber,
+            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
+            string environment,
+            string instanceName,
+            int instanceCount,
+            DeploymentConfiguration configToCreateWith,
+            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides)
+        {
+            // create new aws instance(s)
+            var numberedInstanceName = instanceCount == 1 ? instanceName : instanceName + "-" + instanceNumber;
+            var createAnnouncementAddIn = instanceCount > 1
+                                              ? "(" + (instanceNumber + 1) + "/" + instanceCount + ")"
+                                              : string.Empty;
+            this.announce(
+                "Instance " + instanceNumber + " - Creating new instance " + createAnnouncementAddIn
+                + " => MachineName: " + numberedInstanceName);
+
+            var createdInstanceDescription =
+                await
+                this.cloudManager.CreateNewInstanceAsync(
                     environment,
                     numberedInstanceName,
                     configToCreateWith,
                     packagesToDeploy.Select(_ => _ as PackageDescription).ToList(),
                     configToCreateWith.DeploymentStrategy.IncludeInstanceInitializationScript);
 
-                var systemSpecificDetailsAsString = string.Join(
-                    ",",
-                    createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
-                this.announce(
-                    string.Format(
-                        "Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
-                        createdInstanceDescription.Name,
-                        createdInstanceDescription.Id,
-                        createdInstanceDescription.PrivateIpAddress,
-                        systemSpecificDetailsAsString));
+            var systemSpecificDetailsAsString = string.Join(
+                ",",
+                createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
+            this.announce(
+                string.Format(
+                    "Instance " + instanceNumber
+                    + " - Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
+                    createdInstanceDescription.Name,
+                    createdInstanceDescription.Id,
+                    createdInstanceDescription.PrivateIpAddress,
+                    systemSpecificDetailsAsString));
 
-                if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
+            this.announce("Instance " + instanceNumber + " - Waiting for status checks to pass.");
+            await this.WaitUntilStatusChecksSucceedAsync(createdInstanceDescription);
+
+            if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
+            {
+                this.announce(
+                    "Instance " + instanceNumber
+                    + " - Waiting for Administrator password to be available (takes a few minutes for this).");
+                var machineManager = await this.GetMachineManagerForInstanceAsync(createdInstanceDescription);
+
+                this.announce(
+                    "Instance " + instanceNumber
+                    + " - Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
+                this.WaitUntilMachineIsAccessible(machineManager);
+
+                var instanceLevelSetupSteps =
+                    this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
+                this.announce(
+                    "Instance " + instanceNumber + " - Running setup actions that finalize the instance creation.");
+
+                this.RunSetupSteps(machineManager, instanceLevelSetupSteps, instanceNumber);
+
+                // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
+                this.announce(
+                    "Instance " + instanceNumber
+                    + " - Rebooting new instance to finalize any items from instance setup.");
+                this.RebootInstance(machineManager);
+
+                // get all message bus handler initializations to know if we need a handler.
+                var packagesWithMessageBusInitializations =
+                    packagedDeploymentConfigsWithDefaultsAndOverrides
+                        .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
+
+                var messageBusInitializations =
+                    packagesWithMessageBusInitializations
+                        .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
+
+                // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
+                var notAlreadyDeployingTheSamePackageAsHandlersUse =
+                    packagedDeploymentConfigsWithDefaultsAndOverrides.All(
+                        _ => _.Package.PackageDescription.Id != this.messageBusHandlerHarnessConfiguration.Package.Id);
+
+                if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
                 {
-                    this.announce("Waiting for Administrator password to be available (takes a few minutes for this).");
-                    var machineManager = this.GetMachineManagerForInstance(createdInstanceDescription);
+                    this.announce(
+                        "Instance " + instanceNumber
+                        + " - Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
+
+                    var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
 
                     this.announce(
-                        "Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
-                    this.WaitUntilMachineIsAccessible(machineManager);
-
-                    var instanceLevelSetupSteps =
-                        this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
-                    this.announce("Running setup actions that finalize the instance creation.");
-
-                    this.RunSetupSteps(machineManager, instanceLevelSetupSteps);
-
-                    // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
-                    this.announce("Rebooting new instance to finalize any items from instance setup.");
-                    this.RebootInstance(machineManager);
-
-                    // get all message bus handler initializations to know if we need a handler.
-                    var packagesWithMessageBusInitializations =
-                        packagedDeploymentConfigsWithDefaultsAndOverrides
-                            .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
-
-                    var messageBusInitializations =
-                        packagesWithMessageBusInitializations
-                            .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
-
-                    // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
-                    var notAlreadyDeployingTheSamePackageAsHandlersUse =
-                        packagedDeploymentConfigsWithDefaultsAndOverrides.All(
-                            _ =>
-                            _.Package.PackageDescription.Id != this.messageBusHandlerHarnessConfiguration.Package.Id);
-
-                    if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
+                        "Instance " + instanceNumber
+                        + " - Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
+                    foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
                     {
-                        this.announce(
-                            "Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
+                        itsConfigOverridesForHandlers.AddRange(
+                            packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
 
-                        var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
+                        var packageFolderName =
+                            packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
 
-                        this.announce(
-                            "Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
-                        foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
+                        // extract appropriate files from 
+                        var itsConfigFilesFromPackage = new Dictionary<string, string>();
+                        var precedenceChain = new[] { environment }.ToList();
+                        precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+                        foreach (var precedenceElement in precedenceChain)
                         {
-                            itsConfigOverridesForHandlers.AddRange(
-                                packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
+                            var itsConfigFolderPattern =
+                                packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                                    ? string.Format("{1}/.config/{0}/", precedenceElement, packageFolderName)
+                                    : string.Format(".config/{0}/", precedenceElement);
 
-                            var packageFolderName =
-                                packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
+                            var itsConfigFilesFromPackageForPrecedenceElement =
+                                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                    packageWithMessageBusInitializations.Package,
+                                    itsConfigFolderPattern);
 
-                            // extract appropriate files from 
-                            var itsConfigFilesFromPackage = new Dictionary<string, string>();
-                            var precedenceChain = new[] { environment }.ToList();
-                            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
-                            foreach (var precedenceElement in precedenceChain)
+                            foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
                             {
-                                var itsConfigFolderPattern =
-                                    packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                        ? string.Format("{1}/.config/{0}/", precedenceElement, packageFolderName)
-                                        : string.Format(".config/{0}/", precedenceElement);
-
-                                var itsConfigFilesFromPackageForPrecedenceElement =
-                                    this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                        packageWithMessageBusInitializations.Package,
-                                        itsConfigFolderPattern);
-
-                                foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
-                                {
-                                    itsConfigFilesFromPackage.Add(item.Key, item.Value);
-                                }
+                                itsConfigFilesFromPackage.Add(item.Key, item.Value);
                             }
-
-                            itsConfigOverridesForHandlers.AddRange(
-                                itsConfigFilesFromPackage.Select(
-                                    _ =>
-                                    new ItsConfigOverride
-                                        {
-                                            FileNameWithoutExtension =
-                                                Path.GetFileNameWithoutExtension(_.Key),
-                                            FileContentsJson = _.Value
-                                        }));
                         }
 
-                        var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
-                            numberedInstanceName,
-                            messageBusInitializations,
-                            itsConfigOverridesForHandlers,
-                            configToCreateWith,
-                            environment,
-                            instanceNumber);
-
-                        packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
+                        itsConfigOverridesForHandlers.AddRange(
+                            itsConfigFilesFromPackage.Select(
+                                _ =>
+                                new ItsConfigOverride
+                                    {
+                                        FileNameWithoutExtension =
+                                            Path.GetFileNameWithoutExtension(_.Key),
+                                        FileContentsJson = _.Value
+                                    }));
                     }
 
-                    foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
-                    {
-                        var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
-                        this.announce(
-                            "Running setup actions for package: "
-                            + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
-
-                        this.RunSetupSteps(machineManager, setupSteps);
-
-                        // Mark the instance as having the successfully deployed packages
-                        this.tracker.ProcessDeployedPackage(
-                            environment,
-                            createdInstanceDescription.Id,
-                            packagedConfig.Package.PackageDescription);
-                    }
-                }
-
-                // get all web initializations to update any DNS entries on the public IP address.
-                var webInitializations =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides
-                        .GetInitializationStrategiesOf<InitializationStrategyIis>();
-
-                this.announce("Updating DNS for web initializations (if applicable)");
-                foreach (var webInitialization in webInitializations)
-                {
-                    var ipAddress = createdInstanceDescription.PublicIpAddress
-                                    ?? createdInstanceDescription.PrivateIpAddress;
-                    var dns = webInitialization.PrimaryDns;
-
-                    this.announce(string.Format(" - Pointing {0} at {1}.", dns, ipAddress));
-
-                    this.cloudManager.UpsertDnsEntry(
+                    var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
+                        numberedInstanceName,
+                        messageBusInitializations,
+                        itsConfigOverridesForHandlers,
+                        configToCreateWith,
                         environment,
-                        createdInstanceDescription.Location,
-                        dns,
-                        new[] { ipAddress });
+                        instanceNumber);
+
+                    packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
                 }
 
-                // get all DNS initializations to update any private DNS entries on the private IP address.
-                this.announce("Updating DNS for all DNS initializations (if applicable)");
-                var dnsInitializations =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides
-                        .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
-                foreach (var initialization in dnsInitializations)
+                foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
-                    if (string.IsNullOrEmpty(initialization.PublicDnsEntry) && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
-                    {
-                        throw new ArgumentException("Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
-                    }
+                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
+                    this.announce(
+                        "Instance " + instanceNumber + " - Running setup actions for package: "
+                        + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
 
-                    if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
-                    {
-                        var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
-                        var privateDnsEntry = ApplyDnsTokenReplacements(
-                            initialization.PrivateDnsEntry,
-                            numberedInstanceName,
-                            environment,
-                            instanceNumber);
+                    this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
 
-                        this.announce(string.Format(" - Pointing {0} at {1}.", privateDnsEntry, privateIpAddress));
-                        this.cloudManager.UpsertDnsEntry(
-                            environment,
-                            createdInstanceDescription.Location,
-                            privateDnsEntry,
-                            new[] { privateIpAddress });
-                    }
-
-                    if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
-                    {
-                        var publicIpAddress = createdInstanceDescription.PublicIpAddress;
-                        if (string.IsNullOrEmpty(publicIpAddress))
-                        {
-                            throw new ArgumentException(
-                                "Cannot assign a public DNS because there isn't a public IP address on the instance.");
-                        }
-
-                        var publicDnsEntry = ApplyDnsTokenReplacements(
-                            initialization.PublicDnsEntry,
-                            numberedInstanceName,
-                            environment,
-                            instanceNumber);
-
-                        this.announce(string.Format(" - Pointing {0} at {1}.", publicDnsEntry, publicIpAddress));
-                        this.cloudManager.UpsertDnsEntry(
-                            environment,
-                            createdInstanceDescription.Location,
-                            publicDnsEntry,
-                            new[] { publicIpAddress });
-                    }
-                }
-
-                if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
-                {
-                    this.announce("Post deployment strategy: TurnOffInstance is true - shutting down instance.");
-                    this.cloudManager.TurnOffInstance(
+                    // Mark the instance as having the successfully deployed packages
+                    this.tracker.ProcessDeployedPackage(
+                        environment,
                         createdInstanceDescription.Id,
-                        createdInstanceDescription.Location,
-                        true);
+                        packagedConfig.Package.PackageDescription);
                 }
             }
 
-            this.announce("Finished deployment.");
+            // get all web initializations to update any DNS entries on the public IP address.
+            var webInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .GetInitializationStrategiesOf<InitializationStrategyIis>();
+
+            this.announce("Instance " + instanceNumber + " - Updating DNS for web initializations (if applicable)");
+            foreach (var webInitialization in webInitializations)
+            {
+                var ipAddress = createdInstanceDescription.PublicIpAddress
+                                ?? createdInstanceDescription.PrivateIpAddress;
+                var dns = webInitialization.PrimaryDns;
+
+                this.announce(
+                    string.Format("Instance " + instanceNumber + " -  - Pointing {0} at {1}.", dns, ipAddress));
+
+                this.cloudManager.UpsertDnsEntryAsync(
+                    environment,
+                    createdInstanceDescription.Location,
+                    dns,
+                    new[] { ipAddress });
+            }
+
+            // get all DNS initializations to update any private DNS entries on the private IP address.
+            this.announce("Instance " + instanceNumber + " - Updating DNS for all DNS initializations (if applicable)");
+            var dnsInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
+            foreach (var initialization in dnsInitializations)
+            {
+                if (string.IsNullOrEmpty(initialization.PublicDnsEntry)
+                    && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                {
+                    throw new ArgumentException(
+                        "Instance " + instanceNumber
+                        + " - Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
+                }
+
+                if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                {
+                    var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
+                    var privateDnsEntry = ApplyDnsTokenReplacements(
+                        initialization.PrivateDnsEntry,
+                        numberedInstanceName,
+                        environment,
+                        instanceNumber);
+
+                    this.announce(
+                        string.Format(
+                            "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
+                            privateDnsEntry,
+                            privateIpAddress));
+                    this.cloudManager.UpsertDnsEntryAsync(
+                        environment,
+                        createdInstanceDescription.Location,
+                        privateDnsEntry,
+                        new[] { privateIpAddress });
+                }
+
+                if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
+                {
+                    var publicIpAddress = createdInstanceDescription.PublicIpAddress;
+                    if (string.IsNullOrEmpty(publicIpAddress))
+                    {
+                        throw new ArgumentException(
+                            "Instance " + instanceNumber
+                            + " - Cannot assign a public DNS because there isn't a public IP address on the instance.");
+                    }
+
+                    var publicDnsEntry = ApplyDnsTokenReplacements(
+                        initialization.PublicDnsEntry,
+                        numberedInstanceName,
+                        environment,
+                        instanceNumber);
+
+                    this.announce(
+                        string.Format(
+                            "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
+                            publicDnsEntry,
+                            publicIpAddress));
+                    this.cloudManager.UpsertDnsEntryAsync(
+                        environment,
+                        createdInstanceDescription.Location,
+                        publicDnsEntry,
+                        new[] { publicIpAddress });
+                }
+            }
+
+            if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
+            {
+                this.announce(
+                    "Instance " + instanceNumber
+                    + " - Post deployment strategy: TurnOffInstance is true - shutting down instance.");
+                this.cloudManager.TurnOffInstanceAsync(
+                    createdInstanceDescription.Id,
+                    createdInstanceDescription.Location,
+                    true);
+            }
         }
 
-        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> setupSteps)
+        private async Task WaitUntilStatusChecksSucceedAsync(InstanceDescription createdInstanceDescription)
+        {
+            var sleepTimeInSeconds = 10d;
+            var allChecksPassed = false;
+            while (!allChecksPassed)
+            {
+                sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
+                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
+
+                var status = await this.cloudManager.GetInstanceStatusAsync(
+                    createdInstanceDescription.Id,
+                    createdInstanceDescription.Location);
+
+                if (status.InstanceChecks.Any(_ => _.Value == CheckState.Failed))
+                {
+                    foreach (var instanceCheck in status.InstanceChecks)
+                    {
+                        this.announce("Instance Check; " + instanceCheck.Key + " = " + instanceCheck.Value);
+                    }
+
+                    throw new DeploymentException("Failure in an instance check.");
+                }
+
+                if (status.SystemChecks.Any(_ => _.Value == CheckState.Failed))
+                {
+                    foreach (var systemCheck in status.SystemChecks)
+                    {
+                        this.announce("System Check; " + systemCheck.Key + " = " + systemCheck.Value);
+                    }
+
+                    throw new DeploymentException("Failure in a system check.");
+                }
+
+                allChecksPassed = status.InstanceChecks.All(_ => _.Value == CheckState.Passed)
+                                  && status.SystemChecks.All(_ => _.Value == CheckState.Passed);
+            }
+        }
+
+        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> setupSteps, int instanceNumber)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
             foreach (var setupStep in setupSteps)
             {
-                this.announce("  - " + setupStep.Description);
+                this.announce("Instance " + instanceNumber + " -   - " + setupStep.Description);
                 var tries = 0;
                 while (tries < maxTries)
                 {
@@ -404,19 +496,19 @@ namespace Naos.Deployment.Core
                             if (throwOnFailedSetupStep)
                             {
                                 throw new DeploymentException(
-                                    "Failed to run setup step " + setupStep.Description + " after " + maxTries
+                                    "Instance " + instanceNumber + " - Failed to run setup step " + setupStep.Description + " after " + maxTries
                                     + " attempts",
                                     ex);
                             }
                             else
                             {
-                                this.announce(string.Format("Exception on try {0}/{1} - {2}", tries, maxTries, ex));
+                                this.announce(string.Format("Instance " + instanceNumber + " - Exception on try {0}/{1} - {2}", tries, maxTries, ex));
                             }
                         }
                         else
                         {
                             this.announce(
-                                string.Format("    Exception on try {0}/{1} - retrying", tries, maxTries));
+                                string.Format("Instance " + instanceNumber + " -     Exception on try {0}/{1} - retrying", tries, maxTries));
                             Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
                         }
                     }
@@ -669,7 +761,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private MachineManager GetMachineManagerForInstance(InstanceDescription createdInstanceDescription)
+        private async Task<MachineManager> GetMachineManagerForInstanceAsync(InstanceDescription createdInstanceDescription)
         {
             string adminPassword = null;
             var sleepTimeInSeconds = 30d;
@@ -681,7 +773,7 @@ namespace Naos.Deployment.Core
 
                 try
                 {
-                    adminPassword = this.cloudManager.GetAdministratorPasswordForInstance(
+                    adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(
                         createdInstanceDescription,
                         privateKey);
                 }
@@ -729,13 +821,12 @@ namespace Naos.Deployment.Core
             // terminate instance(s) if necessary (if it exists)
             if (instancesWithMatchingEnvironmentAndPackages.Any())
             {
-                foreach (var instanceDescription in instancesWithMatchingEnvironmentAndPackages)
-                {
-                    this.announce(
-                        "Terminating instance => ID: " + instanceDescription.Id + ", CloudName: "
-                        + instanceDescription.Name);
-                    this.cloudManager.TerminateInstance(environment, instanceDescription.Id, instanceDescription.Location, true);
-                }
+                var tasks =
+                    instancesWithMatchingEnvironmentAndPackages.Select(
+                        instanceDescription => Task.Run(() => this.TerminateInstance(environment, instanceDescription)))
+                        .ToArray();
+
+                Task.WaitAll(tasks);
             }
             else
             {
@@ -743,12 +834,23 @@ namespace Naos.Deployment.Core
             }
         }
 
+        private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
+        {
+            this.announce("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+            await
+                this.cloudManager.TerminateInstanceAsync(
+                    environment,
+                    instanceDescription.Id,
+                    instanceDescription.Location,
+                    true);
+        }
+
         /// <summary>
         /// Gets the password for the instance.
         /// </summary>
         /// <param name="instanceToSearchFor">Instance to find the password for.</param>
         /// <returns>Password for instance.</returns>
-        public string GetPassword(InstanceDescription instanceToSearchFor)
+        public async Task<string> GetPasswordAsync(InstanceDescription instanceToSearchFor)
         {
             string adminPassword = null;
             var sleepTimeInSeconds = .25;
@@ -757,7 +859,7 @@ namespace Naos.Deployment.Core
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 2;
                 Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-                adminPassword = this.cloudManager.GetAdministratorPasswordForInstance(instanceToSearchFor, privateKey);
+                adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(instanceToSearchFor, privateKey);
             }
 
             return adminPassword;

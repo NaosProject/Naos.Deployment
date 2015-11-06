@@ -20,6 +20,7 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     public class RootFolderEnvironmentFolderInstanceFileTracker : ITrackComputingInfrastructure
     {
         private const string InstancePrefix = "Instance--";
+        private const string IpInfix = "ip--";
 
         // should maybe break out a lock provider and lock by environment...
         private readonly object fileSync = new object();
@@ -57,13 +58,19 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
                 // once we have found the file we just need to delete the file
                 if (matchingInstance != null)
                 {
-                    var instanceFile = Path.Combine(
-                        this.rootFolderPath,
-                        arcology.Environment,
-                        InstancePrefix + matchingInstance.InstanceDescription.Name + ".json");
-                    if (File.Exists(instanceFile))
+                    var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
+                    var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
+
+                    if (File.Exists(instanceFilePathNamed))
                     {
-                        File.Delete(instanceFile);
+                        File.Delete(instanceFilePathNamed);
+                    }
+
+                    // clean up the file before it had a name (if applicable)
+                    if (File.Exists(instanceFilePathIp))
+                    {
+                        File.Delete(instanceFilePathIp);
                     }
                 }
             }
@@ -75,10 +82,13 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
         {
-            var arcology = this.GetArcologyByEnvironmentName(environment);
-            var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
-            this.SaveArcology(arcology);
-            return ret;
+            lock (this.fileSync)
+            {
+                var arcology = this.GetArcologyByEnvironmentName(environment);
+                var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
+                this.SaveArcology(arcology);
+                return ret;
+            }
         }
 
         /// <inheritdoc />
@@ -176,48 +186,47 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
 
         private void SaveArcology(Arcology arcology)
         {
-            var namedIpAddresses = new List<string>();
             var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
 
             foreach (var instanceWrapper in arcology.Instances)
             {
-                var instanceFilePath = Path.Combine(
-                    arcologyFolderPath,
-                    InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
-
-                if (!string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
-                {
-                    namedIpAddresses.Add(instanceWrapper.InstanceDescription.PrivateIpAddress);
-                }
-
                 var instanceFileContents = Serializer.Serialize(instanceWrapper);
-                File.WriteAllText(instanceFilePath, instanceFileContents);
-            }
 
-            // files for new instances will be created nameless and should get recreated with name and thus need the remnants cleaned up...
-            var namelessFiles = Directory.GetFiles(
-                arcologyFolderPath,
-                InstancePrefix + ".json",
-                SearchOption.TopDirectoryOnly);
-            var namelessFilesContent = namelessFiles.Select(_ => new { FilePath = _, FileText = File.ReadAllText(_) });
-
-            var namelessItemsToProcess =
-                namelessFilesContent.Select(
-                    _ =>
-                    new
-                        {
-                            IpAddress = Serializer.Deserialize<InstanceWrapper>(_.FileText).InstanceDescription.PrivateIpAddress,
-                            FilePath = _.FilePath,
-                        });
-
-            foreach (var namelessItem in namelessItemsToProcess)
-            {
-                if (namedIpAddresses.Contains(namelessItem.IpAddress))
+                var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, instanceWrapper);
+                if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
                 {
-                    // this has been updated and written in a named file, delete this file...
-                    File.Delete(namelessItem.FilePath);
+                    File.WriteAllText(instanceFilePathIp, instanceFileContents);
+                }
+                else
+                {
+                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, instanceWrapper);
+
+                    File.WriteAllText(instanceFilePathNamed, instanceFileContents);
+
+                    // clean up the file before it had a name (if applicable)
+                    if (File.Exists(instanceFilePathIp))
+                    {
+                        File.Delete(instanceFilePathIp);
+                    }
                 }
             }
+        }
+
+        private static string GetInstanceFilePathIp(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        {
+            string ipPrefix;
+            var instanceFilePathIp = Path.Combine(
+                arcologyFolderPath,
+                InstancePrefix + IpInfix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");
+            return instanceFilePathIp;
+        }
+
+        private static string GetInstanceFilePathNamed(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        {
+            var instanceFilePathNamed = Path.Combine(
+                arcologyFolderPath,
+                InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
+            return instanceFilePathNamed;
         }
 
         private string GetArcologyFolderPath(string environment)

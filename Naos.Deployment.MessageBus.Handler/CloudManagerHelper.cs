@@ -8,6 +8,7 @@ namespace Naos.Deployment.MessageBus.Contract
 {
     using System;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Naos.AWS.Contract;
     using Naos.Deployment.CloudManagement;
@@ -48,7 +49,7 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="settings">Handler settings.</param>
         /// <param name="cloudManager">Cloud manager.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
-        public static string GetSystemIdFromName(
+        public static async Task<string> GetSystemIdFromNameAsync(
             string instanceName,
             DeploymentMessageHandlerSettings settings,
             IManageCloudInfrastructure cloudManager)
@@ -60,7 +61,7 @@ namespace Naos.Deployment.MessageBus.Contract
 
             var fullInstanceName = namer.GetInstanceName();
 
-            var cloudInstances = cloudManager.GetActiveInstancesFromCloud(settings.Environment, settings.SystemLocation);
+            var cloudInstances = await cloudManager.GetActiveInstancesFromCloudAsync(settings.Environment, settings.SystemLocation);
             var instance =
                 cloudInstances.SingleOrDefault(
                     _ => _.Tags[Constants.EnvironmentTagKey] == settings.Environment && _.Name == fullInstanceName);
@@ -81,7 +82,7 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="cloudManager">Cloud infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
-        public static string GetSystemIdFromTargeter(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageCloudInfrastructure cloudManager)
+        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageCloudInfrastructure cloudManager)
         {
             string ret;
             var type = instanceTargeter.GetType();
@@ -93,7 +94,7 @@ namespace Naos.Deployment.MessageBus.Contract
             else if (type == typeof(InstanceTargeterNameLookupByCloudTag))
             {
                 var asTag = (InstanceTargeterNameLookupByCloudTag)instanceTargeter;
-                ret = GetSystemIdFromName(asTag.InstanceNameInTag, settings, cloudManager);
+                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, settings, cloudManager);
             }
             else
             {

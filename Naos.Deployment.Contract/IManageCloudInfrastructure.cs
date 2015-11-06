@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Interface for performing native cloud operations.
@@ -20,7 +21,8 @@ namespace Naos.Deployment.Contract
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="releasePublicIpIfApplicable">Optionally release the public IP address if the instance has one (DEFAULT is false).</param>
-        void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
+        /// <returns>Task for async/await</returns>
+        Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
 
         /// <summary>
         /// Turns off an instance.
@@ -28,7 +30,8 @@ namespace Naos.Deployment.Contract
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="waitUntilOff">Wait until the machine is off.</param>
-        void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true);
+        /// <returns>Task for async/await</returns>
+        Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true);
 
         /// <summary>
         /// Turns on an instance.
@@ -36,7 +39,8 @@ namespace Naos.Deployment.Contract
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="waitUntilOn">Wait until the machine is on.</param>
-        void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true);
+        /// <returns>Task for async/await</returns>
+        Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true);
 
         /// <summary>
         /// Changes the type of an instance.
@@ -44,7 +48,16 @@ namespace Naos.Deployment.Contract
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="newInstanceType">New instance type for the instance.</param>
-        void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType);
+        /// <returns>Task for async/await</returns>
+        Task ChangeInstanceTypeAsync(string systemId, string systemLocation, InstanceType newInstanceType);
+
+        /// <summary>
+        /// Gets the status of an instance.
+        /// </summary>
+        /// <param name="systemId">Proprietary ID of the instance.</param>
+        /// <param name="systemLocation">Proprietary location of the instance.</param>
+        /// <returns>Status of the instance.</returns>
+        Task<InstanceStatus> GetInstanceStatusAsync(string systemId, string systemLocation);
 
         /// <summary>
         /// Creates a new instance per the deployment configuration provided.
@@ -55,7 +68,7 @@ namespace Naos.Deployment.Contract
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <param name="includeInstanceInializtionScript">Include the initialization script during creation.</param>
         /// <returns>Description of created instance.</returns>
-        InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript);
+        Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript);
 
         /// <summary>
         /// Gets the instance description by the name provided (null if not found).
@@ -71,7 +84,7 @@ namespace Naos.Deployment.Contract
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="systemLocation">System location to make calls against.</param>
         /// <returns>List of instances found in the cloud.</returns>
-        IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation);
+        Task<IList<InstanceDetailsFromCloud>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation);
 
         /// <summary>
         /// Creates or updates the specified DNS entry to the provide IP Addresses.
@@ -80,7 +93,8 @@ namespace Naos.Deployment.Contract
         /// <param name="location">System location to make calls against.</param>
         /// <param name="domain">Domain to operate on.</param>
         /// <param name="ipAddresses">IP Addresses to bind to the DNS entry specified.</param>
-        void UpsertDnsEntry(string environment, string location, string domain, ICollection<string> ipAddresses);
+        /// <returns>Task for async/await</returns>
+        Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses);
 
         /// <summary>
         /// Gets the administrator password for the specified instance.
@@ -88,6 +102,6 @@ namespace Naos.Deployment.Contract
         /// <param name="instanceDescription">Description of the instance in question.</param>
         /// <param name="privateKey">Decryption key needed for password.</param>
         /// <returns>Password of the instance's administrator account.</returns>
-        string GetAdministratorPasswordForInstance(InstanceDescription instanceDescription, string privateKey);
+        Task<string> GetAdministratorPasswordForInstanceAsync(InstanceDescription instanceDescription, string privateKey);
     }
 }
