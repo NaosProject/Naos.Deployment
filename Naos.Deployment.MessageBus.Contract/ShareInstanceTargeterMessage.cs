@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
+    using System.Collections.Generic;
+
     using Naos.Deployment.Contract;
     using Naos.MessageBus.DataContract;
 
@@ -20,6 +22,6 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <summary>
         /// Gets or sets the instance targeter to share with other messages in the sequence.
         /// </summary>
-        public InstanceTargeterBase InstanceTargeterToShare { get; set; }
+        public IList<InstanceTargeterBase> InstanceTargetersToShare { get; set; }
     }
 }

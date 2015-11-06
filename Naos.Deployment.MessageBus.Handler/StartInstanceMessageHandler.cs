@@ -7,6 +7,8 @@
 namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Its.Configuration;
@@ -26,7 +28,7 @@ namespace Naos.Deployment.MessageBus.Handler
         public string Description { get; set; }
 
         /// <inheritdoc />
-        public InstanceTargeterBase InstanceTargeter { get; set; }
+        public IList<InstanceTargeterBase> InstanceTargeters { get; set; }
 
         /// <inheritdoc />
         public async Task HandleAsync(StartInstanceMessage message)
@@ -50,18 +52,37 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Cannot have a null message.");
             }
 
-            if (message.InstanceTargeter == null)
+            if (message.InstanceTargeters == null || message.InstanceTargeters.Count == 0)
             {
-                throw new ArgumentException("Must specify instance targeter to use for specifying an instance.");
+                throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
 
             var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
-            var systemId = await CloudManagerHelper.GetSystemIdFromTargeterAsync(message.InstanceTargeter, settings, cloudManager);
 
-            Log.Write(() => new { Info = "Starting Instance", MessageJson = Serializer.Serialize(message), SystemId = systemId });
-            await cloudManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, message.WaitUntilOn);
+            var tasks =
+                message.InstanceTargeters.Select(
+                    (instanceTargeter) =>
+                    Task.Run(
+                        () => OperationToParallelize(instanceTargeter, settings, cloudManager, message.WaitUntilOn)))
+                    .ToArray();
 
-            this.InstanceTargeter = message.InstanceTargeter;
+            await Task.WhenAll(tasks);
+
+            this.InstanceTargeters = message.InstanceTargeters;
+        }
+
+        private static async Task OperationToParallelize(
+            InstanceTargeterBase instanceTargeter,
+            DeploymentMessageHandlerSettings settings,
+            IManageCloudInfrastructure cloudManager,
+            bool waitUntilOn)
+        {
+            var systemId =
+                await CloudManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, settings, cloudManager);
+
+            Log.Write(
+                () => new { Info = "Starting Instance", InstanceTargeterJson = Serializer.Serialize(instanceTargeter), SystemId = systemId });
+            await cloudManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn);
         }
     }
 }

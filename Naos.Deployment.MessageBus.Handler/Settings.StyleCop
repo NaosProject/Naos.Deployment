@@ -13,6 +13,7 @@
       <Value>json</Value>
       <Value>ip</Value>
       <Value>targeter</Value>
+      <Value>targeters</Value>
     </CollectionProperty>
     <CollectionProperty Name="DeprecatedWords">
       <Value>preprocessor,pre-processor</Value>
