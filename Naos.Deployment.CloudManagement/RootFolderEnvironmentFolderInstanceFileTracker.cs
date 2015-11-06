@@ -214,7 +214,6 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
 
         private static string GetInstanceFilePathIp(string arcologyFolderPath, InstanceWrapper instanceWrapper)
         {
-            string ipPrefix;
             var instanceFilePathIp = Path.Combine(
                 arcologyFolderPath,
                 InstancePrefix + IpInfix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");

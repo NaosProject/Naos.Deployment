@@ -350,7 +350,7 @@ namespace Naos.Deployment.Core
                 this.announce(
                     string.Format("Instance " + instanceNumber + " -  - Pointing {0} at {1}.", dns, ipAddress));
 
-                this.cloudManager.UpsertDnsEntryAsync(
+                await this.cloudManager.UpsertDnsEntryAsync(
                     environment,
                     createdInstanceDescription.Location,
                     dns,
@@ -386,7 +386,7 @@ namespace Naos.Deployment.Core
                             "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
                             privateDnsEntry,
                             privateIpAddress));
-                    this.cloudManager.UpsertDnsEntryAsync(
+                    await this.cloudManager.UpsertDnsEntryAsync(
                         environment,
                         createdInstanceDescription.Location,
                         privateDnsEntry,
@@ -414,7 +414,7 @@ namespace Naos.Deployment.Core
                             "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
                             publicDnsEntry,
                             publicIpAddress));
-                    this.cloudManager.UpsertDnsEntryAsync(
+                    await this.cloudManager.UpsertDnsEntryAsync(
                         environment,
                         createdInstanceDescription.Location,
                         publicDnsEntry,
@@ -427,7 +427,7 @@ namespace Naos.Deployment.Core
                 this.announce(
                     "Instance " + instanceNumber
                     + " - Post deployment strategy: TurnOffInstance is true - shutting down instance.");
-                this.cloudManager.TurnOffInstanceAsync(
+                await this.cloudManager.TurnOffInstanceAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location,
                     true);
