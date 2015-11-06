@@ -9,12 +9,15 @@ namespace Naos.Deployment.CloudManagement
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Runtime.Remoting.Messaging;
+    using System.Threading.Tasks;
 
     using Naos.AWS.Contract;
     using Naos.AWS.Core;
     using Naos.Deployment.Contract;
+
+    using CheckState = Naos.Deployment.Contract.CheckState;
+    using InstanceState = Naos.Deployment.Contract.InstanceState;
+    using InstanceStatus = Naos.Deployment.Contract.InstanceStatus;
 
     /// <inheritdoc />
     public class CloudInfrastructureManager : IManageCloudInfrastructure
@@ -110,7 +113,7 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
+        public async Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
             var instanceDescription = this.tracker.GetInstanceDescriptionById(environment, systemId);
             if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
@@ -122,42 +125,43 @@ namespace Naos.Deployment.CloudManagement
                                         PublicIpAddress = instanceDescription.PublicIpAddress,
                                         Region = systemLocation
                                     };
-                elasticIp.DisassociateFromInstance(this.credentials);
+                await elasticIp.DisassociateFromInstanceAsync(this.credentials);
                 if (releasePublicIpIfApplicable)
                 {
-                    elasticIp.Release(this.credentials);
+                    await elasticIp.ReleaseAsync(this.credentials);
                 }
             }
 
             var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
-            instanceToTerminate.Terminate(this.credentials);
+            await instanceToTerminate.TerminateAsync(this.credentials);
             this.tracker.ProcessInstanceTermination(environment, instanceToTerminate.Id);
         }
 
         /// <inheritdoc />
-        public void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true)
+        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true)
         {
             var instanceToTurnOff = new Instance() { Id = systemId, Region = systemLocation };
-            instanceToTurnOff.Stop(this.credentials);
+            await instanceToTurnOff.StopAsync(this.credentials);
             if (waitUntilOff)
             {
-                instanceToTurnOff.WaitForState(InstanceState.Stopped, this.credentials);
+                await instanceToTurnOff.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Stopped, this.credentials);
             }
         }
 
         /// <inheritdoc />
-        public void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true)
+        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true)
         {
             var instanceToTurnOn = new Instance() { Id = systemId, Region = systemLocation };
-            instanceToTurnOn.Start(this.credentials);
+            await instanceToTurnOn.StartAsync(this.credentials);
             if (waitUntilOn)
             {
-                instanceToTurnOn.WaitForState(InstanceState.Running, this.credentials);
+                await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Running, this.credentials);
+                await instanceToTurnOn.WaitForSuccessfulChecksAsync(this.credentials);
             }
         }
 
         /// <inheritdoc />
-        public void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType)
+        public async Task ChangeInstanceTypeAsync(string systemId, string systemLocation, InstanceType newInstanceType)
         {
             var newAwsInstanceType = this.GetAwsInstanceType(newInstanceType);
             var instanceToChangeTypeof = new Instance()
@@ -167,11 +171,31 @@ namespace Naos.Deployment.CloudManagement
                                                  InstanceType = newAwsInstanceType
                                              };
 
-            instanceToChangeTypeof.UpdateInstanceType(this.credentials);
+            await instanceToChangeTypeof.UpdateInstanceTypeAsync(this.credentials);
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
+        public async Task<InstanceStatus> GetInstanceStatusAsync(string systemId, string systemLocation)
+        {
+            var instance = new Instance { Id = systemId, Region = systemLocation };
+            var awsStatus = await instance.GetStatusAsync(this.credentials);
+
+            var state = (InstanceState)Enum.Parse(typeof(InstanceState), awsStatus.InstanceState.ToString(), true);
+
+            var systemChecks = awsStatus.SystemChecks.ToDictionary(
+                key => key.Key,
+                value => (CheckState)Enum.Parse(typeof(CheckState), value.Value.ToString(), true));
+
+            var instanceChecks = awsStatus.InstanceChecks.ToDictionary(
+                key => key.Key,
+                value => (CheckState)Enum.Parse(typeof(CheckState), value.Value.ToString(), true));
+
+            var ret = new InstanceStatus { InstanceState = state, SystemChecks = systemChecks, InstanceChecks = instanceChecks };
+            return ret;
+        }
+
+        /// <inheritdoc />
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
         {
             var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration, intendedPackages);
 
@@ -290,7 +314,7 @@ namespace Naos.Deployment.CloudManagement
                                            : string.Empty
                                };
 
-            var createdInstance = instanceToCreate.Create(userData, this.credentials);
+            var createdInstance = await instanceToCreate.CreateAsync(userData, this.credentials);
 
             var systemSpecificDetails = new Dictionary<string, string>
                                             {
@@ -319,7 +343,7 @@ namespace Naos.Deployment.CloudManagement
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
                     });
 
-            createdInstance.AddTagInAws(Constants.EnvironmentTagKey, environment, this.credentials);
+            await createdInstance.AddTagInAwsAsync(Constants.EnvironmentTagKey, environment, this.credentials);
 
             var instanceDescription = new InstanceDescription()
             {
@@ -351,12 +375,12 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation)
+        public async Task<IList<InstanceDetailsFromCloud>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation)
         {
-            var instances = new List<InstanceWithState>().FillFromAws(systemLocation, this.credentials);
+            var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
             var ret =
-                instances.Where(_ => _.InstanceState != InstanceState.Terminated).Select(
+                instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated).Select(
                     _ =>
                         {
                             string name;
@@ -367,13 +391,20 @@ namespace Naos.Deployment.CloudManagement
                                 name = "UNNAMED-" + Guid.NewGuid().ToString().ToUpper();
                             }
 
+                            var status = new InstanceStatus
+                                             {
+                                                 InstanceState = (InstanceState)Enum.Parse(typeof(InstanceState), _.InstanceStatus.InstanceState.ToString(), true),
+                                                 SystemChecks = new Dictionary<string, CheckState>(),
+                                                 InstanceChecks = new Dictionary<string, CheckState>()
+                                             };
+
                             return new InstanceDetailsFromCloud
                                        {
                                            Id = _.Id,
                                            Location = _.Region,
                                            Name = name,
                                            Tags = tags,
-                                           InstanceState = _.InstanceState.ToString()
+                                           InstanceStatus = status
                                        };
                         }).ToList();
 
@@ -430,7 +461,7 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public string GetAdministratorPasswordForInstance(InstanceDescription instanceDescription, string privateKey)
+        public async Task<string> GetAdministratorPasswordForInstanceAsync(InstanceDescription instanceDescription, string privateKey)
         {
             var instanceToGetPasswordFor = new Instance()
                                                {
@@ -439,12 +470,12 @@ namespace Naos.Deployment.CloudManagement
                                                    Key = new KeyPair() { PrivateKey = privateKey }
                                                };
 
-            var password = instanceToGetPasswordFor.GetAdministratorPassword(this.credentials);
+            var password = await instanceToGetPasswordFor.GetAdministratorPasswordAsync(this.credentials);
             return password;
         }
 
         /// <inheritdoc />
-        public void UpsertDnsEntry(string environment, string location, string domain, ICollection<string> ipAddresses)
+        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses)
         {
             // from: http://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net
             var host = new Uri("http://" + domain).Host;
@@ -460,7 +491,7 @@ namespace Naos.Deployment.CloudManagement
 
             var hostingId = this.tracker.GetDomainZoneId(environment, rootDomain);
             var dnsManager = new Route53Manager(this.credentials);
-            dnsManager.UpsertDnsEntry(location, hostingId, Route53EntryType.A, domain, ipAddresses);
+            await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain, ipAddresses);
         }
     }
 }

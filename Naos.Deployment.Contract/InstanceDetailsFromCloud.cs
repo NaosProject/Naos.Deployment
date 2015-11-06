@@ -34,8 +34,8 @@ namespace Naos.Deployment.Contract
         public Dictionary<string, string> Tags { get; set; }
 
         /// <summary>
-        /// Gets or sets the state (per the cloud provider) of the instance.
+        /// Gets or sets the status of the instance.
         /// </summary>
-        public string InstanceState { get; set; }
+        public InstanceStatus InstanceStatus { get; set; }
     }
 }

@@ -75,10 +75,13 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
         {
-            var arcology = this.GetArcologyByEnvironmentName(environment);
-            var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
-            this.SaveArcology(arcology);
-            return ret;
+            lock (this.fileSync)
+            {
+                var arcology = this.GetArcologyByEnvironmentName(environment);
+                var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
+                this.SaveArcology(arcology);
+                return ret;
+            }
         }
 
         /// <inheritdoc />
@@ -176,46 +179,33 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
 
         private void SaveArcology(Arcology arcology)
         {
-            var namedIpAddresses = new List<string>();
             var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
 
+            var ipPrefix = "--ip--";
             foreach (var instanceWrapper in arcology.Instances)
             {
-                var instanceFilePath = Path.Combine(
-                    arcologyFolderPath,
-                    InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
-
-                if (!string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
-                {
-                    namedIpAddresses.Add(instanceWrapper.InstanceDescription.PrivateIpAddress);
-                }
-
                 var instanceFileContents = Serializer.Serialize(instanceWrapper);
-                File.WriteAllText(instanceFilePath, instanceFileContents);
-            }
 
-            // files for new instances will be created nameless and should get recreated with name and thus need the remnants cleaned up...
-            var namelessFiles = Directory.GetFiles(
-                arcologyFolderPath,
-                InstancePrefix + ".json",
-                SearchOption.TopDirectoryOnly);
-            var namelessFilesContent = namelessFiles.Select(_ => new { FilePath = _, FileText = File.ReadAllText(_) });
-
-            var namelessItemsToProcess =
-                namelessFilesContent.Select(
-                    _ =>
-                    new
-                        {
-                            IpAddress = Serializer.Deserialize<InstanceWrapper>(_.FileText).InstanceDescription.PrivateIpAddress,
-                            FilePath = _.FilePath,
-                        });
-
-            foreach (var namelessItem in namelessItemsToProcess)
-            {
-                if (namedIpAddresses.Contains(namelessItem.IpAddress))
+                var instanceFilePathIp = Path.Combine(
+                    arcologyFolderPath,
+                    InstancePrefix + ipPrefix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");
+                if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
                 {
-                    // this has been updated and written in a named file, delete this file...
-                    File.Delete(namelessItem.FilePath);
+                    File.WriteAllText(instanceFilePathIp, instanceFileContents);
+                }
+                else
+                {
+                    var instanceFilePathNamed = Path.Combine(
+                        arcologyFolderPath,
+                        InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
+
+                    File.WriteAllText(instanceFilePathNamed, instanceFileContents);
+
+                    // clean up the file before it had a name (if applicable)
+                    if (File.Exists(instanceFilePathIp))
+                    {
+                        File.Delete(instanceFilePathIp);
+                    }
                 }
             }
         }

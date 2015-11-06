@@ -135,4 +135,76 @@ namespace Naos.Deployment.Contract
         /// </summary>
         HighPerformance
     }
+
+    /// <summary>
+    /// States an instance can be in.
+    /// </summary>
+    public enum InstanceState
+    {
+        /// <summary>
+        /// Unknown state.
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// Pending state.
+        /// </summary>
+        Pending = 1,
+
+        /// <summary>
+        /// Running state.
+        /// </summary>
+        Running = 2,
+
+        /// <summary>
+        /// Shutting down state.
+        /// </summary>
+        ShuttingDown = 3,
+
+        /// <summary>
+        /// Terminated state.
+        /// </summary>
+        Terminated = 4,
+
+        /// <summary>
+        /// Stopping state.
+        /// </summary>
+        Stopping = 5,
+
+        /// <summary>
+        /// Stopped state.
+        /// </summary>
+        Stopped = 6,
+    }
+
+    /// <summary>
+    /// State a check can be in.
+    /// </summary>
+    public enum CheckState
+    {
+        /// <summary>
+        /// Unknown state.
+        /// </summary>
+        Unknown,
+
+        /// <summary>
+        /// Initializing state.
+        /// </summary>
+        Initializing,
+
+        /// <summary>
+        /// Insufficient data state.
+        /// </summary>
+        InsufficientData,
+
+        /// <summary>
+        /// Failed state.
+        /// </summary>
+        Failed,
+
+        /// <summary>
+        /// Passed state.
+        /// </summary>
+        Passed
+    }
 }

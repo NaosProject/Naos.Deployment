@@ -6,7 +6,9 @@
 
 namespace Naos.Deployment.CloudManagement
 {
+    using System;
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Contract;
 
@@ -14,29 +16,40 @@ namespace Naos.Deployment.CloudManagement
     public class NullCloudManager : IManageCloudInfrastructure
     {
         /// <inheritdoc />
-        public void TerminateInstance(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
+        public async Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
         /// <inheritdoc />
-        public void TurnOffInstance(string systemId, string systemLocation, bool waitUntilOff = true)
+        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
         /// <inheritdoc />
-        public void TurnOnInstance(string systemId, string systemLocation, bool waitUntilOn = true)
+        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
         /// <inheritdoc />
-        public void ChangeInstanceType(string systemId, string systemLocation, InstanceType newInstanceType)
+        public async Task ChangeInstanceTypeAsync(string systemId, string systemLocation, InstanceType newInstanceType)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
         /// <inheritdoc />
-        public InstanceDescription CreateNewInstance(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
+        public async Task<InstanceStatus> GetInstanceStatusAsync(string systemId, string systemLocation)
         {
-            return new InstanceDescription();
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+            return null;
+        }
+
+        /// <inheritdoc />
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
+        {
+            return await Task.FromResult(new InstanceDescription());
         }
 
         /// <inheritdoc />
@@ -46,20 +59,23 @@ namespace Naos.Deployment.CloudManagement
         }
 
         /// <inheritdoc />
-        public IList<InstanceDetailsFromCloud> GetActiveInstancesFromCloud(string environment, string systemLocation)
+        public async Task<IList<InstanceDetailsFromCloud>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
             return new List<InstanceDetailsFromCloud>();
         }
 
         /// <inheritdoc />
-        public string GetAdministratorPasswordForInstance(InstanceDescription instanceDescription, string privateKey)
+        public async Task<string> GetAdministratorPasswordForInstanceAsync(InstanceDescription instanceDescription, string privateKey)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
             return null;
         }
 
         /// <inheritdoc />
-        public void UpsertDnsEntry(string environment, string location, string domain, ICollection<string> ipAddresses)
+        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses)
         {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
     }
 }
