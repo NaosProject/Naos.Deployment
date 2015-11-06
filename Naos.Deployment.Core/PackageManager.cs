@@ -25,6 +25,8 @@ namespace Naos.Deployment.Core
     /// </summary>
     public class PackageManager : IManagePackages
     {
+        private const string DirectoryDateTimeToStringFormat = "yyyy-MM-dd--HH-mm-ss--ffff";
+
         private readonly PackageRepositoryConfiguration repoConfig;
         private readonly string defaultWorkingDirectory;
 
@@ -156,7 +158,7 @@ namespace Naos.Deployment.Core
                 return null;
             }
 
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "Down-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss--fff"));
+            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat));
             byte[] ret;
             if (bundleAllDependencies)
             {
@@ -267,7 +269,9 @@ namespace Naos.Deployment.Core
             }
 
             // download package (decompressed)
-            var workingDirectory = Path.Combine(this.defaultWorkingDirectory, "PackageFileContentsSearch-" + DateTime.Now.ToString("yyyy-MM-dd--HH-mm-ss"));
+            var workingDirectory = Path.Combine(
+                this.defaultWorkingDirectory,
+                "PackageFileContentsSearch-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat));
             var packageFilePath = Path.Combine(workingDirectory, "Package.zip");
             Directory.CreateDirectory(workingDirectory);
             File.WriteAllBytes(packageFilePath, package.PackageFileBytes);
