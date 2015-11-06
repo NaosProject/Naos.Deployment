@@ -33,7 +33,7 @@ namespace Naos.Deployment.MessageBus.Handler
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
             var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
-            await Task.Run(() => this.Handle(message, settings, cloudInfrastructureManagerSettings));
+            await this.Handle(message, settings, cloudInfrastructureManagerSettings);
         }
 
         /// <summary>
@@ -42,7 +42,8 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="message">Message to handle.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
-        public void Handle(StartInstanceMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
+        /// <returns>Task for async execution.</returns>
+        public async Task Handle(StartInstanceMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
         {
             if (message == null)
             {
@@ -55,12 +56,10 @@ namespace Naos.Deployment.MessageBus.Handler
             }
 
             var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
-            var task = Task.Run(() => CloudManagerHelper.GetSystemIdFromTargeterAsync(message.InstanceTargeter, settings, cloudManager));
-            task.Wait();
-            var systemId = task.Result;
+            var systemId = await CloudManagerHelper.GetSystemIdFromTargeterAsync(message.InstanceTargeter, settings, cloudManager);
 
             Log.Write(() => new { Info = "Starting Instance", MessageJson = Serializer.Serialize(message), SystemId = systemId });
-            Task.Run(() => cloudManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, message.WaitUntilOn)).Wait();
+            await cloudManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, message.WaitUntilOn);
 
             this.InstanceTargeter = message.InstanceTargeter;
         }
