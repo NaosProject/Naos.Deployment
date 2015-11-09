@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
-    using System.Collections.Generic;
-
     using Naos.Deployment.Contract;
     using Naos.MessageBus.DataContract;
 
@@ -19,6 +17,6 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <summary>
         /// Gets or sets the targeter to find an instance.
         /// </summary>
-        IList<InstanceTargeterBase> InstanceTargeters { get; set; }
+        InstanceTargeterBase[] InstanceTargeters { get; set; }
     }
 }

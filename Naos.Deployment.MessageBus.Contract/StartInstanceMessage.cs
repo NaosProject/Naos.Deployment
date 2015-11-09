@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
-    using System.Collections.Generic;
-
     using Naos.Deployment.Contract;
     using Naos.MessageBus.DataContract;
 
@@ -20,7 +18,7 @@ namespace Naos.Deployment.MessageBus.Contract
         public string Description { get; set; }
 
         /// <inheritdoc />
-        public IList<InstanceTargeterBase> InstanceTargeters { get; set; }
+        public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether or not to block until the instance is running.

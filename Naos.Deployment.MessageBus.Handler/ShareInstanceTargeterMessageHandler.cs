@@ -6,7 +6,6 @@
 
 namespace Naos.Deployment.MessageBus.Handler
 {
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     using Its.Log.Instrumentation;
@@ -25,7 +24,7 @@ namespace Naos.Deployment.MessageBus.Handler
         public string Description { get; set; }
 
         /// <inheritdoc />
-        public IList<InstanceTargeterBase> InstanceTargeters { get; set; }
+        public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
         /// <inheritdoc />
         public async Task HandleAsync(ShareInstanceTargeterMessage message)

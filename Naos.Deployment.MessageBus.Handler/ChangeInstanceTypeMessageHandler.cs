@@ -7,7 +7,6 @@
 namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -28,7 +27,7 @@ namespace Naos.Deployment.MessageBus.Handler
         public string Description { get; set; }
 
         /// <inheritdoc />
-        public IList<InstanceTargeterBase> InstanceTargeters { get; set; }
+        public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
         /// <inheritdoc />
         public async Task HandleAsync(ChangeInstanceTypeMessage message)
@@ -57,7 +56,7 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Cannot have a null message.");
             }
 
-            if (message.InstanceTargeters == null || message.InstanceTargeters.Count == 0)
+            if (message.InstanceTargeters == null || message.InstanceTargeters.Length == 0)
             {
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
