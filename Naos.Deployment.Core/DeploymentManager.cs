@@ -22,6 +22,16 @@ namespace Naos.Deployment.Core
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
     {
+        /// <summary>
+        /// Lock object to only allow one DNS update at a time because AWSSDK does not seem to support this otherwise.
+        /// </summary>
+        private readonly object syncDnsManager = new object();
+
+        /// <summary>
+        /// Lock object to only allow one WinRM call to happen at a time because System.Management.Automation seems to *sometimes* not support this.
+        /// </summary>
+        private readonly object syncMachineManager = new object();
+
         private readonly ITrackComputingInfrastructure tracker;
 
         private readonly IManageCloudInfrastructure cloudManager;
@@ -350,11 +360,14 @@ namespace Naos.Deployment.Core
                 this.announce(
                     string.Format("Instance " + instanceNumber + " -  - Pointing {0} at {1}.", dns, ipAddress));
 
-                await this.cloudManager.UpsertDnsEntryAsync(
-                    environment,
-                    createdInstanceDescription.Location,
-                    dns,
-                    new[] { ipAddress });
+                lock (this.syncDnsManager)
+                {
+                    this.cloudManager.UpsertDnsEntryAsync(
+                        environment,
+                        createdInstanceDescription.Location,
+                        dns,
+                        new[] { ipAddress }).Wait();
+                }
             }
 
             // get all DNS initializations to update any private DNS entries on the private IP address.
@@ -386,11 +399,15 @@ namespace Naos.Deployment.Core
                             "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
                             privateDnsEntry,
                             privateIpAddress));
-                    await this.cloudManager.UpsertDnsEntryAsync(
-                        environment,
-                        createdInstanceDescription.Location,
-                        privateDnsEntry,
-                        new[] { privateIpAddress });
+
+                    lock (this.syncDnsManager)
+                    {
+                        this.cloudManager.UpsertDnsEntryAsync(
+                            environment,
+                            createdInstanceDescription.Location,
+                            privateDnsEntry,
+                            new[] { privateIpAddress }).Wait();
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
@@ -414,11 +431,15 @@ namespace Naos.Deployment.Core
                             "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
                             publicDnsEntry,
                             publicIpAddress));
-                    await this.cloudManager.UpsertDnsEntryAsync(
-                        environment,
-                        createdInstanceDescription.Location,
-                        publicDnsEntry,
-                        new[] { publicIpAddress });
+
+                    lock (this.syncDnsManager)
+                    {
+                        this.cloudManager.UpsertDnsEntryAsync(
+                            environment,
+                            createdInstanceDescription.Location,
+                            publicDnsEntry,
+                            new[] { publicIpAddress }).Wait();
+                    }
                 }
             }
 
@@ -486,7 +507,11 @@ namespace Naos.Deployment.Core
                     try
                     {
                         tries = tries + 1;
-                        setupStep.SetupAction(machineManager);
+                        lock (this.syncMachineManager)
+                        {
+                            setupStep.SetupAction(machineManager);
+                        }
+
                         break;
                     }
                     catch (Exception ex)
@@ -723,7 +748,11 @@ namespace Naos.Deployment.Core
 
                 try
                 {
-                    machineManager.Reboot();
+                    lock (this.syncMachineManager)
+                    {
+                        machineManager.Reboot();
+                    }
+
                     rebootCallSucceeded = true;
                 }
                 catch (Exception ex)
