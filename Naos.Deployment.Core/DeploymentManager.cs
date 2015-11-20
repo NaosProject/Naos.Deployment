@@ -780,7 +780,11 @@ namespace Naos.Deployment.Core
 
                 try
                 {
-                    var notNeededResults = machineManager.RunScript(@"{ ls C:\Windows }");
+                    lock (this.syncMachineManager)
+                    {
+                        var notNeededResults = machineManager.RunScript(@"{ ls C:\Windows }");
+                    }
+
                     reachable = true;
                 }
                 catch (Exception)
