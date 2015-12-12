@@ -29,5 +29,10 @@ namespace Naos.Deployment.Contract
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
         public LogProcessorSettings LogProcessorSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the invisibility timeout of a job.
+        /// </summary>
+        public TimeSpan InvisibilityTimeout { get; set; }
     }
 }
