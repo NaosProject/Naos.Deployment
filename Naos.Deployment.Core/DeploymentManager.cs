@@ -17,6 +17,8 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.MessageBus.HandlingContract;
+    using Naos.Packaging.Domain;
+    using Naos.Packaging.NuGet;
     using Naos.WinRM;
 
     /// <inheritdoc />
@@ -36,7 +38,7 @@ namespace Naos.Deployment.Core
 
         private readonly IManageCloudInfrastructure cloudManager;
 
-        private readonly IManagePackages packageManager;
+        private readonly IGetPackages packageManager;
 
         private readonly DeploymentConfiguration defaultDeploymentConfiguration;
 
@@ -68,7 +70,7 @@ namespace Naos.Deployment.Core
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
             IManageCloudInfrastructure cloudManager,
-            IManagePackages packageManager,
+            IGetPackages packageManager,
             IGetCertificates certificateRetriever,
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
             MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration,
@@ -109,7 +111,7 @@ namespace Naos.Deployment.Core
             // set null package id for any 'package-less' deployments
             foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.Id)))
             {
-                package.Id = PackageManager.NullPackageId;
+                package.Id = PackageDescription.NullPackageId;
             }
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
@@ -614,7 +616,7 @@ namespace Naos.Deployment.Core
         {
             if (string.Equals(
                 package.PackageDescription.Id,
-                PackageManager.NullPackageId,
+                PackageDescription.NullPackageId,
                 StringComparison.CurrentCultureIgnoreCase))
             {
                 return "[DOES NOT HAVE A VERSION]";

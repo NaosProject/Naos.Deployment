@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Contract
 {
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Package description that can contain a deployment status for use with tracking.
     /// </summary>

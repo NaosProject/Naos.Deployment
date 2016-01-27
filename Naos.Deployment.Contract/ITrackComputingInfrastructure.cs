@@ -8,6 +8,8 @@ namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Manages state tracking of various AWS objects for purposes
     ///     of not having to re-discover from AWS API each time and

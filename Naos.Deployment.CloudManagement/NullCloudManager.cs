@@ -11,6 +11,7 @@ namespace Naos.Deployment.CloudManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <inheritdoc />
     public class NullCloudManager : IManageCloudInfrastructure

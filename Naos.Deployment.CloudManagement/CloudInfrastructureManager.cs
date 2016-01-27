@@ -14,6 +14,7 @@ namespace Naos.Deployment.CloudManagement
     using Naos.AWS.Contract;
     using Naos.AWS.Core;
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     using CheckState = Naos.Deployment.Contract.CheckState;
     using InstanceState = Naos.Deployment.Contract.InstanceState;

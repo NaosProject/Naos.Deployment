@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Methods added to instance configuration objects.

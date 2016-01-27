@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
     using Its.Log.Instrumentation;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -23,7 +24,7 @@ namespace Naos.Deployment.Core
 
         private readonly SetupStepFactorySettings settings;
 
-        private readonly IManagePackages packageManager;
+        private readonly IGetPackages packageManager;
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
@@ -34,7 +35,7 @@ namespace Naos.Deployment.Core
         /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IManagePackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
@@ -198,7 +199,7 @@ namespace Naos.Deployment.Core
                                                          // don't push the null package...
                                                          if (!string.Equals(
                                                                  packagedConfig.Package.PackageDescription.Id,
-                                                                 PackageManager.NullPackageId))
+                                                                 PackageDescription.NullPackageId))
                                                          {
                                                              // in case we're in a retry scenario we should just overwrite...
                                                              const bool Overwrite = true;

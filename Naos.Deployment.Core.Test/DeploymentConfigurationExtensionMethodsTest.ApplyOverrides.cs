@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core.Test
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     using Xunit;
 

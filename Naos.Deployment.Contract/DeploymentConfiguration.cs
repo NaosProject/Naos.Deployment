@@ -8,6 +8,8 @@ namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Model object with necessary details to deploy software to a machine.
     /// </summary>

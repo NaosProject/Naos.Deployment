@@ -22,6 +22,7 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.Packaging.Domain;
 
     using Newtonsoft.Json;
 
@@ -121,10 +122,17 @@ namespace Naos.Deployment.Console
                 unzipDirPath = workingPath;
             }
 
+            if (Directory.Exists(unzipDirPath))
+            {
+                Directory.Delete(unzipDirPath, true);
+            }
+
+            Directory.CreateDirectory(unzipDirPath);
+
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
-            var packageManager = new PackageManager(repoConfig, unzipDirPath).WithCleanWorkingDirectory();
+            var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath);
 
             var deploymentManager = new DeploymentManager(
                 tracker,

@@ -8,6 +8,8 @@ namespace Naos.Deployment.Contract
 {
     using System;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Settings to be provided to the SetupStepFactory (defaults, Powershell script block, etc.)
     /// </summary>
