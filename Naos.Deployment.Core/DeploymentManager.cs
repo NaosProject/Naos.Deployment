@@ -1035,16 +1035,15 @@ namespace Naos.Deployment.Core
 
         private void LogAnnouncement(string step, int? instanceNumber = null)
         {
+            var instanceNumberAdjustedStep = instanceNumber != null ? "Instance " + instanceNumber + " - " + step : step;
+            this.announce(instanceNumberAdjustedStep);
+
             if (this.announcementFile == null)
             {
                 return;
             }
 
-            var time = DateTime.UtcNow;
-
-            var instanceNumberAdjustedStep = instanceNumber != null ? "Instance " + instanceNumber + " - " + step : step;
-            this.announce(instanceNumberAdjustedStep);
-            var entry = new AnnouncementEntry { DateTime = time, InstanceNumber = instanceNumber, Step = step };
+            var entry = new AnnouncementEntry { DateTime = DateTime.UtcNow, InstanceNumber = instanceNumber, Step = step };
             this.announcements.Add(entry);
             this.FlushAnnouncements();
         }
