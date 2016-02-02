@@ -114,6 +114,24 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
         {
+            if (this.telemetryFile != null)
+            {
+                this.LogAnnouncement("Logging telemetry to: " + this.telemetryFile);
+            }
+            else
+            {
+                this.LogAnnouncement("Not logging telemetry to a file");
+            }
+
+            if (this.announcementFile != null)
+            {
+                this.LogAnnouncement("Logging announcements to: " + this.announcementFile);
+            }
+            else
+            {
+                this.LogAnnouncement("Not logging announcements to a file");
+            }
+
             if (packagesToDeploy == null)
             {
                 packagesToDeploy = new List<PackageDescriptionWithOverrides>();
@@ -988,7 +1006,7 @@ namespace Naos.Deployment.Core
             }
 
             var stopTime = DateTime.UtcNow;
-            var currentEntry = this.telemetry.Single(_ => _.InstanceNumber == instanceNumber && _.Step == step);
+            var currentEntry = this.telemetry.Single(_ => _.InstanceNumber == instanceNumber && _.Step == step && _.Stop == null);
             currentEntry.Stop = stopTime;
             this.FlushTelemetry();
         }
@@ -1059,10 +1077,10 @@ namespace Naos.Deployment.Core
 
             public string Step { get; set; }
 
-            public DateTime Start { get; set; }
+            public DateTime? Start { get; set; }
 
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
-            public DateTime Stop { get; set; }
+            public DateTime? Stop { get; set; }
         }
 
         private class AnnouncementEntry 
@@ -1072,7 +1090,7 @@ namespace Naos.Deployment.Core
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
             public string Step { get; set; }
 
-            public DateTime DateTime { get; set; }
+            public DateTime? DateTime { get; set; }
         }
     }
 }
