@@ -74,6 +74,8 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Full file path of the certificate certificate retriever managing file.")] string certificateRetrieverFilePath,
             [Aliases("")] [Description("Full folder path of the location of persistence for tracking system for cloud properties.")] string trackingSystemRootFolder, 
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
+            [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
+            [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
             [Aliases("")] [Description("Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).")] [DefaultValue(null)] string workingPath, 
@@ -96,6 +98,8 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                       environment: " + environment);
             Console.WriteLine("--                                      instanceName: " + instanceName);
             Console.WriteLine("--                              packagesToDeployJson: " + packagesToDeployJson);
+            Console.WriteLine("--                              announcementFilePath: " + announcementFilePath);
+            Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
             JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
@@ -144,7 +148,9 @@ namespace Naos.Deployment.Console
                 setupFactorySettings,
                 messageBusPersistenceConnectionString,
                 cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
-                Console.WriteLine);
+                Console.WriteLine,
+                announcementFilePath,
+                telemetryFilePath);
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
 
