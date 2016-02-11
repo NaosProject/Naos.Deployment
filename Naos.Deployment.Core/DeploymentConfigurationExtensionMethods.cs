@@ -47,10 +47,10 @@ namespace Naos.Deployment.Core
 
             // Makes sure we don't have competing TurnOffInstance values
             if (
-                deploymentConfigs.Any(
-                    _ => (_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
-                && deploymentConfigs.Any(
-                    _ => !(_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance))
+                deploymentConfigs.Where(_ => _.PostDeploymentStrategy != null)
+                    .Any(_ => _.PostDeploymentStrategy.TurnOffInstance)
+                && deploymentConfigs.Where(_ => _.PostDeploymentStrategy != null)
+                       .Any(_ => !_.PostDeploymentStrategy.TurnOffInstance))
             {
                 throw new ArgumentException("Cannot have competing TurnOffInstance values.");
             }
@@ -58,8 +58,11 @@ namespace Naos.Deployment.Core
             // since values are the same for the entire collection just take the first one...
             var deploymentStrategy = deploymentConfigs.First().DeploymentStrategy;
 
-            // since values are the same for the entire collection just take the first one...
-            var postDeploymentStrategy = deploymentConfigs.First().PostDeploymentStrategy;
+            // since values (where set) are the same for the entire collection just take the first one...
+            var possiblePostDeploymentStrategy = deploymentConfigs.FirstOrDefault(_ => _.PostDeploymentStrategy != null);
+            var postDeploymentStrategy = possiblePostDeploymentStrategy == null
+                                             ? null
+                                             : possiblePostDeploymentStrategy.PostDeploymentStrategy;
 
             // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))

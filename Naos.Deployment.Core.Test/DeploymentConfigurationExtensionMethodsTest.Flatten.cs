@@ -189,6 +189,24 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_PostDeploymentStrategy_MissingPostDeployment_IsntConflictingTakesSetValue()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            PostDeploymentStrategy =
+                                new PostDeploymentStrategy
+                                    {
+                                        TurnOffInstance = true
+                                    }
+                        };
+
+            var b = new DeploymentConfiguration() { PostDeploymentStrategy = null };
+
+            var flattened = new[] { a, b }.Flatten();
+            Assert.True(flattened.PostDeploymentStrategy.TurnOffInstance);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
         {
             var first = new DeploymentConfiguration()
