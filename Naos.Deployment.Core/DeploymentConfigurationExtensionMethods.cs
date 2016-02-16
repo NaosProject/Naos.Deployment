@@ -103,19 +103,13 @@ namespace Naos.Deployment.Core
             {
                 var volumesForDriveLetter = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).ToList();
                 var sizeInGb = volumesForDriveLetter.Max(_ => _.SizeInGb);
-                var distinctTypes =
-                    volumesForDriveLetter.Select(_ => _.Type == VolumeType.DoesNotMatter ? VolumeType.Standard : _.Type)
-                        .Distinct()
-                        .ToList();
+                var distinctTypes = volumesForDriveLetter.Select(_ => _.Type).Distinct().ToList();
 
-                if (distinctTypes.Count > 1)
-                {
-                    throw new ArgumentException(
-                        "Cannot have competing Volume Type values for the same drive letter: " + distinctDriveLetter);
-                }
+                var flattenedType = distinctTypes.Flatten();
+                var volumeType = flattenedType;
 
                 volumes.Add(
-                    new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb, Type = distinctTypes.Single() });
+                    new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb, Type = volumeType });
             }
 
             var allChocolateyPackages =
@@ -162,6 +156,30 @@ namespace Naos.Deployment.Core
                           };
 
             return ret;
+        }
+
+        private static VolumeType Flatten(this ICollection<VolumeType> types)
+        {
+            if (types.Contains(VolumeType.HighPerformance))
+            {
+                return VolumeType.HighPerformance;
+            }
+            else if (types.Contains(VolumeType.Standard))
+            {
+                return VolumeType.Standard;
+            }
+            else if (types.Contains(VolumeType.LowPerformance))
+            {
+                return VolumeType.LowPerformance;
+            }
+            else if (types.Contains(VolumeType.DoesNotMatter))
+            {
+                return VolumeType.DoesNotMatter;
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported VolumeType in collection: " + string.Join(",", types));
+            }
         }
 
         /// <summary>
