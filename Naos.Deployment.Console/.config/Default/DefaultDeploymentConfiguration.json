@@ -20,10 +20,5 @@
         "includeInstanceInitializationScript": true,
         "runSetupSteps": true
     },
-    "chocolateyPackages": [
-        { "id": "GoogleChrome" },
-        { "id": "sublime" },
-        { "id": "BareTail" },
-        { "id": "7zip.install" }
-    ]
+    "chocolateyPackages": []
 }

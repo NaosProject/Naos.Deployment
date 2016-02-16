@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -55,6 +56,17 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
+        /// </summary>
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes
+        {
+            get
+            {
+                return this.settings.InitializationStrategyTypesThatNeedPackageBytes;
+            }
+        }
+
+        /// <summary>
         /// Gets the max number of times to execute a setup step before throwing.
         /// </summary>
         public int MaxSetupStepAttempts
@@ -92,9 +104,11 @@ namespace Naos.Deployment.Core
                 ret.Add(installChocoStep);
             }
 
-            // don't include the package push for databases only since they will be deployed remotely...
-            if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Count()
-                != packagedConfig.InitializationStrategies.Count)
+            var distinctInitializationStrategyTypes =
+                packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
+
+            // only copy the package byes if there are initialization strategies on the package that require it...
+            if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedPackageBytes.Contains(_)))
             {
                 var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
                 ret.Add(deployUnzippedFileStep);
@@ -130,6 +144,11 @@ namespace Naos.Deployment.Core
                 var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.Package);
                 ret.AddRange(databaseSteps);
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
+            {
+                var databaseSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
+                ret.AddRange(databaseSteps);
+            }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
@@ -155,13 +174,6 @@ namespace Naos.Deployment.Core
                         this.settings.HarnessSettings.HarnessAccount,
                         this.settings.WebServerSettings.IisAccount);
                 ret.AddRange(certSteps);
-            }
-            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
-            {
-                var mongoSteps =
-                    this.GetMongoSpecificSteps(
-                        (InitializationStrategyMongo)strategy);
-                ret.AddRange(mongoSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
             {
