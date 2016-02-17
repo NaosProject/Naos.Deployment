@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F74C3153-562D-4CA8-828B-BC22BF1E76E7}</ProjectGuid>
+    <ProjectGuid>{6F1833BF-253D-4C2D-B429-CCEC58ECEED0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Naos.Deployment.Core</RootNamespace>
@@ -115,12 +115,12 @@
       <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.123\lib\net45\Naos.MessageBus.HandlingContract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.7\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.9\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.7\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.9\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
