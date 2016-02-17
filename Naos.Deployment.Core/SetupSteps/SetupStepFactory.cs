@@ -96,6 +96,26 @@ namespace Naos.Deployment.Core
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
         public ICollection<SetupStep> GetSetupSteps(PackagedDeploymentConfiguration packagedConfig, string environment)
         {
+            // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
+            var mongoStrategies = packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>();
+            var distinctNoJournaling = mongoStrategies.Select(_ => _.NoJournaling).Distinct();
+            if (distinctNoJournaling.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple no journaling options for a single mongo instance deployment.");
+            }
+
+            var distinctDataPath = mongoStrategies.Select(_ => _.DataDirectory).Distinct();
+            if (distinctDataPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple data paths for a single mongo instance deployment.");
+            }
+
+            var distinctLogPath = mongoStrategies.Select(_ => _.LogDirectory).Distinct();
+            if (distinctLogPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple log paths for a single mongo instance deployment.");
+            }
+
             var ret = new List<SetupStep>();
 
             var installChocoStep = this.GetChocolateySetupStep(packagedConfig);
