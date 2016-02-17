@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Methods added to instance configuration objects.
@@ -46,10 +47,10 @@ namespace Naos.Deployment.Core
 
             // Makes sure we don't have competing TurnOffInstance values
             if (
-                deploymentConfigs.Any(
-                    _ => (_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
-                && deploymentConfigs.Any(
-                    _ => !(_.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance))
+                deploymentConfigs.Where(_ => _.PostDeploymentStrategy != null)
+                    .Any(_ => _.PostDeploymentStrategy.TurnOffInstance)
+                && deploymentConfigs.Where(_ => _.PostDeploymentStrategy != null)
+                       .Any(_ => !_.PostDeploymentStrategy.TurnOffInstance))
             {
                 throw new ArgumentException("Cannot have competing TurnOffInstance values.");
             }
@@ -57,8 +58,11 @@ namespace Naos.Deployment.Core
             // since values are the same for the entire collection just take the first one...
             var deploymentStrategy = deploymentConfigs.First().DeploymentStrategy;
 
-            // since values are the same for the entire collection just take the first one...
-            var postDeploymentStrategy = deploymentConfigs.First().PostDeploymentStrategy;
+            // since values (where set) are the same for the entire collection just take the first one...
+            var possiblePostDeploymentStrategy = deploymentConfigs.FirstOrDefault(_ => _.PostDeploymentStrategy != null);
+            var postDeploymentStrategy = possiblePostDeploymentStrategy == null
+                                             ? null
+                                             : possiblePostDeploymentStrategy.PostDeploymentStrategy;
 
             // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))
@@ -99,19 +103,13 @@ namespace Naos.Deployment.Core
             {
                 var volumesForDriveLetter = allVolumes.Where(_ => _.DriveLetter == distinctDriveLetter).ToList();
                 var sizeInGb = volumesForDriveLetter.Max(_ => _.SizeInGb);
-                var distinctTypes =
-                    volumesForDriveLetter.Select(_ => _.Type == VolumeType.DoesNotMatter ? VolumeType.Standard : _.Type)
-                        .Distinct()
-                        .ToList();
+                var distinctTypes = volumesForDriveLetter.Select(_ => _.Type).Distinct().ToList();
 
-                if (distinctTypes.Count > 1)
-                {
-                    throw new ArgumentException(
-                        "Cannot have competing Volume Type values for the same drive letter: " + distinctDriveLetter);
-                }
+                var flattenedType = distinctTypes.Flatten();
+                var volumeType = flattenedType;
 
                 volumes.Add(
-                    new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb, Type = distinctTypes.Single() });
+                    new Volume { DriveLetter = distinctDriveLetter, SizeInGb = sizeInGb, Type = volumeType });
             }
 
             var allChocolateyPackages =
@@ -158,6 +156,30 @@ namespace Naos.Deployment.Core
                           };
 
             return ret;
+        }
+
+        private static VolumeType Flatten(this ICollection<VolumeType> types)
+        {
+            if (types.Contains(VolumeType.HighPerformance))
+            {
+                return VolumeType.HighPerformance;
+            }
+            else if (types.Contains(VolumeType.Standard))
+            {
+                return VolumeType.Standard;
+            }
+            else if (types.Contains(VolumeType.LowPerformance))
+            {
+                return VolumeType.LowPerformance;
+            }
+            else if (types.Contains(VolumeType.DoesNotMatter))
+            {
+                return VolumeType.DoesNotMatter;
+            }
+            else
+            {
+                throw new NotSupportedException("Unsupported VolumeType in collection: " + string.Join(",", types));
+            }
         }
 
         /// <summary>

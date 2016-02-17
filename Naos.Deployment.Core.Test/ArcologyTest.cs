@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.Packaging.Domain;
 
     using Xunit;
 

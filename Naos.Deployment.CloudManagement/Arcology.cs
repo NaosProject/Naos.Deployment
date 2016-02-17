@@ -11,6 +11,7 @@ namespace Naos.Deployment.CloudManagement
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Container object for storing a single environments entire state.

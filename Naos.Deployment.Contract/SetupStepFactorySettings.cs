@@ -7,6 +7,9 @@
 namespace Naos.Deployment.Contract
 {
     using System;
+    using System.Collections.Generic;
+
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Settings to be provided to the SetupStepFactory (defaults, Powershell script block, etc.)
@@ -57,6 +60,11 @@ namespace Naos.Deployment.Contract
         /// Gets or sets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
         /// </summary>
         public bool ThrowOnFailedSetupStep { get; set; }
+
+        /// <summary>
+        /// Gets or sets the initialization strategy types that require the package bytes to be copied up to the target server.
+        /// </summary>
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes { get; set; }
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Comparer for use when running LINQ expressions on packages to only use the package ID.

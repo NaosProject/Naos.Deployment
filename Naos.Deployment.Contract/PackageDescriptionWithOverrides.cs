@@ -8,6 +8,8 @@ namespace Naos.Deployment.Contract
 {
     using System.Collections.Generic;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Package description with initialization strategies added to override when calling deploy.
     /// </summary>

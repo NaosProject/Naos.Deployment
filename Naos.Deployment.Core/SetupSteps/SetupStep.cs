@@ -24,5 +24,11 @@ namespace Naos.Deployment.Core
         /// Gets or sets the action to run for setup (takes a IManageMachines implementation as a parameter to perform necessary actions remotely).
         /// </summary>
         public Action<IManageMachines> SetupAction { get; set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return this.Description;
+        }
     }
 }

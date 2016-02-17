@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// A package with its appropriate deployment configuration.

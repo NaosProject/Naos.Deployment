@@ -189,6 +189,24 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_PostDeploymentStrategy_MissingPostDeployment_IsntConflictingTakesSetValue()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            PostDeploymentStrategy =
+                                new PostDeploymentStrategy
+                                    {
+                                        TurnOffInstance = true
+                                    }
+                        };
+
+            var b = new DeploymentConfiguration() { PostDeploymentStrategy = null };
+
+            var flattened = new[] { a, b }.Flatten();
+            Assert.True(flattened.PostDeploymentStrategy.TurnOffInstance);
+        }
+
+        [Fact]
         public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
         {
             var first = new DeploymentConfiguration()
@@ -254,23 +272,42 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Flatten_ConflictingVolumeTypes_Throws()
+        public static void Flatten_ConflictingVolumeTypes_HigherPerformanceWins()
         {
-            var a = new DeploymentConfiguration()
-                            {
-                                Volumes =
-                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } }
-                            };
+            var configReducer = new List<DeploymentConfiguration>();
+            foreach (var option in Enum.GetValues(typeof(VolumeType)))
+            {
+                var typed = (VolumeType)option;
+                var config = new DeploymentConfiguration()
+                {
+                    Volumes =
+                        new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = typed } }
+                };
 
-            var b = new DeploymentConfiguration()
-                             {
-                                 Volumes =
-                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.LowPerformance } }
-                             };
+                configReducer.Add(config);
+            }
 
-            Action testCode = () => new[] { a, b }.Flatten();
-            var ex = Assert.Throws<ArgumentException>(testCode);
-            Assert.Equal("Cannot have competing Volume Type values for the same drive letter: C", ex.Message);
+            // has all - high is expected
+            var highActual = configReducer.Flatten();
+            Assert.Equal(VolumeType.HighPerformance, highActual.Volumes.Single().Type);
+
+            // all without high - standard is expected
+            configReducer.RemoveAll(_ => _.Volumes.Single().Type == VolumeType.HighPerformance);
+            var standardActual = configReducer.Flatten();
+            Assert.Equal(VolumeType.Standard, standardActual.Volumes.Single().Type);
+
+            // all without high, standard - low is expected
+            configReducer.RemoveAll(_ => _.Volumes.Single().Type == VolumeType.Standard);
+            var lowActual = configReducer.Flatten();
+            Assert.Equal(VolumeType.LowPerformance, lowActual.Volumes.Single().Type);
+
+            // all without high, standard, - DoesNotMatter is expected
+            configReducer.RemoveAll(_ => _.Volumes.Single().Type == VolumeType.LowPerformance);
+            var doesNotMatterActual = configReducer.Flatten();
+            Assert.Equal(VolumeType.DoesNotMatter, doesNotMatterActual.Volumes.Single().Type);
+
+            configReducer.RemoveAll(_ => _.Volumes.Single().Type == VolumeType.DoesNotMatter);
+            Assert.Equal(0, configReducer.Count);
         }
 
         [Fact]

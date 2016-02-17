@@ -9,6 +9,8 @@ namespace Naos.Deployment.Contract
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Interface for performing native cloud operations.
     /// </summary>

@@ -83,6 +83,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.123\lib\net45\Naos.MessageBus.HandlingContract.dll</HintPath>
     </Reference>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.7\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.29.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.WinRM.1.0.29\lib\45\Naos.WinRM.dll</HintPath>

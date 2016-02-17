@@ -14,6 +14,8 @@ namespace Naos.Deployment.Core.CloudInfrastructureTracking
     using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Tracking system/certificate manager that will use a root folder and will have a folder per environment with a config file and store a file per machine.
     /// </summary>

@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Additional behavior to add on package descriptions and derivatives.

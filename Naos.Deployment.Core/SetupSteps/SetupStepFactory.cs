@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -13,6 +14,7 @@ namespace Naos.Deployment.Core
     using Its.Log.Instrumentation;
 
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -23,7 +25,7 @@ namespace Naos.Deployment.Core
 
         private readonly SetupStepFactorySettings settings;
 
-        private readonly IManagePackages packageManager;
+        private readonly IGetPackages packageManager;
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
@@ -34,7 +36,7 @@ namespace Naos.Deployment.Core
         /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IManagePackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
@@ -50,6 +52,17 @@ namespace Naos.Deployment.Core
             get
             {
                 return this.settings.RootDeploymentPath;
+            }
+        }
+
+        /// <summary>
+        /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
+        /// </summary>
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes
+        {
+            get
+            {
+                return this.settings.InitializationStrategyTypesThatNeedPackageBytes;
             }
         }
 
@@ -83,6 +96,26 @@ namespace Naos.Deployment.Core
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
         public ICollection<SetupStep> GetSetupSteps(PackagedDeploymentConfiguration packagedConfig, string environment)
         {
+            // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
+            var mongoStrategies = packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>();
+            var distinctNoJournaling = mongoStrategies.Select(_ => _.NoJournaling).Distinct();
+            if (distinctNoJournaling.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple no journaling options for a single mongo instance deployment.");
+            }
+
+            var distinctDataPath = mongoStrategies.Select(_ => _.DataDirectory).Distinct();
+            if (distinctDataPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple data paths for a single mongo instance deployment.");
+            }
+
+            var distinctLogPath = mongoStrategies.Select(_ => _.LogDirectory).Distinct();
+            if (distinctLogPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple log paths for a single mongo instance deployment.");
+            }
+
             var ret = new List<SetupStep>();
 
             var installChocoStep = this.GetChocolateySetupStep(packagedConfig);
@@ -91,9 +124,11 @@ namespace Naos.Deployment.Core
                 ret.Add(installChocoStep);
             }
 
-            // don't include the package push for databases only since they will be deployed remotely...
-            if (packagedConfig.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Count()
-                != packagedConfig.InitializationStrategies.Count)
+            var distinctInitializationStrategyTypes =
+                packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
+
+            // only copy the package byes if there are initialization strategies on the package that require it...
+            if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedPackageBytes.Contains(_)))
             {
                 var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
                 ret.Add(deployUnzippedFileStep);
@@ -129,6 +164,11 @@ namespace Naos.Deployment.Core
                 var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.Package);
                 ret.AddRange(databaseSteps);
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
+            {
+                var databaseSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
+                ret.AddRange(databaseSteps);
+            }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
                 /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
@@ -154,13 +194,6 @@ namespace Naos.Deployment.Core
                         this.settings.HarnessSettings.HarnessAccount,
                         this.settings.WebServerSettings.IisAccount);
                 ret.AddRange(certSteps);
-            }
-            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
-            {
-                var mongoSteps =
-                    this.GetMongoSpecificSteps(
-                        (InitializationStrategyMongo)strategy);
-                ret.AddRange(mongoSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
             {
@@ -198,7 +231,7 @@ namespace Naos.Deployment.Core
                                                          // don't push the null package...
                                                          if (!string.Equals(
                                                                  packagedConfig.Package.PackageDescription.Id,
-                                                                 PackageManager.NullPackageId))
+                                                                 PackageDescription.NullPackageId))
                                                          {
                                                              // in case we're in a retry scenario we should just overwrite...
                                                              const bool Overwrite = true;

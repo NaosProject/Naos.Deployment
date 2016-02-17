@@ -19,6 +19,7 @@ namespace Naos.Deployment.Core
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Deployment.Contract;
+    using Naos.Packaging.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).

@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -17,7 +18,10 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.CloudManagement;
     using Naos.Deployment.Contract;
     using Naos.MessageBus.HandlingContract;
+    using Naos.Packaging.Domain;
     using Naos.WinRM;
+
+    using Newtonsoft.Json;
 
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
@@ -36,7 +40,7 @@ namespace Naos.Deployment.Core
 
         private readonly IManageCloudInfrastructure cloudManager;
 
-        private readonly IManagePackages packageManager;
+        private readonly IGetPackages packageManager;
 
         private readonly DeploymentConfiguration defaultDeploymentConfiguration;
 
@@ -52,6 +56,14 @@ namespace Naos.Deployment.Core
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
+        private readonly ConcurrentBag<TelemetryEntry> telemetry = new ConcurrentBag<TelemetryEntry>();
+
+        private readonly string telemetryFile;
+
+        private readonly ConcurrentBag<AnnouncementEntry> announcements = new ConcurrentBag<AnnouncementEntry>();
+
+        private readonly string announcementFile;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -65,17 +77,21 @@ namespace Naos.Deployment.Core
         /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
+        /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
+        /// <param name="telemetryFile">Optional file path to record JSON file of certain task timings.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
             IManageCloudInfrastructure cloudManager,
-            IManagePackages packageManager,
+            IGetPackages packageManager,
             IGetCertificates certificateRetriever,
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
             MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration,
             SetupStepFactorySettings setupStepFactorySettings,
             string messageBusPersistenceConnectionString,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
-            Action<string> announcer)
+            Action<string> announcer, 
+            string announcementFile = null, 
+            string telemetryFile = null)
         {
             this.tracker = tracker;
             this.cloudManager = cloudManager;
@@ -85,6 +101,8 @@ namespace Naos.Deployment.Core
             this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
+            this.telemetryFile = telemetryFile;
+            this.announcementFile = announcementFile;
             this.itsConfigPrecedenceAfterEnvironment = new[] { "Common" };
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
@@ -96,6 +114,24 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         public void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
         {
+            if (this.telemetryFile != null)
+            {
+                this.LogAnnouncement("Logging telemetry to: " + this.telemetryFile);
+            }
+            else
+            {
+                this.LogAnnouncement("Not logging telemetry to a file");
+            }
+
+            if (this.announcementFile != null)
+            {
+                this.LogAnnouncement("Logging announcements to: " + this.announcementFile);
+            }
+            else
+            {
+                this.LogAnnouncement("Not logging announcements to a file");
+            }
+
             if (packagesToDeploy == null)
             {
                 packagesToDeploy = new List<PackageDescriptionWithOverrides>();
@@ -109,43 +145,39 @@ namespace Naos.Deployment.Core
             // set null package id for any 'package-less' deployments
             foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.Id)))
             {
-                package.Id = PackageManager.NullPackageId;
+                package.Id = PackageDescription.NullPackageId;
             }
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
-            this.announce(
-                "Downloading packages that are to be deployed => IDs: "
-                + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
+            this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = string.Format(".config/{0}/DeploymentConfigurationWithStrategies.json", environment);
 
-            this.announce("Extracting deployment configuration(s) for specified environment from packages (if present).");
+            this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
             foreach (var config in packagedDeploymentConfigs)
             {
                 if (config.DeploymentConfiguration == null)
                 {
-                    this.announce(
-                        "   - Did NOT find config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                    this.LogAnnouncement("   - Did NOT find config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
                 }
                 else
                 {
-                    this.announce(
-                        "   - Found config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                    this.LogAnnouncement("   - Found config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
                 }
             }
 
             // apply default values to any nulls
-            this.announce("Applying default deployment configuration options.");
+            this.LogAnnouncement("Applying default deployment configuration options.");
             var packagedConfigsWithDefaults = packagedDeploymentConfigs.ApplyDefaults(this.defaultDeploymentConfiguration);
 
             // flatten configs into a single config to deploy onto an instance
-            this.announce("Flattening multiple deployment configurations.");
+            this.LogAnnouncement("Flattening multiple deployment configurations.");
             var flattenedConfig = packagedConfigsWithDefaults.Select(_ => _.DeploymentConfiguration).ToList().Flatten();
 
             // apply overrides
-            this.announce("Applying applicable overrides to the flattened deployment configuration.");
+            this.LogAnnouncement("Applying applicable overrides to the flattened deployment configuration.");
             var overriddenConfig = flattenedConfig.ApplyOverrides(deploymentConfigOverride);
 
             // set config to use for creation
@@ -155,8 +187,20 @@ namespace Naos.Deployment.Core
             var packagedDeploymentConfigsWithDefaultsAndOverrides =
                 packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
+            // determine if a message bus harness package should be included
+            var harnessPackagedConfig = this.GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
+                environment,
+                packagedDeploymentConfigsWithDefaultsAndOverrides,
+                configToCreateWith);
+
+            if (harnessPackagedConfig != null)
+            {
+                this.LogAnnouncement("Configured message bus harness config included in deployed package list");
+                packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
+            }
+
             // terminate existing instances...
-            this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment);
+            this.RunActionWithTelemetry("Terminating Instances", () => this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment));
 
             var instanceCount = configToCreateWith.InstanceCount;
             if (instanceCount == 0)
@@ -181,7 +225,7 @@ namespace Naos.Deployment.Core
 
             Task.WaitAll(tasks);
 
-            this.announce("Finished deployment.");
+            this.LogAnnouncement("Finished deployment.");
         }
 
         private async Task CreateNumberedInstanceAsync(
@@ -198,9 +242,7 @@ namespace Naos.Deployment.Core
             var createAnnouncementAddIn = instanceCount > 1
                                               ? "(" + (instanceNumber + 1) + "/" + instanceCount + ")"
                                               : string.Empty;
-            this.announce(
-                "Instance " + instanceNumber + " - Creating new instance " + createAnnouncementAddIn
-                + " => MachineName: " + numberedInstanceName);
+            this.LogAnnouncement("Creating new instance " + createAnnouncementAddIn + " => MachineName: " + numberedInstanceName, instanceNumber);
 
             var createdInstanceDescription =
                 await
@@ -214,126 +256,44 @@ namespace Naos.Deployment.Core
             var systemSpecificDetailsAsString = string.Join(
                 ",",
                 createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
-            this.announce(
+            var createdInstanceMessage =
                 string.Format(
                     "Instance " + instanceNumber
                     + " - Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
                     createdInstanceDescription.Name,
                     createdInstanceDescription.Id,
                     createdInstanceDescription.PrivateIpAddress,
-                    systemSpecificDetailsAsString));
+                    systemSpecificDetailsAsString);
+            this.LogAnnouncement(createdInstanceMessage, instanceNumber);
 
-            this.announce("Instance " + instanceNumber + " - Waiting for status checks to pass.");
-            await this.WaitUntilStatusChecksSucceedAsync(createdInstanceDescription);
+            this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
+            await this.WaitUntilStatusChecksSucceedAsync(instanceNumber, createdInstanceDescription);
 
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
-                this.announce(
-                    "Instance " + instanceNumber
-                    + " - Waiting for Administrator password to be available (takes a few minutes for this).");
-                var machineManager = await this.GetMachineManagerForInstanceAsync(createdInstanceDescription);
-
-                this.announce(
-                    "Instance " + instanceNumber
-                    + " - Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).");
-                this.WaitUntilMachineIsAccessible(machineManager);
-
-                var instanceLevelSetupSteps =
-                    this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
-                this.announce(
-                    "Instance " + instanceNumber + " - Running setup actions that finalize the instance creation.");
-
-                this.RunSetupSteps(machineManager, instanceLevelSetupSteps, instanceNumber);
-
-                // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
-                this.announce(
-                    "Instance " + instanceNumber
-                    + " - Rebooting new instance to finalize any items from instance setup.");
-                this.RebootInstance(machineManager);
-
-                // get all message bus handler initializations to know if we need a handler.
-                var packagesWithMessageBusInitializations =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides
-                        .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
-
-                var messageBusInitializations =
-                    packagesWithMessageBusInitializations
-                        .GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
-
-                // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
-                var notAlreadyDeployingTheSamePackageAsHandlersUse =
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.All(
-                        _ => _.Package.PackageDescription.Id != this.messageBusHandlerHarnessConfiguration.Package.Id);
-
-                if (messageBusInitializations.Any() && notAlreadyDeployingTheSamePackageAsHandlersUse)
-                {
-                    this.announce(
-                        "Instance " + instanceNumber
-                        + " - Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
-
-                    var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
-
-                    this.announce(
-                        "Instance " + instanceNumber
-                        + " - Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
-                    foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
-                    {
-                        itsConfigOverridesForHandlers.AddRange(
-                            packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
-
-                        var packageFolderName =
-                            packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
-
-                        // extract appropriate files from 
-                        var itsConfigFilesFromPackage = new Dictionary<string, string>();
-                        var precedenceChain = new[] { environment }.ToList();
-                        precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
-                        foreach (var precedenceElement in precedenceChain)
-                        {
-                            var itsConfigFolderPattern =
-                                packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                    ? string.Format("{1}/.config/{0}/", precedenceElement, packageFolderName)
-                                    : string.Format(".config/{0}/", precedenceElement);
-
-                            var itsConfigFilesFromPackageForPrecedenceElement =
-                                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                    packageWithMessageBusInitializations.Package,
-                                    itsConfigFolderPattern);
-
-                            foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
-                            {
-                                itsConfigFilesFromPackage.Add(item.Key, item.Value);
-                            }
-                        }
-
-                        itsConfigOverridesForHandlers.AddRange(
-                            itsConfigFilesFromPackage.Select(
-                                _ =>
-                                new ItsConfigOverride
-                                    {
-                                        FileNameWithoutExtension =
-                                            Path.GetFileNameWithoutExtension(_.Key),
-                                        FileContentsJson = _.Value
-                                    }));
-                    }
-
-                    var harnessPackagedConfig = this.GetMessageBusHarnessPackagedConfig(
-                        numberedInstanceName,
-                        messageBusInitializations,
-                        itsConfigOverridesForHandlers,
-                        configToCreateWith,
-                        environment,
+                this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
+                var machineManager =
+                    await
+                    this.RunFuncWithTelemetry(
+                        "Wait for admin password",
+                        async () => await this.GetMachineManagerForInstanceAsync(createdInstanceDescription),
                         instanceNumber);
 
-                    packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
-                }
+                this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);
+                this.RunActionWithTelemetry("Wait for WinRM access", () => this.WaitUntilMachineIsAccessible(machineManager), instanceNumber);
+
+                var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
+                this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
+                this.RunActionWithTelemetry("Run instance level setup steps", () => this.RunSetupSteps(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
+
+                // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
+                this.LogAnnouncement("Rebooting new instance to finalize any items from instance setup.", instanceNumber);
+                this.RebootInstance(instanceNumber, machineManager);
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
                     var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
-                    this.announce(
-                        "Instance " + instanceNumber + " - Running setup actions for package: "
-                        + packagedConfig.Package.PackageDescription.GetIdDotVersionString());
+                    this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
 
@@ -350,15 +310,18 @@ namespace Naos.Deployment.Core
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyIis>();
 
-            this.announce("Instance " + instanceNumber + " - Updating DNS for web initializations (if applicable)");
+            this.LogAnnouncement("Updating DNS for web initializations (if applicable)", instanceNumber);
             foreach (var webInitialization in webInitializations)
             {
                 var ipAddress = createdInstanceDescription.PublicIpAddress
                                 ?? createdInstanceDescription.PrivateIpAddress;
-                var dns = webInitialization.PrimaryDns;
+                var dns = ApplyDnsTokenReplacements(
+                        webInitialization.PrimaryDns,
+                        numberedInstanceName,
+                        environment,
+                        instanceNumber);
 
-                this.announce(
-                    string.Format("Instance " + instanceNumber + " -  - Pointing {0} at {1}.", dns, ipAddress));
+                this.LogAnnouncement(string.Format(" - Pointing {0} at {1}.", dns, ipAddress), instanceNumber);
 
                 lock (this.syncDnsManager)
                 {
@@ -371,7 +334,7 @@ namespace Naos.Deployment.Core
             }
 
             // get all DNS initializations to update any private DNS entries on the private IP address.
-            this.announce("Instance " + instanceNumber + " - Updating DNS for all DNS initializations (if applicable)");
+            this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
             var dnsInitializations =
                 packagedDeploymentConfigsWithDefaultsAndOverrides
                     .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
@@ -394,11 +357,12 @@ namespace Naos.Deployment.Core
                         environment,
                         instanceNumber);
 
-                    this.announce(
+                    var pointedPrivateDnsMessage =
                         string.Format(
-                            "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
+                            " - Pointing {0} at {1}.",
                             privateDnsEntry,
-                            privateIpAddress));
+                            privateIpAddress);
+                    this.LogAnnouncement(pointedPrivateDnsMessage, instanceNumber);
 
                     lock (this.syncDnsManager)
                     {
@@ -426,11 +390,12 @@ namespace Naos.Deployment.Core
                         environment,
                         instanceNumber);
 
-                    this.announce(
+                    var pointedPublicDnsMessage =
                         string.Format(
-                            "Instance " + instanceNumber + " -  - Pointing {0} at {1}.",
+                            " - Pointing {0} at {1}.",
                             publicDnsEntry,
-                            publicIpAddress));
+                            publicIpAddress);
+                    this.LogAnnouncement(pointedPublicDnsMessage, instanceNumber);
 
                     lock (this.syncDnsManager)
                     {
@@ -445,17 +410,103 @@ namespace Naos.Deployment.Core
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
             {
-                this.announce(
-                    "Instance " + instanceNumber
-                    + " - Post deployment strategy: TurnOffInstance is true - shutting down instance.");
+                const bool WaitUntilOff = true;
+                this.LogAnnouncement("Post deployment strategy: TurnOffInstance is true - shutting down instance.", instanceNumber);
                 await this.cloudManager.TurnOffInstanceAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location,
-                    true);
+                    // ReSharper disable once RedundantArgumentDefaultValue - keeping for clarity of what's happening...
+                    WaitUntilOff);
             }
         }
 
-        private async Task WaitUntilStatusChecksSucceedAsync(InstanceDescription createdInstanceDescription)
+        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
+            string environment,
+            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            DeploymentConfiguration configToCreateWith)
+        {
+            PackagedDeploymentConfiguration ret = null;
+
+            // get all message bus handler initializations to know if we need a handler.
+            var packagesWithMessageBusInitializations =
+                packagedDeploymentConfigsWithDefaultsAndOverrides
+                    .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
+
+            var messageBusInitializations =
+                packagesWithMessageBusInitializations.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
+
+            // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
+            var alreadyDeployingTheSamePackageAsHandlersUse =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.Any(
+                    _ => _.Package.PackageDescription.Id == this.messageBusHandlerHarnessConfiguration.Package.Id);
+
+            var hasMessageBusInitializations = messageBusInitializations.Any();
+            if (hasMessageBusInitializations && !alreadyDeployingTheSamePackageAsHandlersUse)
+            {
+                this.LogAnnouncement("Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
+
+                var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
+
+                this.LogAnnouncement("Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
+                foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
+                {
+                    itsConfigOverridesForHandlers.AddRange(
+                        packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
+
+                    var packageFolderName =
+                        packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
+
+                    // extract appropriate files from 
+                    var itsConfigFilesFromPackage = new Dictionary<string, string>();
+                    var precedenceChain = new[] { environment }.ToList();
+                    precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+                    foreach (var precedenceElement in precedenceChain)
+                    {
+                        var itsConfigFolderPattern = packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                                                         ? string.Format(
+                                                             "{1}/.config/{0}/",
+                                                             precedenceElement,
+                                                             packageFolderName)
+                                                         : string.Format(".config/{0}/", precedenceElement);
+
+                        var itsConfigFilesFromPackageForPrecedenceElement =
+                            this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                packageWithMessageBusInitializations.Package,
+                                itsConfigFolderPattern);
+
+                        foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
+                        {
+                            itsConfigFilesFromPackage.Add(item.Key, item.Value);
+                        }
+                    }
+
+                    itsConfigOverridesForHandlers.AddRange(
+                        itsConfigFilesFromPackage.Select(
+                            _ =>
+                            new ItsConfigOverride
+                            {
+                                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(_.Key),
+                                FileContentsJson = _.Value
+                            }));
+                }
+
+                ret = this.BuildMessageBusHarnessPackagedConfig(
+                    messageBusInitializations,
+                    itsConfigOverridesForHandlers,
+                    configToCreateWith);
+            }
+            else
+            {
+                var message = "No need for MessageBusHandlerHarness in deployment - HasMessageBusInitializations: "
+                              + hasMessageBusInitializations + " AlreadyDeployingTheSamePackageAsHandlersUse: "
+                              + alreadyDeployingTheSamePackageAsHandlersUse;
+                this.LogAnnouncement(message);
+            }
+
+            return ret;
+        }
+
+        private async Task WaitUntilStatusChecksSucceedAsync(int instanceNumber, InstanceDescription createdInstanceDescription)
         {
             var sleepTimeInSeconds = 10d;
             var allChecksPassed = false;
@@ -472,7 +523,7 @@ namespace Naos.Deployment.Core
                 {
                     foreach (var instanceCheck in status.InstanceChecks)
                     {
-                        this.announce("Instance Check; " + instanceCheck.Key + " = " + instanceCheck.Value);
+                        this.LogAnnouncement("Instance Check; " + instanceCheck.Key + " = " + instanceCheck.Value, instanceNumber);
                     }
 
                     throw new DeploymentException("Failure in an instance check.");
@@ -482,7 +533,7 @@ namespace Naos.Deployment.Core
                 {
                     foreach (var systemCheck in status.SystemChecks)
                     {
-                        this.announce("System Check; " + systemCheck.Key + " = " + systemCheck.Value);
+                        this.LogAnnouncement("System Check; " + systemCheck.Key + " = " + systemCheck.Value, instanceNumber);
                     }
 
                     throw new DeploymentException("Failure in a system check.");
@@ -500,44 +551,17 @@ namespace Naos.Deployment.Core
 
             foreach (var setupStep in setupSteps)
             {
-                this.announce("Instance " + instanceNumber + " -   - " + setupStep.Description);
-                var tries = 0;
-                while (tries < maxTries)
-                {
-                    try
+                Action retryingSetupAction = () =>
                     {
-                        tries = tries + 1;
-                        lock (this.syncMachineManager)
-                        {
-                            setupStep.SetupAction(machineManager);
-                        }
+                        this.RunSetupStepWithRetry(
+                            machineManager,
+                            instanceNumber,
+                            setupStep,
+                            maxTries,
+                            throwOnFailedSetupStep);
+                    };
 
-                        break;
-                    }
-                    catch (Exception ex)
-                    {
-                        if (tries >= maxTries)
-                        {
-                            if (throwOnFailedSetupStep)
-                            {
-                                throw new DeploymentException(
-                                    "Instance " + instanceNumber + " - Failed to run setup step " + setupStep.Description + " after " + maxTries
-                                    + " attempts",
-                                    ex);
-                            }
-                            else
-                            {
-                                this.announce(string.Format("Instance " + instanceNumber + " - Exception on try {0}/{1} - {2}", tries, maxTries, ex));
-                            }
-                        }
-                        else
-                        {
-                            this.announce(
-                                string.Format("Instance " + instanceNumber + " -     Exception on try {0}/{1} - retrying", tries, maxTries));
-                            Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
-                        }
-                    }
-                }
+                this.RunActionWithTelemetry("Setup step - " + setupStep.Description, retryingSetupAction, instanceNumber);
             }
         }
 
@@ -610,11 +634,70 @@ namespace Naos.Deployment.Core
             return packagedDeploymentConfigs;
         }
 
+        private void RunSetupStepWithRetry(
+            MachineManager machineManager,
+            int instanceNumber,
+            SetupStep setupStep,
+            int maxTries,
+            bool throwOnFailedSetupStep)
+        {
+            this.LogAnnouncement("  - " + setupStep.Description, instanceNumber);
+            var tries = 0;
+            while (tries < maxTries)
+            {
+                try
+                {
+                    tries = tries + 1;
+                    lock (this.syncMachineManager)
+                    {
+                        setupStep.SetupAction(machineManager);
+                    }
+
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (tries >= maxTries)
+                    {
+                        if (throwOnFailedSetupStep)
+                        {
+                            throw new DeploymentException(
+                                "Instance " + instanceNumber + " - Failed to run setup step " + setupStep.Description
+                                + " after " + maxTries + " attempts",
+                                ex);
+                        }
+                        else
+                        {
+                            var exceededMaxTriesMessage =
+                                string.Format(
+                                    "Step {3} - Exception on try {0}/{1} - {2}",
+                                    tries,
+                                    maxTries,
+                                    ex,
+                                    setupStep.Description);
+                            this.LogAnnouncement(exceededMaxTriesMessage, instanceNumber);
+                        }
+                    }
+                    else
+                    {
+                        var failedRetryingMessage =
+                            string.Format(
+                                "Step {2} - Exception on try {0}/{1} - retrying",
+                                tries,
+                                maxTries,
+                                setupStep.Description);
+                        this.LogAnnouncement(failedRetryingMessage, instanceNumber);
+                        Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
+                    }
+                }
+            }
+        }
+
         private string GetActualVersionFromPackage(Package package)
         {
             if (string.Equals(
                 package.PackageDescription.Id,
-                PackageManager.NullPackageId,
+                PackageDescription.NullPackageId,
                 StringComparison.CurrentCultureIgnoreCase))
             {
                 return "[DOES NOT HAVE A VERSION]";
@@ -631,7 +714,7 @@ namespace Naos.Deployment.Core
             return actualVersion;
         }
 
-        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedConfig(string instanceName, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, string environment, int instanceNumber)
+        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and 
             // TODO:        only update the private channel to monitor and directory of packages...
@@ -711,18 +794,6 @@ namespace Naos.Deployment.Core
                                                     messageBusHandlerHarnessInitializationStrategies,
                                             };
 
-            // apply instance name replacement if applicable on DNS
-            foreach (
-                var initializationStrategy in
-                    harnessPackagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>())
-            {
-                initializationStrategy.PrimaryDns = ApplyDnsTokenReplacements(
-                    initializationStrategy.PrimaryDns,
-                    instanceName,
-                    environment,
-                    instanceNumber);
-            }
-
             return harnessPackagedConfig;
         }
 
@@ -736,7 +807,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private void RebootInstance(MachineManager machineManager)
+        private void RebootInstance(int instanceNumber, MachineManager machineManager)
         {
             var sleepTimeInSeconds = 1d;
             var rebootCallSucceeded = false;
@@ -760,12 +831,12 @@ namespace Naos.Deployment.Core
                 {
                     if (tries > 100)
                     {
-                        this.announce(ex.ToString());
+                        this.LogAnnouncement(ex.ToString(), instanceNumber);
                     }
                 }
             }
 
-            this.announce("Waiting for machine to come back up from reboot.");
+            this.LogAnnouncement("Waiting for machine to come back up from reboot.", instanceNumber);
             this.WaitUntilMachineIsAccessible(machineManager);
         }
 
@@ -783,6 +854,7 @@ namespace Naos.Deployment.Core
                 {
                     lock (this.syncMachineManager)
                     {
+                        // ReSharper disable once UnusedVariable - keeping to show that there is a return and intentionally ignoring...
                         var notNeededResults = machineManager.RunScript(@"{ ls C:\Windows }");
                     }
 
@@ -864,13 +936,13 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                this.announce("Did not find any existing instances for the specified package list and environment.");
+                this.LogAnnouncement("Did not find any existing instances for the specified package list and environment.");
             }
         }
 
         private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
         {
-            this.announce("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
             await
                 this.cloudManager.TerminateInstanceAsync(
                     environment,
@@ -897,6 +969,127 @@ namespace Naos.Deployment.Core
             }
 
             return adminPassword;
+        }
+
+        private void RunActionWithTelemetry(string step, Action code, int? instanceNumber = null)
+        {
+            this.StartTelemetry(step, instanceNumber);
+            code();
+            this.StopTelemetry(step, instanceNumber);
+        }
+
+        private T RunFuncWithTelemetry<T>(string step, Func<T> code, int? instanceNumber = null)
+        {
+            this.StartTelemetry(step, instanceNumber);
+            T ret = code();
+            this.StopTelemetry(step, instanceNumber);
+            return ret;
+        }
+
+        private void StartTelemetry(string step, int? instanceNumber = null)
+        {
+            if (this.telemetryFile == null)
+            {
+                return;
+            }
+
+            var entry = new TelemetryEntry { InstanceNumber = instanceNumber, Step = step, Start = DateTime.UtcNow, };
+            this.telemetry.Add(entry);
+            this.FlushTelemetry();
+        }
+
+        private void StopTelemetry(string step, int? instanceNumber = null)
+        {
+            if (this.telemetryFile == null)
+            {
+                return;
+            }
+
+            var stopTime = DateTime.UtcNow;
+            var currentEntry = this.telemetry.Single(_ => _.InstanceNumber == instanceNumber && _.Step == step && _.Stop == null);
+            currentEntry.Stop = stopTime;
+            this.FlushTelemetry();
+        }
+
+        private void FlushTelemetry()
+        {
+            if (this.telemetryFile == null)
+            {
+                return;
+            }
+
+            var objectToFlush =
+                this.telemetry.GroupBy(_ => _.InstanceNumber)
+                    .OrderBy(_ => _.Key)
+                    .Select(instanceGroup => instanceGroup.OrderBy(item => item.Start))
+                    .SelectMany(_ => _)
+                    .ToList();
+
+            var json = JsonConvert.SerializeObject(objectToFlush);
+
+            lock (this.telemetryFile)
+            {
+                File.WriteAllText(this.telemetryFile, json);
+            }
+        }
+
+        private void LogAnnouncement(string step, int? instanceNumber = null)
+        {
+            var instanceNumberAdjustedStep = instanceNumber != null ? "Instance " + instanceNumber + " - " + step : step;
+            this.announce(instanceNumberAdjustedStep);
+
+            if (this.announcementFile == null)
+            {
+                return;
+            }
+
+            var entry = new AnnouncementEntry { DateTime = DateTime.UtcNow, InstanceNumber = instanceNumber, Step = step };
+            this.announcements.Add(entry);
+            this.FlushAnnouncements();
+        }
+
+        private void FlushAnnouncements()
+        {
+            if (this.announcementFile == null)
+            {
+                return;
+            }
+
+            var objectToFlush =
+                this.announcements.GroupBy(_ => _.InstanceNumber)
+                    .OrderBy(_ => _.Key)
+                    .Select(instanceGroup => instanceGroup.OrderBy(item => item.DateTime))
+                    .SelectMany(_ => _)
+                    .ToList();
+
+            var json = JsonConvert.SerializeObject(objectToFlush);
+
+            lock (this.announcementFile)
+            {
+                File.WriteAllText(this.announcementFile, json);
+            }
+        }
+
+        private class TelemetryEntry 
+        {
+            public int? InstanceNumber { get; set; }
+
+            public string Step { get; set; }
+
+            public DateTime? Start { get; set; }
+
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
+            public DateTime? Stop { get; set; }
+        }
+
+        private class AnnouncementEntry 
+        {
+            public int? InstanceNumber { get; set; }
+
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
+            public string Step { get; set; }
+
+            public DateTime? DateTime { get; set; }
         }
     }
 }
