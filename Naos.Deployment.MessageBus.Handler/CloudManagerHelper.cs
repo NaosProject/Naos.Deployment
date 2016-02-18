@@ -7,6 +7,7 @@
 namespace Naos.Deployment.MessageBus.Contract
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -64,7 +65,13 @@ namespace Naos.Deployment.MessageBus.Contract
             var cloudInstances = await cloudManager.GetActiveInstancesFromCloudAsync(settings.Environment, settings.SystemLocation);
             var instance =
                 cloudInstances.SingleOrDefault(
-                    _ => _.Tags[Constants.EnvironmentTagKey] == settings.Environment && _.Name == fullInstanceName);
+                    _ =>
+                        {
+                            var environmentTag = _.Tags.SingleOrDefault(tag => tag.Key == Constants.EnvironmentTagKey);
+                            var matches = !default(KeyValuePair<string, string>).Equals(environmentTag)
+                                          && environmentTag.Value == settings.Environment && _.Name == fullInstanceName;
+                            return matches;
+                        });
 
             if (instance == null)
             {
