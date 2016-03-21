@@ -114,7 +114,8 @@ namespace Naos.Deployment.Console
             var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
             var tracker = new RootFolderEnvironmentFolderInstanceFileTracker(trackingSystemRootFolder);
-            var certManager = new CertificateRetriever(certificateRetrieverFilePath);
+            CertificateLocator encryptingCertificate = null;
+            var certManager = new CertificateRetrieverFromFile(certificateRetrieverFilePath, encryptingCertificate);
 
             var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
             var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);

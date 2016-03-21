@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Contract", "Naos.Deployment.Contract\Naos.Deployment.Contract.csproj", "{2160253A-C829-4335-BFAB-5559B6117FFE}"
 EndProject
@@ -16,6 +16,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.Handler", "Naos.Deployment.MessageBus.Handler\Naos.Deployment.MessageBus.Handler.csproj", "{1B2E8B90-FF0B-40D2-A4B6-0D6D9F60FFBF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.CloudManagement", "Naos.Deployment.CloudManagement\Naos.Deployment.CloudManagement.csproj", "{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Persistence", "Naos.Deployment.Persistence\Naos.Deployment.Persistence.csproj", "{C935076E-7DBF-468E-BABD-80BAB143606E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C935076E-7DBF-468E-BABD-80BAB143606E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C935076E-7DBF-468E-BABD-80BAB143606E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C935076E-7DBF-468E-BABD-80BAB143606E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C935076E-7DBF-468E-BABD-80BAB143606E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

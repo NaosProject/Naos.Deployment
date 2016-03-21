@@ -58,6 +58,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Its.Log.2.9.11\lib\net40\Its.Log.dll</HintPath>
     </Reference>
+    <Reference Include="MongoDB.Bson, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Bson.2.1.0\lib\net45\MongoDB.Bson.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.2.1.0\lib\net45\MongoDB.Driver.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver.Core, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.Core.2.1.0\lib\net45\MongoDB.Driver.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Naos.AWS.Contract, Version=1.0.37.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Contract.1.0.37\lib\net45\Naos.AWS.Contract.dll</HintPath>
@@ -73,6 +85,14 @@
     <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Spritely.ReadModel, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spritely.ReadModel.Mongo, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.Mongo.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -97,6 +117,7 @@
     <Compile Include="NullCloudManager.cs" />
     <Compile Include="NullInfrastructureTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="MongoInstanceFileTracker.cs" />
     <Compile Include="RootFolderEnvironmentFolderInstanceFileTracker.cs" />
     <Compile Include="Serializer.cs" />
   </ItemGroup>
@@ -108,6 +129,10 @@
     <ProjectReference Include="..\Naos.Deployment.Contract\Naos.Deployment.Contract.csproj">
       <Project>{2160253A-C829-4335-BFAB-5559B6117FFE}</Project>
       <Name>Naos.Deployment.Contract</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Naos.Deployment.Persistence\Naos.Deployment.Persistence.csproj">
+      <Project>{c935076e-7dbf-468e-babd-80bab143606e}</Project>
+      <Name>Naos.Deployment.Persistence</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

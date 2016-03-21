@@ -1,40 +1,51 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CertificateDetails.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Contract
+namespace Naos.Deployment.Core.CertificateManagement
 {
+    using System;
     using System.Security;
 
+    using Naos.Deployment.Contract;
+
     /// <summary>
-    /// Model object to hold necessary information to inflate a certificate on a machine.
+    /// Class to allow TheSafe to be serialized and deserialized but still provide a CertificateDetails object.
     /// </summary>
     public class CertificateDetails
     {
         /// <summary>
-        /// Gets or sets the name of the certificate.
+        /// Converts the container to a certificate details class.
+        /// </summary>
+        /// <param name="stringDecryptor">Function to decrypt the encrypted password and convert it into a <see cref="SecureString"/>.</param>
+        /// <returns>Converted details version.</returns>
+        public CertificateFile ToCertificateDetails(Func<string, SecureString> stringDecryptor)
+        {
+            var ret = new CertificateFile
+                          {
+                              Name = this.Name,
+                              CertificatePassword = stringDecryptor(this.EncryptedPassword),
+                              FileBytes = Convert.FromBase64String(this.Base64Bytes),
+                          };
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets or sets the name.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the password of the certificate for installation.
+        /// Gets or sets the encrypted password.
         /// </summary>
-        public SecureString CertificatePassword { get; set; }
+        public string EncryptedPassword { get; set; }
 
         /// <summary>
-        /// Gets or sets the bytes of the certificate's PFX file.
+        /// Gets or sets the bytes in Base64 format.
         /// </summary>
-        public byte[] FileBytes { get; set; }
-
-        /// <summary>
-        /// Generates a file to write the bytes to.
-        /// </summary>
-        /// <returns>File name to use for the certificate.</returns>
-        public string GenerateFileName()
-        {
-            return this.Name + ".pfx";
-        }
+        public string Base64Bytes { get; set; }
     }
 }

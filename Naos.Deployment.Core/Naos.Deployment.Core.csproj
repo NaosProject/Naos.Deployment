@@ -75,12 +75,28 @@
       <HintPath>..\packages\FluentMigrator.Runner.1.6.0\lib\40\FluentMigrator.Runner.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Log.2.9.11\lib\net40\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Bson, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Bson.2.1.0\lib\net45\MongoDB.Bson.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.2.1.0\lib\net45\MongoDB.Driver.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver.Core, Version=2.1.0.145, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.Core.2.1.0\lib\net45\MongoDB.Driver.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.AWS.Contract, Version=1.0.37.0, Culture=neutral, processorArchitecture=MSIL">
@@ -223,6 +239,14 @@
       <HintPath>..\packages\NuGet.Versioning.3.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Spritely.ReadModel, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Spritely.ReadModel.Mongo, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.Mongo.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections" />
     <Reference Include="System.Collections.Concurrent" />
@@ -248,8 +272,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CertificateManagement\CertificateManager.cs" />
-    <Compile Include="CertificateManagement\CertificateRetriever.cs" />
+    <Compile Include="CertificateManagement\CertificateRetrieverFromFile.cs" />
+    <Compile Include="CertificateManagement\CertificateRetrieverFromMongo.cs" />
+    <Compile Include="CertificateManagement\Encryptor.cs" />
     <Compile Include="CertificateManagement\NullCertificateRetriever.cs" />
     <Compile Include="DefaultDeploymentConfiguration.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
@@ -285,6 +310,10 @@
     <ProjectReference Include="..\Naos.Deployment.Contract\Naos.Deployment.Contract.csproj">
       <Project>{2160253a-c829-4335-bfab-5559b6117ffe}</Project>
       <Name>Naos.Deployment.Contract</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Naos.Deployment.Persistence\Naos.Deployment.Persistence.csproj">
+      <Project>{c935076e-7dbf-468e-babd-80bab143606e}</Project>
+      <Name>Naos.Deployment.Persistence</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

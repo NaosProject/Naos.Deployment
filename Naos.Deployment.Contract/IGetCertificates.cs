@@ -16,6 +16,6 @@ namespace Naos.Deployment.Contract
         /// </summary>
         /// <param name="name">Name of the certificate to find.</param>
         /// <returns>Certificate details matching name; null if not found.</returns>
-        CertificateDetails GetCertificateByName(string name);
+        CertificateFile GetCertificateByName(string name);
     }
 }

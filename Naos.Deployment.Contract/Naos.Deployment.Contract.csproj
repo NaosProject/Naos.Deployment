@@ -57,6 +57,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutoStartProvider.cs" />
+    <Compile Include="CertificateLocator.cs" />
+    <Compile Include="CertificateDetails.cs" />
     <Compile Include="CloudInfrastructureManagerSettings.cs" />
     <Compile Include="CloudContainerDescription.cs" />
     <Compile Include="InstanceDetailsFromCloud.cs" />
@@ -77,7 +79,7 @@
     <Compile Include="IHaveInitializationStrategies.cs" />
     <Compile Include="IHaveItsConfigOverrides.cs" />
     <Compile Include="ImageDetails.cs" />
-    <Compile Include="CertificateDetails.cs" />
+    <Compile Include="CertificateFile.cs" />
     <Compile Include="IManageCloudInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="InitializationStrategyBase.cs" />
