@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Null object implementation for testing.

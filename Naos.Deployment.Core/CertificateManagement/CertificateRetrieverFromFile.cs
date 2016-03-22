@@ -12,8 +12,8 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Linq;
     using System.Security;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.ComputingManagement;
+    using Naos.Deployment.Domain;
     using Naos.WinRM;
 
     /// <summary>

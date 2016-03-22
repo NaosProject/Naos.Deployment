@@ -13,7 +13,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
     using Its.Configuration;
 
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Class to encrypt and decrypt text.

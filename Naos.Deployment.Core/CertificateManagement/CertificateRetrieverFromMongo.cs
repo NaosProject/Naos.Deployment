@@ -10,7 +10,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Linq;
     using System.Security;
 
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.WinRM;
 

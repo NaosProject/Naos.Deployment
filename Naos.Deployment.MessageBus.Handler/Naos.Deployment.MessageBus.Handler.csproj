@@ -31,8 +31,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Its.Configuration.1.0.5\lib\net40\Its.Configuration.dll</HintPath>
+      <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -79,17 +79,21 @@
     <None Include="Settings.StyleCop" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Naos.Deployment.CloudManagement\Naos.Deployment.CloudManagement.csproj">
-      <Project>{596BD5EC-3ED0-47BE-BBD4-ED56A56525D8}</Project>
-      <Name>Naos.Deployment.CloudManagement</Name>
+    <ProjectReference Include="..\Naos.Deployment.ComputingManagement\Naos.Deployment.ComputingManagement.csproj">
+      <Project>{95608007-3496-414a-9ebb-2d9696bccd8a}</Project>
+      <Name>Naos.Deployment.ComputingManagement</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Naos.Deployment.Contract\Naos.Deployment.Contract.csproj">
-      <Project>{2160253a-c829-4335-bfab-5559b6117ffe}</Project>
-      <Name>Naos.Deployment.Contract</Name>
+    <ProjectReference Include="..\Naos.Deployment.Domain\Naos.Deployment.Domain.csproj">
+      <Project>{edc80e07-bf02-4860-94d3-6ddd75ec78fb}</Project>
+      <Name>Naos.Deployment.Domain</Name>
     </ProjectReference>
     <ProjectReference Include="..\Naos.Deployment.MessageBus.Contract\Naos.Deployment.MessageBus.Contract.csproj">
       <Project>{CD7FC4F3-DB5D-4C9A-A8F6-61BEC59AA838}</Project>
       <Name>Naos.Deployment.MessageBus.Contract</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Naos.Deployment.Tracking\Naos.Deployment.Tracking.csproj">
+      <Project>{cf1d7b29-bc09-4445-88ba-98c658b023b4}</Project>
+      <Name>Naos.Deployment.Tracking</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

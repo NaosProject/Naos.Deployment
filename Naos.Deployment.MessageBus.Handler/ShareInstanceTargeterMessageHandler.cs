@@ -10,8 +10,7 @@ namespace Naos.Deployment.MessageBus.Handler
 
     using Its.Log.Instrumentation;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
 

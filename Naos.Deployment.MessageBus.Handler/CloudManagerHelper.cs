@@ -12,8 +12,9 @@ namespace Naos.Deployment.MessageBus.Contract
     using System.Threading.Tasks;
 
     using Naos.AWS.Contract;
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.ComputingManagement;
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.DataContract;
 
     /// <summary>
@@ -25,9 +26,9 @@ namespace Naos.Deployment.MessageBus.Contract
         /// Creates a new cloud manager from settings.
         /// </summary>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
+        /// <param name="computingInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
         /// <returns>New cloud manager.</returns>
-        public static IManageCloudInfrastructure CreateCloudManager(DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
+        public static IManageComputingInfrastructure CreateComputingManager(DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
             var credentialsToUse = new CredentialContainer
             {
@@ -37,7 +38,7 @@ namespace Naos.Deployment.MessageBus.Contract
             };
 
             var cloudManager =
-                new CloudInfrastructureManager(cloudInfrastructureManagerSettings, new NullInfrastructureTracker())
+                new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, new NullInfrastructureTracker())
                     .InitializeCredentials(credentialsToUse);
 
             return cloudManager;
@@ -48,21 +49,21 @@ namespace Naos.Deployment.MessageBus.Contract
         /// </summary>
         /// <param name="instanceName">Name of the instance to lookup.</param>
         /// <param name="settings">Handler settings.</param>
-        /// <param name="cloudManager">Cloud manager.</param>
+        /// <param name="computingManager">Cloud manager.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
         public static async Task<string> GetSystemIdFromNameAsync(
             string instanceName,
             DeploymentMessageHandlerSettings settings,
-            IManageCloudInfrastructure cloudManager)
+            IManageComputingInfrastructure computingManager)
         {
-            var namer = new CloudInfrastructureNamer(
+            var namer = new ComputingInfrastructureNamer(
                 instanceName,
                 settings.Environment,
                 settings.ContainerSystemLocation);
 
             var fullInstanceName = namer.GetInstanceName();
 
-            var cloudInstances = await cloudManager.GetActiveInstancesFromCloudAsync(settings.Environment, settings.SystemLocation);
+            var cloudInstances = await computingManager.GetActiveInstancesFromCloudAsync(settings.Environment, settings.SystemLocation);
             var instance =
                 cloudInstances.SingleOrDefault(
                     _ =>
@@ -87,9 +88,9 @@ namespace Naos.Deployment.MessageBus.Contract
         /// </summary>
         /// <param name="instanceTargeter">Targeter to use.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="cloudManager">Cloud infrastructure manager to perform operations.</param>
+        /// <param name="computingManager">Cloud infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
-        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageCloudInfrastructure cloudManager)
+        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
         {
             string ret;
             var type = instanceTargeter.GetType();
@@ -101,7 +102,7 @@ namespace Naos.Deployment.MessageBus.Contract
             else if (type == typeof(InstanceTargeterNameLookupByCloudTag))
             {
                 var asTag = (InstanceTargeterNameLookupByCloudTag)instanceTargeter;
-                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, settings, cloudManager);
+                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, settings, computingManager);
             }
             else
             {

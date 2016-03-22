@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.Persistence
 {
-    using Naos.Deployment.Core.CertificateManagement;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Container object to hold a certificate manager and save it in Mongo.

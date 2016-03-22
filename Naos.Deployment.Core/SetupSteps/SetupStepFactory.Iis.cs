@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
     using System.Text;
 
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).

@@ -1,5 +1,5 @@
 ﻿{
-    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Contract.InitializationStrategyIis, Naos.Deployment.Contract","Naos.Deployment.Contract.InitializationStrategyMessageBusHandler, Naos.Deployment.Contract","Naos.Deployment.Contract.InitializationStrategyScheduledTask, Naos.Deployment.Contract"],
+    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain"],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",

@@ -9,7 +9,7 @@ namespace Naos.Deployment.Core.Test
     using System.Linq;
 
     using Naos.Cron;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.DataContract;
 
     using Xunit;

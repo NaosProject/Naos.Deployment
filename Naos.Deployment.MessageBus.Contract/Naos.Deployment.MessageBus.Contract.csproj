@@ -61,9 +61,9 @@
     <None Include="Settings.StyleCop" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Naos.Deployment.Contract\Naos.Deployment.Contract.csproj">
-      <Project>{2160253A-C829-4335-BFAB-5559B6117FFE}</Project>
-      <Name>Naos.Deployment.Contract</Name>
+    <ProjectReference Include="..\Naos.Deployment.Domain\Naos.Deployment.Domain.csproj">
+      <Project>{edc80e07-bf02-4860-94d3-6ddd75ec78fb}</Project>
+      <Name>Naos.Deployment.Domain</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.MessageBus.Contract
 {
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.DataContract;
 
     /// <summary>

@@ -15,8 +15,8 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.AWS.Core;
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.ComputingManagement;
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.HandlingContract;
     using Naos.Packaging.Domain;
     using Naos.WinRM;
@@ -38,7 +38,7 @@ namespace Naos.Deployment.Core
 
         private readonly ITrackComputingInfrastructure tracker;
 
-        private readonly IManageCloudInfrastructure cloudManager;
+        private readonly IManageComputingInfrastructure computingManager;
 
         private readonly IGetPackages packageManager;
 
@@ -68,7 +68,7 @@ namespace Naos.Deployment.Core
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
         /// <param name="tracker">Tracker of computing infrastructure.</param>
-        /// <param name="cloudManager">Manager of the cloud infrastructure (wraps custom cloud interactions).</param>
+        /// <param name="computingManager">Manager of the computing infrastructure (wraps custom computing interactions).</param>
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfiguration">Default deployment configuration to substitute the values for any nulls.</param>
@@ -81,7 +81,7 @@ namespace Naos.Deployment.Core
         /// <param name="telemetryFile">Optional file path to record JSON file of certain task timings.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
-            IManageCloudInfrastructure cloudManager,
+            IManageComputingInfrastructure computingManager,
             IGetPackages packageManager,
             IGetCertificates certificateRetriever,
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
@@ -94,7 +94,7 @@ namespace Naos.Deployment.Core
             string telemetryFile = null)
         {
             this.tracker = tracker;
-            this.cloudManager = cloudManager;
+            this.computingManager = computingManager;
             this.packageManager = packageManager;
             this.defaultDeploymentConfiguration = defaultDeploymentConfiguration;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
@@ -246,7 +246,7 @@ namespace Naos.Deployment.Core
 
             var createdInstanceDescription =
                 await
-                this.cloudManager.CreateNewInstanceAsync(
+                this.computingManager.CreateNewInstanceAsync(
                     environment,
                     numberedInstanceName,
                     configToCreateWith,
@@ -325,7 +325,7 @@ namespace Naos.Deployment.Core
 
                 lock (this.syncDnsManager)
                 {
-                    this.cloudManager.UpsertDnsEntryAsync(
+                    this.computingManager.UpsertDnsEntryAsync(
                         environment,
                         createdInstanceDescription.Location,
                         dns,
@@ -366,7 +366,7 @@ namespace Naos.Deployment.Core
 
                     lock (this.syncDnsManager)
                     {
-                        this.cloudManager.UpsertDnsEntryAsync(
+                        this.computingManager.UpsertDnsEntryAsync(
                             environment,
                             createdInstanceDescription.Location,
                             privateDnsEntry,
@@ -399,7 +399,7 @@ namespace Naos.Deployment.Core
 
                     lock (this.syncDnsManager)
                     {
-                        this.cloudManager.UpsertDnsEntryAsync(
+                        this.computingManager.UpsertDnsEntryAsync(
                             environment,
                             createdInstanceDescription.Location,
                             publicDnsEntry,
@@ -412,7 +412,7 @@ namespace Naos.Deployment.Core
             {
                 const bool WaitUntilOff = true;
                 this.LogAnnouncement("Post deployment strategy: TurnOffInstance is true - shutting down instance.", instanceNumber);
-                await this.cloudManager.TurnOffInstanceAsync(
+                await this.computingManager.TurnOffInstanceAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location,
                     // ReSharper disable once RedundantArgumentDefaultValue - keeping for clarity of what's happening...
@@ -515,7 +515,7 @@ namespace Naos.Deployment.Core
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
                 Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
 
-                var status = await this.cloudManager.GetInstanceStatusAsync(
+                var status = await this.computingManager.GetInstanceStatusAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location);
 
@@ -879,7 +879,7 @@ namespace Naos.Deployment.Core
 
                 try
                 {
-                    adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(
+                    adminPassword = await this.computingManager.GetAdministratorPasswordForInstanceAsync(
                         createdInstanceDescription,
                         privateKey);
                 }
@@ -944,7 +944,7 @@ namespace Naos.Deployment.Core
         {
             this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
             await
-                this.cloudManager.TerminateInstanceAsync(
+                this.computingManager.TerminateInstanceAsync(
                     environment,
                     instanceDescription.Id,
                     instanceDescription.Location,
@@ -965,7 +965,7 @@ namespace Naos.Deployment.Core
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 2;
                 Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-                adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(instanceToSearchFor, privateKey);
+                adminPassword = await this.computingManager.GetAdministratorPasswordForInstanceAsync(instanceToSearchFor, privateKey);
             }
 
             return adminPassword;

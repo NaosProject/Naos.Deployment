@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
     using Naos.Database.Contract;
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
     /// <summary>

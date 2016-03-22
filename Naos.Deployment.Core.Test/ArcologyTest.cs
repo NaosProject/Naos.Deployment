@@ -9,9 +9,8 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
-    using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
     using Xunit;
@@ -33,7 +32,7 @@ namespace Naos.Deployment.Core.Test
                                    CloudContainers =
                                        new[]
                                            {
-                                               new CloudContainerDescription
+                                               new ComputingContainerDescription
                                                    {
                                                        InstanceAccessibility =
                                                            InstanceAccessibility

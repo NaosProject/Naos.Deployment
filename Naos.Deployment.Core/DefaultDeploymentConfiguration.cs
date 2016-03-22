@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Extension point to allow a typed default configuration.
