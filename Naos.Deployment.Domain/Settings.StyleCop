@@ -8,6 +8,7 @@
       <Value>Chocolatey</Value>
       <Value>AppVeyor</Value>
       <Value>Aws</Value>
+      <Value>arcology</Value>
       <Value>bool</Value>
       <Value>nullable</Value>
       <Value>pluralization</Value>

@@ -56,7 +56,7 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
 
-            var cloudManager = CloudManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
+            var cloudManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
 
             var tasks =
                 message.InstanceTargeters.Select(
@@ -77,7 +77,7 @@ namespace Naos.Deployment.MessageBus.Handler
             bool waitUntilOn)
         {
             var systemId =
-                await CloudManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, settings, computingManager);
+                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, settings, computingManager);
 
             Log.Write(
                 () => new { Info = "Starting Instance", InstanceTargeterJson = Serializer.Serialize(instanceTargeter), SystemId = systemId });

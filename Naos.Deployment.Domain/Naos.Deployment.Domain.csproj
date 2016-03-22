@@ -62,6 +62,7 @@
     <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
     <Compile Include=".Spritely.Recipes\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
+    <Compile Include="ArcologyInfo.cs" />
     <Compile Include="AutoStartProvider.cs" />
     <Compile Include="CertificateDetails.cs" />
     <Compile Include="CertificateFile.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Create.cs" />
     <Compile Include="DatabaseMigrationBase.cs" />
     <Compile Include="DatabaseRestoreBase.cs" />
+    <Compile Include="DeployedInstance.cs" />
     <Compile Include="DeploymentConfiguration.cs" />
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentException.cs" />

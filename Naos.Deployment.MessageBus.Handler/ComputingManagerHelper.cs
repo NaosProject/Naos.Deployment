@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CloudManagerHelper.cs" company="Naos">
+// <copyright file="ComputingManagerHelper.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -15,12 +15,11 @@ namespace Naos.Deployment.MessageBus.Contract
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
-    using Naos.MessageBus.DataContract;
 
     /// <summary>
     /// Helper class to share methods across handlers.
     /// </summary>
-    public static class CloudManagerHelper
+    public static class ComputingManagerHelper
     {
         /// <summary>
         /// Creates a new cloud manager from settings.

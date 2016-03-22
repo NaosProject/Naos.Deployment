@@ -19,7 +19,10 @@ namespace Naos.Deployment.Console
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
+    using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
+    using Naos.Deployment.Persistence;
+    using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
     using Newtonsoft.Json;
@@ -106,16 +109,16 @@ namespace Naos.Deployment.Console
             var packagesToDeploy =
                 Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);
             var certificateRetrieverConfiguration =
-                Serializer.Deserialize<CertificateRetrieverConfiguration>(certificateRetrieverJson);
+                Serializer.Deserialize<CertificateRetrieverConfigurationBase>(certificateRetrieverJson);
             var infrastructureTrackerConfiguration =
-                Serializer.Deserialize<InfrastructureTrackerConfiguration>(infrastructureTrackerJson);
+                Serializer.Deserialize<InfrastructureTrackerConfigurationBase>(infrastructureTrackerJson);
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
             var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
-            var certificateRetriever = CreateCertificateRetriever(certificateRetrieverConfiguration);
+            var certificateRetriever = CreateCertificateRetriever(environment, certificateRetrieverConfiguration);
             var infrastructureTracker = CreateInfrastructureTracker(infrastructureTrackerConfiguration);
 
             var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
@@ -241,28 +244,53 @@ namespace Naos.Deployment.Console
             return new TimeSpan(days, hours, minutes, 0);
         }
 
-        private static IGetCertificates CreateCertificateRetriever(CertificateRetrieverConfiguration certificateRetrieverConfiguration)
+        private static IGetCertificates CreateCertificateRetriever(string environment, CertificateRetrieverConfigurationBase certificateRetrieverConfigurationBase)
         {
-            throw new NotImplementedException();
+            IGetCertificates ret;
+
+            if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationFile)
+            {
+                var configAsFile = (CertificateRetrieverConfigurationFile)certificateRetrieverConfigurationBase;
+                ret = new CertificateRetrieverFromFile(configAsFile.FilePath, certificateRetrieverConfigurationBase.EncryptingCertificate);
+            }
+            else if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationDatabase)
+            {
+                var configAsDb = (CertificateRetrieverConfigurationDatabase)certificateRetrieverConfigurationBase;
+                var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
+                ret = new CertificateRetrieverFromMongo(environment, certificateRetrieverConfigurationBase.EncryptingCertificate, certificateContainerQueries);
+            }
+            else
+            {
+                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(certificateRetrieverConfigurationBase));
+            }
+
+            return ret;
         }
 
-        private static ITrackComputingInfrastructure CreateInfrastructureTracker(InfrastructureTrackerConfiguration infrastructureTrackerConfiguration)
+        private static ITrackComputingInfrastructure CreateInfrastructureTracker(InfrastructureTrackerConfigurationBase infrastructureTrackerConfigurationBase)
         {
-            throw new NotImplementedException();
+            ITrackComputingInfrastructure ret;
+
+            if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationFolder)
+            {
+                var configAsFolder = (InfrastructureTrackerConfigurationFolder)infrastructureTrackerConfigurationBase;
+                ret = new RootFolderEnvironmentFolderInstanceFileTracker(configAsFolder.RootFolderPath);
+            }
+            else if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationDatabase)
+            {
+                var configAsDatabase = (InfrastructureTrackerConfigurationDatabase)infrastructureTrackerConfigurationBase;
+                var deploymentDatabase = configAsDatabase.Database;
+                var arcologyInfoQueries = deploymentDatabase.GetQueriesInterface<ArcologyInfoContainer>();
+                var instanceQueries = deploymentDatabase.GetQueriesInterface<InstanceContainer>();
+                var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
+                ret = new MongoInfrastructureTracker(arcologyInfoQueries, instanceQueries, instanceCommands);
+            }
+            else
+            {
+                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(infrastructureTrackerConfigurationBase));
+            }
+
+            return ret;
         }
-    }
-
-    /// <summary>
-    /// Class to hold necessary information to create a certificate retriever.
-    /// </summary>
-    public class CertificateRetrieverConfiguration
-    {
-    }
-
-    /// <summary>
-    /// Class to hold necessary information to create an infrastructure tracker.
-    /// </summary>
-    public class InfrastructureTrackerConfiguration
-    {
     }
 }

@@ -4,27 +4,42 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core.ComputingInfrastructureTracking
+namespace Naos.Deployment.Tracking
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Persistence;
+    using Naos.Packaging.Domain;
+
+    using Spritely.ReadModel;
+
     /// <summary>
     /// Tracking system/certificate manager that will use a root folder and will have a folder per environment with a config file and store a file per machine.
     /// </summary>
-    public class MongoInfrastructureTracker // : ITrackComputingInfrastructure
+    public class MongoInfrastructureTracker : ITrackComputingInfrastructure
     {
-        /*
-        private readonly DeploymentDatabase database;
+        private readonly IQueries<ArcologyInfoContainer> arcologyInfoQueries;
 
-        private const string InstancePrefix = "Instance--";
+        private readonly IQueries<InstanceContainer> instanceQueries;
+
+        private readonly ICommands<string, InstanceContainer> instanceCommands;
 
         // should maybe break out a lock provider and lock by environment...
         private readonly object sync = new object();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MongoInstanceFileTracker"/> class.
+        /// Initializes a new instance of the <see cref="MongoInfrastructureTracker"/> class.
         /// </summary>
-        public MongoInstanceFileTracker(DeploymentDatabase database)
+        /// <param name="arcologyInfoQueries">Query interface to get arcology information models.</param>
+        /// <param name="instanceQueries">Query interface to get instances.</param>
+        /// <param name="instanceCommands">Command interface to add/update/remove instances.</param>
+        public MongoInfrastructureTracker(IQueries<ArcologyInfoContainer> arcologyInfoQueries, IQueries<InstanceContainer> instanceQueries, ICommands<string, InstanceContainer> instanceCommands)
         {
-            this.database = database;
+            this.arcologyInfoQueries = arcologyInfoQueries;
+            this.instanceQueries = instanceQueries;
+            this.instanceCommands = instanceCommands;
         }
 
         /// <inheritdoc />
@@ -46,16 +61,12 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
                 var matchingInstance =
                     arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
 
-                // once we have found the file we just need to remove it and commite
+                // write
                 if (matchingInstance != null)
                 {
-                    var removed = arcology.Instances.Remove(matchingInstance);
-                    if (!removed)
-                    {
-                        throw new ApplicationException("Failed to removed instance that was found for processing termination; ID: " + matchingInstance.InstanceDescription.Id);
-                    }
-
-                    this.SaveArcology(arcology);
+                    arcology.MutateInstancesRemove(matchingInstance);
+                    var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                    this.instanceCommands.RemoveOneAsync(matchingInstanceContainer).Wait();
                 }
             }
         }
@@ -69,10 +80,14 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.sync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
+                var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
+
                 // write
-                this.SaveArcology(arcology);
-                return ret;
+                arcology.MutateInstancesAdd(newDeployedInstance);
+                var instanceContainer = CreateInstanceContainerFromInstance(newDeployedInstance);
+                this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+
+                return newDeployedInstance.InstanceCreationDetails;
             }
         }
 
@@ -82,8 +97,22 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.sync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(instanceDescription.Environment);
-                arcology.UpdateInstanceDescription(instanceDescription);
-                this.SaveArcology(arcology);
+
+                var toUpdate =
+                    arcology.Instances.SingleOrDefault(
+                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+
+                if (toUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (pre-creation) with private IP: "
+                        + instanceDescription.PrivateIpAddress);
+                }
+
+                // write
+                toUpdate.InstanceDescription = instanceDescription;
+                var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
+                this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer).Wait();
             }
         }
 
@@ -93,8 +122,18 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.sync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                arcology.UpdatePackageVerificationInInstanceDeploymentList(systemId, package);
-                this.SaveArcology(arcology);
+                var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+                if (instanceToUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (post-creation) with system ID: "
+                        + systemId);
+                }
+
+                // write
+                Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
+                var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
+                this.instanceCommands.AddOrUpdateOneAsync(instanceContainer).Wait();
             }
         }
 
@@ -143,59 +182,42 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             environment = environment ?? "[NULL VALUE PASSED]";
             environment = string.IsNullOrEmpty(environment) ? "[EMPTY STRING PASSED]" : environment;
 
-            var arcologyFolderPath = this.GetArcologyFolderPath(environment);
-            if (!Directory.Exists(arcologyFolderPath))
-            {
-                throw new ArgumentException(
-                    "Failed to find tracking information for environment: " + " expected information at: " + arcologyFolderPath);
-            }
+            var arcologyInfoTask =
+                this.arcologyInfoQueries.GetOneAsync(
+                    _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
+            arcologyInfoTask.Wait();
+            var arcologyInfoContainer = arcologyInfoTask.Result;
 
-            var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
-            var instances = instanceFiles.Select(_ => Serializer.Deserialize<InstanceWrapper>(File.ReadAllText(_))).ToList();
-            var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
-            var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
-            var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
+            var instancesTask =
+                this.instanceQueries.GetManyAsync(
+                    _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
+            instancesTask.Wait();
+            var instancesContainers = instancesTask.Result;
+            var instances = instancesContainers.Select(_ => _.Instance).ToList();
 
-            var ret = new Arcology
-                          {
-                              Environment = environment,
-                              CloudContainers = arcologyInfo.CloudContainers,
-                              RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap,
-                              Location = arcologyInfo.Location,
-                              WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap,
-                              Instances = instances
-                          };
+            var ret = new Arcology(environment, arcologyInfoContainer.ArcologyInfo, instances);
 
             return ret;
         }
 
-        private void SaveArcology(Arcology arcology)
+        private static InstanceContainer CreateInstanceContainerFromInstance(DeployedInstance deployedInstance)
         {
-            var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+            var environment = deployedInstance.InstanceDescription.Environment;
 
-            foreach (var instanceWrapper in arcology.Instances)
-            {
-                var instanceFileContents = Serializer.Serialize(instanceWrapper);
+            var id = string.Format(
+                "{0}--{1}--{2}",
+                environment,
+                deployedInstance.InstanceDescription.Name,
+                deployedInstance.InstanceDescription.PrivateIpAddress);
 
-                var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, instanceWrapper);
-                if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))
-                {
-                    File.WriteAllText(instanceFilePathIp, instanceFileContents);
-                }
-                else
-                {
-                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, instanceWrapper);
+            var ret = new InstanceContainer
+                          {
+                              Id = id,
+                              Environment = environment,
+                              Instance = deployedInstance
+                          };
 
-                    File.WriteAllText(instanceFilePathNamed, instanceFileContents);
-
-                    // clean up the file before it had a name (if applicable)
-                    if (File.Exists(instanceFilePathIp))
-                    {
-                        File.Delete(instanceFilePathIp);
-                    }
-                }
-            }
+            return ret;
         }
-        */
     }
 }

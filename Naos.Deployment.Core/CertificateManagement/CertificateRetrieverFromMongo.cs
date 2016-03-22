@@ -14,6 +14,8 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.Deployment.Persistence;
     using Naos.WinRM;
 
+    using Spritely.ReadModel;
+
     /// <summary>
     /// Implementation using Mongo of <see cref="IGetCertificates"/>.
     /// </summary>
@@ -23,36 +25,36 @@ namespace Naos.Deployment.Core.CertificateManagement
 
         private readonly string environment;
 
-        private readonly DeploymentDatabase database;
+        private readonly CertificateLocator encryptingCertificateLocator;
 
-        private readonly CertificateLocator encryptingCertificate;
+        private readonly IQueries<CertificateContainer> certificateContainerQueries;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CertificateRetrieverFromMongo"/> class.
         /// </summary>
         /// <param name="environment">Environment executing against.</param>
-        /// <param name="database">Database to read certificates from.</param>
-        /// <param name="encryptingCertificate">Locator for the certificate installed on computer to use to decrypt password.</param>
-        public CertificateRetrieverFromMongo(string environment, DeploymentDatabase database, CertificateLocator encryptingCertificate)
+        /// <param name="encryptingCertificateLocator">Locator for the certificate installed on computer to use to decrypt password.</param>
+        /// <param name="certificateContainerQueries">Query interface for retrieving the certificates.</param>
+        public CertificateRetrieverFromMongo(string environment, CertificateLocator encryptingCertificateLocator, IQueries<CertificateContainer> certificateContainerQueries)
         {
             if (environment == null)
             {
                 throw new ArgumentNullException("environment");
             }
 
-            if (database == null)
+            if (certificateContainerQueries == null)
             {
-                throw new ArgumentNullException("database");
+                throw new ArgumentNullException("certificateContainerQueries");
             }
 
-            if (encryptingCertificate == null)
+            if (encryptingCertificateLocator == null)
             {
-                throw new ArgumentNullException("encryptingCertificate");
+                throw new ArgumentNullException("encryptingCertificateLocator");
             }
 
             this.environment = environment;
-            this.database = database;
-            this.encryptingCertificate = encryptingCertificate;
+            this.encryptingCertificateLocator = encryptingCertificateLocator;
+            this.certificateContainerQueries = certificateContainerQueries;
         }
 
         /// <inheritdoc />
@@ -60,8 +62,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         {
             lock (this.fileSync)
             {
-                var queries = this.database.GetQueriesInterface<CertificateContainer>();
-                var getOneAsync = queries.GetOneAsync(_ => _.Environment == this.environment);
+                var getOneAsync = this.certificateContainerQueries.GetOneAsync(_ => _.Environment == this.environment);
                 getOneAsync.Wait();
                 var certificateContainer = getOneAsync.Result;
 
@@ -71,7 +72,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
                 Func<string, SecureString> stringDecryptor = encryptedInput =>
                     {
-                        var decryptedText = Encryptor.Decrypt(encryptedInput, this.encryptingCertificate);
+                        var decryptedText = Encryptor.Decrypt(encryptedInput, this.encryptingCertificateLocator);
                         return MachineManager.ConvertStringToSecureString(decryptedText);
                     };
 

@@ -18,15 +18,61 @@ namespace Naos.Deployment.Tracking
     /// </summary>
     public class Arcology
     {
+        private readonly List<DeployedInstance> instances;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Arcology"/> class.
+        /// </summary>
+        /// <param name="environment">Environment of the arcology.</param>
+        /// <param name="arcologyInfo">Information about the arcology.</param>
+        /// <param name="deployedInstances">Deployed instances in the arcology.</param>
+        public Arcology(string environment, ArcologyInfo arcologyInfo, ICollection<DeployedInstance> deployedInstances)
+        {
+            this.Environment = environment;
+            this.ComputingContainers = arcologyInfo.ComputingContainers;
+            this.RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap;
+            this.Location = arcologyInfo.Location;
+            this.WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap;
+            this.instances = deployedInstances == null ? new List<DeployedInstance>() : deployedInstances.ToList();
+        }
+
         /// <summary>
         /// Gets or sets a map of root domains and their hosting ID.
         /// </summary>
-        public IDictionary<string, string> RootDomainHostingIdMap { get; set; }
+        public IReadOnlyDictionary<string, string> RootDomainHostingIdMap { get; set; }
 
         /// <summary>
-        /// Gets or sets the wrapped instances.
+        /// Gets the wrapped instances.
         /// </summary>
-        public List<InstanceWrapper> Instances { get; set; }
+        public IReadOnlyCollection<DeployedInstance> Instances
+        {
+            get
+            {
+                return this.instances;
+            }
+        }
+
+        /// <summary>
+        /// Updates the internal instance list to remove an instance.
+        /// </summary>
+        /// <param name="instanceToRemove">Instance to remove from collection.</param>
+        public void MutateInstancesRemove(DeployedInstance instanceToRemove)
+        {
+            var removed = this.instances.Remove(instanceToRemove);
+            if (!removed)
+            {
+                throw new ApplicationException("Failed to removed instance from arcology; ID: " + instanceToRemove.InstanceDescription.Id);
+            }
+        }
+
+        /// <summary>
+        /// Updates the internal instance list to add an instance.
+        /// </summary>
+        /// <param name="instanceToAdd">Instance to add to the collection.</param>
+        public void MutateInstancesAdd(DeployedInstance instanceToAdd)
+        {
+            this.instances.Add(instanceToAdd);
+        }
 
         /// <summary>
         /// Gets or sets the name of the environment.
@@ -66,15 +112,15 @@ namespace Naos.Deployment.Tracking
         /// <summary>
         /// Gets or sets the a map of configured search patterns to Windows SKU's.
         /// </summary>
-        public IDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
+        public IReadOnlyDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
 
         /// <summary>
-        /// Gets or sets the configured container ID.
+        /// Gets or sets the configured containers.
         /// </summary>
-        public ICollection<ComputingContainerDescription> CloudContainers { get; set; }
+        public IReadOnlyCollection<ComputingContainerDescription> ComputingContainers { get; set; }
 
         /// <summary>
-        /// Gets or sets the cloud location of arcology.
+        /// Gets or sets the location of arcology.
         /// </summary>
         public string Location { get; set; }
 
@@ -94,7 +140,7 @@ namespace Naos.Deployment.Tracking
 
             var containerId = wrapped.InstanceCreationDetails.ComputingContainerDescription.ContainerId;
 
-            var container = this.CloudContainers.SingleOrDefault(_ => _.ContainerId == containerId);
+            var container = this.ComputingContainers.SingleOrDefault(_ => _.ContainerId == containerId);
 
             if (container == null)
             {
@@ -131,12 +177,12 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <summary>
-        /// Gets instance details necessary to hand off to the cloud provider.
+        /// Gets instance details necessary to track and create an instance.
         /// </summary>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
-        /// <returns>Object holding information necessary to create an instance.</returns>
-        public InstanceCreationDetails MakeNewInstanceCreationDetails(DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
+        /// <returns>Object holding information necessary to track and create an instance.</returns>
+        public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
         {
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
@@ -196,7 +242,7 @@ namespace Naos.Deployment.Tracking
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
                     });
 
-            var newTracked = new InstanceWrapper()
+            var newTracked = new DeployedInstance()
                                  {
                                      InstanceDescription =
                                          new InstanceDescription()
@@ -210,53 +256,23 @@ namespace Naos.Deployment.Tracking
                                      DeploymentConfig = deploymentConfiguration,
                                  };
 
-            this.Instances.Add(newTracked);
-            return ret;
-        }
-
-        /// <summary>
-        /// Updates instance information that is available post creation by binding on IP Address.
-        /// </summary>
-        /// <param name="instanceDescription">Description of the created instance.</param>
-        public void UpdateInstanceDescription(InstanceDescription instanceDescription)
-        {
-            var toUpdate =
-                this.Instances.SingleOrDefault(
-                    _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
-
-            if (toUpdate == null)
-            {
-                throw new DeploymentException(
-                    "Expected to find a tracked instance (pre-creation) with private IP: "
-                    + instanceDescription.PrivateIpAddress);
-            }
-
-            toUpdate.InstanceDescription = instanceDescription;
+            return newTracked;
         }
 
         /// <summary>
         /// Updates the deployed packages list for the specified instance.
         /// </summary>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="instanceToUpdatePackagesOn">Instance to update the package list on.</param>
         /// <param name="package">Package that was successfully deployed.</param>
-        public void UpdatePackageVerificationInInstanceDeploymentList(string systemId, PackageDescription package)
+        public static void UpdatePackageVerificationInInstanceDeploymentList(DeployedInstance instanceToUpdatePackagesOn, PackageDescription package)
         {
-            var toUpdate = this.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
-
-            if (toUpdate == null)
-            {
-                throw new DeploymentException(
-                    "Expected to find a tracked instance (post-creation) with system ID: "
-                    + systemId);
-            }
-
             PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
             var existing =
-                toUpdate.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value, package)).ToList();
+                instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value, package)).ToList();
             if (existing.Any())
             {
                 var existingSingle = existing.Single().Key;
-                toUpdate.InstanceDescription.DeployedPackages[existingSingle].DeploymentStatus =
+                instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages[existingSingle].DeploymentStatus =
                     PackageDeploymentStatus.DeployedSuccessfully;
             }
             else
@@ -270,7 +286,7 @@ namespace Naos.Deployment.Tracking
                                         .DeployedSuccessfully
                                 };
 
-                toUpdate.InstanceDescription.DeployedPackages.Add(package.Id, toAdd);
+                instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Add(package.Id, toAdd);
             }
         }
 
@@ -288,7 +304,7 @@ namespace Naos.Deployment.Tracking
 
         private ComputingContainerDescription GetCloudContainer(DeploymentConfiguration deploymentConfig)
         {
-            return this.CloudContainers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
+            return this.ComputingContainers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
     
         private string FindIpAddress(DeploymentConfiguration deploymentConfig)

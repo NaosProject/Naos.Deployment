@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core.ComputingInfrastructureTracking
+namespace Naos.Deployment.Tracking
 {
     using System;
     using System.Collections.Generic;
@@ -12,7 +12,6 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
     using System.Linq;
 
     using Naos.Deployment.Domain;
-    using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
     /// <summary>
@@ -86,9 +85,13 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                var ret = arcology.MakeNewInstanceCreationDetails(deploymentConfiguration, intendedPackages);
+                var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
+
+                // write
+                arcology.MutateInstancesAdd(newDeployedInstance);
                 this.SaveArcology(arcology);
-                return ret;
+
+                return newDeployedInstance.InstanceCreationDetails;
             }
         }
 
@@ -98,7 +101,20 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(instanceDescription.Environment);
-                arcology.UpdateInstanceDescription(instanceDescription);
+
+                var toUpdate =
+                    arcology.Instances.SingleOrDefault(
+                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+
+                if (toUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (pre-creation) with private IP: "
+                        + instanceDescription.PrivateIpAddress);
+                }
+
+                // write
+                toUpdate.InstanceDescription = instanceDescription;
                 this.SaveArcology(arcology);
             }
         }
@@ -109,7 +125,16 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                arcology.UpdatePackageVerificationInInstanceDeploymentList(systemId, package);
+                var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+                if (instanceToUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (post-creation) with system ID: "
+                        + systemId);
+                }
+
+                // write
+                Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
                 this.SaveArcology(arcology);
             }
         }
@@ -167,21 +192,12 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             }
 
             var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
-            var instances = instanceFiles.Select(_ => Serializer.Deserialize<InstanceWrapper>(File.ReadAllText(_))).ToList();
+            var instances = instanceFiles.Select(_ => Serializer.Deserialize<DeployedInstance>(File.ReadAllText(_))).ToList();
             var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
             var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
             var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
 
-            var ret = new Arcology
-                          {
-                              Environment = environment,
-                              CloudContainers = arcologyInfo.CloudContainers,
-                              RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap,
-                              Location = arcologyInfo.Location,
-                              WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap,
-                              Instances = instances
-                          };
-
+            var ret = new Arcology(environment, arcologyInfo, instances);
             return ret;
         }
 
@@ -213,19 +229,19 @@ namespace Naos.Deployment.Core.ComputingInfrastructureTracking
             }
         }
 
-        private static string GetInstanceFilePathIp(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        private static string GetInstanceFilePathIp(string arcologyFolderPath, DeployedInstance deployedInstance)
         {
             var instanceFilePathIp = Path.Combine(
                 arcologyFolderPath,
-                InstancePrefix + IpInfix + instanceWrapper.InstanceDescription.PrivateIpAddress + ".json");
+                InstancePrefix + IpInfix + deployedInstance.InstanceDescription.PrivateIpAddress + ".json");
             return instanceFilePathIp;
         }
 
-        private static string GetInstanceFilePathNamed(string arcologyFolderPath, InstanceWrapper instanceWrapper)
+        private static string GetInstanceFilePathNamed(string arcologyFolderPath, DeployedInstance deployedInstance)
         {
             var instanceFilePathNamed = Path.Combine(
                 arcologyFolderPath,
-                InstancePrefix + instanceWrapper.InstanceDescription.Name + ".json");
+                InstancePrefix + deployedInstance.InstanceDescription.Name + ".json");
             return instanceFilePathNamed;
         }
 

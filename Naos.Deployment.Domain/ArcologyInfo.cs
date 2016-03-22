@@ -4,11 +4,9 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Tracking
+namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
-
-    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Container with the description of an arcology (defines things needed to add to the arcology).
@@ -16,14 +14,14 @@ namespace Naos.Deployment.Tracking
     public class ArcologyInfo
     {
         /// <summary>
-        /// Gets or sets the list of supported cloud containers in the arcology.
+        /// Gets or sets the list of supported computing containers in the arcology.
         /// </summary>
-        public ICollection<ComputingContainerDescription> CloudContainers { get; set; }
+        public IReadOnlyCollection<ComputingContainerDescription> ComputingContainers { get; set; }
 
         /// <summary>
         /// Gets or sets the list of supported hosting ID's.
         /// </summary>
-        public IDictionary<string, string> RootDomainHostingIdMap { get; set; }
+        public IReadOnlyDictionary<string, string> RootDomainHostingIdMap { get; set; }
 
         /// <summary>
         /// Gets or sets the location of the arcology.
@@ -33,6 +31,6 @@ namespace Naos.Deployment.Tracking
         /// <summary>
         /// Gets or sets the map of Windows SKU's to image search patterns.
         /// </summary>
-        public IDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
+        public IReadOnlyDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
     }
 }

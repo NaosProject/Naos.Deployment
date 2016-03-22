@@ -1,17 +1,15 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceWrapper.cs" company="Naos">
+// <copyright file="DeployedInstance.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Tracking
+namespace Naos.Deployment.Domain
 {
-    using Naos.Deployment.Domain;
-
     /// <summary>
     /// Container object for storing instances in tracking.
     /// </summary>
-    public class InstanceWrapper
+    public class DeployedInstance
     {
         /// <summary>
         /// Gets or sets the related instance description.

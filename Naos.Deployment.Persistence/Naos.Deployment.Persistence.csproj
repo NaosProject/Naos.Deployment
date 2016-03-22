@@ -64,6 +64,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArcologyInfoContainer.cs" />
+    <Compile Include="InstanceContainer.cs" />
     <Compile Include="CertificateContainer.cs" />
     <Compile Include="DeploymentDatabase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
