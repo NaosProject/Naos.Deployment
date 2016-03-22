@@ -45,6 +45,17 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Gets the administrator account name.
+        /// </summary>
+        public string AdministratorAccount
+        {
+            get
+            {
+                return this.settings.AdministratorAccount;
+            }
+        }
+
+        /// <summary>
         /// Gets the root deployment path.
         /// </summary>
         public string RootDeploymentPath
@@ -93,8 +104,9 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="packagedConfig">Config to base setup steps from.</param>
         /// <param name="environment">Environment that is being deployed.</param>
+        /// <param name="adminPassword">Administrator password for the machine in case an application needs to be run as that user (which is discouraged!).</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public ICollection<SetupStep> GetSetupSteps(PackagedDeploymentConfiguration packagedConfig, string environment)
+        public ICollection<SetupStep> GetSetupSteps(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
         {
             // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
             var mongoStrategies = packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>();
@@ -136,14 +148,14 @@ namespace Naos.Deployment.Core
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
-                var initSteps = this.GetStrategySpecificSetupSteps(initializationStrategy, packagedConfig, environment);
+                var initSteps = this.GetStrategySpecificSetupSteps(initializationStrategy, packagedConfig, environment, adminPassword);
                 ret.AddRange(initSteps);
             }
 
             return ret;
         }
 
-        private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment)
+        private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
         {
             var ret = new List<SetupStep>();
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
@@ -156,7 +168,8 @@ namespace Naos.Deployment.Core
                     packagedConfig.ItsConfigOverrides,
                     packageDirectoryPath,
                     webRootPath,
-                    environment);
+                    environment,
+                    adminPassword);
                 ret.AddRange(webSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))

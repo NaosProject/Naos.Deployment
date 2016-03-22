@@ -64,11 +64,13 @@ namespace Naos.Deployment.Core.Test
                                            },
                                    PrimaryDns = "myDns",
                                    SslCertificateName = "certName",
+                                   AppPoolAccount = "user",
                                    EnableHttp = true
                                };
             var cloned = original.Clone() as InitializationStrategyIis;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
+            Assert.Equal(original.AppPoolAccount, cloned.AppPoolAccount);
             Assert.Equal(original.AppPoolStartMode, cloned.AppPoolStartMode);
             Assert.NotSame(original.AutoStartProvider, cloned.AutoStartProvider);
             Assert.Equal(original.AutoStartProvider.Name, cloned.AutoStartProvider.Name);

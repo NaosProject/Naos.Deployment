@@ -27,6 +27,11 @@ namespace Naos.Deployment.Domain
         public bool EnableHttp { get; set; }
 
         /// <summary>
+        /// Gets or sets the account to run the application pool as.
+        /// </summary>
+        public string AppPoolAccount { get; set; }
+
+        /// <summary>
         /// Gets or sets the application pool start mode.
         /// </summary>
         public ApplicationPoolStartMode AppPoolStartMode { get; set; }
@@ -43,6 +48,7 @@ namespace Naos.Deployment.Domain
                           {
                               AutoStartProvider =
                                   (AutoStartProvider)this.AutoStartProvider.Clone(),
+                              AppPoolAccount = this.AppPoolAccount,
                               AppPoolStartMode = this.AppPoolStartMode,
                               SslCertificateName = this.SslCertificateName,
                               PrimaryDns = this.PrimaryDns,

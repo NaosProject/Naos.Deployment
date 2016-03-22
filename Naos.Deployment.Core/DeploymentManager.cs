@@ -15,7 +15,6 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.AWS.Core;
-    using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
     using Naos.MessageBus.HandlingContract;
     using Naos.Packaging.Domain;
@@ -272,12 +271,19 @@ namespace Naos.Deployment.Core
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
-                var machineManager =
+
+                var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetry(
                         "Wait for admin password",
-                        async () => await this.GetMachineManagerForInstanceAsync(createdInstanceDescription),
+                        async () => await this.GetAdminPasswordForInstanceAsync(createdInstanceDescription),
                         instanceNumber);
+
+                var machineManager = new MachineManager(
+                    createdInstanceDescription.PrivateIpAddress,
+                    this.setupStepFactory.AdministratorAccount,
+                    MachineManager.ConvertStringToSecureString(adminPasswordClear),
+                    true);
 
                 this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);
                 this.RunActionWithTelemetry("Wait for WinRM access", () => this.WaitUntilMachineIsAccessible(machineManager), instanceNumber);
@@ -292,7 +298,7 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
-                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
+                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment, adminPasswordClear);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
@@ -867,7 +873,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task<MachineManager> GetMachineManagerForInstanceAsync(InstanceDescription createdInstanceDescription)
+        private async Task<string> GetAdminPasswordForInstanceAsync(InstanceDescription createdInstanceDescription)
         {
             string adminPassword = null;
             var sleepTimeInSeconds = 30d;
@@ -889,13 +895,7 @@ namespace Naos.Deployment.Core
                 }
             }
 
-            // finalize instance creation (WinRM reboot, etc.)
-            var machineManager = new MachineManager(
-                createdInstanceDescription.PrivateIpAddress,
-                "Administrator",
-                MachineManager.ConvertStringToSecureString(adminPassword),
-                true);
-            return machineManager;
+            return adminPassword;
         }
 
         private void TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)

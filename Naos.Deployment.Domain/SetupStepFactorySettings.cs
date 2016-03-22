@@ -17,6 +17,11 @@ namespace Naos.Deployment.Domain
     public class SetupStepFactorySettings
     {
         /// <summary>
+        /// Gets or sets the administrator account of a new instance.
+        /// </summary>
+        public string AdministratorAccount { get; set; }
+
+        /// <summary>
         /// Gets or sets the default file size settings to use.
         /// </summary>
         public DatabaseFileSizeSettings DefaultDatabaseFileSizeSettings { get; set; }
