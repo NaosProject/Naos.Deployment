@@ -200,7 +200,12 @@ namespace Naos.Deployment.Tracking
             return ret;
         }
 
-        private static InstanceContainer CreateInstanceContainerFromInstance(DeployedInstance deployedInstance)
+        /// <summary>
+        /// Creates a new <see cref="InstanceContainer"/> from a <see cref="DeployedInstance"/>.
+        /// </summary>
+        /// <param name="deployedInstance">Instance to prepare.</param>
+        /// <returns>Prepared instance container.</returns>
+        public static InstanceContainer CreateInstanceContainerFromInstance(DeployedInstance deployedInstance)
         {
             var environment = deployedInstance.InstanceDescription.Environment;
 

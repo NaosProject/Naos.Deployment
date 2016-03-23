@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Security;
@@ -55,17 +54,6 @@ namespace Naos.Deployment.Core.CertificateManagement
                 var certDetails = certContainer == null ? null : certContainer.ToCertificateDetails(stringDecryptor);
                 return certDetails;
             }
-        }
-
-        /// <summary>
-        /// Class to be used to hold certificates for an environment.
-        /// </summary>
-        private class CertificateCollection
-        {
-            /// <summary>
-            /// Gets or sets the certificates.
-            /// </summary>
-            public List<CertificateDetails> Certificates { get; set; }
         }
     }
 }

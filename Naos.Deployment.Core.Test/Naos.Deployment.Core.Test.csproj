@@ -118,6 +118,7 @@
     <Compile Include="ArcologyTest.cs" />
     <Compile Include="ComputingInfrastructureNamerTest.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" />
+    <Compile Include="DebugSeeder.cs" />
     <Compile Include="SerializerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -138,6 +139,10 @@
     <ProjectReference Include="..\Naos.Deployment.Domain\Naos.Deployment.Domain.csproj">
       <Project>{edc80e07-bf02-4860-94d3-6ddd75ec78fb}</Project>
       <Name>Naos.Deployment.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Naos.Deployment.Persistence\Naos.Deployment.Persistence.csproj">
+      <Project>{c935076e-7dbf-468e-babd-80bab143606e}</Project>
+      <Name>Naos.Deployment.Persistence</Name>
     </ProjectReference>
     <ProjectReference Include="..\Naos.Deployment.Tracking\Naos.Deployment.Tracking.csproj">
       <Project>{cf1d7b29-bc09-4445-88ba-98c658b023b4}</Project>
