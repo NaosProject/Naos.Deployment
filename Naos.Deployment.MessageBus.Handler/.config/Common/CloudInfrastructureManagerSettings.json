@@ -6,6 +6,8 @@
         "E": "xvdc",
         "F": "xvdd"
     },
+    "nameTagKey": "Name",
+    "environmentTagKey": "Environment",
     "volumeTypeValueMap": {
     "lowPerformance": "standard",
     "standard": "gp2",

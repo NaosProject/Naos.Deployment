@@ -9,11 +9,8 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System;
     using System.IO;
     using System.Linq;
-    using System.Security;
 
-    using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
-    using Naos.WinRM;
 
     /// <summary>
     /// Implementation using a text file of IGetCertificates.
@@ -24,17 +21,13 @@ namespace Naos.Deployment.Core.CertificateManagement
 
         private readonly string filePath;
 
-        private readonly CertificateLocator encryptingCertificate;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="CertificateRetrieverFromFile"/> class.
         /// </summary>
         /// <param name="filePath">Path to save all state to.</param>
-        /// <param name="encryptingCertificate">Locator for the certificate installed on computer to use to decrypt password.</param>
-        public CertificateRetrieverFromFile(string filePath, CertificateLocator encryptingCertificate)
+        public CertificateRetrieverFromFile(string filePath)
         {
             this.filePath = filePath;
-            this.encryptingCertificate = encryptingCertificate;
         }
 
         /// <inheritdoc />
@@ -43,15 +36,10 @@ namespace Naos.Deployment.Core.CertificateManagement
             lock (this.fileSync)
             {
                 var fileContents = File.ReadAllText(this.filePath);
-                var certificateManager = Serializer.Deserialize<CertificateCollection>(fileContents);
-                var certContainer = certificateManager.Certificates.SingleOrDefault(_ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
-                Func<string, SecureString> stringDecryptor = encryptedInput =>
-                    {
-                        var decryptedText = Encryptor.Decrypt(encryptedInput, this.encryptingCertificate);
-                        return MachineManager.ConvertStringToSecureString(decryptedText);
-                    };
+                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContents);
+                var certificateDetails = certificateCollection.Certificates.SingleOrDefault(_ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
-                var certDetails = certContainer == null ? null : certContainer.ToCertificateDetails(stringDecryptor);
+                var certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
                 return certDetails;
             }
         }

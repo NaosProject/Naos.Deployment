@@ -40,6 +40,8 @@ namespace Naos.Deployment.Tracking
             this.arcologyInfoQueries = arcologyInfoQueries;
             this.instanceQueries = instanceQueries;
             this.instanceCommands = instanceCommands;
+
+            BsonClassMapManager.RegisterClassMaps();
         }
 
         /// <inheritdoc />

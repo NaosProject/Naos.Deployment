@@ -16,7 +16,7 @@ namespace Naos.Deployment.Tracking
     /// <summary>
     /// Container object for storing a single environments entire state.
     /// </summary>
-    public class Arcology
+    public class Arcology : ArcologyInfo
     {
         private readonly List<DeployedInstance> instances;
 
@@ -35,11 +35,6 @@ namespace Naos.Deployment.Tracking
             this.WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap;
             this.instances = deployedInstances == null ? new List<DeployedInstance>() : deployedInstances.ToList();
         }
-
-        /// <summary>
-        /// Gets or sets a map of root domains and their hosting ID.
-        /// </summary>
-        public IReadOnlyDictionary<string, string> RootDomainHostingIdMap { get; set; }
 
         /// <summary>
         /// Gets the wrapped instances.
@@ -110,24 +105,9 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <summary>
-        /// Gets or sets the a map of configured search patterns to Windows SKU's.
-        /// </summary>
-        public IReadOnlyDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
-
-        /// <summary>
-        /// Gets or sets the configured containers.
-        /// </summary>
-        public IReadOnlyCollection<ComputingContainerDescription> ComputingContainers { get; set; }
-
-        /// <summary>
-        /// Gets or sets the location of arcology.
-        /// </summary>
-        public string Location { get; set; }
-
-        /// <summary>
         /// Looks up the key used for the instance and returns the private key.
         /// </summary>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <returns>Private key of instance.</returns>
         public string GetPrivateKeyOfInstanceById(string systemId)
         {
@@ -147,13 +127,14 @@ namespace Naos.Deployment.Tracking
                 throw new DeploymentException("Could not find Container: " + containerId);
             }
 
-            return container.PrivateKey;
+            var decryptedKey = Encryptor.Decrypt(container.EncryptedPrivateKey, container.EncryptingCertificateLocator);
+            return decryptedKey;
         }
 
         /// <summary>
         /// Gets the instance description by ID.
         /// </summary>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <returns>InstanceDescription if any by that ID.</returns>
         public InstanceDescription GetInstanceDescriptionById(string systemId)
         {
@@ -186,11 +167,11 @@ namespace Naos.Deployment.Tracking
         {
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
-            var cloudContainer = this.GetCloudContainer(deploymentConfiguration);
-            var containerId = cloudContainer.ContainerId;
-            var containerLocation = cloudContainer.ContainerLocation;
-            var securityGroupId = cloudContainer.SecurityGroupId;
-            var keyName = cloudContainer.KeyName;
+            var container = this.GetComputingContainer(deploymentConfiguration);
+            var containerId = container.ContainerId;
+            var containerLocation = container.ContainerLocation;
+            var securityGroupId = container.SecurityGroupId;
+            var keyName = container.KeyName;
 
             ImageDetails imageDetails;
             if (deploymentConfiguration.InstanceType.WindowsSku == WindowsSku.SpecificImageSupplied)
@@ -302,14 +283,14 @@ namespace Naos.Deployment.Tracking
             return searchPattern;
         }
 
-        private ComputingContainerDescription GetCloudContainer(DeploymentConfiguration deploymentConfig)
+        private ComputingContainerDescription GetComputingContainer(DeploymentConfiguration deploymentConfig)
         {
             return this.ComputingContainers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
     
         private string FindIpAddress(DeploymentConfiguration deploymentConfig)
         {
-            var container = this.GetCloudContainer(deploymentConfig);
+            var container = this.GetComputingContainer(deploymentConfig);
             for (int idx = container.StartIpsAfter + 1; idx < 256; idx++)
             {
                 var sampleIp = container.Cidr.Replace("0/24", idx.ToString());

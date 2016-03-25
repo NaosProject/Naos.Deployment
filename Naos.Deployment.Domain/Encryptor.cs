@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core.CertificateManagement
+namespace Naos.Deployment.Domain
 {
     using System;
     using System.Globalization;
@@ -12,8 +12,6 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Text.RegularExpressions;
 
     using Its.Configuration;
-
-    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Class to encrypt and decrypt text.
@@ -68,7 +66,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
         private static string RunWithCertificate(CertificateLocator encryptingCertificate, Func<X509Certificate2, string> funcToRunWithCertificate)
         {
-            string result = null;
+            string result;
             var certificateStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             try
             {

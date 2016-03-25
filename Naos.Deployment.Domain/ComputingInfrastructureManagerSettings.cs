@@ -50,6 +50,16 @@ namespace Naos.Deployment.Domain
         public ICollection<string> PackageIdsToIgnoreDuringTerminationSearch { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the key to use when tagging an instance with its name.
+        /// </summary>
+        public string NameTagKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the key to use when tagging an instance with its environment.
+        /// </summary>
+        public string EnvironmentTagKey { get; set; }
+
+        /// <summary>
         /// Combines the lines of user data and replaces the token '{ComputerName}' with the name provided.
         /// </summary>
         /// <returns>User data as an un-encoded string to provide to AWS for creating an instance.</returns>

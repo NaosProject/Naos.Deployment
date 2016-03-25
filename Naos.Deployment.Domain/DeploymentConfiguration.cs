@@ -33,12 +33,12 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the volumes to add to the instance.
         /// </summary>
-        public ICollection<Volume> Volumes { get; set; }
+        public IReadOnlyCollection<Volume> Volumes { get; set; }
 
         /// <summary>
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
-        public ICollection<PackageDescription> ChocolateyPackages { get; set; }
+        public IReadOnlyCollection<PackageDescription> ChocolateyPackages { get; set; }
 
         /// <summary>
         /// Gets or sets the deployment strategy to describe how certain things should be handled.

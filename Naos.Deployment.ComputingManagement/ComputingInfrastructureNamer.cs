@@ -11,7 +11,7 @@ namespace Naos.Deployment.ComputingManagement
     using System.Linq;
 
     /// <summary>
-    /// Composes easy to track names for cloud resources.
+    /// Composes easy to track names for computing resources.
     /// </summary>
     public class ComputingInfrastructureNamer
     {

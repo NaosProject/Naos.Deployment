@@ -12,12 +12,12 @@ namespace Naos.Deployment.MessageBus.Contract
     public class DeploymentMessageHandlerSettings
     {
         /// <summary>
-        /// Gets or sets the access key for cloud operations.
+        /// Gets or sets the access key for computing platform operations.
         /// </summary>
         public string AccessKey { get; set; }
 
         /// <summary>
-        /// Gets or sets the secret key for cloud operations.
+        /// Gets or sets the secret key for computing platform operations.
         /// </summary>
         public string SecretKey { get; set; }
 

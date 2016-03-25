@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
@@ -63,10 +67,11 @@
     <Compile Include=".Spritely.Recipes\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
     <Compile Include="ArcologyInfo.cs" />
-    <Compile Include="AutoStartProvider.cs" />
-    <Compile Include="CertificateDetails.cs" />
-    <Compile Include="CertificateFile.cs" />
-    <Compile Include="CertificateLocator.cs" />
+    <Compile Include="Exception\PasswordUnavailableException.cs" />
+    <Compile Include="InitializationStrategy\AutoStartProvider.cs" />
+    <Compile Include="Certificate\CertificateDetails.cs" />
+    <Compile Include="Certificate\CertificateFile.cs" />
+    <Compile Include="Certificate\CertificateLocator.cs" />
     <Compile Include="ComputingContainerDescription.cs" />
     <Compile Include="ComputingInfrastructureManagerSettings.cs" />
     <Compile Include="Create.cs" />
@@ -77,7 +82,8 @@
     <Compile Include="DeploymentConfigurationWithStrategies.cs" />
     <Compile Include="DeploymentException.cs" />
     <Compile Include="DeploymentStrategy.cs" />
-    <Compile Include="DirectoryToCreateDetails.cs" />
+    <Compile Include="InitializationStrategy\DirectoryToCreateDetails.cs" />
+    <Compile Include="Encryptor.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IGetCertificates.cs" />
     <Compile Include="IHaveInitializationStrategies.cs" />
@@ -85,15 +91,15 @@
     <Compile Include="ImageDetails.cs" />
     <Compile Include="IManageComputingInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
-    <Compile Include="InitializationStrategyBase.cs" />
-    <Compile Include="InitializationStrategyCertificateToInstall.cs" />
-    <Compile Include="InitializationStrategyDirectoryToCreate.cs" />
-    <Compile Include="InitializationStrategyDnsEntry.cs" />
-    <Compile Include="InitializationStrategyIis.cs" />
-    <Compile Include="InitializationStrategyMessageBusHandler.cs" />
-    <Compile Include="InitializationStrategyMongo.cs" />
-    <Compile Include="InitializationStrategyScheduledTask.cs" />
-    <Compile Include="InitializationStrategySqlServer.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyBase.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyCertificateToInstall.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyDirectoryToCreate.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyDnsEntry.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyIis.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyMessageBusHandler.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyMongo.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyScheduledTask.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategySqlServer.cs" />
     <Compile Include="InstanceCreationDetails.cs" />
     <Compile Include="InstanceDescription.cs" />
     <Compile Include="InstanceDetailsFromComputingPlatform.cs" />

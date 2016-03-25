@@ -36,10 +36,10 @@ namespace Naos.Deployment.Console
     /// </summary>
     public class Deployer
     {
-        [Verb(Aliases = "credentials", Description = "Gets new credentials on the cloud provider.")]
+        [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider.")]
 #pragma warning disable 1591
         public static void GetNewCredentialJson(
-            [Aliases("")] [Description("Cloud provider location to make the call against.")] string location,
+            [Aliases("")] [Description("Computing platform provider location to make the call against.")] string location,
             [Aliases("")] [Description("Life span of the credentials (in format dd:hh:mm).")] string tokenLifespan,
             [Aliases("")] [Description("Username of the credentials.")] string username,
             [Aliases("")] [Description("Password of the credentials.")] string password,
@@ -69,7 +69,7 @@ namespace Naos.Deployment.Console
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
 #pragma warning disable 1591
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
+            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
             [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString,
             [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
@@ -91,7 +91,7 @@ namespace Naos.Deployment.Console
 
             Console.WriteLine("PARAMETERS:");
             Console.WriteLine("--                                       workingPath: " + workingPath);
-            Console.WriteLine("--                              cloudCredentialsJson: " + cloudCredentialsJson);
+            Console.WriteLine("--                                   credentialsJson: " + credentialsJson);
             Console.WriteLine("--           nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
             Console.WriteLine("--                          certificateRetrieverJson: " + certificateRetrieverJson);
             Console.WriteLine("--                         infrastructureTrackerJson: " + infrastructureTrackerJson);
@@ -121,8 +121,8 @@ namespace Naos.Deployment.Console
             var certificateRetriever = CreateCertificateRetriever(environment, certificateRetrieverConfiguration);
             var infrastructureTracker = CreateInfrastructureTracker(infrastructureTrackerConfiguration);
 
-            var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
-            var cloudManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
+            var credentials = Serializer.Deserialize<CredentialContainer>(credentialsJson);
+            var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
             var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
@@ -145,7 +145,7 @@ namespace Naos.Deployment.Console
 
             var deploymentManager = new DeploymentManager(
                 infrastructureTracker,
-                cloudManager,
+                computingManager,
                 packageManager,
                 certificateRetriever,
                 defaultDeploymentConfiguration,
@@ -251,13 +251,13 @@ namespace Naos.Deployment.Console
             if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationFile)
             {
                 var configAsFile = (CertificateRetrieverConfigurationFile)certificateRetrieverConfigurationBase;
-                ret = new CertificateRetrieverFromFile(configAsFile.FilePath, certificateRetrieverConfigurationBase.EncryptingCertificate);
+                ret = new CertificateRetrieverFromFile(configAsFile.FilePath);
             }
             else if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationDatabase)
             {
                 var configAsDb = (CertificateRetrieverConfigurationDatabase)certificateRetrieverConfigurationBase;
                 var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
-                ret = new CertificateRetrieverFromMongo(environment, certificateRetrieverConfigurationBase.EncryptingCertificate, certificateContainerQueries);
+                ret = new CertificateRetrieverFromMongo(environment, certificateContainerQueries);
             }
             else
             {

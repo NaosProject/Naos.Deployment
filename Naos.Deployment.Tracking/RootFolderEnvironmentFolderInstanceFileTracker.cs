@@ -179,7 +179,12 @@ namespace Naos.Deployment.Tracking
             }
         }
 
-        private Arcology GetArcologyByEnvironmentName(string environment)
+        /// <summary>
+        /// Gets a copy of the arcology by environment.
+        /// </summary>
+        /// <param name="environment">The environment to get an arcology for.</param>
+        /// <returns>The arcology for the provided environment.</returns>
+        public Arcology GetArcologyByEnvironmentName(string environment)
         {
             environment = environment ?? "[NULL VALUE PASSED]";
             environment = string.IsNullOrEmpty(environment) ? "[EMPTY STRING PASSED]" : environment;

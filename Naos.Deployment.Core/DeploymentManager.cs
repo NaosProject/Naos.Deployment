@@ -258,7 +258,7 @@ namespace Naos.Deployment.Core
             var createdInstanceMessage =
                 string.Format(
                     "Instance " + instanceNumber
-                    + " - Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
+                    + " - Created new instance => ComputingName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
                     createdInstanceDescription.Name,
                     createdInstanceDescription.Id,
                     createdInstanceDescription.PrivateIpAddress,
@@ -873,11 +873,16 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task<string> GetAdminPasswordForInstanceAsync(InstanceDescription createdInstanceDescription)
+        /// <summary>
+        /// Gets the password for the instance.
+        /// </summary>
+        /// <param name="instanceDescription">Instance to find the password for.</param>
+        /// <returns>Password for instance.</returns>
+        public async Task<string> GetAdminPasswordForInstanceAsync(InstanceDescription instanceDescription)
         {
             string adminPassword = null;
-            var sleepTimeInSeconds = 30d;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Environment, createdInstanceDescription.Id);
+            var sleepTimeInSeconds = 10d;
+            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceDescription.Environment, instanceDescription.Id);
             while (adminPassword == null)
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
@@ -886,12 +891,12 @@ namespace Naos.Deployment.Core
                 try
                 {
                     adminPassword = await this.computingManager.GetAdministratorPasswordForInstanceAsync(
-                        createdInstanceDescription,
+                        instanceDescription,
                         privateKey);
                 }
-                catch (NullPasswordDataException)
+                catch (PasswordUnavailableException)
                 {
-                    // No-op
+                    // No-op - just wait until it is available
                 }
             }
 
@@ -942,33 +947,13 @@ namespace Naos.Deployment.Core
 
         private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
         {
-            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", ComputingName: " + instanceDescription.Name);
             await
                 this.computingManager.TerminateInstanceAsync(
                     environment,
                     instanceDescription.Id,
                     instanceDescription.Location,
                     true);
-        }
-
-        /// <summary>
-        /// Gets the password for the instance.
-        /// </summary>
-        /// <param name="instanceToSearchFor">Instance to find the password for.</param>
-        /// <returns>Password for instance.</returns>
-        public async Task<string> GetPasswordAsync(InstanceDescription instanceToSearchFor)
-        {
-            string adminPassword = null;
-            var sleepTimeInSeconds = .25;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceToSearchFor.Environment, instanceToSearchFor.Id);
-            while (adminPassword == null)
-            {
-                sleepTimeInSeconds = sleepTimeInSeconds * 2;
-                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-                adminPassword = await this.computingManager.GetAdministratorPasswordForInstanceAsync(instanceToSearchFor, privateKey);
-            }
-
-            return adminPassword;
         }
 
         private void RunActionWithTelemetry(string step, Action code, int? instanceNumber = null)

@@ -13,7 +13,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using Its.Configuration;
     using Its.Log.Instrumentation;
 
-    using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
@@ -42,7 +41,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// </summary>
         /// <param name="message">Message to handle.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="computingInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
+        /// <param name="computingInfrastructureManagerSettings">Settings for the computing infrastructure manager.</param>
         /// <returns>Task for async execution.</returns>
         public async Task Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
@@ -61,13 +60,11 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
 
-            var cloudManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
-
             var tasks =
                 message.InstanceTargeters.Select(
                     instanceTargeter =>
                     Task.Run(
-                        () => OperationToParallelize(instanceTargeter, settings, cloudManager, message.NewInstanceType)))
+                        () => OperationToParallelize(computingInfrastructureManagerSettings, instanceTargeter, settings, message.NewInstanceType)))
                     .ToArray();
 
             await Task.WhenAll(tasks);
@@ -75,14 +72,12 @@ namespace Naos.Deployment.MessageBus.Handler
             this.InstanceTargeters = message.InstanceTargeters;
         }
 
-        private static async Task OperationToParallelize(
-            InstanceTargeterBase instanceTargeter,
-            DeploymentMessageHandlerSettings settings,
-            IManageComputingInfrastructure computingManager,
-            InstanceType newInstanceType)
+        private static async Task OperationToParallelize(ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, InstanceType newInstanceType)
         {
+            var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
+
             var systemId =
-                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, settings, computingManager);
+                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, computingManager);
 
             Log.Write(
                 () =>

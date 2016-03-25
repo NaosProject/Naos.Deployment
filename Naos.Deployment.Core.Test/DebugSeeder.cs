@@ -182,11 +182,12 @@ namespace Naos.Deployment.Core.Test
 
                 var certificateBytes = File.ReadAllBytes(certificateToLoad.FilePath);
                 var certificateFileBase64 = Convert.ToBase64String(certificateBytes);
+                var encryptedFileBase64 = Encryptor.Encrypt(certificateFileBase64, encryptingCertificateLocator);
 
                 var certificateToAdd = new CertificateDetails
                                            {
                                                Name = certificateToLoad.Name,
-                                               Base64Bytes = certificateFileBase64,
+                                               EncryptedBase64Bytes = encryptedFileBase64,
                                                EncryptedPassword = encryptedPassword
                                            };
 

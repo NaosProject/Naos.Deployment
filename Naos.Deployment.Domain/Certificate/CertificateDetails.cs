@@ -7,25 +7,29 @@
 namespace Naos.Deployment.Domain
 {
     using System;
-    using System.Security;
+
+    using Spritely.Recipes;
 
     /// <summary>
-    /// Class to allow TheSafe to be serialized and deserialized but still provide a CertificateDetails object.
+    /// Class to hold necessary information to produce a certificate file.
     /// </summary>
     public class CertificateDetails
     {
         /// <summary>
-        /// Converts the container to a certificate details class.
+        /// Converts the certificate details into a usable certificate file (decrypting the file and password).
         /// </summary>
-        /// <param name="stringDecryptor">Function to decrypt the encrypted password and convert it into a <see cref="SecureString"/>.</param>
         /// <returns>Converted details version.</returns>
-        public CertificateFile ToCertificateDetails(Func<string, SecureString> stringDecryptor)
+        public CertificateFile ToCertificateFile()
         {
+            var decryptedPassword = Encryptor.Decrypt(this.EncryptedPassword, this.EncryptingCertificateLocator).ToSecureString();
+            var decryptedBase64 = Encryptor.Decrypt(this.EncryptedBase64Bytes, this.EncryptingCertificateLocator);
+            var certificateBytes = Convert.FromBase64String(decryptedBase64);
+
             var ret = new CertificateFile
                           {
                               Name = this.Name,
-                              CertificatePassword = stringDecryptor(this.EncryptedPassword),
-                              FileBytes = Convert.FromBase64String(this.Base64Bytes),
+                              CertificatePassword = decryptedPassword,
+                              FileBytes = certificateBytes,
                           };
 
             return ret;
@@ -42,8 +46,13 @@ namespace Naos.Deployment.Domain
         public string EncryptedPassword { get; set; }
 
         /// <summary>
-        /// Gets or sets the bytes in Base64 format.
+        /// Gets or sets the bytes in Base64 format and encrypted.
         /// </summary>
-        public string Base64Bytes { get; set; }
+        public string EncryptedBase64Bytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the locator for the certificate used to encrypt the password and bytes of the certificate.
+        /// </summary>
+        public CertificateLocator EncryptingCertificateLocator { get; set; }
     }
 }

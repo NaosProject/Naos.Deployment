@@ -75,13 +75,13 @@ namespace Naos.Deployment.ComputingManagement
         /// <summary>
         /// Get a new set of credentials using provided information.
         /// </summary>
-        /// <param name="location">Cloud provider location to make the call against.</param>
+        /// <param name="location">Computing platform provider location to make the call against.</param>
         /// <param name="tokenLifespan">Life span of the credentials.</param>
         /// <param name="username">Username of the credentials.</param>
         /// <param name="password">Password of the credentials.</param>
         /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
         /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
-        /// <returns>New credentials for use in performing operations against the cloud provider.</returns>
+        /// <returns>New credentials for use in performing operations against the computing platform provider.</returns>
         public static CredentialContainer GetNewCredentials(
             string location,
             TimeSpan tokenLifespan,
@@ -346,7 +346,7 @@ namespace Naos.Deployment.ComputingManagement
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
                     });
 
-            await createdInstance.AddTagInAwsAsync(Constants.EnvironmentTagKey, environment, this.credentials);
+            await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, this.credentials);
 
             var instanceDescription = new InstanceDescription()
             {
@@ -378,7 +378,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation)
+        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment, string systemLocation)
         {
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
@@ -388,7 +388,7 @@ namespace Naos.Deployment.ComputingManagement
                         {
                             string name;
                             var tags = _.Tags ?? new Dictionary<string, string>();
-                            var found = tags.TryGetValue(Constants.NameTagKey, out name);
+                            var found = tags.TryGetValue(this.settings.NameTagKey, out name);
                             if (!found)
                             {
                                 name = "UNNAMED-" + Guid.NewGuid().ToString().ToUpper();
@@ -473,7 +473,19 @@ namespace Naos.Deployment.ComputingManagement
                                                    Key = new KeyPair() { PrivateKey = privateKey }
                                                };
 
-            var password = await instanceToGetPasswordFor.GetAdministratorPasswordAsync(this.credentials);
+            string password;
+            try
+            {
+                password = await instanceToGetPasswordFor.GetAdministratorPasswordAsync(this.credentials);
+            }
+            catch (NullPasswordDataException ex)
+            {
+                throw new PasswordUnavailableException(
+                    instanceDescription.Id,
+                    "Password was unavailable, please try again later.",
+                    ex);
+            }
+
             return password;
         }
 

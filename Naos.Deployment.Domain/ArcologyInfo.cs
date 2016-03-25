@@ -14,6 +14,11 @@ namespace Naos.Deployment.Domain
     public class ArcologyInfo
     {
         /// <summary>
+        /// Gets or sets the location of the arcology.
+        /// </summary>
+        public string Location { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of supported computing containers in the arcology.
         /// </summary>
         public IReadOnlyCollection<ComputingContainerDescription> ComputingContainers { get; set; }
@@ -21,16 +26,13 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the list of supported hosting ID's.
         /// </summary>
-        public IReadOnlyDictionary<string, string> RootDomainHostingIdMap { get; set; }
-
-        /// <summary>
-        /// Gets or sets the location of the arcology.
-        /// </summary>
-        public string Location { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Needs to be a dictionary for mongo to serialize correctly...")]
+        public Dictionary<string, string> RootDomainHostingIdMap { get; set; }
 
         /// <summary>
         /// Gets or sets the map of Windows SKU's to image search patterns.
         /// </summary>
-        public IReadOnlyDictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Needs to be a dictionary for mongo to serialize correctly...")]
+        public Dictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
     }
 }

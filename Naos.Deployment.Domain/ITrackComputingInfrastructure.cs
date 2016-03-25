@@ -33,7 +33,7 @@ namespace Naos.Deployment.Domain
         void ProcessInstanceTermination(string environment, string systemId);
 
         /// <summary>
-        /// Gets instance details necessary to hand off to the cloud provider.
+        /// Gets instance details necessary to hand off to the computing platform provider.
         /// </summary>
         /// <param name="environment">The environment being deployed to.</param>
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
@@ -51,7 +51,7 @@ namespace Naos.Deployment.Domain
         /// Updates the list of the deployed packages.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <param name="package">Package that was successfully deployed.</param>
         void ProcessDeployedPackage(string environment, string systemId, PackageDescription package);
 
@@ -59,7 +59,7 @@ namespace Naos.Deployment.Domain
         /// Gets the instance description by ID.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <returns>InstanceDescription if any by that ID.</returns>
         InstanceDescription GetInstanceDescriptionById(string environment, string systemId);
 
@@ -75,7 +75,7 @@ namespace Naos.Deployment.Domain
         /// Looks up the key used for the instance and returns the private key.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="systemId">ID from the cloud provider of the instance.</param>
+        /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <returns>Private key of instance.</returns>
         string GetPrivateKeyOfInstanceById(string environment, string systemId);
 

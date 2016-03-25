@@ -85,8 +85,8 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="systemLocation">System location to make calls against.</param>
-        /// <returns>List of instances found in the cloud.</returns>
-        Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation);
+        /// <returns>List of instances found in the computing platform provider.</returns>
+        Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment, string systemLocation);
 
         /// <summary>
         /// Creates or updates the specified DNS entry to the provide IP Addresses.

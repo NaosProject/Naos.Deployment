@@ -8,7 +8,6 @@ namespace Naos.Deployment.Console
 {
     using System.ComponentModel;
 
-    using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
 
     /// <summary>
@@ -17,10 +16,6 @@ namespace Naos.Deployment.Console
     [Bindable(BindableSupport.Default)]
     public abstract class CertificateRetrieverConfigurationBase
     {
-        /// <summary>
-        /// Gets or sets the certificate locator for the certificate used to encrypt sensitive information used in the CertificateRetriever.
-        /// </summary>
-        public CertificateLocator EncryptingCertificate { get; set; }
     }
 
     /// <summary>

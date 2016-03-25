@@ -14,7 +14,7 @@ namespace Naos.Deployment.Domain
     public class InstanceDescription
     {
         /// <summary>
-        /// Gets or sets the ID (per the cloud provider) of the instance the task deployed to.
+        /// Gets or sets the ID (per the computing platform provider) of the instance the task deployed to.
         /// </summary>
         public string Id { get; set; }
 
@@ -29,7 +29,7 @@ namespace Naos.Deployment.Domain
         public string ComputerName { get; set; }
 
         /// <summary>
-        /// Gets or sets the location (per the cloud provider) of the instance the task is deployed to.
+        /// Gets or sets the location (per the computing platform provider) of the instance the task is deployed to.
         /// </summary>
         public string Location { get; set; }
 
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the deployed packages on this instance mapped against verification.
         /// </summary>
-        public IDictionary<string, PackageDescriptionWithDeploymentStatus> DeployedPackages { get; set; }
+        public Dictionary<string, PackageDescriptionWithDeploymentStatus> DeployedPackages { get; set; }
 
         /// <summary>
         /// Gets or sets the public IP address.

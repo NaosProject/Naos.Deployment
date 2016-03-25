@@ -22,11 +22,11 @@ namespace Naos.Deployment.MessageBus.Contract
     public static class ComputingManagerHelper
     {
         /// <summary>
-        /// Creates a new cloud manager from settings.
+        /// Creates a new computing manager from settings.
         /// </summary>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="computingInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
-        /// <returns>New cloud manager.</returns>
+        /// <param name="computingInfrastructureManagerSettings">Settings for the computing infrastructure manager.</param>
+        /// <returns>New computing manager.</returns>
         public static IManageComputingInfrastructure CreateComputingManager(DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
             var credentialsToUse = new CredentialContainer
@@ -36,24 +36,22 @@ namespace Naos.Deployment.MessageBus.Contract
                 CredentialType = CredentialType.Keys
             };
 
-            var cloudManager =
+            var computingManager =
                 new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, new NullInfrastructureTracker())
                     .InitializeCredentials(credentialsToUse);
 
-            return cloudManager;
+            return computingManager;
         }
 
         /// <summary>
         /// Gets the system id from the instance name.
         /// </summary>
         /// <param name="instanceName">Name of the instance to lookup.</param>
+        /// <param name="computingInfrastructureManagerSettings">Settings that contain details about how to use the computer infrastructure manager.</param>
         /// <param name="settings">Handler settings.</param>
-        /// <param name="computingManager">Cloud manager.</param>
+        /// <param name="computingManager">Computing manager.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
-        public static async Task<string> GetSystemIdFromNameAsync(
-            string instanceName,
-            DeploymentMessageHandlerSettings settings,
-            IManageComputingInfrastructure computingManager)
+        public static async Task<string> GetSystemIdFromNameAsync(string instanceName, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
         {
             var namer = new ComputingInfrastructureNamer(
                 instanceName,
@@ -62,12 +60,12 @@ namespace Naos.Deployment.MessageBus.Contract
 
             var fullInstanceName = namer.GetInstanceName();
 
-            var cloudInstances = await computingManager.GetActiveInstancesFromCloudAsync(settings.Environment, settings.SystemLocation);
+            var providerInstances = await computingManager.GetActiveInstancesFromProviderAsync(settings.Environment, settings.SystemLocation);
             var instance =
-                cloudInstances.SingleOrDefault(
+                providerInstances.SingleOrDefault(
                     _ =>
                         {
-                            var environmentTag = _.Tags.SingleOrDefault(tag => tag.Key == Constants.EnvironmentTagKey);
+                            var environmentTag = _.Tags.SingleOrDefault(tag => tag.Key == computingInfrastructureManagerSettings.EnvironmentTagKey);
                             var matches = !default(KeyValuePair<string, string>).Equals(environmentTag)
                                           && environmentTag.Value == settings.Environment && _.Name == fullInstanceName;
                             return matches;
@@ -86,10 +84,11 @@ namespace Naos.Deployment.MessageBus.Contract
         /// Gets a system ID using the specified targeter.
         /// </summary>
         /// <param name="instanceTargeter">Targeter to use.</param>
+        /// <param name="computingInfrastructureManagerSettings">Settings that contain details about how to use the computer infrastructure manager.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="computingManager">Cloud infrastructure manager to perform operations.</param>
+        /// <param name="computingManager">Computing infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
-        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
+        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
         {
             string ret;
             var type = instanceTargeter.GetType();
@@ -98,10 +97,10 @@ namespace Naos.Deployment.MessageBus.Contract
                 var asId = (InstanceTargeterSystemId)instanceTargeter;
                 ret = asId.InstanceId;
             }
-            else if (type == typeof(InstanceTargeterNameLookupByCloudTag))
+            else if (type == typeof(InstanceTargeterNameLookupByProviderTag))
             {
-                var asTag = (InstanceTargeterNameLookupByCloudTag)instanceTargeter;
-                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, settings, computingManager);
+                var asTag = (InstanceTargeterNameLookupByProviderTag)instanceTargeter;
+                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, computingInfrastructureManagerSettings, settings, computingManager);
             }
             else
             {

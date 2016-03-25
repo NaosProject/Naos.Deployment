@@ -49,6 +49,11 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the private key of the container.
         /// </summary>
-        public string PrivateKey { get; set; }
+        public string EncryptedPrivateKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the locator for the certificate used to encrypt the private key.
+        /// </summary>
+        public CertificateLocator EncryptingCertificateLocator { get; set; }
     }
 }

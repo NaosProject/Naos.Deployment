@@ -60,7 +60,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromCloudAsync(string environment, string systemLocation)
+        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment, string systemLocation)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
             return new List<InstanceDetailsFromComputingPlatform>();

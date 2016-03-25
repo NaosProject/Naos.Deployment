@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Persistence
 {
+    using System.Collections.Generic;
+
     using Naos.Deployment.Domain;
 
     /// <summary>
@@ -26,6 +28,6 @@ namespace Naos.Deployment.Persistence
         /// <summary>
         /// Gets or sets the certificates for an environment.
         /// </summary>
-        public CertificateDetails[] Certificates { get; set; }
+        public IReadOnlyCollection<CertificateDetails> Certificates { get; set; }
     }
 }

@@ -137,7 +137,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".config\Default\CloudInfrastructureManagerSettings.json" />
+    <None Include=".config\Default\ComputingInfrastructureManagerSettings.json" />
     <None Include=".config\Default\DefaultDeploymentConfiguration.json" />
     <None Include=".config\Default\MessageBusHandlerHarnessConfiguration.json" />
     <None Include=".config\Default\SetupStepFactorySettings.json" />

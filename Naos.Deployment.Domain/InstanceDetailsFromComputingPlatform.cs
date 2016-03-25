@@ -14,7 +14,7 @@ namespace Naos.Deployment.Domain
     public class InstanceDetailsFromComputingPlatform
     {
         /// <summary>
-        /// Gets or sets the ID (per the cloud provider) of the instance.
+        /// Gets or sets the ID (per the computing platform provider) of the instance.
         /// </summary>
         public string Id { get; set; }
 
@@ -24,7 +24,7 @@ namespace Naos.Deployment.Domain
         public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the location (per the cloud provider) of the instance.
+        /// Gets or sets the location (per the computing platform provider) of the instance.
         /// </summary>
         public string Location { get; set; }
 
