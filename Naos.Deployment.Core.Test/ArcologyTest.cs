@@ -9,9 +9,8 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
-    using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
     using Xunit;
@@ -26,25 +25,27 @@ namespace Naos.Deployment.Core.Test
             var packageExisting = new PackageDescription { Id = "MyTestPackage", Version = "1" };
             var packageSearching = new PackageDescription { Id = "MyTestPackage", Version = "2" };
 
-            var arcology = new Arcology
-                               {
-                                   Environment = environment,
-                                   Instances = new List<InstanceWrapper>(),
-                                   CloudContainers =
-                                       new[]
-                                           {
-                                               new CloudContainerDescription
-                                                   {
-                                                       InstanceAccessibility =
-                                                           InstanceAccessibility
-                                                           .Private,
-                                                       Cidr = "10.0.0.0/24"
-                                                   }
-                                           },
-                                   WindowsSkuSearchPatternMap =
-                                       new Dictionary<WindowsSku, string> { { WindowsSku.Base, "matchy" } }
-                               };
+            var computingContainers = new[]
+                                                     {
+                                                         new ComputingContainerDescription
+                                                             {
+                                                                 InstanceAccessibility = InstanceAccessibility.Private,
+                                                                 Cidr = "10.0.0.0/24"
+                                                             }
+                                                     };
+            var arcologyInfo = new ArcologyInfo
+                                   {
+                                       ComputingContainers = computingContainers,
+                                       Location = "some-location",
+                                       RootDomainHostingIdMap = new Dictionary<string, string>(),
+                                       WindowsSkuSearchPatternMap =
+                                           new Dictionary<WindowsSku, string>
+                                               {
+                                                   { WindowsSku.Base, "matchy" }
+                                               }
+                                   };
 
+            var arcology = new Arcology(environment, arcologyInfo, null);
             var deploymentConfiguration = new DeploymentConfiguration
                                               {
                                                   InstanceAccessibility =
@@ -57,11 +58,12 @@ namespace Naos.Deployment.Core.Test
                                                           }
                                               };
 
-            var newInstance = arcology.MakeNewInstanceCreationDetails(
+            var newInstance = arcology.CreateNewDeployedInstance(
                 deploymentConfiguration,
                 new[] { packageExisting });
 
             // act
+            arcology.MutateInstancesAdd(newInstance);
             var needDeletingList = arcology.GetInstancesByDeployedPackages(new[] { packageSearching });
 
             // assert

@@ -11,14 +11,14 @@ namespace Naos.Deployment.Core
     using System.Linq;
     using System.Text;
 
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetIisSpecificSetupSteps(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment)
+        private List<SetupStep> GetIisSpecificSetupSteps(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment, string adminPassword)
         {
             var webSteps = new List<SetupStep>();
 
@@ -70,6 +70,8 @@ namespace Naos.Deployment.Core
                                        ? ApplicationPoolStartMode.OnDemand
                                        : iisStrategy.AppPoolStartMode;
 
+            var appPoolAccount = iisStrategy.AppPoolAccount;
+
             var autoStartProviderName = iisStrategy.AutoStartProvider == null
                                             ? null
                                             : iisStrategy.AutoStartProvider.Name;
@@ -81,10 +83,15 @@ namespace Naos.Deployment.Core
 
             const bool EnableSni = false;
             const bool AddHostHeaders = true;
+
+            var appPoolPassword = appPoolAccount.ToUpperInvariant() == this.AdministratorAccount.ToUpperInvariant()
+                                         ? adminPassword
+                                         : null;
+
             var installWebParameters = new object[]
                                            {
                                                webRootPath, iisStrategy.PrimaryDns, certificateTargetPath,
-                                               certDetails.CertificatePassword, appPoolStartMode, autoStartProviderName,
+                                               certDetails.CertificatePassword, appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
                                                autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
                                            };
 

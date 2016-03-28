@@ -7,12 +7,12 @@
     "volumes": [
         {
             "driveLetter": "C",
-            "sizeInGb": 50,
+            "sizeInGb": 30,
             "type": "standard"
         },
         {
             "driveLetter": "D",
-            "sizeInGb": 100,
+            "sizeInGb": 20,
             "type": "standard"
         }
     ],

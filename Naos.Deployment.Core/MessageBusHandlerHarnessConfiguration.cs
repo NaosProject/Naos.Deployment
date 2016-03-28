@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Contract
+namespace Naos.Deployment.Domain
 {
     using System;
 

@@ -13,7 +13,7 @@ namespace Naos.Deployment.Core
     using System.Text;
 
     using Naos.Cron;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).

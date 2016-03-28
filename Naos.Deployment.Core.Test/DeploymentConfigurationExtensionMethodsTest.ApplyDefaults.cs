@@ -10,7 +10,7 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
     using Xunit;

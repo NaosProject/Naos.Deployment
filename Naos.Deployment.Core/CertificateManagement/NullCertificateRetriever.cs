@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Null object implementation for testing.
@@ -14,9 +14,9 @@ namespace Naos.Deployment.Core.CertificateManagement
     public class NullCertificateRetriever : IGetCertificates
     {
         /// <inheritdoc />
-        public CertificateDetails GetCertificateByName(string name)
+        public CertificateFile GetCertificateByName(string name)
         {
-            return new CertificateDetails();
+            return new CertificateFile();
         }
     }
 }

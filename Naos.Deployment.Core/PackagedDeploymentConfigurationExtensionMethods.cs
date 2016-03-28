@@ -9,8 +9,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.Deployment.Contract;
-    using Naos.Deployment.Core;
+    using Naos.Deployment.Domain;
 
     /// <summary>
     /// Additional behavior to add the initialization strategies.

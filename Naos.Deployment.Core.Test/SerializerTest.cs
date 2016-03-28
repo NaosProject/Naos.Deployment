@@ -9,8 +9,8 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Tracking;
 
     using Xunit;
 

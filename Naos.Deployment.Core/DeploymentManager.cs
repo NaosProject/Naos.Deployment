@@ -15,8 +15,7 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.AWS.Core;
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.HandlingContract;
     using Naos.Packaging.Domain;
     using Naos.WinRM;
@@ -38,7 +37,7 @@ namespace Naos.Deployment.Core
 
         private readonly ITrackComputingInfrastructure tracker;
 
-        private readonly IManageCloudInfrastructure cloudManager;
+        private readonly IManageComputingInfrastructure computingManager;
 
         private readonly IGetPackages packageManager;
 
@@ -68,7 +67,7 @@ namespace Naos.Deployment.Core
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
         /// <param name="tracker">Tracker of computing infrastructure.</param>
-        /// <param name="cloudManager">Manager of the cloud infrastructure (wraps custom cloud interactions).</param>
+        /// <param name="computingManager">Manager of the computing infrastructure (wraps custom computing interactions).</param>
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfiguration">Default deployment configuration to substitute the values for any nulls.</param>
@@ -81,7 +80,7 @@ namespace Naos.Deployment.Core
         /// <param name="telemetryFile">Optional file path to record JSON file of certain task timings.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
-            IManageCloudInfrastructure cloudManager,
+            IManageComputingInfrastructure computingManager,
             IGetPackages packageManager,
             IGetCertificates certificateRetriever,
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
@@ -94,7 +93,7 @@ namespace Naos.Deployment.Core
             string telemetryFile = null)
         {
             this.tracker = tracker;
-            this.cloudManager = cloudManager;
+            this.computingManager = computingManager;
             this.packageManager = packageManager;
             this.defaultDeploymentConfiguration = defaultDeploymentConfiguration;
             this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
@@ -246,7 +245,7 @@ namespace Naos.Deployment.Core
 
             var createdInstanceDescription =
                 await
-                this.cloudManager.CreateNewInstanceAsync(
+                this.computingManager.CreateNewInstanceAsync(
                     environment,
                     numberedInstanceName,
                     configToCreateWith,
@@ -259,7 +258,7 @@ namespace Naos.Deployment.Core
             var createdInstanceMessage =
                 string.Format(
                     "Instance " + instanceNumber
-                    + " - Created new instance => CloudName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
+                    + " - Created new instance => ComputingName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
                     createdInstanceDescription.Name,
                     createdInstanceDescription.Id,
                     createdInstanceDescription.PrivateIpAddress,
@@ -272,12 +271,19 @@ namespace Naos.Deployment.Core
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
-                var machineManager =
+
+                var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetry(
                         "Wait for admin password",
-                        async () => await this.GetMachineManagerForInstanceAsync(createdInstanceDescription),
+                        async () => await this.GetAdminPasswordForInstanceAsync(createdInstanceDescription),
                         instanceNumber);
+
+                var machineManager = new MachineManager(
+                    createdInstanceDescription.PrivateIpAddress,
+                    this.setupStepFactory.AdministratorAccount,
+                    MachineManager.ConvertStringToSecureString(adminPasswordClear),
+                    true);
 
                 this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);
                 this.RunActionWithTelemetry("Wait for WinRM access", () => this.WaitUntilMachineIsAccessible(machineManager), instanceNumber);
@@ -292,7 +298,7 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
-                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment);
+                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment, adminPasswordClear);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
@@ -325,7 +331,7 @@ namespace Naos.Deployment.Core
 
                 lock (this.syncDnsManager)
                 {
-                    this.cloudManager.UpsertDnsEntryAsync(
+                    this.computingManager.UpsertDnsEntryAsync(
                         environment,
                         createdInstanceDescription.Location,
                         dns,
@@ -366,7 +372,7 @@ namespace Naos.Deployment.Core
 
                     lock (this.syncDnsManager)
                     {
-                        this.cloudManager.UpsertDnsEntryAsync(
+                        this.computingManager.UpsertDnsEntryAsync(
                             environment,
                             createdInstanceDescription.Location,
                             privateDnsEntry,
@@ -399,7 +405,7 @@ namespace Naos.Deployment.Core
 
                     lock (this.syncDnsManager)
                     {
-                        this.cloudManager.UpsertDnsEntryAsync(
+                        this.computingManager.UpsertDnsEntryAsync(
                             environment,
                             createdInstanceDescription.Location,
                             publicDnsEntry,
@@ -412,7 +418,7 @@ namespace Naos.Deployment.Core
             {
                 const bool WaitUntilOff = true;
                 this.LogAnnouncement("Post deployment strategy: TurnOffInstance is true - shutting down instance.", instanceNumber);
-                await this.cloudManager.TurnOffInstanceAsync(
+                await this.computingManager.TurnOffInstanceAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location,
                     // ReSharper disable once RedundantArgumentDefaultValue - keeping for clarity of what's happening...
@@ -515,7 +521,7 @@ namespace Naos.Deployment.Core
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
                 Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
 
-                var status = await this.cloudManager.GetInstanceStatusAsync(
+                var status = await this.computingManager.GetInstanceStatusAsync(
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location);
 
@@ -867,11 +873,16 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task<MachineManager> GetMachineManagerForInstanceAsync(InstanceDescription createdInstanceDescription)
+        /// <summary>
+        /// Gets the password for the instance.
+        /// </summary>
+        /// <param name="instanceDescription">Instance to find the password for.</param>
+        /// <returns>Password for instance.</returns>
+        public async Task<string> GetAdminPasswordForInstanceAsync(InstanceDescription instanceDescription)
         {
             string adminPassword = null;
-            var sleepTimeInSeconds = 30d;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(createdInstanceDescription.Environment, createdInstanceDescription.Id);
+            var sleepTimeInSeconds = 10d;
+            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceDescription.Environment, instanceDescription.Id);
             while (adminPassword == null)
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
@@ -879,23 +890,17 @@ namespace Naos.Deployment.Core
 
                 try
                 {
-                    adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(
-                        createdInstanceDescription,
+                    adminPassword = await this.computingManager.GetAdministratorPasswordForInstanceAsync(
+                        instanceDescription,
                         privateKey);
                 }
-                catch (NullPasswordDataException)
+                catch (PasswordUnavailableException)
                 {
-                    // No-op
+                    // No-op - just wait until it is available
                 }
             }
 
-            // finalize instance creation (WinRM reboot, etc.)
-            var machineManager = new MachineManager(
-                createdInstanceDescription.PrivateIpAddress,
-                "Administrator",
-                MachineManager.ConvertStringToSecureString(adminPassword),
-                true);
-            return machineManager;
+            return adminPassword;
         }
 
         private void TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
@@ -942,33 +947,13 @@ namespace Naos.Deployment.Core
 
         private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
         {
-            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", CloudName: " + instanceDescription.Name);
+            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", ComputingName: " + instanceDescription.Name);
             await
-                this.cloudManager.TerminateInstanceAsync(
+                this.computingManager.TerminateInstanceAsync(
                     environment,
                     instanceDescription.Id,
                     instanceDescription.Location,
                     true);
-        }
-
-        /// <summary>
-        /// Gets the password for the instance.
-        /// </summary>
-        /// <param name="instanceToSearchFor">Instance to find the password for.</param>
-        /// <returns>Password for instance.</returns>
-        public async Task<string> GetPasswordAsync(InstanceDescription instanceToSearchFor)
-        {
-            string adminPassword = null;
-            var sleepTimeInSeconds = .25;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceToSearchFor.Environment, instanceToSearchFor.Id);
-            while (adminPassword == null)
-            {
-                sleepTimeInSeconds = sleepTimeInSeconds * 2;
-                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-                adminPassword = await this.cloudManager.GetAdministratorPasswordForInstanceAsync(instanceToSearchFor, privateKey);
-            }
-
-            return adminPassword;
         }
 
         private void RunActionWithTelemetry(string step, Action code, int? instanceNumber = null)

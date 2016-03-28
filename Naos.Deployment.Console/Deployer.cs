@@ -17,11 +17,12 @@ namespace Naos.Deployment.Console
     using Its.Configuration;
 
     using Naos.AWS.Contract;
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
-    using Naos.Deployment.Core.CloudInfrastructureTracking;
+    using Naos.Deployment.Domain;
+    using Naos.Deployment.Persistence;
+    using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
     using Newtonsoft.Json;
@@ -35,10 +36,10 @@ namespace Naos.Deployment.Console
     /// </summary>
     public class Deployer
     {
-        [Verb(Aliases = "credentials", Description = "Gets new credentials on the cloud provider.")]
+        [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider.")]
 #pragma warning disable 1591
         public static void GetNewCredentialJson(
-            [Aliases("")] [Description("Cloud provider location to make the call against.")] string location,
+            [Aliases("")] [Description("Computing platform provider location to make the call against.")] string location,
             [Aliases("")] [Description("Life span of the credentials (in format dd:hh:mm).")] string tokenLifespan,
             [Aliases("")] [Description("Username of the credentials.")] string username,
             [Aliases("")] [Description("Password of the credentials.")] string password,
@@ -53,7 +54,7 @@ namespace Naos.Deployment.Console
             }
 
             var tokenLifespanTimeSpan = GetTimeSpanFromDayHourMinuteColonDelimited(tokenLifespan);
-            var retObj = CloudInfrastructureManager.GetNewCredentials(
+            var retObj = ComputingInfrastructureManagerForAws.GetNewCredentials(
                 location,
                 tokenLifespanTimeSpan,
                 username,
@@ -68,11 +69,11 @@ namespace Naos.Deployment.Console
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
 #pragma warning disable 1591
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the cloud provider to use in JSON.")] string cloudCredentialsJson, 
+            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
             [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString,
-            [Aliases("")] [Description("Full file path of the certificate certificate retriever managing file.")] string certificateRetrieverFilePath,
-            [Aliases("")] [Description("Full folder path of the location of persistence for tracking system for cloud properties.")] string trackingSystemRootFolder, 
+            [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
+            [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson, 
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
             [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
@@ -90,10 +91,10 @@ namespace Naos.Deployment.Console
 
             Console.WriteLine("PARAMETERS:");
             Console.WriteLine("--                                       workingPath: " + workingPath);
-            Console.WriteLine("--                              cloudCredentialsJson: " + cloudCredentialsJson);
+            Console.WriteLine("--                                   credentialsJson: " + credentialsJson);
             Console.WriteLine("--           nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
-            Console.WriteLine("--                      certificateRetrieverFilePath: " + certificateRetrieverFilePath);
-            Console.WriteLine("--                          trackingSystemRootFolder: " + trackingSystemRootFolder);
+            Console.WriteLine("--                          certificateRetrieverJson: " + certificateRetrieverJson);
+            Console.WriteLine("--                         infrastructureTrackerJson: " + infrastructureTrackerJson);
             Console.WriteLine("--                      overrideDeploymentConfigJson: " + overrideDeploymentConfigJson);
             Console.WriteLine("--                                       environment: " + environment);
             Console.WriteLine("--                                      instanceName: " + instanceName);
@@ -107,17 +108,21 @@ namespace Naos.Deployment.Console
 
             var packagesToDeploy =
                 Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);
+            var certificateRetrieverConfiguration =
+                Serializer.Deserialize<CertificateRetrieverConfigurationBase>(certificateRetrieverJson);
+            var infrastructureTrackerConfiguration =
+                Serializer.Deserialize<InfrastructureTrackerConfigurationBase>(infrastructureTrackerJson);
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
-            var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
+            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
             var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
-            var tracker = new RootFolderEnvironmentFolderInstanceFileTracker(trackingSystemRootFolder);
-            var certManager = new CertificateRetriever(certificateRetrieverFilePath);
+            var certificateRetriever = CreateCertificateRetriever(environment, certificateRetrieverConfiguration);
+            var infrastructureTracker = CreateInfrastructureTracker(infrastructureTrackerConfiguration);
 
-            var credentials = Serializer.Deserialize<CredentialContainer>(cloudCredentialsJson);
-            var cloudManager = new CloudInfrastructureManager(cloudInfrastructureManagerSettings, tracker).InitializeCredentials(credentials);
+            var credentials = Serializer.Deserialize<CredentialContainer>(credentialsJson);
+            var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
             var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
@@ -139,15 +144,15 @@ namespace Naos.Deployment.Console
             var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath);
 
             var deploymentManager = new DeploymentManager(
-                tracker,
-                cloudManager,
+                infrastructureTracker,
+                computingManager,
                 packageManager,
-                certManager,
+                certificateRetriever,
                 defaultDeploymentConfiguration,
                 messageBusHandlerHarnessConfiguration,
                 setupFactorySettings,
                 messageBusPersistenceConnectionString,
-                cloudInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
+                computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine,
                 announcementFilePath,
                 telemetryFilePath);
@@ -237,6 +242,55 @@ namespace Naos.Deployment.Console
             }
 
             return new TimeSpan(days, hours, minutes, 0);
+        }
+
+        private static IGetCertificates CreateCertificateRetriever(string environment, CertificateRetrieverConfigurationBase certificateRetrieverConfigurationBase)
+        {
+            IGetCertificates ret;
+
+            if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationFile)
+            {
+                var configAsFile = (CertificateRetrieverConfigurationFile)certificateRetrieverConfigurationBase;
+                ret = new CertificateRetrieverFromFile(configAsFile.FilePath);
+            }
+            else if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationDatabase)
+            {
+                var configAsDb = (CertificateRetrieverConfigurationDatabase)certificateRetrieverConfigurationBase;
+                var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
+                ret = new CertificateRetrieverFromMongo(environment, certificateContainerQueries);
+            }
+            else
+            {
+                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(certificateRetrieverConfigurationBase));
+            }
+
+            return ret;
+        }
+
+        private static ITrackComputingInfrastructure CreateInfrastructureTracker(InfrastructureTrackerConfigurationBase infrastructureTrackerConfigurationBase)
+        {
+            ITrackComputingInfrastructure ret;
+
+            if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationFolder)
+            {
+                var configAsFolder = (InfrastructureTrackerConfigurationFolder)infrastructureTrackerConfigurationBase;
+                ret = new RootFolderEnvironmentFolderInstanceFileTracker(configAsFolder.RootFolderPath);
+            }
+            else if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationDatabase)
+            {
+                var configAsDatabase = (InfrastructureTrackerConfigurationDatabase)infrastructureTrackerConfigurationBase;
+                var deploymentDatabase = configAsDatabase.Database;
+                var arcologyInfoQueries = deploymentDatabase.GetQueriesInterface<ArcologyInfoContainer>();
+                var instanceQueries = deploymentDatabase.GetQueriesInterface<InstanceContainer>();
+                var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
+                ret = new MongoInfrastructureTracker(arcologyInfoQueries, instanceQueries, instanceCommands);
+            }
+            else
+            {
+                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(infrastructureTrackerConfigurationBase));
+            }
+
+            return ret;
         }
     }
 }

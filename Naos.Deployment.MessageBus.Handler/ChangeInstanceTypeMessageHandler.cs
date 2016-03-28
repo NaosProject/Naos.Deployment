@@ -13,8 +13,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using Its.Configuration;
     using Its.Log.Instrumentation;
 
-    using Naos.Deployment.CloudManagement;
-    using Naos.Deployment.Contract;
+    using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.HandlingContract;
 
@@ -33,8 +32,8 @@ namespace Naos.Deployment.MessageBus.Handler
         public async Task HandleAsync(ChangeInstanceTypeMessage message)
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
-            var cloudInfrastructureManagerSettings = Settings.Get<CloudInfrastructureManagerSettings>();
-            await this.Handle(message, settings, cloudInfrastructureManagerSettings);
+            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
+            await this.Handle(message, settings, computingInfrastructureManagerSettings);
         }
 
         /// <summary>
@@ -42,9 +41,9 @@ namespace Naos.Deployment.MessageBus.Handler
         /// </summary>
         /// <param name="message">Message to handle.</param>
         /// <param name="settings">Settings necessary to handle the message.</param>
-        /// <param name="cloudInfrastructureManagerSettings">Settings for the cloud infrastructure manager.</param>
+        /// <param name="computingInfrastructureManagerSettings">Settings for the computing infrastructure manager.</param>
         /// <returns>Task for async execution.</returns>
-        public async Task Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings, CloudInfrastructureManagerSettings cloudInfrastructureManagerSettings)
+        public async Task Handle(ChangeInstanceTypeMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
             if (message.NewInstanceType == null)
             {
@@ -61,13 +60,11 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
 
-            var cloudManager = CloudManagerHelper.CreateCloudManager(settings, cloudInfrastructureManagerSettings);
-
             var tasks =
                 message.InstanceTargeters.Select(
-                    (instanceTargeter) =>
+                    instanceTargeter =>
                     Task.Run(
-                        () => OperationToParallelize(instanceTargeter, settings, cloudManager, message.NewInstanceType)))
+                        () => OperationToParallelize(computingInfrastructureManagerSettings, instanceTargeter, settings, message.NewInstanceType)))
                     .ToArray();
 
             await Task.WhenAll(tasks);
@@ -75,14 +72,12 @@ namespace Naos.Deployment.MessageBus.Handler
             this.InstanceTargeters = message.InstanceTargeters;
         }
 
-        private static async Task OperationToParallelize(
-            InstanceTargeterBase instanceTargeter,
-            DeploymentMessageHandlerSettings settings,
-            IManageCloudInfrastructure cloudManager,
-            InstanceType newInstanceType)
+        private static async Task OperationToParallelize(ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, InstanceTargeterBase instanceTargeter, DeploymentMessageHandlerSettings settings, InstanceType newInstanceType)
         {
+            var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
+
             var systemId =
-                await CloudManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, settings, cloudManager);
+                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, computingManager);
 
             Log.Write(
                 () =>
@@ -94,7 +89,7 @@ namespace Naos.Deployment.MessageBus.Handler
                         SystemId = systemId
                     });
 
-            await cloudManager.ChangeInstanceTypeAsync(systemId, settings.SystemLocation, newInstanceType);
+            await computingManager.ChangeInstanceTypeAsync(systemId, settings.SystemLocation, newInstanceType);
         }
     }
 }
