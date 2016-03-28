@@ -69,7 +69,7 @@ namespace Naos.Deployment.Core.Test
 
             var instanceCommands = database.GetCommandsInterface<string, InstanceContainer>();
             var instanceContainers =
-                deployedInstances.Select(_ => MongoInfrastructureTracker.CreateInstanceContainerFromInstance(_))
+                deployedInstances.Select(MongoInfrastructureTracker.CreateInstanceContainerFromInstance)
                     .ToList();
 
             var instanceContainersToAddOrUpdate = instanceContainers.ToDictionary(key => key.Id, value => value);

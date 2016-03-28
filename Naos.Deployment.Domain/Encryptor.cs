@@ -81,6 +81,12 @@ namespace Naos.Deployment.Domain
                     thumbprint,
                     encryptingCertificate.CertificateIsValid);
 
+                if (certificates.Count == 0)
+                {
+                    throw new ArgumentException(
+                        "Could not find certificate; thumbprint: " + encryptingCertificate.CertificateThumbprint);
+                }
+
                 var x509Certificate2 = certificates[0];
                 result = funcToRunWithCertificate(x509Certificate2);
             }

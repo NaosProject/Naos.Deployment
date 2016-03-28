@@ -27,5 +27,10 @@ namespace Naos.Deployment.Persistence
         /// Gets or sets the instance.
         /// </summary>
         public DeployedInstance Instance { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the instance.
+        /// </summary>
+        public string Name { get; set; }
     }
 }

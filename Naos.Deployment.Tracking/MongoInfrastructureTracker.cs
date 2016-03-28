@@ -212,14 +212,14 @@ namespace Naos.Deployment.Tracking
             var environment = deployedInstance.InstanceDescription.Environment;
 
             var id = string.Format(
-                "{0}--{1}--{2}",
+                "{0}--{1}",
                 environment,
-                deployedInstance.InstanceDescription.Name,
                 deployedInstance.InstanceDescription.PrivateIpAddress);
 
             var ret = new InstanceContainer
                           {
                               Id = id,
+                              Name = deployedInstance.InstanceDescription.Name,
                               Environment = environment,
                               Instance = deployedInstance
                           };

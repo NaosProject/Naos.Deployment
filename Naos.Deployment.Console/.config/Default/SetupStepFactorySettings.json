@@ -323,7 +323,6 @@
                 "   Write-Output \"    WebRootPath: $WebRootPath\"",
                 "   Write-Output \"         Domain: $Domain\"",
                 "   Write-Output \"       CertPath: $CertPath\"",
-                "   Write-Output \"   CertPassword: $($CertPassword.Substring(0,4))\"",
                 "   Write-Output ''",
                 "   # Add IIS and suppporting features",
                 "   Add-WindowsFeature -IncludeManagementTools -Name Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Basic-Auth, Web-Digest-Auth, Web-Windows-Auth, Web-Net-Ext, Web-Net-Ext45, Web-Asp-Net, Web-Asp-Net45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Scripting-Tools, NET-Framework-45-ASPNET",
