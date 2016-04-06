@@ -273,9 +273,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CertificateManagement\CertificateCollection.cs" />
+    <Compile Include="CertificateManagement\CertificateRetrieverConfigurationBase.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverFromFile.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverFromMongo.cs" />
     <Compile Include="CertificateManagement\NullCertificateRetriever.cs" />
+    <Compile Include="CertificateManagement\CertificateRetrieverFactory.cs" />
     <Compile Include="DefaultDeploymentConfiguration.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />

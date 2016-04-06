@@ -19,9 +19,7 @@ namespace Naos.Deployment.Console
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
-    using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
-    using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
@@ -118,8 +116,8 @@ namespace Naos.Deployment.Console
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
             var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
-            var certificateRetriever = CreateCertificateRetriever(environment, certificateRetrieverConfiguration);
-            var infrastructureTracker = CreateInfrastructureTracker(infrastructureTrackerConfiguration);
+            var certificateRetriever = CertificateRetrieverFactory.Create(environment, certificateRetrieverConfiguration);
+            var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration);
 
             var credentials = Serializer.Deserialize<CredentialContainer>(credentialsJson);
             var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
@@ -242,55 +240,6 @@ namespace Naos.Deployment.Console
             }
 
             return new TimeSpan(days, hours, minutes, 0);
-        }
-
-        private static IGetCertificates CreateCertificateRetriever(string environment, CertificateRetrieverConfigurationBase certificateRetrieverConfigurationBase)
-        {
-            IGetCertificates ret;
-
-            if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationFile)
-            {
-                var configAsFile = (CertificateRetrieverConfigurationFile)certificateRetrieverConfigurationBase;
-                ret = new CertificateRetrieverFromFile(configAsFile.FilePath);
-            }
-            else if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationDatabase)
-            {
-                var configAsDb = (CertificateRetrieverConfigurationDatabase)certificateRetrieverConfigurationBase;
-                var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
-                ret = new CertificateRetrieverFromMongo(environment, certificateContainerQueries);
-            }
-            else
-            {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(certificateRetrieverConfigurationBase));
-            }
-
-            return ret;
-        }
-
-        private static ITrackComputingInfrastructure CreateInfrastructureTracker(InfrastructureTrackerConfigurationBase infrastructureTrackerConfigurationBase)
-        {
-            ITrackComputingInfrastructure ret;
-
-            if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationFolder)
-            {
-                var configAsFolder = (InfrastructureTrackerConfigurationFolder)infrastructureTrackerConfigurationBase;
-                ret = new RootFolderEnvironmentFolderInstanceFileTracker(configAsFolder.RootFolderPath);
-            }
-            else if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationDatabase)
-            {
-                var configAsDatabase = (InfrastructureTrackerConfigurationDatabase)infrastructureTrackerConfigurationBase;
-                var deploymentDatabase = configAsDatabase.Database;
-                var arcologyInfoQueries = deploymentDatabase.GetQueriesInterface<ArcologyInfoContainer>();
-                var instanceQueries = deploymentDatabase.GetQueriesInterface<InstanceContainer>();
-                var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
-                ret = new MongoInfrastructureTracker(arcologyInfoQueries, instanceQueries, instanceCommands);
-            }
-            else
-            {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(infrastructureTrackerConfigurationBase));
-            }
-
-            return ret;
         }
     }
 }

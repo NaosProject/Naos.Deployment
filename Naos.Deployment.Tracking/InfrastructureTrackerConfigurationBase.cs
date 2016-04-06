@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Console
+namespace Naos.Deployment.Tracking
 {
     using System.ComponentModel;
 

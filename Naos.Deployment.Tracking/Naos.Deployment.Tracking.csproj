@@ -78,7 +78,9 @@
     <Compile Include=".Spritely.Recipes\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
     <Compile Include="Arcology.cs" />
+    <Compile Include="InfrastructureTrackerConfigurationBase.cs" />
     <Compile Include="MongoInfrastructureTracker.cs" />
+    <Compile Include="InfrastructureTrackerFactory.cs" />
     <Compile Include="NullInfrastructureTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RootFolderEnvironmentFolderInstanceFileTracker.cs" />

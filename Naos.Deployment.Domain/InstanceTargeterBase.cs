@@ -28,13 +28,13 @@ namespace Naos.Deployment.Domain
     }
 
     /// <summary>
-    /// Implementation of InstanceTargeterBase that uses a name to be looked via the instance tags ON the computing platform provider.
+    /// Implementation of InstanceTargeterBase that uses a name to be looked.
     /// </summary>
-    public class InstanceTargeterNameLookupByProviderTag : InstanceTargeterBase
+    public class InstanceTargeterNameLookup : InstanceTargeterBase
     {
         /// <summary>
         /// Gets or sets the instance name.
         /// </summary>
-        public string InstanceNameInTag { get; set; }
+        public string InstanceName { get; set; }
     }
 }

@@ -146,9 +146,7 @@
     <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
     <Compile Include=".Spritely.Recipes\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
-    <Compile Include="CertificateRetrieverConfigurationBase.cs" />
     <Compile Include="Deployer.cs" />
-    <Compile Include="InfrastructureTrackerConfigurationBase.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

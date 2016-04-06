@@ -4,8 +4,11 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.MessageBus.Contract
+namespace Naos.Deployment.MessageBus.Handler
 {
+    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.Tracking;
+
     /// <summary>
     /// Settings for the handler.
     /// </summary>
@@ -35,5 +38,15 @@ namespace Naos.Deployment.MessageBus.Contract
         /// Gets or sets the system container location of the environment.
         /// </summary>
         public string ContainerSystemLocation { get; set; }
+
+        /// <summary>
+        /// Gets or sets the source to use for looking up an instance by name.
+        /// </summary>
+        public InstanceNameLookupSource InstanceNameLookupSource { get; set; }
+
+        /// <summary>
+        /// Gets or sets the infrastructure tracker configuration.
+        /// </summary>
+        public InfrastructureTrackerConfigurationBase InfrastructureTrackerConfiguration { get; set; }
     }
 }
