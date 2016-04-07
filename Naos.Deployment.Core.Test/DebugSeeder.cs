@@ -42,12 +42,14 @@ namespace Naos.Deployment.Core.Test
             var databasePassword = WinRM.MachineManager.ConvertStringToSecureString("password");
 
             var arcologyInfo = new ArcologyInfo();
-            var deployedInstances = new[] { new DeployedInstance() };
+            var deployedInstances = new List<DeployedInstance>();
 
             var database = new DeploymentDatabase
             {
                 ConnectionSettings = new MongoConnectionSettings
                 {
+                    Server = "deployment.database.url",
+                    Port = 27017,
                     Database = databaseName,
                     Credentials = new Credentials
                     {
@@ -57,6 +59,8 @@ namespace Naos.Deployment.Core.Test
                 }
             };
 
+            BsonClassMapManager.RegisterClassMaps();
+
             var arcologyInfoCommands = database.GetCommandsInterface<string, ArcologyInfoContainer>();
             var arcologyInfoContainer = new ArcologyInfoContainer
                                             {
@@ -65,7 +69,7 @@ namespace Naos.Deployment.Core.Test
                                                 ArcologyInfo = arcologyInfo
                                             };
 
-            arcologyInfoCommands.AddOrUpdateOneAsync(arcologyInfoContainer);
+            arcologyInfoCommands.AddOrUpdateOneAsync(arcologyInfoContainer).Wait();
 
             var instanceCommands = database.GetCommandsInterface<string, InstanceContainer>();
             var instanceContainers =
@@ -73,7 +77,7 @@ namespace Naos.Deployment.Core.Test
                     .ToList();
 
             var instanceContainersToAddOrUpdate = instanceContainers.ToDictionary(key => key.Id, value => value);
-            instanceCommands.UpdateManyAsync(instanceContainersToAddOrUpdate);
+            instanceCommands.AddOrUpdateManyAsync(instanceContainersToAddOrUpdate).Wait();
         }
 
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
@@ -124,6 +128,7 @@ namespace Naos.Deployment.Core.Test
 
             var certificates = BuildCertificates(certificatesToLoad);
 
+            BsonClassMapManager.RegisterClassMaps();
             var commands = database.GetCommandsInterface<string, CertificateContainer>();
             var certificateContainer = new CertificateContainer
                                            {
@@ -132,7 +137,7 @@ namespace Naos.Deployment.Core.Test
                                                Certificates = certificates.ToArray()
                                            };
 
-            commands.AddOrUpdateOneAsync(certificateContainer);
+            commands.AddOrUpdateOneAsync(certificateContainer).Wait();
         }
 
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
