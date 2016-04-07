@@ -19,9 +19,7 @@ namespace Naos.Deployment.Console
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
-    using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
-    using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.Packaging.Domain;
 
@@ -36,7 +34,7 @@ namespace Naos.Deployment.Console
     /// </summary>
     public class Deployer
     {
-        [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider.")]
+        [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.")]
 #pragma warning disable 1591
         public static void GetNewCredentialJson(
             [Aliases("")] [Description("Computing platform provider location to make the call against.")] string location,
@@ -62,7 +60,13 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var ret = Serializer.Serialize(retObj, false);
+            var rawRet = Serializer.Serialize(retObj, false);
+
+            // prep to be returned in a way that can be piped to a variable and then passed back in...
+            var noNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
+            var escapedQuotes = noNewLines.Replace("\"", "\\\"");
+
+            var ret = escapedQuotes;
             Console.Write(ret);
         }
 
@@ -88,6 +92,8 @@ namespace Naos.Deployment.Console
             {
                 Debugger.Launch();
             }
+
+            WriteAsciiArt();
 
             Console.WriteLine("PARAMETERS:");
             Console.WriteLine("--                                       workingPath: " + workingPath);
@@ -118,8 +124,8 @@ namespace Naos.Deployment.Console
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
             var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
-            var certificateRetriever = CreateCertificateRetriever(environment, certificateRetrieverConfiguration);
-            var infrastructureTracker = CreateInfrastructureTracker(infrastructureTrackerConfiguration);
+            var certificateRetriever = CertificateRetrieverFactory.Create(environment, certificateRetrieverConfiguration);
+            var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration);
 
             var credentials = Serializer.Deserialize<CredentialContainer>(credentialsJson);
             var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
@@ -244,53 +250,20 @@ namespace Naos.Deployment.Console
             return new TimeSpan(days, hours, minutes, 0);
         }
 
-        private static IGetCertificates CreateCertificateRetriever(string environment, CertificateRetrieverConfigurationBase certificateRetrieverConfigurationBase)
+        private static void WriteAsciiArt()
         {
-            IGetCertificates ret;
-
-            if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationFile)
-            {
-                var configAsFile = (CertificateRetrieverConfigurationFile)certificateRetrieverConfigurationBase;
-                ret = new CertificateRetrieverFromFile(configAsFile.FilePath);
-            }
-            else if (certificateRetrieverConfigurationBase is CertificateRetrieverConfigurationDatabase)
-            {
-                var configAsDb = (CertificateRetrieverConfigurationDatabase)certificateRetrieverConfigurationBase;
-                var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
-                ret = new CertificateRetrieverFromMongo(environment, certificateContainerQueries);
-            }
-            else
-            {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(certificateRetrieverConfigurationBase));
-            }
-
-            return ret;
-        }
-
-        private static ITrackComputingInfrastructure CreateInfrastructureTracker(InfrastructureTrackerConfigurationBase infrastructureTrackerConfigurationBase)
-        {
-            ITrackComputingInfrastructure ret;
-
-            if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationFolder)
-            {
-                var configAsFolder = (InfrastructureTrackerConfigurationFolder)infrastructureTrackerConfigurationBase;
-                ret = new RootFolderEnvironmentFolderInstanceFileTracker(configAsFolder.RootFolderPath);
-            }
-            else if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationDatabase)
-            {
-                var configAsDatabase = (InfrastructureTrackerConfigurationDatabase)infrastructureTrackerConfigurationBase;
-                var deploymentDatabase = configAsDatabase.Database;
-                var arcologyInfoQueries = deploymentDatabase.GetQueriesInterface<ArcologyInfoContainer>();
-                var instanceQueries = deploymentDatabase.GetQueriesInterface<InstanceContainer>();
-                var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
-                ret = new MongoInfrastructureTracker(arcologyInfoQueries, instanceQueries, instanceCommands);
-            }
-            else
-            {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(infrastructureTrackerConfigurationBase));
-            }
-
-            return ret;
+            Console.WriteLine(@"<:::::::::::::::::::::::::::::::::::::::::}]xxxx()o             ");
+            Console.WriteLine(@"  _   _          ____   _____  _____             _              ");
+            Console.WriteLine(@" | \ | |   /\   / __ \ / ____||  __ \           | |             ");
+            Console.WriteLine(@" |  \| |  /  \ | |  | | (___  | |  | | ___ _ __ | | ___  _   _  ");
+            Console.WriteLine(@" | . ` | / /\ \| |  | |\___ \ | |  | |/ _ \ '_ \| |/ _ \| | | | ");
+            Console.WriteLine(@" | |\  |/ ____ \ |__| |____) || |__| |  __/ |_) | | (_) | |_| | ");
+            Console.WriteLine(@" |_| \_/_/    \_\____/|_____(_)_____/ \___| .__/|_|\___/ \__, | ");
+            Console.WriteLine(@"                                          | |             __/ | ");
+            Console.WriteLine(@"                                          |_|            |___/  ");
+            Console.WriteLine(@"             o()xxxx[{:::::::::::::::::::::::::::::::::::::::::>");
+            Console.WriteLine(string.Empty);
+            Console.WriteLine(string.Empty);
         }
     }
 }

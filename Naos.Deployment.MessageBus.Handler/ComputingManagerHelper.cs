@@ -14,6 +14,7 @@ namespace Naos.Deployment.MessageBus.Contract
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
+    using Naos.Deployment.MessageBus.Handler;
     using Naos.Deployment.Tracking;
 
     /// <summary>
@@ -44,14 +45,29 @@ namespace Naos.Deployment.MessageBus.Contract
         }
 
         /// <summary>
-        /// Gets the system id from the instance name.
+        /// Gets the system id from the instance name looking in the specified arcology.
+        /// </summary>
+        /// <param name="instanceName">Name of the instance to lookup.</param>
+        /// <param name="settings">Handler settings.</param>
+        /// <returns>System id matching the specified name, throws if not found.</returns>
+        private static Task<string> GetSystemIdFromNameFromArcologyAsync(string instanceName, DeploymentMessageHandlerSettings settings)
+        {
+            var tracker = InfrastructureTrackerFactory.Create(settings.InfrastructureTrackerConfiguration);
+
+            var ret = tracker.GetInstanceIdByName(settings.Environment, instanceName);
+
+            return Task.FromResult(ret);
+        }
+
+        /// <summary>
+        /// Gets the system id from the instance name checking name tags on the provider's instance details.
         /// </summary>
         /// <param name="instanceName">Name of the instance to lookup.</param>
         /// <param name="computingInfrastructureManagerSettings">Settings that contain details about how to use the computer infrastructure manager.</param>
         /// <param name="settings">Handler settings.</param>
         /// <param name="computingManager">Computing manager.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
-        public static async Task<string> GetSystemIdFromNameAsync(string instanceName, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
+        private static async Task<string> GetSystemIdFromNameFromTagAsync(string instanceName, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
         {
             var namer = new ComputingInfrastructureNamer(
                 instanceName,
@@ -88,7 +104,11 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingManager">Computing infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
-        public static async Task<string> GetSystemIdFromTargeterAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, IManageComputingInfrastructure computingManager)
+        public static async Task<string> GetSystemIdFromTargeterAsync(
+            InstanceTargeterBase instanceTargeter,
+            ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,
+            DeploymentMessageHandlerSettings settings,
+            IManageComputingInfrastructure computingManager)
         {
             string ret;
             var type = instanceTargeter.GetType();
@@ -97,10 +117,27 @@ namespace Naos.Deployment.MessageBus.Contract
                 var asId = (InstanceTargeterSystemId)instanceTargeter;
                 ret = asId.InstanceId;
             }
-            else if (type == typeof(InstanceTargeterNameLookupByProviderTag))
+            else if (type == typeof(InstanceTargeterNameLookup))
             {
-                var asTag = (InstanceTargeterNameLookupByProviderTag)instanceTargeter;
-                ret = await GetSystemIdFromNameAsync(asTag.InstanceNameInTag, computingInfrastructureManagerSettings, settings, computingManager);
+                var asTag = (InstanceTargeterNameLookup)instanceTargeter;
+                switch (settings.InstanceNameLookupSource)
+                {
+                    case InstanceNameLookupSource.ProviderTag:
+                        ret =
+                            await
+                            GetSystemIdFromNameFromTagAsync(
+                                asTag.InstanceName,
+                                computingInfrastructureManagerSettings,
+                                settings,
+                                computingManager);
+                        break;
+                    case InstanceNameLookupSource.Arcology:
+                        ret = await GetSystemIdFromNameFromArcologyAsync(asTag.InstanceName, settings);
+                        break;
+                    default:
+                        throw new NotSupportedException(
+                            "InstanceNameLookupSource not supported: " + settings.InstanceNameLookupSource);
+                }
             }
             else
             {

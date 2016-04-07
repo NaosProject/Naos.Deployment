@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChangeInstanceTypeMessageHandler.cs" />
+    <Compile Include="DeploymentMessageHandlerSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ComputingManagerHelper.cs" />
     <Compile Include="ShareInstanceTargeterMessageHandler.cs" />
