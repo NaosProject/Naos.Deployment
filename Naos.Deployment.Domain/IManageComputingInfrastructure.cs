@@ -68,9 +68,9 @@ namespace Naos.Deployment.Domain
         /// <param name="name">Name of the instance.</param>
         /// <param name="deploymentConfiguration">Deployment configuration to use to build a new instance.</param>
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
-        /// <param name="includeInstanceInializtionScript">Include the initialization script during creation.</param>
+        /// <param name="includeInstanceInitializationScript">Include the initialization script during creation.</param>
         /// <returns>Description of created instance.</returns>
-        Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript);
+        Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript);
 
         /// <summary>
         /// Gets the instance description by the name provided (null if not found).
@@ -78,7 +78,7 @@ namespace Naos.Deployment.Domain
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="name">Name of the instance.</param>
         /// <returns>Description of the specified instance or null if not found.</returns>
-        InstanceDescription GetInstanceDescription(string environment, string name);
+        Task<InstanceDescription> GetInstanceDescriptionAsync(string environment, string name);
 
         /// <summary>
         /// Gets the active (not terminated) instances for a given environment and location.

@@ -199,7 +199,7 @@ namespace Naos.Deployment.Core
             }
 
             // terminate existing instances...
-            this.RunActionWithTelemetry("Terminating Instances", () => this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment));
+            this.RunActionWithTelemetry("Terminating Instances", async () => await this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment));
 
             var instanceCount = configToCreateWith.InstanceCount;
             if (instanceCount == 0)
@@ -304,7 +304,7 @@ namespace Naos.Deployment.Core
                     this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
 
                     // Mark the instance as having the successfully deployed packages
-                    this.tracker.ProcessDeployedPackage(
+                    await this.tracker.ProcessDeployedPackageAsync(
                         environment,
                         createdInstanceDescription.Id,
                         packagedConfig.Package.PackageDescription);
@@ -882,7 +882,7 @@ namespace Naos.Deployment.Core
         {
             string adminPassword = null;
             var sleepTimeInSeconds = 10d;
-            var privateKey = this.tracker.GetPrivateKeyOfInstanceById(instanceDescription.Environment, instanceDescription.Id);
+            var privateKey = await this.tracker.GetPrivateKeyOfInstanceByIdAsync(instanceDescription.Environment, instanceDescription.Id);
             while (adminPassword == null)
             {
                 sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
@@ -903,14 +903,14 @@ namespace Naos.Deployment.Core
             return adminPassword;
         }
 
-        private void TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
+        private async Task TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
         {
             var packagesToIgnore = this.packageIdsToIgnoreDuringTerminationSearch.Select(_ => new PackageDescription { Id = _ }).ToList();
 
             // get aws instance object by name (from the AWS object tracking storage)
             var packagesToCheckFor = packagesToDeploy.Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer()).ToList();
             var instancesMatchingPackagesAllEnvironments =
-                this.tracker.GetInstancesByDeployedPackages(environment, packagesToCheckFor).ToList();
+                (await this.tracker.GetInstancesByDeployedPackagesAsync(environment, packagesToCheckFor)).ToList();
             var instancesWithMatchingEnvironmentAndPackages =
                 instancesMatchingPackagesAllEnvironments.Where(
                     _ => string.Equals(_.Environment, environment, StringComparison.CurrentCultureIgnoreCase)).ToList();

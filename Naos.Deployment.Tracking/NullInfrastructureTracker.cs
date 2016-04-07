@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Tracking
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
@@ -16,58 +17,66 @@ namespace Naos.Deployment.Tracking
     /// </summary>
     public class NullInfrastructureTracker : ITrackComputingInfrastructure
     {
+        private readonly Task emptyTask = Task.Run(
+            () =>
+                {
+                });
+
         /// <inheritdoc />
-        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(string environment, ICollection<PackageDescription> packages)
+        public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
         {
-            return new List<InstanceDescription>();
+            return Task.FromResult<ICollection<InstanceDescription>>(new List<InstanceDescription>());
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceTermination(string environment, string systemId)
+        public Task ProcessInstanceTerminationAsync(string environment, string systemId)
         {
+            return this.emptyTask;
         }
 
         /// <inheritdoc />
-        public InstanceCreationDetails GetNewInstanceCreationDetails(
+        public Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
         {
-            return new InstanceCreationDetails();
+            return Task.FromResult(new InstanceCreationDetails());
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceCreation(InstanceDescription instanceDescription)
+        public Task ProcessInstanceCreationAsync(InstanceDescription instanceDescription)
         {
+            return this.emptyTask;
         }
 
         /// <inheritdoc />
-        public void ProcessDeployedPackage(string environment, string systemId, PackageDescription package)
+        public Task ProcessDeployedPackageAsync(string environment, string systemId, PackageDescription package)
         {
+            return this.emptyTask;
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescriptionById(string environment, string systemId)
+        public Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
         {
-            return null;
+            return Task.FromResult<InstanceDescription>(null);
         }
 
         /// <inheritdoc />
-        public string GetInstanceIdByName(string environment, string name)
+        public Task<string> GetInstanceIdByNameAsync(string environment, string name)
         {
-            return null;
+            return Task.FromResult<string>(null);
         }
 
         /// <inheritdoc />
-        public string GetPrivateKeyOfInstanceById(string environment, string systemId)
+        public Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId)
         {
-            return null;
+            return Task.FromResult<string>(null);
         }
 
         /// <inheritdoc />
-        public string GetDomainZoneId(string environment, string domain)
+        public Task<string> GetDomainZoneIdAsync(string environment, string domain)
         {
-            return null;
+            return Task.FromResult<string>(null);
         }
     }
 }

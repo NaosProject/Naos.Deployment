@@ -50,13 +50,13 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="instanceName">Name of the instance to lookup.</param>
         /// <param name="settings">Handler settings.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
-        private static Task<string> GetSystemIdFromNameFromArcologyAsync(string instanceName, DeploymentMessageHandlerSettings settings)
+        private static async Task<string> GetSystemIdFromNameFromArcologyAsync(string instanceName, DeploymentMessageHandlerSettings settings)
         {
             var tracker = InfrastructureTrackerFactory.Create(settings.InfrastructureTrackerConfiguration);
 
-            var ret = tracker.GetInstanceIdByName(settings.Environment, instanceName);
+            var ret = await tracker.GetInstanceIdByNameAsync(settings.Environment, instanceName);
 
-            return Task.FromResult(ret);
+            return ret;
         }
 
         /// <summary>

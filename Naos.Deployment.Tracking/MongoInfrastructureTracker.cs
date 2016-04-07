@@ -6,9 +6,9 @@
 
 namespace Naos.Deployment.Tracking
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
@@ -27,9 +27,6 @@ namespace Naos.Deployment.Tracking
 
         private readonly ICommands<string, InstanceContainer> instanceCommands;
 
-        // should maybe break out a lock provider and lock by environment...
-        private readonly object sync = new object();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoInfrastructureTracker"/> class.
         /// </summary>
@@ -46,156 +43,128 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(string environment, ICollection<PackageDescription> packages)
+        public async Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
         {
-            lock (this.sync)
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetInstancesByDeployedPackages(packages);
+        }
+
+        /// <inheritdoc />
+        public async Task ProcessInstanceTerminationAsync(string environment, string systemId)
+        {
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            var matchingInstance =
+                arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+
+            // write
+            if (matchingInstance != null)
             {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstancesByDeployedPackages(packages);
+                arcology.MutateInstancesRemove(matchingInstance);
+                var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                this.instanceCommands.RemoveOneAsync(matchingInstanceContainer).Wait();
             }
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceTermination(string environment, string systemId)
-        {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                var matchingInstance =
-                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
-
-                // write
-                if (matchingInstance != null)
-                {
-                    arcology.MutateInstancesRemove(matchingInstance);
-                    var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
-                    this.instanceCommands.RemoveOneAsync(matchingInstanceContainer).Wait();
-                }
-            }
-        }
-
-        /// <inheritdoc />
-        public InstanceCreationDetails GetNewInstanceCreationDetails(
+        public async Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
         {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
 
-                // write
-                arcology.MutateInstancesAdd(newDeployedInstance);
-                var instanceContainer = CreateInstanceContainerFromInstance(newDeployedInstance);
-                this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+            // write
+            arcology.MutateInstancesAdd(newDeployedInstance);
+            var instanceContainer = CreateInstanceContainerFromInstance(newDeployedInstance);
+            await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
 
-                return newDeployedInstance.InstanceCreationDetails;
-            }
+            return newDeployedInstance.InstanceCreationDetails;
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceCreation(InstanceDescription instanceDescription)
+        public async Task ProcessInstanceCreationAsync(InstanceDescription instanceDescription)
         {
-            lock (this.sync)
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(instanceDescription.Environment);
+
+            var toUpdate =
+                arcology.Instances.SingleOrDefault(
+                    _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+
+            if (toUpdate == null)
             {
-                var arcology = this.GetArcologyByEnvironmentName(instanceDescription.Environment);
-
-                var toUpdate =
-                    arcology.Instances.SingleOrDefault(
-                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
-
-                if (toUpdate == null)
-                {
-                    throw new DeploymentException(
-                        "Expected to find a tracked instance (pre-creation) with private IP: "
-                        + instanceDescription.PrivateIpAddress);
-                }
-
-                // write
-                toUpdate.InstanceDescription = instanceDescription;
-                var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
-                this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer).Wait();
+                throw new DeploymentException(
+                    "Expected to find a tracked instance (pre-creation) with private IP: "
+                    + instanceDescription.PrivateIpAddress);
             }
+
+            // write
+            toUpdate.InstanceDescription = instanceDescription;
+            var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
+            this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer).Wait();
         }
 
         /// <inheritdoc />
-        public void ProcessDeployedPackage(string environment, string systemId, PackageDescription package)
+        public async Task ProcessDeployedPackageAsync(string environment, string systemId, PackageDescription package)
         {
-            lock (this.sync)
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+            if (instanceToUpdate == null)
             {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
-                if (instanceToUpdate == null)
-                {
-                    throw new DeploymentException(
-                        "Expected to find a tracked instance (post-creation) with system ID: "
-                        + systemId);
-                }
-
-                // write
-                Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
-                var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
-                this.instanceCommands.AddOrUpdateOneAsync(instanceContainer).Wait();
+                throw new DeploymentException(
+                    "Expected to find a tracked instance (post-creation) with system ID: "
+                    + systemId);
             }
+
+            // write
+            Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
+            var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
+            this.instanceCommands.AddOrUpdateOneAsync(instanceContainer).Wait();
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescriptionById(string environment, string systemId)
+        public async Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
         {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstanceDescriptionById(systemId);
-            }
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetInstanceDescriptionById(systemId);
         }
 
         /// <inheritdoc />
-        public string GetInstanceIdByName(string environment, string name)
+        public async Task<string> GetInstanceIdByNameAsync(string environment, string name)
         {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstanceIdByName(name);
-            }
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetInstanceIdByName(name);
         }
 
         /// <inheritdoc />
-        public string GetPrivateKeyOfInstanceById(string environment, string systemId)
+        public async Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId)
         {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetPrivateKeyOfInstanceById(systemId);
-            }
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetPrivateKeyOfInstanceById(systemId);
         }
 
         /// <inheritdoc />
-        public string GetDomainZoneId(string environment, string domain)
+        public async Task<string> GetDomainZoneIdAsync(string environment, string domain)
         {
-            lock (this.sync)
-            {
-                var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetDomainZoneId(domain);
-            }
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetDomainZoneId(domain);
         }
 
-        private Arcology GetArcologyByEnvironmentName(string environment)
+        private async Task<Arcology> GetArcologyByEnvironmentNameAsync(string environment)
         {
             environment = environment ?? "[NULL VALUE PASSED]";
             environment = string.IsNullOrEmpty(environment) ? "[EMPTY STRING PASSED]" : environment;
 
-            var arcologyInfoTask =
+            var arcologyInfoContainer =
+                await
                 this.arcologyInfoQueries.GetOneAsync(
                     _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
-            arcologyInfoTask.Wait();
-            var arcologyInfoContainer = arcologyInfoTask.Result;
 
-            var instancesTask =
+            var instancesContainers =
+                await
                 this.instanceQueries.GetManyAsync(
                     _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
-            instancesTask.Wait();
-            var instancesContainers = instancesTask.Result;
+
             var instances = instancesContainers.Select(_ => _.Instance).ToList();
 
             var ret = new Arcology(environment, arcologyInfoContainer.ArcologyInfo, instances);

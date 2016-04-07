@@ -118,7 +118,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <inheritdoc />
         public async Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
-            var instanceDescription = this.tracker.GetInstanceDescriptionById(environment, systemId);
+            var instanceDescription = await this.tracker.GetInstanceDescriptionByIdAsync(environment, systemId);
             if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
             {
                 // has a public IP that needs to be dissassociated and released before moving on...
@@ -137,7 +137,7 @@ namespace Naos.Deployment.ComputingManagement
 
             var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
             await instanceToTerminate.TerminateAsync(this.credentials);
-            this.tracker.ProcessInstanceTermination(environment, instanceToTerminate.Id);
+            await this.tracker.ProcessInstanceTerminationAsync(environment, instanceToTerminate.Id);
         }
 
         /// <inheritdoc />
@@ -198,9 +198,9 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript)
         {
-            var instanceDetails = this.tracker.GetNewInstanceCreationDetails(environment, deploymentConfiguration, intendedPackages);
+            var instanceDetails = await this.tracker.GetNewInstanceCreationDetailsAsync(environment, deploymentConfiguration, intendedPackages);
 
             var namer = new ComputingInfrastructureNamer(
                 name,
@@ -247,7 +247,7 @@ namespace Naos.Deployment.ComputingManagement
             var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
 
             var instanceName = namer.GetInstanceName();
-            var existing = this.tracker.GetInstanceIdByName(environment, instanceName);
+            var existing = await this.tracker.GetInstanceIdByNameAsync(environment, instanceName);
             if (existing != null)
             {
                 throw new DeploymentException(
@@ -312,7 +312,7 @@ namespace Naos.Deployment.ComputingManagement
             var userData = new UserData
                                {
                                    Data =
-                                       includeInstanceInializtionScript
+                                       includeInstanceInitializationScript
                                            ? this.settings.GetInstanceCreationUserData()
                                            : string.Empty
                                };
@@ -364,16 +364,16 @@ namespace Naos.Deployment.ComputingManagement
                 SystemSpecificDetails = systemSpecificDetails,
             };
 
-            this.tracker.ProcessInstanceCreation(instanceDescription);
+            await this.tracker.ProcessInstanceCreationAsync(instanceDescription);
 
             return instanceDescription;
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescription(string environment, string name)
+        public async Task<InstanceDescription> GetInstanceDescriptionAsync(string environment, string name)
         {
-            var id = this.tracker.GetInstanceIdByName(environment, name);
-            var ret = this.tracker.GetInstanceDescriptionById(environment, id);
+            var id = await this.tracker.GetInstanceIdByNameAsync(environment, name);
+            var ret = await this.tracker.GetInstanceDescriptionByIdAsync(environment, id);
             return ret;
         }
 
@@ -504,7 +504,7 @@ namespace Naos.Deployment.ComputingManagement
             // need root domain to lookup zone id
             var rootDomain = host.Substring(index + 1); 
 
-            var hostingId = this.tracker.GetDomainZoneId(environment, rootDomain);
+            var hostingId = await this.tracker.GetDomainZoneIdAsync(environment, rootDomain);
             var dnsManager = new Route53Manager(this.credentials);
             await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain, ipAddresses);
         }

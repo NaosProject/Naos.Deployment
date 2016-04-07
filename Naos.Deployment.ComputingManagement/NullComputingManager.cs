@@ -48,13 +48,13 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInializtionScript)
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript)
         {
             return await Task.FromResult(new InstanceDescription());
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescription(string environment, string name)
+        public Task<InstanceDescription> GetInstanceDescriptionAsync(string environment, string name)
         {
             return null;
         }

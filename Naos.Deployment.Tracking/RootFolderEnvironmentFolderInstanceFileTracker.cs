@@ -10,6 +10,7 @@ namespace Naos.Deployment.Tracking
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
@@ -21,6 +22,10 @@ namespace Naos.Deployment.Tracking
     {
         private const string InstancePrefix = "Instance--";
         private const string IpInfix = "ip--";
+        private readonly Task emptyTask = Task.Run(
+            () =>
+                {
+                });
 
         // should maybe break out a lock provider and lock by environment...
         private readonly object fileSync = new object();
@@ -37,17 +42,18 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(string environment, ICollection<PackageDescription> packages)
+        public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
         {
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstancesByDeployedPackages(packages);
+                var ret = arcology.GetInstancesByDeployedPackages(packages);
+                return Task.FromResult(ret);
             }
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceTermination(string environment, string systemId)
+        public Task ProcessInstanceTerminationAsync(string environment, string systemId)
         {
             lock (this.fileSync)
             {
@@ -73,11 +79,13 @@ namespace Naos.Deployment.Tracking
                         File.Delete(instanceFilePathIp);
                     }
                 }
+
+                return this.emptyTask;
             }
         }
 
         /// <inheritdoc />
-        public InstanceCreationDetails GetNewInstanceCreationDetails(
+        public Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
@@ -91,12 +99,12 @@ namespace Naos.Deployment.Tracking
                 arcology.MutateInstancesAdd(newDeployedInstance);
                 this.SaveArcology(arcology);
 
-                return newDeployedInstance.InstanceCreationDetails;
+                return Task.FromResult(newDeployedInstance.InstanceCreationDetails);
             }
         }
 
         /// <inheritdoc />
-        public void ProcessInstanceCreation(InstanceDescription instanceDescription)
+        public Task ProcessInstanceCreationAsync(InstanceDescription instanceDescription)
         {
             lock (this.fileSync)
             {
@@ -116,11 +124,13 @@ namespace Naos.Deployment.Tracking
                 // write
                 toUpdate.InstanceDescription = instanceDescription;
                 this.SaveArcology(arcology);
+
+                return this.emptyTask;
             }
         }
 
         /// <inheritdoc />
-        public void ProcessDeployedPackage(string environment, string systemId, PackageDescription package)
+        public Task ProcessDeployedPackageAsync(string environment, string systemId, PackageDescription package)
         {
             lock (this.fileSync)
             {
@@ -136,46 +146,52 @@ namespace Naos.Deployment.Tracking
                 // write
                 Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
                 this.SaveArcology(arcology);
+
+                return this.emptyTask;
             }
         }
 
         /// <inheritdoc />
-        public InstanceDescription GetInstanceDescriptionById(string environment, string systemId)
+        public Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
         {
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstanceDescriptionById(systemId);
+                var ret = arcology.GetInstanceDescriptionById(systemId);
+                return Task.FromResult(ret);
             }
         }
 
         /// <inheritdoc />
-        public string GetInstanceIdByName(string environment, string name)
+        public Task<string> GetInstanceIdByNameAsync(string environment, string name)
         {
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetInstanceIdByName(name);
+                var ret = arcology.GetInstanceIdByName(name);
+                return Task.FromResult(ret);
             }
         }
 
         /// <inheritdoc />
-        public string GetPrivateKeyOfInstanceById(string environment, string systemId)
+        public Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId)
         {
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetPrivateKeyOfInstanceById(systemId);
+                var ret = arcology.GetPrivateKeyOfInstanceById(systemId);
+                return Task.FromResult(ret);
             }
         }
 
         /// <inheritdoc />
-        public string GetDomainZoneId(string environment, string domain)
+        public Task<string> GetDomainZoneIdAsync(string environment, string domain)
         {
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
-                return arcology.GetDomainZoneId(domain);
+                var ret = arcology.GetDomainZoneId(domain);
+                return Task.FromResult(ret);
             }
         }
 
