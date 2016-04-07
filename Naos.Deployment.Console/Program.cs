@@ -24,7 +24,6 @@ namespace Naos.Deployment.Console
         {
             try
             {
-                WriteAsciiArt();
                 Parser.Run<Deployer>(args);
                 return 0;
             }
@@ -36,22 +35,6 @@ namespace Naos.Deployment.Console
                 Console.WriteLine(string.Empty);
                 return 1;
             }
-        }
-
-        private static void WriteAsciiArt()
-        {
-            Console.WriteLine(@"<:::::::::::::::::::::::::::::::::::::::::}]xxxx()o             ");
-            Console.WriteLine(@"  _   _          ____   _____  _____             _              ");
-            Console.WriteLine(@" | \ | |   /\   / __ \ / ____||  __ \           | |             ");
-            Console.WriteLine(@" |  \| |  /  \ | |  | | (___  | |  | | ___ _ __ | | ___  _   _  ");
-            Console.WriteLine(@" | . ` | / /\ \| |  | |\___ \ | |  | |/ _ \ '_ \| |/ _ \| | | | ");
-            Console.WriteLine(@" | |\  |/ ____ \ |__| |____) || |__| |  __/ |_) | | (_) | |_| | ");
-            Console.WriteLine(@" |_| \_/_/    \_\____/|_____(_)_____/ \___| .__/|_|\___/ \__, | ");
-            Console.WriteLine(@"                                          | |             __/ | ");
-            Console.WriteLine(@"                                          |_|            |___/  ");
-            Console.WriteLine(@"             o()xxxx[{:::::::::::::::::::::::::::::::::::::::::>");
-            Console.WriteLine(string.Empty);
-            Console.WriteLine(string.Empty);
         }
     }
 }
