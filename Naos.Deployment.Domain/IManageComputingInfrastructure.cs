@@ -76,7 +76,7 @@ namespace Naos.Deployment.Domain
         /// Gets the instance description by the name provided (null if not found).
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="name">Name of the instance.</param>
+        /// <param name="name">Name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <returns>Description of the specified instance or null if not found.</returns>
         Task<InstanceDescription> GetInstanceDescriptionAsync(string environment, string name);
 

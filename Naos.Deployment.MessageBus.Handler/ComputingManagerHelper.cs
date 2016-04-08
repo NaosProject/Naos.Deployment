@@ -47,14 +47,14 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <summary>
         /// Gets the system id from the instance name looking in the specified arcology.
         /// </summary>
-        /// <param name="instanceName">Name of the instance to lookup.</param>
+        /// <param name="name">Name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="settings">Handler settings.</param>
         /// <returns>System id matching the specified name, throws if not found.</returns>
-        private static async Task<string> GetSystemIdFromNameFromArcologyAsync(string instanceName, DeploymentMessageHandlerSettings settings)
+        private static async Task<string> GetSystemIdFromNameFromArcologyAsync(string name, DeploymentMessageHandlerSettings settings)
         {
             var tracker = InfrastructureTrackerFactory.Create(settings.InfrastructureTrackerConfiguration);
-
-            var ret = await tracker.GetInstanceIdByNameAsync(settings.Environment, instanceName);
+            
+            var ret = await tracker.GetInstanceIdByNameAsync(settings.Environment, name);
 
             return ret;
         }
@@ -119,20 +119,20 @@ namespace Naos.Deployment.MessageBus.Contract
             }
             else if (type == typeof(InstanceTargeterNameLookup))
             {
-                var asTag = (InstanceTargeterNameLookup)instanceTargeter;
+                var asNameLookup = (InstanceTargeterNameLookup)instanceTargeter;
                 switch (settings.InstanceNameLookupSource)
                 {
                     case InstanceNameLookupSource.ProviderTag:
                         ret =
                             await
                             GetSystemIdFromNameFromTagAsync(
-                                asTag.InstanceName,
+                                asNameLookup.Name,
                                 computingInfrastructureManagerSettings,
                                 settings,
                                 computingManager);
                         break;
                     case InstanceNameLookupSource.Arcology:
-                        ret = await GetSystemIdFromNameFromArcologyAsync(asTag.InstanceName, settings);
+                        ret = await GetSystemIdFromNameFromArcologyAsync(asNameLookup.Name, settings);
                         break;
                     default:
                         throw new NotSupportedException(

@@ -33,8 +33,8 @@ namespace Naos.Deployment.Domain
     public class InstanceTargeterNameLookup : InstanceTargeterBase
     {
         /// <summary>
-        /// Gets or sets the instance name.
+        /// Gets or sets the name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a)'.
         /// </summary>
-        public string InstanceName { get; set; }
+        public string Name { get; set; }
     }
 }

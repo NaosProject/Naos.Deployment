@@ -247,11 +247,11 @@ namespace Naos.Deployment.ComputingManagement
             var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
 
             var instanceName = namer.GetInstanceName();
-            var existing = await this.tracker.GetInstanceIdByNameAsync(environment, instanceName);
+            var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
             if (existing != null)
             {
                 throw new DeploymentException(
-                    "Instance trying to be created with name: " + instanceName
+                    "Instance trying to be created with name: " + name
                     + " but an instance with this name already exists; ID: " + existing);
             }
 

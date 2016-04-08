@@ -71,7 +71,7 @@ namespace Naos.Deployment.Domain
         /// Gets the instance ID by name.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="name">Name of the instance.</param>
+        /// <param name="name">Name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <returns>ID of instance by name if found.</returns>
         Task<string> GetInstanceIdByNameAsync(string environment, string name);
 

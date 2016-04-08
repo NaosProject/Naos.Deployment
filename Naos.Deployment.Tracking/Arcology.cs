@@ -146,13 +146,14 @@ namespace Naos.Deployment.Tracking
         /// <summary>
         /// Gets the instance ID by name.
         /// </summary>
-        /// <param name="name">Name of the instance.</param>
+        /// <param name="name">Name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <returns>ID of instance by name if found.</returns>
         public string GetInstanceIdByName(string name)
         {
+            // use the computer name because that is the short name, x.Name will be full cloud name...
             var wrapped =
                 this.Instances.FirstOrDefault(
-                    _ => string.Equals(_.InstanceDescription.Name, name, StringComparison.CurrentCultureIgnoreCase));
+                    _ => string.Equals(_.InstanceDescription.ComputerName, name, StringComparison.CurrentCultureIgnoreCase));
 
             return wrapped == null ? null : wrapped.InstanceDescription.Id;
         }
