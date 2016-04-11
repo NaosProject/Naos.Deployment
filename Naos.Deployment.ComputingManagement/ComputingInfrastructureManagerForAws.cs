@@ -200,6 +200,14 @@ namespace Naos.Deployment.ComputingManagement
         /// <inheritdoc />
         public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript)
         {
+            var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
+            if (existing != null)
+            {
+                throw new DeploymentException(
+                    "Instance trying to be created with name: " + name
+                    + " but an instance with this name already exists; ID: " + existing);
+            }
+
             var instanceDetails = await this.tracker.GetNewInstanceCreationDetailsAsync(environment, deploymentConfiguration, intendedPackages);
 
             var namer = new ComputingInfrastructureNamer(
@@ -247,13 +255,6 @@ namespace Naos.Deployment.ComputingManagement
             var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
 
             var instanceName = namer.GetInstanceName();
-            var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
-            if (existing != null)
-            {
-                throw new DeploymentException(
-                    "Instance trying to be created with name: " + name
-                    + " but an instance with this name already exists; ID: " + existing);
-            }
 
             var ami = new Ami()
                           {

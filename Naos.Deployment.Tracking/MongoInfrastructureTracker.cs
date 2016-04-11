@@ -61,7 +61,7 @@ namespace Naos.Deployment.Tracking
             {
                 arcology.MutateInstancesRemove(matchingInstance);
                 var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
-                this.instanceCommands.RemoveOneAsync(matchingInstanceContainer).Wait();
+                await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
             }
         }
 
@@ -101,7 +101,7 @@ namespace Naos.Deployment.Tracking
             // write
             toUpdate.InstanceDescription = instanceDescription;
             var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
-            this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer).Wait();
+            await this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer);
         }
 
         /// <inheritdoc />
@@ -119,7 +119,7 @@ namespace Naos.Deployment.Tracking
             // write
             Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
             var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
-            this.instanceCommands.AddOrUpdateOneAsync(instanceContainer).Wait();
+            await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
         }
 
         /// <inheritdoc />
