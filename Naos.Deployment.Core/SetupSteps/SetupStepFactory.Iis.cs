@@ -84,9 +84,12 @@ namespace Naos.Deployment.Core
             const bool EnableSni = false;
             const bool AddHostHeaders = true;
 
-            var appPoolPassword = appPoolAccount.ToUpperInvariant() == this.AdministratorAccount.ToUpperInvariant()
-                                         ? adminPassword
-                                         : null;
+            var appPoolPassword = appPoolAccount == null
+                                      ? null
+                                      : appPoolAccount.ToUpperInvariant()
+                                        == this.AdministratorAccount.ToUpperInvariant()
+                                            ? adminPassword
+                                            : null;
 
             var installWebParameters = new object[]
                                            {

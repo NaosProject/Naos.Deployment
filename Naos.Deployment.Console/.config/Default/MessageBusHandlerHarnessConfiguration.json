@@ -1,6 +1,5 @@
 ﻿{
     "handlerHarnessProcessTimeToLive": "00:05:00",
-    "invisibilityTimeout": "02:00:00",
     "package": {
         "id": "Naos.MessageBus.Hangfire.Console",
         "initializationStrategies": [

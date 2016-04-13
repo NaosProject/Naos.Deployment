@@ -123,12 +123,12 @@
       <HintPath>..\packages\Naos.Database.Tools.1.0.105\lib\net45\Naos.Database.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.123.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.123\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
+    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.128.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.128\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.123.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.123\lib\net45\Naos.MessageBus.HandlingContract.dll</HintPath>
+    <Reference Include="Naos.MessageBus.HandlingContract, Version=1.0.128.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.HandlingContract.1.0.128\lib\net45\Naos.MessageBus.HandlingContract.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
@@ -143,8 +143,8 @@
       <HintPath>..\packages\Naos.WinRM.1.0.29\lib\45\Naos.WinRM.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=7.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.7.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="NuGet.Client, Version=3.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -239,12 +239,12 @@
       <HintPath>..\packages\NuGet.Versioning.3.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Spritely.ReadModel, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.dll</HintPath>
+    <Reference Include="Spritely.ReadModel, Version=0.5.0.37, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.5.0\lib\net45\Spritely.ReadModel.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Spritely.ReadModel.Mongo, Version=0.4.2.35, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.4.2\lib\net45\Spritely.ReadModel.Mongo.dll</HintPath>
+    <Reference Include="Spritely.ReadModel.Mongo, Version=0.5.0.37, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.5.0\lib\net45\Spritely.ReadModel.Mongo.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
