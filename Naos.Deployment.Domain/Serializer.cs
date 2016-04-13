@@ -17,10 +17,6 @@ namespace Naos.Deployment.Domain
     /// </summary>
     public static class Serializer
     {
-        private static readonly object SyncDefaultSettings = new object();
-
-        private static bool defaultSettingsApplied = false;
-
         /// <summary>
         /// Gets the object from the JSON with specific settings needed for project objects.
         /// </summary>
@@ -34,7 +30,7 @@ namespace Naos.Deployment.Domain
                 return null;
             }
 
-            SetupDefaultSettings();
+            SetupDefaultSettings(false);
             
             var ret = JsonConvert.DeserializeObject<T>(json);
 
@@ -54,7 +50,7 @@ namespace Naos.Deployment.Domain
                 return null;
             }
 
-            SetupDefaultSettings();
+            SetupDefaultSettings(false);
 
             var ret = JsonConvert.DeserializeObject(json, type);
 
@@ -66,30 +62,20 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <typeparam name="T">Type of object to serialize.</typeparam>
         /// <param name="objectToSerialize">Object to serialize to JSON.</param>
-        /// <param name="indented">Optionally indents the JSON (default is true; specifying false will put all on one line).</param>
+        /// <param name="compact">Optionally will create compact JSON (default is false; specifying false will use a more minimal representation).</param>
         /// <returns>String of JSON.</returns>
-        public static string Serialize<T>(T objectToSerialize, bool indented = true) where T : class
+        public static string Serialize<T>(T objectToSerialize, bool compact = false) where T : class
         {
-            SetupDefaultSettings();
+            SetupDefaultSettings(compact);
 
             var ret = JsonConvert.SerializeObject(objectToSerialize);
 
             return ret;
         }
 
-        private static void SetupDefaultSettings()
+        private static void SetupDefaultSettings(bool compact)
         {
-            if (!defaultSettingsApplied)
-            {
-                lock (SyncDefaultSettings)
-                {
-                    if (!defaultSettingsApplied)
-                    {
-                        JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
-                        defaultSettingsApplied = true;
-                    }
-                }
-            }
+            JsonConvert.DefaultSettings = () => compact ? JsonConfiguration.CompactSerializerSettings : JsonConfiguration.DefaultSerializerSettings;
         }
     }
 }

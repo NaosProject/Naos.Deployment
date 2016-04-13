@@ -765,9 +765,8 @@ namespace Naos.Deployment.Core
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
                                                        MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
                                                        RetryCount = 0,
-                                                       HarnessProcessTimeToLive = this.messageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive,
-                                                       InvisibilityTimeout = this.messageBusHandlerHarnessConfiguration.InvisibilityTimeout
-                                                   }
+                                                       HarnessProcessTimeToLive = this.messageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive
+                                               }
                                            };
 
             var messageBusHandlerSettings = new MessageBusHarnessSettings
