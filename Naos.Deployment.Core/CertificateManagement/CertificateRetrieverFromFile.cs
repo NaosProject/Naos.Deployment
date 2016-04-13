@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
 
@@ -31,17 +32,19 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public CertificateFile GetCertificateByName(string name)
+        public Task<CertificateFile> GetCertificateByNameAsync(string name)
         {
+            CertificateFile certDetails;
             lock (this.fileSync)
             {
                 var fileContents = File.ReadAllText(this.filePath);
                 var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContents);
                 var certificateDetails = certificateCollection.Certificates.SingleOrDefault(_ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
-                var certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
-                return certDetails;
+                certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
             }
+
+            return Task.FromResult(certDetails);
         }
     }
 }

@@ -14,7 +14,6 @@ namespace Naos.Deployment.Core
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Naos.AWS.Core;
     using Naos.Deployment.Domain;
     using Naos.MessageBus.HandlingContract;
     using Naos.Packaging.Domain;
@@ -111,7 +110,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
+        public async Task DeployPackagesAsync(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
         {
             if (this.telemetryFile != null)
             {
@@ -199,7 +198,10 @@ namespace Naos.Deployment.Core
             }
 
             // terminate existing instances...
-            this.RunActionWithTelemetry("Terminating Instances", async () => await this.TerminateInstancesBeingReplaced(packagesToDeploy.WithoutStrategies(), environment));
+            await
+                this.RunActionWithTelemetryAsync(
+                    "Terminating Instances",
+                    () => this.TerminateInstancesBeingReplacedAsync(packagesToDeploy.WithoutStrategies(), environment));
 
             var instanceCount = configToCreateWith.InstanceCount;
             if (instanceCount == 0)
@@ -211,18 +213,16 @@ namespace Naos.Deployment.Core
             var tasks =
                 items.Select(
                     instanceNumber =>
-                    Task.Run(
-                        () =>
-                        this.CreateNumberedInstanceAsync(
-                            instanceNumber,
-                            packagesToDeploy,
-                            environment,
-                            instanceName,
-                            instanceCount,
-                            configToCreateWith,
-                            packagedDeploymentConfigsWithDefaultsAndOverrides))).ToArray();
+                    this.CreateNumberedInstanceAsync(
+                        instanceNumber,
+                        packagesToDeploy,
+                        environment,
+                        instanceName,
+                        instanceCount,
+                        configToCreateWith,
+                        packagedDeploymentConfigsWithDefaultsAndOverrides)).ToArray();
 
-            Task.WaitAll(tasks);
+            await Task.WhenAll(tasks);
 
             this.LogAnnouncement("Finished deployment.");
         }
@@ -274,9 +274,9 @@ namespace Naos.Deployment.Core
 
                 var adminPasswordClear =
                     await
-                    this.RunFuncWithTelemetry(
+                    this.RunFuncWithTelemetryAsync(
                         "Wait for admin password",
-                        async () => await this.GetAdminPasswordForInstanceAsync(createdInstanceDescription),
+                        () => this.GetAdminPasswordForInstanceAsync(createdInstanceDescription),
                         instanceNumber);
 
                 var machineManager = new MachineManager(
@@ -286,11 +286,15 @@ namespace Naos.Deployment.Core
                     true);
 
                 this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);
-                this.RunActionWithTelemetry("Wait for WinRM access", () => this.WaitUntilMachineIsAccessible(machineManager), instanceNumber);
+                await
+                    this.RunActionWithTelemetryAsync(
+                        "Wait for WinRM access",
+                        () => Task.Run(() => this.WaitUntilMachineIsAccessible(machineManager)),
+                        instanceNumber);
 
                 var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
                 this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
-                this.RunActionWithTelemetry("Run instance level setup steps", () => this.RunSetupSteps(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
+                await this.RunActionWithTelemetryAsync("Run instance level setup steps", () => this.RunSetupStepsAsync(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
 
                 // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
                 this.LogAnnouncement("Rebooting new instance to finalize any items from instance setup.", instanceNumber);
@@ -298,10 +302,10 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
-                    var setupSteps = this.setupStepFactory.GetSetupSteps(packagedConfig, environment, adminPasswordClear);
+                    var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
-                    this.RunSetupSteps(machineManager, setupSteps, instanceNumber);
+                    await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
 
                     // Mark the instance as having the successfully deployed packages
                     await this.tracker.ProcessDeployedPackageAsync(
@@ -550,24 +554,26 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private void RunSetupSteps(MachineManager machineManager, ICollection<SetupStep> setupSteps, int instanceNumber)
+        private async Task RunSetupStepsAsync(MachineManager machineManager, ICollection<SetupStep> setupSteps, int instanceNumber)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
             foreach (var setupStep in setupSteps)
             {
-                Action retryingSetupAction = () =>
+                Func<Task> retryingSetupAction = () =>
                     {
-                        this.RunSetupStepWithRetry(
-                            machineManager,
-                            instanceNumber,
-                            setupStep,
-                            maxTries,
-                            throwOnFailedSetupStep);
+                        return Task.Run(
+                            () =>
+                            this.RunSetupStepWithRetry(
+                                machineManager,
+                                instanceNumber,
+                                setupStep,
+                                maxTries,
+                                throwOnFailedSetupStep));
                     };
 
-                this.RunActionWithTelemetry("Setup step - " + setupStep.Description, retryingSetupAction, instanceNumber);
+                await this.RunActionWithTelemetryAsync("Setup step - " + setupStep.Description, retryingSetupAction, instanceNumber);
             }
         }
 
@@ -902,7 +908,7 @@ namespace Naos.Deployment.Core
             return adminPassword;
         }
 
-        private async Task TerminateInstancesBeingReplaced(ICollection<PackageDescription> packagesToDeploy, string environment)
+        private async Task TerminateInstancesBeingReplacedAsync(ICollection<PackageDescription> packagesToDeploy, string environment)
         {
             var packagesToIgnore = this.packageIdsToIgnoreDuringTerminationSearch.Select(_ => new PackageDescription { Id = _ }).ToList();
 
@@ -933,10 +939,9 @@ namespace Naos.Deployment.Core
             {
                 var tasks =
                     instancesWithMatchingEnvironmentAndPackages.Select(
-                        instanceDescription => Task.Run(() => this.TerminateInstance(environment, instanceDescription)))
-                        .ToArray();
+                        instanceDescription => this.TerminateInstanceAsync(environment, instanceDescription)).ToArray();
 
-                Task.WaitAll(tasks);
+                await Task.WhenAll(tasks);
             }
             else
             {
@@ -944,7 +949,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task TerminateInstance(string environment, InstanceDescription instanceDescription)
+        private async Task TerminateInstanceAsync(string environment, InstanceDescription instanceDescription)
         {
             this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", ComputingName: " + instanceDescription.Name);
             await
@@ -955,17 +960,17 @@ namespace Naos.Deployment.Core
                     true);
         }
 
-        private void RunActionWithTelemetry(string step, Action code, int? instanceNumber = null)
+        private async Task RunActionWithTelemetryAsync(string step, Func<Task> code, int? instanceNumber = null)
         {
             this.StartTelemetry(step, instanceNumber);
-            code();
+            await code();
             this.StopTelemetry(step, instanceNumber);
         }
 
-        private T RunFuncWithTelemetry<T>(string step, Func<T> code, int? instanceNumber = null)
+        private async Task<T> RunFuncWithTelemetryAsync<T>(string step, Func<Task<T>> code, int? instanceNumber = null)
         {
             this.StartTelemetry(step, instanceNumber);
-            T ret = code();
+            T ret = await code();
             this.StopTelemetry(step, instanceNumber);
             return ret;
         }

@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Its.Log.Instrumentation;
 
@@ -106,7 +107,7 @@ namespace Naos.Deployment.Core
         /// <param name="environment">Environment that is being deployed.</param>
         /// <param name="adminPassword">Administrator password for the machine in case an application needs to be run as that user (which is discouraged!).</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public ICollection<SetupStep> GetSetupSteps(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
+        public async Task<ICollection<SetupStep>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
         {
             // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
             var mongoStrategies = packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>();
@@ -148,14 +149,14 @@ namespace Naos.Deployment.Core
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
-                var initSteps = this.GetStrategySpecificSetupSteps(initializationStrategy, packagedConfig, environment, adminPassword);
+                var initSteps = await this.GetStrategySpecificSetupStepsAsync(initializationStrategy, packagedConfig, environment, adminPassword);
                 ret.AddRange(initSteps);
             }
 
             return ret;
         }
 
-        private ICollection<SetupStep> GetStrategySpecificSetupSteps(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
+        private async Task<ICollection<SetupStep>> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
         {
             var ret = new List<SetupStep>();
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
@@ -163,7 +164,7 @@ namespace Naos.Deployment.Core
             if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
                 var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
-                var webSteps = this.GetIisSpecificSetupSteps(
+                var webSteps = await this.GetIisSpecificSetupStepsAsync(
                     (InitializationStrategyIis)strategy,
                     packagedConfig.ItsConfigOverrides,
                     packageDirectoryPath,
@@ -201,7 +202,8 @@ namespace Naos.Deployment.Core
             else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
             {
                 var certSteps =
-                    this.GetCertificateToInstallSpecificSteps(
+                    await
+                    this.GetCertificateToInstallSpecificStepsAsync(
                         (InitializationStrategyCertificateToInstall)strategy,
                         packageDirectoryPath,
                         this.settings.HarnessSettings.HarnessAccount,

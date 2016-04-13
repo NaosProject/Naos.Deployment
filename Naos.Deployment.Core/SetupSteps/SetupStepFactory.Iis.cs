@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
 
@@ -18,7 +19,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetIisSpecificSetupSteps(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment, string adminPassword)
+        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment, string adminPassword)
         {
             var webSteps = new List<SetupStep>();
 
@@ -59,7 +60,7 @@ namespace Naos.Deployment.Core
                     });
             }
 
-            var certDetails = this.certificateRetriever.GetCertificateByName(iisStrategy.SslCertificateName);
+            var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(iisStrategy.SslCertificateName);
             if (certDetails == null)
             {
                 throw new DeploymentException("Could not find certificate by name: " + iisStrategy.SslCertificateName);

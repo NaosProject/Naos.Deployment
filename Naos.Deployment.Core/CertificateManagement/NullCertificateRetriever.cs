@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
+    using System.Threading.Tasks;
+
     using Naos.Deployment.Domain;
 
     /// <summary>
@@ -14,9 +16,9 @@ namespace Naos.Deployment.Core.CertificateManagement
     public class NullCertificateRetriever : IGetCertificates
     {
         /// <inheritdoc />
-        public CertificateFile GetCertificateByName(string name)
+        public Task<CertificateFile> GetCertificateByNameAsync(string name)
         {
-            return new CertificateFile();
+            return Task.FromResult(new CertificateFile());
         }
     }
 }
