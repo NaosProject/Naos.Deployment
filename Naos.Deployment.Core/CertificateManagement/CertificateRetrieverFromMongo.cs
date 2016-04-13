@@ -8,11 +8,10 @@ namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
     using System.Linq;
-    using System.Security;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
-    using Naos.WinRM;
 
     using Spritely.ReadModel;
 
@@ -21,8 +20,6 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class CertificateRetrieverFromMongo : IGetCertificates
     {
-        private readonly object fileSync = new object();
-
         private readonly string environment;
 
         private readonly IQueries<CertificateContainer> certificateContainerQueries;
@@ -51,21 +48,17 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public CertificateFile GetCertificateByName(string name)
+        public async Task<CertificateFile> GetCertificateByNameAsync(string name)
         {
-            lock (this.fileSync)
-            {
-                var getOneAsync = this.certificateContainerQueries.GetOneAsync(_ => _.Environment == this.environment);
-                getOneAsync.Wait();
-                var certificateContainer = getOneAsync.Result;
+            var certificateContainer =
+                await this.certificateContainerQueries.GetOneAsync(_ => _.Environment == this.environment);
 
-                var certificateDetails =
-                    certificateContainer.Certificates.SingleOrDefault(
-                        _ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            var certificateDetails =
+                certificateContainer.Certificates.SingleOrDefault(
+                    _ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
-                var certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
-                return certDetails;
-            }
+            var certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
+            return certDetails;
         }
     }
 }

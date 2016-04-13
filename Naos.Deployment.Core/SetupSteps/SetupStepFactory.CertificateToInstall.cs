@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
 
@@ -16,7 +17,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetCertificateToInstallSpecificSteps(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath, string harnessAccount, string iisAccount)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath, string harnessAccount, string iisAccount)
         {
             var certSteps = new List<SetupStep>();
 
@@ -28,7 +29,7 @@ namespace Naos.Deployment.Core
 
             var certificateName = certToInstallStrategy.CertificateToInstall;
 
-            var certDetails = this.certificateRetriever.GetCertificateByName(certificateName);
+            var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(certificateName);
             if (certDetails == null)
             {
                 throw new DeploymentException("Could not find certificate by name: " + certificateName);

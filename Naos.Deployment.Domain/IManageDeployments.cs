@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Interface to wrap the full orchestration of a deployment.
@@ -20,6 +21,7 @@ namespace Naos.Deployment.Domain
         /// <param name="environment">Environment from Its.Config to use.</param>
         /// <param name="instanceName">Name of the instance the deployment will reside on.</param>
         /// <param name="deploymentConfigOverride">Optional overrides to the deployment configuration.</param>
-        void DeployPackages(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
+        /// <returns>Task for async.</returns>
+        Task DeployPackagesAsync(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
     }
 }

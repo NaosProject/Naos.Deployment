@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Domain
 {
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Interface for getting certificate information by name.
     /// </summary>
@@ -16,6 +18,6 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <param name="name">Name of the certificate to find.</param>
         /// <returns>Certificate details matching name; null if not found.</returns>
-        CertificateFile GetCertificateByName(string name);
+        Task<CertificateFile> GetCertificateByNameAsync(string name);
     }
 }

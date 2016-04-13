@@ -33,7 +33,7 @@ namespace Naos.Deployment.MessageBus.Handler
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
-            await this.Handle(message, settings, computingInfrastructureManagerSettings);
+            await this.HandleAsync(message, settings, computingInfrastructureManagerSettings);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingInfrastructureManagerSettings">Settings for the computing infrastructure manager.</param>
         /// <returns>Task for async execution.</returns>
-        public async Task Handle(StartInstanceMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
+        public async Task HandleAsync(StartInstanceMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
             if (message == null)
             {
@@ -59,7 +59,7 @@ namespace Naos.Deployment.MessageBus.Handler
                 message.InstanceTargeters.Select(
                     (instanceTargeter) =>
                     Task.Run(
-                        () => OperationToParallelize(instanceTargeter, computingInfrastructureManagerSettings, settings, message.WaitUntilOn)))
+                        () => ParallelOperationAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, message.WaitUntilOn)))
                     .ToArray();
 
             await Task.WhenAll(tasks);
@@ -67,7 +67,7 @@ namespace Naos.Deployment.MessageBus.Handler
             this.InstanceTargeters = message.InstanceTargeters;
         }
 
-        private static async Task OperationToParallelize(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, bool waitUntilOn)
+        private static async Task ParallelOperationAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, bool waitUntilOn)
         {
             var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
 

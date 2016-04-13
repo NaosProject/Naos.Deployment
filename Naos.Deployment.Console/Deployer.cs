@@ -165,7 +165,7 @@ namespace Naos.Deployment.Console
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
 
-            deploymentManager.DeployPackages(packagesToDeploy, environment, instanceName, overrideConfig);
+            deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
         }
 
         [Empty]
