@@ -9,6 +9,7 @@
     "nameTagKey": "Name",
     "environmentTagKey": "Environment",
     "volumeTypeValueMap": {
+    "doesNotMatter": "standard",
     "lowPerformance": "standard",
     "standard": "gp2",
     "highPerformance": "io1"

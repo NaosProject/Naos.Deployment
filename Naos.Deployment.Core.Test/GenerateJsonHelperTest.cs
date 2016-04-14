@@ -10,8 +10,16 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
 
     using Naos.Deployment.Domain;
+    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Handler;
+    using Naos.Deployment.Persistence;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.DataContract;
     using Naos.MessageBus.HandlingContract;
+
+    using Spritely.ReadModel;
+    using Spritely.ReadModel.Mongo;
+    using Spritely.Recipes;
 
     using Xunit;
 
@@ -20,7 +28,7 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void CreateHangfireServerDeploymentJson()
         {
-            var objects = new List<PackageDescriptionWithOverrides>();
+            var packages = new List<PackageDescriptionWithOverrides>();
 
             var logFilePath = @"D:\Deployments\HangfireHarnessLog.txt";
             var hangfireDns = "hangfire.development.com";
@@ -44,7 +52,7 @@ namespace Naos.Deployment.Core.Test
                                              }
                                  };
 
-            objects.Add(hangfireDb);
+            packages.Add(hangfireDb);
 
             var hangfireHarness = new PackageDescriptionWithOverrides
                                {
@@ -100,8 +108,8 @@ namespace Naos.Deployment.Core.Test
                                                             }
                                };
 
-            objects.Add(hangfireHarness);
-            var output = Serializer.Serialize(objects, true);
+            packages.Add(hangfireHarness);
+            var output = Serializer.Serialize(packages, true);
             Assert.NotNull(output);
         }
     }
