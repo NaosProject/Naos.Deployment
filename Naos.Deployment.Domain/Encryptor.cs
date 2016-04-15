@@ -66,6 +66,12 @@ namespace Naos.Deployment.Domain
 
         private static string RunWithCertificate(CertificateLocator encryptingCertificate, Func<X509Certificate2, string> funcToRunWithCertificate)
         {
+            var certificateThumbprint = encryptingCertificate.CertificateThumbprint;
+            if (certificateThumbprint == null)
+            {
+                throw new ArgumentException("Must supply a certificate thumbprint to use for retrieving the encrypting certificate.");
+            }
+
             string result;
             var certificateStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
             try
@@ -73,7 +79,7 @@ namespace Naos.Deployment.Domain
                 certificateStore.Open(OpenFlags.OpenExistingOnly);
 
                 var thumbprint =
-                    Regex.Replace(encryptingCertificate.CertificateThumbprint, @"[^\da-zA-z]", string.Empty)
+                    Regex.Replace(certificateThumbprint, @"[^\da-zA-z]", string.Empty)
                         .ToUpper(CultureInfo.InvariantCulture);
 
                 var certificates = certificateStore.Certificates.Find(
@@ -84,7 +90,7 @@ namespace Naos.Deployment.Domain
                 if (certificates.Count == 0)
                 {
                     throw new ArgumentException(
-                        "Could not find certificate; thumbprint: " + encryptingCertificate.CertificateThumbprint);
+                        "Could not find certificate; thumbprint: " + certificateThumbprint);
                 }
 
                 var x509Certificate2 = certificates[0];
