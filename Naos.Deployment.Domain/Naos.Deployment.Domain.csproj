@@ -42,8 +42,8 @@
       <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.128\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.9\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.11\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
