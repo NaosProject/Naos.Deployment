@@ -242,6 +242,11 @@ namespace Naos.Deployment.Tracking
                 this.arcologyInfoQueries.GetOneAsync(
                     _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
 
+            if (arcologyInfoContainer == null)
+            {
+                throw new ArgumentException("Could not find an arcology definition for environment: " + environment);
+            }
+
             var instancesContainers =
                 await
                 this.instanceQueries.GetManyAsync(
