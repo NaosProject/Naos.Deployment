@@ -8,6 +8,7 @@ namespace Naos.Deployment.Tracking
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
@@ -21,6 +22,11 @@ namespace Naos.Deployment.Tracking
     /// </summary>
     public class MongoInfrastructureTracker : ITrackComputingInfrastructure
     {
+        /// <summary>
+        /// This is necessary to make sure we don't do multiple arcology operations at the same time and commit partial results - 1 is the number of allowed threads.
+        /// </summary>
+        private readonly SemaphoreSlim arcologySemaphore = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+
         private readonly IQueries<ArcologyInfoContainer> arcologyInfoQueries;
 
         private readonly IQueries<InstanceContainer> instanceQueries;
@@ -52,16 +58,27 @@ namespace Naos.Deployment.Tracking
         /// <inheritdoc />
         public async Task ProcessInstanceTerminationAsync(string environment, string systemId)
         {
-            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
-            var matchingInstance =
-                arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
 
-            // write
-            if (matchingInstance != null)
+            try
             {
-                arcology.MutateInstancesRemove(matchingInstance);
-                var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
-                await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+                var matchingInstance =
+                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+
+                // write
+                if (matchingInstance != null)
+                {
+                    arcology.MutateInstancesRemove(matchingInstance);
+                    var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                    await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
+                }
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
             }
         }
 
@@ -71,55 +88,87 @@ namespace Naos.Deployment.Tracking
             DeploymentConfiguration deploymentConfiguration,
             ICollection<PackageDescription> intendedPackages)
         {
-            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
-            var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
 
-            // write
-            arcology.MutateInstancesAdd(newDeployedInstance);
-            var instanceContainer = CreateInstanceContainerFromInstance(newDeployedInstance);
-            await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+            try
+            {
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+                var newDeployedInstance = arcology.CreateNewDeployedInstance(deploymentConfiguration, intendedPackages);
 
-            return newDeployedInstance.InstanceCreationDetails;
+                // write
+                arcology.MutateInstancesAdd(newDeployedInstance);
+                var instanceContainer = CreateInstanceContainerFromInstance(newDeployedInstance);
+                await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+
+                return newDeployedInstance.InstanceCreationDetails;
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
         }
 
         /// <inheritdoc />
         public async Task ProcessInstanceCreationAsync(InstanceDescription instanceDescription)
         {
-            var arcology = await this.GetArcologyByEnvironmentNameAsync(instanceDescription.Environment);
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
 
-            var toUpdate =
-                arcology.Instances.SingleOrDefault(
-                    _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
-
-            if (toUpdate == null)
+            try
             {
-                throw new DeploymentException(
-                    "Expected to find a tracked instance (pre-creation) with private IP: "
-                    + instanceDescription.PrivateIpAddress);
-            }
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(instanceDescription.Environment);
 
-            // write
-            toUpdate.InstanceDescription = instanceDescription;
-            var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
-            await this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer);
+                var toUpdate =
+                    arcology.Instances.SingleOrDefault(
+                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+
+                if (toUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (pre-creation) with private IP: "
+                        + instanceDescription.PrivateIpAddress);
+                }
+
+                // write
+                toUpdate.InstanceDescription = instanceDescription;
+                var toUpdateContainer = CreateInstanceContainerFromInstance(toUpdate);
+                await this.instanceCommands.AddOrUpdateOneAsync(toUpdateContainer);
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
         }
 
         /// <inheritdoc />
         public async Task ProcessDeployedPackageAsync(string environment, string systemId, PackageDescription package)
         {
-            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
-            var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
-            if (instanceToUpdate == null)
-            {
-                throw new DeploymentException(
-                    "Expected to find a tracked instance (post-creation) with system ID: "
-                    + systemId);
-            }
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
 
-            // write
-            Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
-            var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
-            await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+            try
+            {
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+                var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+                if (instanceToUpdate == null)
+                {
+                    throw new DeploymentException(
+                        "Expected to find a tracked instance (post-creation) with system ID: " + systemId);
+                }
+
+                // write
+                Arcology.UpdatePackageVerificationInInstanceDeploymentList(instanceToUpdate, package);
+                var instanceContainer = CreateInstanceContainerFromInstance(instanceToUpdate);
+                await this.instanceCommands.AddOrUpdateOneAsync(instanceContainer);
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
         }
 
         /// <inheritdoc />
@@ -148,6 +197,33 @@ namespace Naos.Deployment.Tracking
         {
             var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
             return arcology.GetDomainZoneId(domain);
+        }
+
+        /// <inheritdoc />
+        public async Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress)
+        {
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
+
+            try
+            {
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+                var matchingInstance =
+                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.PrivateIpAddress == privateIpAddress);
+
+                // write
+                if (matchingInstance != null)
+                {
+                    arcology.MutateInstancesRemove(matchingInstance);
+                    var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                    await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
+                }
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
         }
 
         private async Task<Arcology> GetArcologyByEnvironmentNameAsync(string environment)
