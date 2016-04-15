@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Tracking
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -209,15 +210,20 @@ namespace Naos.Deployment.Tracking
             {
                 var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
                 var matchingInstance =
-                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.PrivateIpAddress == privateIpAddress);
+                    arcology.Instances.SingleOrDefault(
+                        _ =>
+                        _.InstanceDescription.PrivateIpAddress == privateIpAddress
+                        && string.IsNullOrEmpty(_.InstanceDescription.Id));
 
                 // write
-                if (matchingInstance != null)
+                if (matchingInstance == null)
                 {
-                    arcology.MutateInstancesRemove(matchingInstance);
-                    var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
-                    await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
+                    throw new ArgumentException("Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
                 }
+
+                arcology.MutateInstancesRemove(matchingInstance);
+                var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
             }
             finally
             {
