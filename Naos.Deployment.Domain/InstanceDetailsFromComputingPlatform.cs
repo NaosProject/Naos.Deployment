@@ -37,5 +37,10 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the status of the instance.
         /// </summary>
         public InstanceStatus InstanceStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the private IP address.
+        /// </summary>
+        public string PrivateIpAddress { get; set; }
     }
 }

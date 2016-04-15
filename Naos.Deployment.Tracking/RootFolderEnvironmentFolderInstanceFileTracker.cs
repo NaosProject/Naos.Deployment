@@ -195,6 +195,38 @@ namespace Naos.Deployment.Tracking
             }
         }
 
+        /// <inheritdoc />
+        public Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress)
+        {
+            lock (this.fileSync)
+            {
+                var arcology = this.GetArcologyByEnvironmentName(environment);
+                var matchingInstance =
+                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.PrivateIpAddress == privateIpAddress);
+
+                // once we have found the file we just need to delete the file
+                if (matchingInstance != null)
+                {
+                    var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
+                    var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
+
+                    if (File.Exists(instanceFilePathNamed))
+                    {
+                        File.Delete(instanceFilePathNamed);
+                    }
+
+                    // clean up the file before it had a name (if applicable)
+                    if (File.Exists(instanceFilePathIp))
+                    {
+                        File.Delete(instanceFilePathIp);
+                    }
+                }
+
+                return this.emptyTask;
+            }
+        }
+
         /// <summary>
         /// Gets a copy of the arcology by environment.
         /// </summary>

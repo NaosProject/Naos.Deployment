@@ -90,5 +90,13 @@ namespace Naos.Deployment.Domain
         /// <param name="domain">Domain to find the hosting ID for (should only be a root domain).</param>
         /// <returns>Hosting ID or null if not found.</returns>
         Task<string> GetDomainZoneIdAsync(string environment, string domain);
+
+        /// <summary>
+        /// Removes a previously failed deployment by looking up using the private IP address.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
+        /// <param name="privateIpAddress">The specified private IP address to use to find the instance.</param>
+        /// <returns>Task for async.</returns>
+        Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress);
     }
 }

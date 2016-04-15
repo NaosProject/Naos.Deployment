@@ -78,5 +78,11 @@ namespace Naos.Deployment.Tracking
         {
             return Task.FromResult<string>(null);
         }
+
+        /// <inheritdoc />
+        public Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress)
+        {
+            return this.emptyTask;
+        }
     }
 }

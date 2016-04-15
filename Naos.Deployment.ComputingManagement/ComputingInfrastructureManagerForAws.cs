@@ -408,7 +408,8 @@ namespace Naos.Deployment.ComputingManagement
                                            Location = _.Region,
                                            Name = name,
                                            Tags = tags,
-                                           InstanceStatus = status
+                                           InstanceStatus = status,
+                                           PrivateIpAddress = _.PrivateIpAddress
                                        };
                         }).ToList();
 

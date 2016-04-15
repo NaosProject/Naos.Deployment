@@ -951,11 +951,38 @@ namespace Naos.Deployment.Core
 
         private async Task TerminateInstanceAsync(string environment, InstanceDescription instanceDescription)
         {
-            this.LogAnnouncement("Terminating instance => ID: " + instanceDescription.Id + ", ComputingName: " + instanceDescription.Name);
+            var systemInstanceId = instanceDescription.Id;
+            if (string.IsNullOrEmpty(systemInstanceId))
+            {
+                // this is likely due to a failed previous install - MUST check if the instance actually got created...
+                var activeInstancesFromProvider =
+                    await
+                    this.computingManager.GetActiveInstancesFromProviderAsync(environment, instanceDescription.Location);
+
+                var any =
+                    activeInstancesFromProvider.SingleOrDefault(
+                        _ => _.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+
+                if (any != null)
+                {
+                    throw new NotSupportedException(
+                        "There is an instance in tracking with the package set that is attempting to be deployed that does not have an instance id AND there is an instance with the same private IP address, if this instance is in fact a failed deployment it must be manually terminated, if not then there is probably a configuration issue - Private IP: "
+                        + instanceDescription.PrivateIpAddress + ", ID: " + any.Id);
+                }
+                else
+                {
+                    this.LogAnnouncement(
+                        "Removing a failed prior deployment attempt of packages from tracking because no instance exists with the specified private IP address in the instance provider; IP Address: "
+                        + instanceDescription.PrivateIpAddress);
+                    await this.tracker.ProcessFailedInstanceDeploymentAsync(environment, instanceDescription.PrivateIpAddress);
+                }
+            }
+
+            this.LogAnnouncement("Terminating instance => ID: " + systemInstanceId + ", ComputingName: " + instanceDescription.Name);
             await
                 this.computingManager.TerminateInstanceAsync(
                     environment,
-                    instanceDescription.Id,
+                    systemInstanceId,
                     instanceDescription.Location,
                     true);
         }
