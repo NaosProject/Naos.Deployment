@@ -65,8 +65,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Its.Log.2.9.11\lib\net40\Its.Log.dll</HintPath>
+      <HintPath>..\packages\Its.Log.2.9.13\lib\net451\Its.Log.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="MongoDB.Bson, Version=2.2.3.3, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Bson.2.2.3\lib\net45\MongoDB.Bson.dll</HintPath>
