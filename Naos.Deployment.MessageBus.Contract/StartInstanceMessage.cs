@@ -7,7 +7,7 @@
 namespace Naos.Deployment.MessageBus.Contract
 {
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Message to be processed and turn off an instance specified.

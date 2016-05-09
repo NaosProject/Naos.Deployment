@@ -7,7 +7,7 @@
 namespace Naos.Deployment.MessageBus.Contract
 {
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Interface to support sharing the object being used to target the instance

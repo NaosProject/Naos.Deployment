@@ -10,7 +10,7 @@ namespace Naos.Deployment.Core.Test
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     using Xunit;
 

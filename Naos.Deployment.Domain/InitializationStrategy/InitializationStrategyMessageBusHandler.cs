@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate message bus handler deployments.

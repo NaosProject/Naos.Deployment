@@ -15,7 +15,9 @@ namespace Naos.Deployment.MessageBus.Handler
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Contract;
-    using Naos.MessageBus.HandlingContract;
+    using Naos.MessageBus.Domain;
+
+    using Serializer = Naos.Deployment.Domain.Serializer;
 
     /// <summary>
     /// Handler for stop instance messages.

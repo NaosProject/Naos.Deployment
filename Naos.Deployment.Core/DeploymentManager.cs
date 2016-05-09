@@ -15,11 +15,13 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.HandlingContract;
+    using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.WinRM;
 
     using Newtonsoft.Json;
+
+    using Serializer = Naos.Deployment.Domain.Serializer;
 
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
@@ -150,7 +152,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = string.Format(".config/{0}/DeploymentConfigurationWithStrategies.json", environment);
+            var deploymentFileSearchPattern = $".config/{environment}/DeploymentConfigurationWithStrategies.json";
 
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
@@ -256,13 +258,7 @@ namespace Naos.Deployment.Core
                 ",",
                 createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
             var createdInstanceMessage =
-                string.Format(
-                    "Instance " + instanceNumber
-                    + " - Created new instance => ComputingName: {0}, ID: {1}, Private IP: {2}, System Specific Details: {3}",
-                    createdInstanceDescription.Name,
-                    createdInstanceDescription.Id,
-                    createdInstanceDescription.PrivateIpAddress,
-                    systemSpecificDetailsAsString);
+                $"Instance {instanceNumber} - Created new instance => ComputingName: {createdInstanceDescription.Name}, ID: {createdInstanceDescription.Id}, Private IP: {createdInstanceDescription.PrivateIpAddress}, System Specific Details: {systemSpecificDetailsAsString}";
             this.LogAnnouncement(createdInstanceMessage, instanceNumber);
 
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
@@ -331,7 +327,7 @@ namespace Naos.Deployment.Core
                         environment,
                         instanceNumber);
 
-                this.LogAnnouncement(string.Format(" - Pointing {0} at {1}.", dns, ipAddress), instanceNumber);
+                this.LogAnnouncement($" - Pointing {dns} at {ipAddress}.", instanceNumber);
 
                 lock (this.syncDnsManager)
                 {
@@ -367,11 +363,7 @@ namespace Naos.Deployment.Core
                         environment,
                         instanceNumber);
 
-                    var pointedPrivateDnsMessage =
-                        string.Format(
-                            " - Pointing {0} at {1}.",
-                            privateDnsEntry,
-                            privateIpAddress);
+                    var pointedPrivateDnsMessage = $" - Pointing {privateDnsEntry} at {privateIpAddress}.";
                     this.LogAnnouncement(pointedPrivateDnsMessage, instanceNumber);
 
                     lock (this.syncDnsManager)
@@ -400,11 +392,7 @@ namespace Naos.Deployment.Core
                         environment,
                         instanceNumber);
 
-                    var pointedPublicDnsMessage =
-                        string.Format(
-                            " - Pointing {0} at {1}.",
-                            publicDnsEntry,
-                            publicIpAddress);
+                    var pointedPublicDnsMessage = $" - Pointing {publicDnsEntry} at {publicIpAddress}.";
                     this.LogAnnouncement(pointedPublicDnsMessage, instanceNumber);
 
                     lock (this.syncDnsManager)
@@ -473,11 +461,8 @@ namespace Naos.Deployment.Core
                     foreach (var precedenceElement in precedenceChain)
                     {
                         var itsConfigFolderPattern = packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                                         ? string.Format(
-                                                             "{1}/.config/{0}/",
-                                                             precedenceElement,
-                                                             packageFolderName)
-                                                         : string.Format(".config/{0}/", precedenceElement);
+                                                         ? $"{packageFolderName}/.config/{precedenceElement}/"
+                                                         : $".config/{precedenceElement}/";
 
                         var itsConfigFilesFromPackageForPrecedenceElement =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
@@ -674,30 +659,18 @@ namespace Naos.Deployment.Core
                         if (throwOnFailedSetupStep)
                         {
                             throw new DeploymentException(
-                                "Instance " + instanceNumber + " - Failed to run setup step " + setupStep.Description
-                                + " after " + maxTries + " attempts",
+                                $"Instance {instanceNumber} - Failed to run setup step {setupStep.Description} after {maxTries} attempts",
                                 ex);
                         }
                         else
                         {
-                            var exceededMaxTriesMessage =
-                                string.Format(
-                                    "Step {3} - Exception on try {0}/{1} - {2}",
-                                    tries,
-                                    maxTries,
-                                    ex,
-                                    setupStep.Description);
+                            var exceededMaxTriesMessage = $"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}";
                             this.LogAnnouncement(exceededMaxTriesMessage, instanceNumber);
                         }
                     }
                     else
                     {
-                        var failedRetryingMessage =
-                            string.Format(
-                                "Step {2} - Exception on try {0}/{1} - retrying",
-                                tries,
-                                maxTries,
-                                setupStep.Description);
+                        var failedRetryingMessage = $"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying";
                         this.LogAnnouncement(failedRetryingMessage, instanceNumber);
                         Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
                     }
@@ -779,7 +752,8 @@ namespace Naos.Deployment.Core
                                                 {
                                                     PersistenceConnectionString = this.messageBusPersistenceConnectionString,
                                                     RoleSettings = executorRoleSettings,
-                                                    LogProcessorSettings = this.messageBusHandlerHarnessConfiguration.LogProcessorSettings
+                                                    LogProcessorSettings =
+                                                        this.messageBusHandlerHarnessConfiguration.LogProcessorSettings
                                                 };
 
             // add the override that will activate the harness in executor mode.

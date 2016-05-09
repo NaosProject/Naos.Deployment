@@ -42,10 +42,7 @@ namespace Naos.Deployment.Core
 
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
-                var itsFileSubPath = string.Format(
-                    ".config/{0}/{1}.json",
-                    environment,
-                    itsConfigOverride.FileNameWithoutExtension);
+                var itsFileSubPath = $".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json";
 
                 var itsFilePath = Path.Combine(webRootPath, itsFileSubPath);
                 var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);

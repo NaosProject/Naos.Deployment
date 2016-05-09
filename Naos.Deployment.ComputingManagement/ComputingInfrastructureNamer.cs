@@ -41,7 +41,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>Name to apply to instance.</returns>
         public string GetInstanceName()
         {
-            var name = string.Format("instance-{2}-{0}@{1}", this.baseName, this.containerLocation, this.environment);
+            var name = $"instance-{this.environment}-{this.baseName}@{this.containerLocation}";
             return name;
         }
 
@@ -52,7 +52,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>Name to apply to volume.</returns>
         public string GetVolumeName(string driveLetter)
         {
-            var name = string.Format("ebs-{3}-{0}-{2}@{1}", this.baseName, this.containerLocation, driveLetter, this.environment);
+            var name = $"ebs-{this.environment}-{this.baseName}-{driveLetter}@{this.containerLocation}";
             return name;
         }
 

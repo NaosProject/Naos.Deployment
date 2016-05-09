@@ -131,12 +131,7 @@ namespace Naos.Deployment.Core
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description =
-                                string.Format(
-                                    "Restore - Region: {0}; Bucket: {1}; File: {2}",
-                                    awsRestore.Region,
-                                    awsRestore.BucketName,
-                                    awsRestore.FileName),
+                            Description = $"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}",
                             SetupAction = machineManager =>
                                 {
                                     var restoreFilePath = Path.Combine(

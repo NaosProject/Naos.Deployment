@@ -10,18 +10,11 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
 
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Contract;
-    using Naos.Deployment.MessageBus.Handler;
-    using Naos.Deployment.Persistence;
-    using Naos.Deployment.Tracking;
-    using Naos.MessageBus.DataContract;
-    using Naos.MessageBus.HandlingContract;
-
-    using Spritely.ReadModel;
-    using Spritely.ReadModel.Mongo;
-    using Spritely.Recipes;
+    using Naos.MessageBus.Domain;
 
     using Xunit;
+
+    using Serializer = Naos.Deployment.Domain.Serializer;
 
     public class GenerateJsonHelperTest
     {
