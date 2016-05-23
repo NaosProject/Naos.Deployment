@@ -32,9 +32,7 @@ namespace Naos.Deployment.Domain
             var ret = new InitializationStrategyMessageBusHandler
                           {
                               WorkerCount = this.WorkerCount,
-                              ChannelsToMonitor =
-                                  this.ChannelsToMonitor.Select(
-                                      _ => new Channel { Name = _.Name }).ToList()
+                              ChannelsToMonitor = this.ChannelsToMonitor.Select(_ => new Channel(_.Name)).ToList()
                           };
             return ret;
         }

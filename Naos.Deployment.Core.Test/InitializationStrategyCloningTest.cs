@@ -83,13 +83,7 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Clone_MessageBusHandler_Works()
         {
-            var original = new InitializationStrategyMessageBusHandler
-                               {
-                                   ChannelsToMonitor =
-                                       new[]
-                                           { new Channel { Name = "channel" } },
-                                   WorkerCount = 4
-                               };
+            var original = new InitializationStrategyMessageBusHandler { ChannelsToMonitor = new[] { new Channel("channel") }, WorkerCount = 4 };
             var cloned = original.Clone() as InitializationStrategyMessageBusHandler;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);

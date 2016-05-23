@@ -48,7 +48,7 @@ namespace Naos.Deployment.Core
 
         private readonly SetupStepFactory setupStepFactory;
 
-        private readonly string messageBusPersistenceConnectionString;
+        private readonly MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration;
 
         private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
 
@@ -74,7 +74,7 @@ namespace Naos.Deployment.Core
         /// <param name="defaultDeploymentConfiguration">Default deployment configuration to substitute the values for any nulls.</param>
         /// <param name="messageBusHandlerHarnessConfiguration">Settings and description of the harness to use for message bus handler initializations.</param>
         /// <param name="setupStepFactorySettings">Settings for the setup step factory.</param>
-        /// <param name="messageBusPersistenceConnectionString">Connection string to the message bus harness.</param>
+        /// <param name="messageBusPersistenceConnectionConfiguration">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
@@ -87,7 +87,7 @@ namespace Naos.Deployment.Core
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
             MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration,
             SetupStepFactorySettings setupStepFactorySettings,
-            string messageBusPersistenceConnectionString,
+            MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer, 
             string announcementFile = null, 
@@ -97,7 +97,7 @@ namespace Naos.Deployment.Core
             this.computingManager = computingManager;
             this.packageManager = packageManager;
             this.defaultDeploymentConfiguration = defaultDeploymentConfiguration;
-            this.messageBusPersistenceConnectionString = messageBusPersistenceConnectionString;
+            this.messageBusPersistenceConnectionConfiguration = messageBusPersistenceConnectionConfiguration;
             this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
@@ -750,7 +750,7 @@ namespace Naos.Deployment.Core
 
             var messageBusHandlerSettings = new MessageBusHarnessSettings
                                                 {
-                                                    PersistenceConnectionString = this.messageBusPersistenceConnectionString,
+                                                    ConnectionConfiguration = this.messageBusPersistenceConnectionConfiguration,
                                                     RoleSettings = executorRoleSettings,
                                                     LogProcessorSettings =
                                                         this.messageBusHandlerHarnessConfiguration.LogProcessorSettings

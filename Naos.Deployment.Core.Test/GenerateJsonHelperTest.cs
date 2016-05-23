@@ -10,7 +10,17 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
 
     using Naos.Deployment.Domain;
+    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Handler;
+    using Naos.Deployment.Persistence;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
+
+    using Spritely.ReadModel.Mongo;
+    using Spritely.Recipes;
+
+    using MessageBusCredentials = Naos.MessageBus.Domain.Credentials;
+    using SpritelyCredentials = Spritely.ReadModel.Credentials;
 
     using Xunit;
 
@@ -19,17 +29,134 @@ namespace Naos.Deployment.Core.Test
     public class GenerateJsonHelperTest
     {
         [Fact]
-        public static void CreateHangfireServerDeploymentJson()
+        public static void CreateDeploymentHandlerDeploymentJson()
         {
+            var deploymentDatabaseDns = "Deployment.database.development.com";
+            var deploymentDatabaseUser = "user";
+            var deploymentDatabasePassword = "aPasswordThatIsGood";
+
+            var region = "sa-east-1";
+            var availabilityZone = "sa-east-1a";
+            var startStopAccessKey = "KAIIIDIIIDIDID";
+            var startStopSecretKey = "a;sldkjfalksjdfklasjdflkasdfjkjsdfs";
+            var environment = "Development";
+
+            //----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
+
             var packages = new List<PackageDescriptionWithOverrides>();
 
-            var logFilePath = @"D:\Deployments\HangfireHarnessLog.txt";
+            var deploymentHandlerPackageId = "Naos.Deployment.MessageBus.Handler";
+            var channelNameOne = "aws";
+            var channelNameTwo = "cloud";
+            var infrastructureTrackerConfig = new InfrastructureTrackerConfigurationDatabase
+            {
+                Database = new DeploymentDatabase
+                {
+                    ConnectionSettings = new MongoConnectionSettings
+                    {
+                        Database = environment,
+                        Port = 27017,
+                        Server = deploymentDatabaseDns,
+                        Credentials = new SpritelyCredentials
+                        {
+                            User = deploymentDatabaseUser,
+                            Password = deploymentDatabasePassword.ToSecureString()
+                        }
+                    }
+                }
+            };
+
+            var deploymentMessageHandlerSettings = new DeploymentMessageHandlerSettings
+            {
+                AccessKey = startStopAccessKey,
+                SecretKey = startStopSecretKey,
+                Environment = environment,
+                SystemLocation = region,
+                ContainerSystemLocation = availabilityZone,
+                InfrastructureTrackerConfiguration = infrastructureTrackerConfig,
+                InstanceNameLookupSource = InstanceNameLookupSource.Arcology
+            };
+
+            var deploymentHandler = new PackageDescriptionWithOverrides
+            {
+                Id = deploymentHandlerPackageId,
+                InitializationStrategies =
+                                                new InitializationStrategyBase[]
+                                                    {
+                                                        new InitializationStrategyMessageBusHandler
+                                                            {
+                                                                ChannelsToMonitor = new[]
+                                                                    {
+                                                                        new Channel(channelNameOne),
+                                                                        new Channel(channelNameTwo)
+                                                                    }
+                                                            }
+                                                    },
+                ItsConfigOverrides = new[]
+                                                                     {
+                                                                         new ItsConfigOverride
+                                                                             {
+                                                                                 FileNameWithoutExtension = "DeploymentMessageHandlerSettings",
+                                                                                 FileContentsJson = Serializer.Serialize(deploymentMessageHandlerSettings, true)
+                                                                             }
+                                                                     }
+            };
+
+            packages.Add(deploymentHandler);
+            var output = Serializer.Serialize(packages, true);
+            Assert.NotNull(output);
+        }
+
+        [Fact]
+        public static void CreateHangfireServerDeploymentJson()
+        {
             var hangfireDns = "hangfire.development.com";
             var sslCertName = "RootSslCertName";
+            var databaseServerPassword = "thisPasswordShouldBeGood...";
+
+            //----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
+
             var hangfireDatabasePackageId = "Naos.MessageBus.Hangfire.Database";
             var hangfireHarnessPackageId = "Naos.MessageBus.Hangfire.Harness";
-            var hangfirePassword = "thisPasswordShouldBeGood...";
-            var persistenceConnectionString = "Server=localhost;Database=Hangfire;user id=sa;password=" + hangfirePassword + ";";
+            var logFilePath = @"D:\Deployments\Naos.MessageBus.Hangfire.Harness\packagedWebsite\HangfireHarnessLog.txt";
+            var databaseServerUser = "sa";
+            var databaseServer = "localhost";
+            var persistenceConnectionConfiguration = new MessageBusConnectionConfiguration
+                                                         {
+                                                             CourierPersistenceConnectionConfiguration =
+                                                                 new CourierPersistenceConnectionConfiguration
+                                                                     {
+                                                                         Server = databaseServer,
+                                                                         Database = "Hangfire",
+                                                                         Credentials = new MessageBusCredentials
+                                                                         {
+                                                                             User = databaseServerUser,
+                                                                             Password = databaseServerPassword.ToSecureString()
+                                                                         }
+                                                                 },
+                                                             EventPersistenceConnectionConfiguration =
+                                                                 new EventPersistenceConnectionConfiguration
+                                                                     {
+                                                                         Server = databaseServer,
+                                                                         Database = "ParcelTrackingEvents",
+                                                                         Credentials = new MessageBusCredentials
+                                                                         {
+                                                                                     User = databaseServerUser,
+                                                                                     Password = databaseServerPassword.ToSecureString()
+                                                                                 }
+                                                                     },
+                                                             ReadModelPersistenceConnectionConfiguration =
+                                                                 new ReadModelPersistenceConnectionConfiguration
+                                                                     {
+                                                                         Server = databaseServer,
+                                                                         Database = "ParcelTrackingReadModel",
+                                                                         Credentials = new MessageBusCredentials
+                                                                         {
+                                                                             User = databaseServerUser,
+                                                                             Password = databaseServerPassword.ToSecureString()
+                                                                         }
+                                                                 }
+            };
 
             var hangfireDb = new PackageDescriptionWithOverrides
                                  {
@@ -40,12 +167,12 @@ namespace Naos.Deployment.Core.Test
                                                  new InitializationStrategySqlServer
                                                      {
                                                          Name = "Hangfire",
-                                                         AdministratorPassword = hangfirePassword
+                                                         AdministratorPassword = databaseServerPassword
                                                      }
                                              }
                                  };
 
-            packages.Add(hangfireDb);
+            var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };
 
             var hangfireHarness = new PackageDescriptionWithOverrides
                                {
@@ -80,7 +207,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                                                                    {
                                                                                                                                                        LogFilePath = logFilePath
                                                                                                                                                    },
-                                                                                                                        PersistenceConnectionString = persistenceConnectionString,
+                                                                                                                        ConnectionConfiguration = persistenceConnectionConfiguration,
                                                                                                                         RoleSettings = new MessageBusHarnessRoleSettingsBase[]
                                                                                                                                            {
                                                                                                                                                new MessageBusHarnessRoleSettingsHost
@@ -90,7 +217,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                                                                new MessageBusHarnessRoleSettingsExecutor
                                                                                                                                                    {
                                                                                                                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
-                                                                                                                                                       ChannelsToMonitor = new[] { new Channel { Name = "default" }, new Channel { Name = "hangsrvr" } },
+                                                                                                                                                       ChannelsToMonitor = new[] { new Channel("default"), new Channel("hangsrvr") },
                                                                                                                                                        HandlerAssemblyPath = @"D:\Deployments",
                                                                                                                                                        WorkerCount = 1,
                                                                                                                                                        PollingTimeSpan = TimeSpan.FromMinutes(1)

@@ -21,6 +21,7 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Core;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+    using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
 
     using Newtonsoft.Json;
@@ -28,6 +29,8 @@ namespace Naos.Deployment.Console
     using OBeautifulCode.Libs.Collections;
 
     using Spritely.Recipes;
+
+    using Serializer = Naos.Deployment.Domain.Serializer;
 
     /// <summary>
     /// Deployment logic to be invoked from the console harness.
@@ -75,7 +78,7 @@ namespace Naos.Deployment.Console
         public static void Deploy(
             [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
-            [Aliases("")] [Description("Message bus persistence connection string.")] [DefaultValue(null)] string messageBusPersistenceConnectionString,
+            [Aliases("")] [Description("Message bus persistence connection configuration JSON.")] [DefaultValue(null)] string messageBusPersistenceConnectionConfigurationJson,
             [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
             [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson, 
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
@@ -118,6 +121,8 @@ namespace Naos.Deployment.Console
                 Serializer.Deserialize<CertificateRetrieverConfigurationBase>(certificateRetrieverJson);
             var infrastructureTrackerConfiguration =
                 Serializer.Deserialize<InfrastructureTrackerConfigurationBase>(infrastructureTrackerJson);
+            var messageBusPersistenceConnectionConfiguration =
+                Serializer.Deserialize<MessageBusConnectionConfiguration>(messageBusPersistenceConnectionConfigurationJson);
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
@@ -157,7 +162,7 @@ namespace Naos.Deployment.Console
                 defaultDeploymentConfiguration,
                 messageBusHandlerHarnessConfiguration,
                 setupFactorySettings,
-                messageBusPersistenceConnectionString,
+                messageBusPersistenceConnectionConfiguration,
                 computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine,
                 announcementFilePath,

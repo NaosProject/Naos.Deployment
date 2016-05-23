@@ -88,6 +88,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Naos.AWS.Core.1.0.37\lib\net45\Naos.AWS.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.2\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.158.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.158-addseparatejobtracki\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.11\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
@@ -134,11 +146,11 @@
     <None Include=".config\Default\DefaultDeploymentConfiguration.json" />
     <None Include=".config\Default\MessageBusHandlerHarnessConfiguration.json" />
     <None Include=".config\Default\SetupStepFactorySettings.json" />
-    <Compile Include=".Spritely.Recipes\Functional.cs" />
-    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
-    <Compile Include=".Spritely.Recipes\SecureString.cs" />
-    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\Functional\Functional.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="Deployer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
