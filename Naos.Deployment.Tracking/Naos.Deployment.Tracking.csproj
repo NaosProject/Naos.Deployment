@@ -73,11 +73,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include=".Spritely.Recipes\Functional.cs" />
-    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
-    <Compile Include=".Spritely.Recipes\SecureString.cs" />
-    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\Functional\Functional.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="Arcology.cs" />
     <Compile Include="InfrastructureTrackerConfigurationBase.cs" />
     <Compile Include="MongoInfrastructureTracker.cs" />

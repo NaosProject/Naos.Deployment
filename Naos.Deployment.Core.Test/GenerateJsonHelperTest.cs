@@ -19,12 +19,11 @@ namespace Naos.Deployment.Core.Test
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
 
-    using MessageBusCredentials = Naos.MessageBus.Domain.Credentials;
-    using SpritelyCredentials = Spritely.ReadModel.Credentials;
-
     using Xunit;
 
+    using MessageBusCredentials = Naos.MessageBus.Domain.Credentials;
     using Serializer = Naos.Deployment.Domain.Serializer;
+    using SpritelyCredentials = Spritely.ReadModel.Credentials;
 
     public class GenerateJsonHelperTest
     {
@@ -41,8 +40,7 @@ namespace Naos.Deployment.Core.Test
             var startStopSecretKey = "a;sldkjfalksjdfklasjdflkasdfjkjsdfs";
             var environment = "Development";
 
-            //----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
-
+            // ----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
             var packages = new List<PackageDescriptionWithOverrides>();
 
             var deploymentHandlerPackageId = "Naos.Deployment.MessageBus.Handler";
@@ -114,8 +112,7 @@ namespace Naos.Deployment.Core.Test
             var sslCertName = "RootSslCertName";
             var databaseServerPassword = "thisPasswordShouldBeGood...";
 
-            //----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
-
+            // ----------- CHANGE ABOVE THIS LINE TO YOUR STUFF -----------------
             var hangfireDatabasePackageId = "Naos.MessageBus.Hangfire.Database";
             var hangfireHarnessPackageId = "Naos.MessageBus.Hangfire.Harness";
             var logFilePath = @"D:\Deployments\Naos.MessageBus.Hangfire.Harness\packagedWebsite\HangfireHarnessLog.txt";
