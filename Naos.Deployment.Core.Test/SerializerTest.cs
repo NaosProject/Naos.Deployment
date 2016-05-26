@@ -11,8 +11,11 @@ namespace Naos.Deployment.Core.Test
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+    using Naos.MessageBus.Domain;
 
     using Xunit;
+
+    using Serializer = Naos.Deployment.Domain.Serializer;
 
     public class SerializerTest
     {
@@ -167,7 +170,7 @@ namespace Naos.Deployment.Core.Test
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.Single().Name);
+            Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.OfType<SimpleChannel>().Single().Name);
         }
 
         [Fact]
