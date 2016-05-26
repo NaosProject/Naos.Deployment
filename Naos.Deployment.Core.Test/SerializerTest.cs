@@ -162,7 +162,7 @@ namespace Naos.Deployment.Core.Test
 		""sizeInGb"": ""50"",
 	}],
 	""initializationStrategies"": [{
-		""channelsToMonitor"": [{""Name"":""MyChannel""}],
+		""channelsToMonitor"": [{""name"":""MyChannel""}],
 	}],
 }
 ";
