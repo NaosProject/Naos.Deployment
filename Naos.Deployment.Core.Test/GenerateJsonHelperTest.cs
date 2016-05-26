@@ -76,29 +76,37 @@ namespace Naos.Deployment.Core.Test
             };
 
             var deploymentHandler = new PackageDescriptionWithOverrides
-            {
-                Id = deploymentHandlerPackageId,
-                InitializationStrategies =
+                                        {
+                                            Id = deploymentHandlerPackageId,
+                                            InitializationStrategies =
                                                 new InitializationStrategyBase[]
                                                     {
                                                         new InitializationStrategyMessageBusHandler
                                                             {
-                                                                ChannelsToMonitor = new[]
-                                                                    {
-                                                                        new Channel(channelNameOne),
-                                                                        new Channel(channelNameTwo)
-                                                                    }
+                                                                ChannelsToMonitor =
+                                                                    new[]
+                                                                        {
+                                                                            new SimpleChannel(
+                                                                                channelNameOne),
+                                                                            new SimpleChannel(
+                                                                                channelNameTwo)
+                                                                        }
                                                             }
                                                     },
-                ItsConfigOverrides = new[]
-                                                                     {
-                                                                         new ItsConfigOverride
-                                                                             {
-                                                                                 FileNameWithoutExtension = "DeploymentMessageHandlerSettings",
-                                                                                 FileContentsJson = Serializer.Serialize(deploymentMessageHandlerSettings, true)
-                                                                             }
-                                                                     }
-            };
+                                            ItsConfigOverrides =
+                                                new[]
+                                                    {
+                                                        new ItsConfigOverride
+                                                            {
+                                                                FileNameWithoutExtension =
+                                                                    "DeploymentMessageHandlerSettings",
+                                                                FileContentsJson =
+                                                                    Serializer.Serialize(
+                                                                        deploymentMessageHandlerSettings,
+                                                                        true)
+                                                            }
+                                                    }
+                                        };
 
             packages.Add(deploymentHandler);
             var output = Serializer.Serialize(packages, true);
@@ -123,6 +131,7 @@ namespace Naos.Deployment.Core.Test
                                                              CourierPersistenceConnectionConfiguration =
                                                                  new CourierPersistenceConnectionConfiguration
                                                                      {
+                                                                         Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "Hangfire",
                                                                          Credentials = new MessageBusCredentials
@@ -134,6 +143,7 @@ namespace Naos.Deployment.Core.Test
                                                              EventPersistenceConnectionConfiguration =
                                                                  new EventPersistenceConnectionConfiguration
                                                                      {
+                                                                         Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "ParcelTrackingEvents",
                                                                          Credentials = new MessageBusCredentials
@@ -145,6 +155,7 @@ namespace Naos.Deployment.Core.Test
                                                              ReadModelPersistenceConnectionConfiguration =
                                                                  new ReadModelPersistenceConnectionConfiguration
                                                                      {
+                                                                         Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "ParcelTrackingReadModel",
                                                                          Credentials = new MessageBusCredentials
@@ -172,58 +183,89 @@ namespace Naos.Deployment.Core.Test
             var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };
 
             var hangfireHarness = new PackageDescriptionWithOverrides
-                               {
-                                   Id = hangfireHarnessPackageId,
-                                   InitializationStrategies =
-                                       new InitializationStrategyBase[]
-                                           {
-                                               new InitializationStrategyDnsEntry
-                                                   {
-                                                       PrivateDnsEntry = hangfireDns
-                                                   },
-                                               new InitializationStrategyIis
-                                                   {
-                                                       AppPoolStartMode = ApplicationPoolStartMode.AlwaysRunning,
-                                                       PrimaryDns = hangfireDns,
-                                                       SslCertificateName = sslCertName,
-                                                       AutoStartProvider = new AutoStartProvider
-                                                                               {
-                                                                                   Name = "ApplicationPreload",
-                                                                                   Type = "Naos.MessageBus.Hangfire.Harness.ApplicationPreload, Naos.MessageBus.Hangfire.Harness"
-                                                                               }
-                                                   }
-                                           },
-                                   ItsConfigOverrides = new[]
-                                                            {
-                                                                new ItsConfigOverride
-                                                                    {
-                                                                        FileNameWithoutExtension = "MessageBusHarnessSettings",
-                                                                        FileContentsJson = Serializer.Serialize(new MessageBusHarnessSettings
-                                                                                                                    {
-                                                                                                                        LogProcessorSettings = new LogProcessorSettings
-                                                                                                                                                   {
-                                                                                                                                                       LogFilePath = logFilePath
-                                                                                                                                                   },
-                                                                                                                        ConnectionConfiguration = persistenceConnectionConfiguration,
-                                                                                                                        RoleSettings = new MessageBusHarnessRoleSettingsBase[]
-                                                                                                                                           {
-                                                                                                                                               new MessageBusHarnessRoleSettingsHost
-                                                                                                                                                   {
-                                                                                                                                                       RunDashboard = true
-                                                                                                                                                   },
-                                                                                                                                               new MessageBusHarnessRoleSettingsExecutor
-                                                                                                                                                   {
-                                                                                                                                                       TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
-                                                                                                                                                       ChannelsToMonitor = new[] { new Channel("default"), new Channel("hangsrvr") },
-                                                                                                                                                       HandlerAssemblyPath = @"D:\Deployments",
-                                                                                                                                                       WorkerCount = 1,
-                                                                                                                                                       PollingTimeSpan = TimeSpan.FromMinutes(1)
-                                                                                                                                                   }
-                                                                                                                                           }
-                                                                                                                    })
-                                                                    }
-                                                            }
-                               };
+                                      {
+                                          Id = hangfireHarnessPackageId,
+                                          InitializationStrategies =
+                                              new InitializationStrategyBase[]
+                                                  {
+                                                      new InitializationStrategyDnsEntry { PrivateDnsEntry = hangfireDns },
+                                                      new InitializationStrategyIis
+                                                          {
+                                                              AppPoolStartMode =
+                                                                  ApplicationPoolStartMode.AlwaysRunning,
+                                                              PrimaryDns = hangfireDns,
+                                                              SslCertificateName = sslCertName,
+                                                              AutoStartProvider =
+                                                                  new AutoStartProvider
+                                                                      {
+                                                                          Name =
+                                                                              "ApplicationPreload",
+                                                                          Type =
+                                                                              "Naos.MessageBus.Hangfire.Harness.ApplicationPreload, Naos.MessageBus.Hangfire.Harness"
+                                                                      }
+                                                          }
+                                                  },
+                                          ItsConfigOverrides =
+                                              new[]
+                                                  {
+                                                      new ItsConfigOverride
+                                                          {
+                                                              FileNameWithoutExtension =
+                                                                  "MessageBusHarnessSettings",
+                                                              FileContentsJson =
+                                                                  Serializer.Serialize(
+                                                                      new MessageBusHarnessSettings
+                                                                          {
+                                                                              LogProcessorSettings
+                                                                                  =
+                                                                                  new LogProcessorSettings
+                                                                                      {
+                                                                                          LogFilePath
+                                                                                              =
+                                                                                              logFilePath
+                                                                                      },
+                                                                              ConnectionConfiguration
+                                                                                  =
+                                                                                  persistenceConnectionConfiguration,
+                                                                              RoleSettings
+                                                                                  =
+                                                                                  new MessageBusHarnessRoleSettingsBase[]
+                                                                                      {
+                                                                                          new MessageBusHarnessRoleSettingsHost
+                                                                                              {
+                                                                                                  RunDashboard
+                                                                                                      =
+                                                                                                      true
+                                                                                              },
+                                                                                          new MessageBusHarnessRoleSettingsExecutor
+                                                                                              {
+                                                                                                  TypeMatchStrategy
+                                                                                                      =
+                                                                                                      TypeMatchStrategy
+                                                                                                      .NamespaceAndName,
+                                                                                                  ChannelsToMonitor
+                                                                                                      =
+                                                                                                      new[]
+                                                                                                          {
+                                                                                                              new SimpleChannel("default"),
+                                                                                                              new SimpleChannel("hangsrvr")
+                                                                                                          },
+                                                                                                  HandlerAssemblyPath
+                                                                                                      =
+                                                                                                      @"D:\Deployments",
+                                                                                                  WorkerCount
+                                                                                                      =
+                                                                                                      1,
+                                                                                                  PollingTimeSpan
+                                                                                                      =
+                                                                                                      TimeSpan.FromMinutes(1)
+                                                                                              }
+                                                                                      }
+                                                                          },
+                                                                      true)
+                                                          }
+                                                  }
+                                      };
 
             packages.Add(hangfireHarness);
             var output = Serializer.Serialize(packages, true);
