@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core.Test
 {
+    using System;
     using System.Linq;
 
     using Naos.Cron;
@@ -134,7 +135,7 @@ namespace Naos.Deployment.Core.Test
                                    Description = "Description",
                                    ExeName = "My Exe",
                                    Arguments = "Args",
-                                   Schedule = new MinutelySchedule()
+                                   Schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) }
                                };
 
             var cloned = original.Clone() as InitializationStrategyScheduledTask;

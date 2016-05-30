@@ -55,8 +55,8 @@
       <HintPath>..\packages\AWSSDK.SecurityToken.3.1.0.2\lib\net45\AWSSDK.SecurityToken.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Conditions, Version=2.0.1.19, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Conditions.2.0.1\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Conditions.dll</HintPath>
+    <Reference Include="Conditions, Version=2.0.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Conditions.2.0.0\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Conditions.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="CuttingEdge.Conditions, Version=1.2.0.11174, Culture=neutral, PublicKeyToken=984cb50dea722e99, processorArchitecture=MSIL">
@@ -107,28 +107,28 @@
       <HintPath>..\packages\Naos.AWS.Core.1.0.37\lib\net45\Naos.AWS.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
+    <Reference Include="Naos.Cron, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.12\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Contract, Version=1.0.108.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Contract.1.0.108-csharp4dot6andnewmes\lib\net461\Naos.Database.Contract.dll</HintPath>
+    <Reference Include="Naos.Database.Contract, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Contract.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.108.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.108-csharp4dot6andnewmes\lib\net461\Naos.Database.Migrator.dll</HintPath>
+    <Reference Include="Naos.Database.Migrator, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Migrator.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.108.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Tools.1.0.108-csharp4dot6andnewmes\lib\net461\Naos.Database.Tools.dll</HintPath>
+    <Reference Include="Naos.Database.Tools, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Tools.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.2\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.5\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.166.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.166-addseparatejobtracki\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.174.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.174-addseparatejobtracki\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
