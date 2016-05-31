@@ -64,7 +64,7 @@ namespace Naos.Deployment.Domain
         /// <param name="objectToSerialize">Object to serialize to JSON.</param>
         /// <param name="compact">Optionally will create compact JSON (default is false; specifying false will use a more minimal representation).</param>
         /// <returns>String of JSON.</returns>
-        public static string Serialize<T>(T objectToSerialize, bool compact = false) where T : class
+        public static string Serialize<T>(T objectToSerialize, bool compact = false)
         {
             SetupDefaultSettings(compact);
 
