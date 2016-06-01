@@ -111,32 +111,32 @@
       <HintPath>..\packages\Naos.Cron.1.0.14\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Contract, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Contract.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Contract.dll</HintPath>
+    <Reference Include="Naos.Database.Contract, Version=1.0.111.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Contract.1.0.111-csharp4dot6andnewmes\lib\net461\Naos.Database.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Migrator.dll</HintPath>
+    <Reference Include="Naos.Database.Migrator, Version=1.0.111.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.111-csharp4dot6andnewmes\lib\net461\Naos.Database.Migrator.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.110.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Tools.1.0.110-csharp4dot6andnewmes\lib\net461\Naos.Database.Tools.dll</HintPath>
+    <Reference Include="Naos.Database.Tools, Version=1.0.111.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Tools.1.0.111-csharp4dot6andnewmes\lib\net461\Naos.Database.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.6\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.177.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.177-addseparatejobtracki\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.179.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.179-addseparatejobtracki\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.14\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.17\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.14\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.17\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
@@ -256,7 +256,7 @@
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Management.Automation, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.External.MS-WinRM.1.0.0.0\lib\40\System.Management.Automation.dll</HintPath>
+      <HintPath>..\packages\Naos.External.MS-WinRM.1.0.0.1\lib\40\System.Management.Automation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />

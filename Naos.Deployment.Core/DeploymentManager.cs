@@ -461,7 +461,7 @@ namespace Naos.Deployment.Core
                     foreach (var precedenceElement in precedenceChain)
                     {
                         var itsConfigFolderPattern = packageWithMessageBusInitializations.Package.AreDependenciesBundled
-                                                         ? $"{packageFolderName}/.config/{precedenceElement}/"
+                                                         ? $"{packageFolderName}/Configuration/.config/{precedenceElement}/"
                                                          : $".config/{precedenceElement}/";
 
                         var itsConfigFilesFromPackageForPrecedenceElement =
