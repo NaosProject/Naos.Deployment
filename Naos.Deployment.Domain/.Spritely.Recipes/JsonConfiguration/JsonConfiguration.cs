@@ -38,7 +38,7 @@ namespace Spritely.Recipes
                 {
                     Formatting = Formatting.Indented,
                     NullValueHandling = NullValueHandling.Include,
-                    ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                    ContractResolver = CamelStrictConstructorContractResolver.Instance,
                     Converters = new List<JsonConverter>
                     {
                         new StringEnumConverter { CamelCaseText = true },
@@ -56,6 +56,31 @@ namespace Spritely.Recipes
         ///     The JSON serialization settings.
         /// </value>
         public static JsonSerializerSettings CompactSerializerSettings
+        {
+            get
+            {
+                return new JsonSerializerSettings
+                {
+                    Formatting = Formatting.None,
+                    NullValueHandling = NullValueHandling.Include,
+                    ContractResolver = CamelStrictConstructorContractResolver.Instance,
+                    Converters = new List<JsonConverter>
+                    {
+                        new StringEnumConverter { CamelCaseText = true },
+                        new SecureStringJsonConverter(),
+                        new InheritedTypeJsonConverter()
+                    }
+                };
+            }
+        }
+
+        /// <summary>
+        ///     Gets or sets the minimal JSON serialization settings.
+        /// </summary>
+        /// <value>
+        ///     The JSON serialization settings.
+        /// </value>
+        public static JsonSerializerSettings MinimalSerializerSettings
         {
             get
             {
