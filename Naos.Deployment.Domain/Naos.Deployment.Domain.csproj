@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Naos.Deployment.Domain</RootNamespace>
     <AssemblyName>Naos.Deployment.Domain</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,16 +35,20 @@
       <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Cron, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.1.0.10\lib\net45\Naos.Cron.dll</HintPath>
+    <Reference Include="Naos.Cron, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.14\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.DataContract, Version=1.0.128.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.DataContract.1.0.128\lib\net45\Naos.MessageBus.DataContract.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.6\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.11\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.183.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.183\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.17\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -61,11 +66,12 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Compile Include=".Spritely.Recipes\Functional.cs" />
-    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration.cs" />
-    <Compile Include=".Spritely.Recipes\SecureString.cs" />
-    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
+    <Compile Include=".Spritely.Recipes\Functional\Functional.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="ArcologyInfo.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />

@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using System.Collections.Generic;
     using System.Linq;
 
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate message bus handler deployments.
@@ -19,7 +19,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the channels to monitor on the message bus system.
         /// </summary>
-        public ICollection<Channel> ChannelsToMonitor { get; set; }
+        public ICollection<IChannel> ChannelsToMonitor { get; set; }
 
         /// <summary>
         /// Gets or sets the worker count of the handler harness.
@@ -32,9 +32,7 @@ namespace Naos.Deployment.Domain
             var ret = new InitializationStrategyMessageBusHandler
                           {
                               WorkerCount = this.WorkerCount,
-                              ChannelsToMonitor =
-                                  this.ChannelsToMonitor.Select(
-                                      _ => new Channel { Name = _.Name }).ToList()
+                              ChannelsToMonitor = this.ChannelsToMonitor.OfType<SimpleChannel>().Select(_ => (IChannel)new SimpleChannel(_.Name)).ToList()
                           };
             return ret;
         }

@@ -6,11 +6,12 @@
 
 namespace Naos.Deployment.Core.Test
 {
+    using System;
     using System.Linq;
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.DataContract;
+    using Naos.MessageBus.Domain;
 
     using Xunit;
 
@@ -83,20 +84,14 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Clone_MessageBusHandler_Works()
         {
-            var original = new InitializationStrategyMessageBusHandler
-                               {
-                                   ChannelsToMonitor =
-                                       new[]
-                                           { new Channel { Name = "channel" } },
-                                   WorkerCount = 4
-                               };
+            var original = new InitializationStrategyMessageBusHandler { ChannelsToMonitor = new[] { new SimpleChannel("channel") }, WorkerCount = 4 };
             var cloned = original.Clone() as InitializationStrategyMessageBusHandler;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
             Assert.Equal(original.WorkerCount, cloned.WorkerCount);
             Assert.Equal(original.ChannelsToMonitor.Count, cloned.ChannelsToMonitor.Count);
             Assert.NotSame(original.ChannelsToMonitor.Single(), cloned.ChannelsToMonitor.Single());
-            Assert.Equal(original.ChannelsToMonitor.Single().Name, cloned.ChannelsToMonitor.Single().Name);
+            Assert.Equal(original.ChannelsToMonitor.OfType<SimpleChannel>().Single().Name, cloned.ChannelsToMonitor.OfType<SimpleChannel>().Single().Name);
         }
 
         [Fact]
@@ -140,7 +135,7 @@ namespace Naos.Deployment.Core.Test
                                    Description = "Description",
                                    ExeName = "My Exe",
                                    Arguments = "Args",
-                                   Schedule = new MinutelySchedule()
+                                   Schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) }
                                };
 
             var cloned = original.Clone() as InitializationStrategyScheduledTask;

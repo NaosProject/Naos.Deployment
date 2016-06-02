@@ -54,10 +54,7 @@ namespace Naos.Deployment.Core
 
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
-                var itsFileSubPath = string.Format(
-                    ".config/{0}/{1}.json",
-                    environment,
-                    itsConfigOverride.FileNameWithoutExtension);
+                var itsFileSubPath = $".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json";
 
                 var itsFilePath = Path.Combine(consoleRootPath, itsFileSubPath);
                 var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
@@ -80,10 +77,11 @@ namespace Naos.Deployment.Core
             DateTime dateTimeInUtc;
             var daysOfWeek = new List<DayOfWeek>();
             var utcNow = DateTime.UtcNow;
-            if (scheduleObject.GetType() == typeof(MinutelySchedule))
+            if (scheduleObject.GetType() == typeof(IntervalSchedule))
             {
+                var intervalSchedule = (IntervalSchedule)scheduleObject;
                 dateTimeInUtc = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, 0, 0, 0, DateTimeKind.Utc);
-                repetitionInterval = TimeSpan.FromMinutes(1);
+                repetitionInterval = intervalSchedule.Interval;
             }
             else if (scheduleObject.GetType() == typeof(HourlySchedule))
             {
