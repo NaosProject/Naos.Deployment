@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using Naos.Packaging.Domain;
 
@@ -92,6 +93,44 @@ namespace Naos.Deployment.Core
             ret.Add(rename);
 
             return ret;
+        }
+
+        private ICollection<SetupStep> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
+        {
+            var installChocoSteps = new List<SetupStep>();
+            if (chocolateyPackages != null && chocolateyPackages.Any())
+            {
+                var installChocoClientStep = new SetupStep
+                {
+                    Description = "Install Chocolatey Client",
+                    SetupAction = machineManager =>
+                    {
+                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText);
+                    }
+                };
+
+                installChocoSteps.Add(installChocoClientStep);
+
+                foreach (var chocoPackage in chocolateyPackages)
+                {
+                    var installChocoPackagesStep = new SetupStep
+                                                       {
+                                                           Description = "Install Chocolatey Package: " + chocoPackage.GetIdDotVersionString(),
+                                                           SetupAction = machineManager =>
+                                                               {
+                                                                   var scriptBlockParameters = new object[] { chocoPackage };
+
+                                                                   machineManager.RunScript(
+                                                                       this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
+                                                                       scriptBlockParameters);
+                                                               }
+                                                       };
+
+                    installChocoSteps.Add(installChocoPackagesStep);
+                }
+            }
+
+            return installChocoSteps;
         }
     }
 }

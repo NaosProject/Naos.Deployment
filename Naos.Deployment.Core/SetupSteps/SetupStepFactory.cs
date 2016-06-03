@@ -240,41 +240,6 @@ namespace Naos.Deployment.Core
             return deployUnzippedFileStep;
         }
 
-        private ICollection<SetupStep> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
-        {
-            var installChocoSteps = new List<SetupStep>();
-            if (chocolateyPackages != null && chocolateyPackages.Any())
-            {
-                var installChocoStep = new SetupStep
-                                           {
-                                               Description = "Install Chocolatey Client",
-                                               SetupAction = machineManager =>
-                                                   {
-                                                       machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText);
-                                                   }
-                                           };
-
-                var installChocoPackagesStep = new SetupStep
-                                                   {
-                                                       Description =
-                                                           "Install Chocolatey Packages: "
-                                                           + string.Join(",", chocolateyPackages.Select(_ => _.GetIdDotVersionString())),
-                                                       SetupAction = machineManager =>
-                                                           {
-                                                               var scriptBlockParameters = chocolateyPackages.Select(_ => _ as object).ToArray();
-
-                                                               machineManager.RunScript(
-                                                                   this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
-                                                                   scriptBlockParameters);
-                                                           }
-                                                   };
-
-                installChocoSteps.AddRange(new[] { installChocoStep, installChocoPackagesStep });
-            }
-
-            return installChocoSteps;
-        }
-
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
             return Path.Combine(this.RootDeploymentPath, packagedConfig.Package.PackageDescription.Id);
