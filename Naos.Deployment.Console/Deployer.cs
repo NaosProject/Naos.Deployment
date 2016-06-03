@@ -63,7 +63,7 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var rawRet = Serializer.Serialize(retObj, false);
+            var rawRet = Serializer.Serialize(retObj);
 
             // prep to be returned in a way that can be piped to a variable and then passed back in...
             var noNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
@@ -112,7 +112,6 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
-            JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
             Settings.Deserialize = Serializer.Deserialize;
 
             var packagesToDeploy =

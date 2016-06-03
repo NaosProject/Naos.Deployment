@@ -20,5 +20,8 @@
         "includeInstanceInitializationScript": true,
         "runSetupSteps": true
     },
-    "chocolateyPackages": []
+    "chocolateyPackages": [
+        { "id": "GoogleChrome" },
+        { "id": "notepadplusplus.install" },
+        { "id": "7zip.install" }]
 }

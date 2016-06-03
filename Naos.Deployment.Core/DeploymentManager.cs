@@ -288,7 +288,7 @@ namespace Naos.Deployment.Core
                         () => Task.Run(() => this.WaitUntilMachineIsAccessible(machineManager)),
                         instanceNumber);
 
-                var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName);
+                var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName, configToCreateWith.ChocolateyPackages);
                 this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
                 await this.RunActionWithTelemetryAsync("Run instance level setup steps", () => this.RunSetupStepsAsync(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
 

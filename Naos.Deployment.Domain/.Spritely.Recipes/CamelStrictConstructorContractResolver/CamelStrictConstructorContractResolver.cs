@@ -30,7 +30,7 @@ namespace Spritely.Recipes
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
 #endif
-    public class CamelStrictConstructorContractResolver
+    internal class CamelStrictConstructorContractResolver
         : CamelCasePropertyNamesContractResolver
     {
         private static readonly CamelStrictConstructorContractResolver ContractResolverInstance

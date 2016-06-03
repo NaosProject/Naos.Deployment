@@ -8,8 +8,6 @@ namespace Naos.Deployment.Domain
 {
     using System;
 
-    using Newtonsoft.Json;
-
     using Spritely.Recipes;
 
     /// <summary>
@@ -25,16 +23,7 @@ namespace Naos.Deployment.Domain
         /// <returns>Object of type T to be returned.</returns>
         public static T Deserialize<T>(string json) where T : class
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
-
-            SetupDefaultSettings(false);
-            
-            var ret = JsonConvert.DeserializeObject<T>(json);
-
-            return ret;
+            return DefaultJsonSerializer.DeserializeObject<T>(json);
         }
 
         /// <summary>
@@ -45,16 +34,7 @@ namespace Naos.Deployment.Domain
         /// <returns>Object of type T to be returned.</returns>
         public static object Deserialize(Type type, string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
-
-            SetupDefaultSettings(false);
-
-            var ret = JsonConvert.DeserializeObject(json, type);
-
-            return ret;
+            return DefaultJsonSerializer.DeserializeObject(json, type);
         }
 
         /// <summary>
@@ -62,20 +42,10 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <typeparam name="T">Type of object to serialize.</typeparam>
         /// <param name="objectToSerialize">Object to serialize to JSON.</param>
-        /// <param name="compact">Optionally will create compact JSON (default is false; specifying false will use a more minimal representation).</param>
         /// <returns>String of JSON.</returns>
-        public static string Serialize<T>(T objectToSerialize, bool compact = false)
+        public static string Serialize<T>(T objectToSerialize)
         {
-            SetupDefaultSettings(compact);
-
-            var ret = JsonConvert.SerializeObject(objectToSerialize);
-
-            return ret;
-        }
-
-        private static void SetupDefaultSettings(bool compact)
-        {
-            JsonConvert.DefaultSettings = () => compact ? JsonConfiguration.CompactSerializerSettings : JsonConfiguration.DefaultSerializerSettings;
+            return DefaultJsonSerializer.SerializeObject(objectToSerialize);
         }
     }
 }

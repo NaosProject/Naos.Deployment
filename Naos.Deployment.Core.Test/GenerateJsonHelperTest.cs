@@ -101,15 +101,13 @@ namespace Naos.Deployment.Core.Test
                                                                 FileNameWithoutExtension =
                                                                     "DeploymentMessageHandlerSettings",
                                                                 FileContentsJson =
-                                                                    Serializer.Serialize(
-                                                                        deploymentMessageHandlerSettings,
-                                                                        true)
+                                                                    Serializer.Serialize(deploymentMessageHandlerSettings)
                                                             }
                                                     }
                                         };
 
             packages.Add(deploymentHandler);
-            var output = Serializer.Serialize(packages, true);
+            var output = Serializer.Serialize(packages);
             Assert.NotNull(output);
         }
 
@@ -261,14 +259,13 @@ namespace Naos.Deployment.Core.Test
                                                                                                       TimeSpan.FromMinutes(1)
                                                                                               }
                                                                                       }
-                                                                          },
-                                                                      true)
+                                                                          })
                                                           }
                                                   }
                                       };
 
             packages.Add(hangfireHarness);
-            var output = Serializer.Serialize(packages, true);
+            var output = Serializer.Serialize(packages);
             Assert.NotNull(output);
         }
     }

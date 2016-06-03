@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -87,6 +88,28 @@ namespace Naos.Deployment.Core
                 });
 
             return mongoSteps;
+        }
+
+        private static void ThrowIfMultipleMongoStrategiesAreInvalidCombination(ICollection<InitializationStrategyMongo> mongoStrategies)
+        {
+            // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
+            var distinctNoJournaling = mongoStrategies.Select(_ => _.NoJournaling).Distinct();
+            if (distinctNoJournaling.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple no journaling options for a single mongo instance deployment.");
+            }
+
+            var distinctDataPath = mongoStrategies.Select(_ => _.DataDirectory).Distinct();
+            if (distinctDataPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple data paths for a single mongo instance deployment.");
+            }
+
+            var distinctLogPath = mongoStrategies.Select(_ => _.LogDirectory).Distinct();
+            if (distinctLogPath.Count() > 1)
+            {
+                throw new ArgumentException("Cannot have multiple log paths for a single mongo instance deployment.");
+            }
         }
     }
 }

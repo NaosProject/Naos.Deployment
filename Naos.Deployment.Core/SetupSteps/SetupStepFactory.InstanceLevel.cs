@@ -8,6 +8,8 @@ namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
 
+    using Naos.Packaging.Domain;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -17,8 +19,9 @@ namespace Naos.Deployment.Core
         /// Gets the instance level setup steps.
         /// </summary>
         /// <param name="computerName">Computer name to use in windows for the instance.</param>
+        /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <returns>List of setup steps </returns>
-        public ICollection<SetupStep> GetInstanceLevelSetupSteps(string computerName)
+        public ICollection<SetupStep> GetInstanceLevelSetupSteps(string computerName, IReadOnlyCollection<PackageDescription> chocolateyPackages)
         {
             var ret = new List<SetupStep>();
 
@@ -69,6 +72,9 @@ namespace Naos.Deployment.Core
                                   };
 
             ret.Add(execScripts);
+
+            var installChocoSteps = this.GetChocolateySetupSteps(chocolateyPackages);
+            ret.AddRange(installChocoSteps);
 
             var rename = new SetupStep
                              {

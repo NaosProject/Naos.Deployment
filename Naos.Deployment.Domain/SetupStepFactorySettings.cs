@@ -237,6 +237,11 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription InstallChocolatey { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to install Chocolatey packages.
+        /// </summary>
+        public ScriptBlockDescription InstallChocolateyPackages { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to configure and start mongo as a windows service.
         /// </summary>
         public ScriptBlockDescription ConfigureMongo { get; set; }

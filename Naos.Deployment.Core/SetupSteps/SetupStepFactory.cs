@@ -109,36 +109,11 @@ namespace Naos.Deployment.Core
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
         public async Task<ICollection<SetupStep>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
         {
-            // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
-            var mongoStrategies = packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>();
-            var distinctNoJournaling = mongoStrategies.Select(_ => _.NoJournaling).Distinct();
-            if (distinctNoJournaling.Count() > 1)
-            {
-                throw new ArgumentException("Cannot have multiple no journaling options for a single mongo instance deployment.");
-            }
-
-            var distinctDataPath = mongoStrategies.Select(_ => _.DataDirectory).Distinct();
-            if (distinctDataPath.Count() > 1)
-            {
-                throw new ArgumentException("Cannot have multiple data paths for a single mongo instance deployment.");
-            }
-
-            var distinctLogPath = mongoStrategies.Select(_ => _.LogDirectory).Distinct();
-            if (distinctLogPath.Count() > 1)
-            {
-                throw new ArgumentException("Cannot have multiple log paths for a single mongo instance deployment.");
-            }
+            ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
             var ret = new List<SetupStep>();
 
-            var installChocoStep = this.GetChocolateySetupStep(packagedConfig);
-            if (installChocoStep != null)
-            {
-                ret.Add(installChocoStep);
-            }
-
-            var distinctInitializationStrategyTypes =
-                packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
+            var distinctInitializationStrategyTypes = packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
 
             // only copy the package byes if there are initialization strategies on the package that require it...
             if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedPackageBytes.Contains(_)))
@@ -265,36 +240,39 @@ namespace Naos.Deployment.Core
             return deployUnzippedFileStep;
         }
 
-        private SetupStep GetChocolateySetupStep(PackagedDeploymentConfiguration packagedConfig)
+        private ICollection<SetupStep> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
         {
-            SetupStep installChocoStep = null;
-            if (packagedConfig.DeploymentConfiguration.ChocolateyPackages != null
-                && packagedConfig.DeploymentConfiguration.ChocolateyPackages.Any())
+            var installChocoSteps = new List<SetupStep>();
+            if (chocolateyPackages != null && chocolateyPackages.Any())
             {
-                installChocoStep = new SetupStep
-                                       {
-                                           Description =
-                                               "Install Chocolatey Packages: "
-                                               + string.Join(
-                                                   ",",
-                                                   packagedConfig.DeploymentConfiguration.ChocolateyPackages
-                                                     .Select(_ => _.GetIdDotVersionString())),
-                                           SetupAction = machineManager =>
-                                               {
-                                                   var scriptBlockParameters =
-                                                       packagedConfig.DeploymentConfiguration
-                                                           .ChocolateyPackages.Select(_ => _ as object)
-                                                           .ToArray();
+                var installChocoStep = new SetupStep
+                                           {
+                                               Description = "Install Chocolatey Client",
+                                               SetupAction = machineManager =>
+                                                   {
+                                                       machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText);
+                                                   }
+                                           };
 
-                                                   machineManager.RunScript(
-                                                       this.settings.DeploymentScriptBlocks.InstallChocolatey
-                                                           .ScriptText,
-                                                       scriptBlockParameters);
-                                               }
-                                       };
+                var installChocoPackagesStep = new SetupStep
+                                                   {
+                                                       Description =
+                                                           "Install Chocolatey Packages: "
+                                                           + string.Join(",", chocolateyPackages.Select(_ => _.GetIdDotVersionString())),
+                                                       SetupAction = machineManager =>
+                                                           {
+                                                               var scriptBlockParameters = chocolateyPackages.Select(_ => _ as object).ToArray();
+
+                                                               machineManager.RunScript(
+                                                                   this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
+                                                                   scriptBlockParameters);
+                                                           }
+                                                   };
+
+                installChocoSteps.AddRange(new[] { installChocoStep, installChocoPackagesStep });
             }
 
-            return installChocoStep;
+            return installChocoSteps;
         }
 
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
