@@ -111,24 +111,24 @@
       <HintPath>..\packages\Naos.Cron.1.0.14\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Contract, Version=1.0.117.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Contract.1.0.117\lib\net461\Naos.Database.Contract.dll</HintPath>
+    <Reference Include="Naos.Database.Contract, Version=1.0.118.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Contract.1.0.118\lib\net461\Naos.Database.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.117.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.117\lib\net461\Naos.Database.Migrator.dll</HintPath>
+    <Reference Include="Naos.Database.Migrator, Version=1.0.118.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Migrator.1.0.118\lib\net461\Naos.Database.Migrator.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.117.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Tools.1.0.117\lib\net461\Naos.Database.Tools.dll</HintPath>
+    <Reference Include="Naos.Database.Tools, Version=1.0.118.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Tools.1.0.118\lib\net461\Naos.Database.Tools.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.6\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.188.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.188\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.189.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.189\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
