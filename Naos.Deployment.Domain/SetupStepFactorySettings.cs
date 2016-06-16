@@ -232,6 +232,21 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription RestartWindowsService { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to configure an SSL certificate for hosting.
+        /// </summary>
+        public ScriptBlockDescription ConfigureSslCertificateForHosting { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to configure a user for hosting.
+        /// </summary>
+        public ScriptBlockDescription ConfigureUserForHosting { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to open a TCP port in the firewall.
+        /// </summary>
+        public ScriptBlockDescription OpenPort { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to install Chocolatey so that the packages may be installed.
         /// </summary>
         public ScriptBlockDescription InstallChocolatey { get; set; }

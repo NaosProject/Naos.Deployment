@@ -87,6 +87,26 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams)
                 });
 
+            var openPortParamsOne = new[] { "27017", "Allow TCP 27017 IN for Self Hosting" };
+            mongoSteps.Add(
+                new SetupStep
+                {
+                    Description = $"Open port 27017 for Mongo",
+                    SetupAction =
+                            machineManager =>
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne)
+                });
+            
+            var openPortParamsTwo = new[] { "27018", "Allow TCP 27018 IN for Self Hosting" };
+            mongoSteps.Add(
+                new SetupStep
+                {
+                    Description = $"Open port 27018 for Mongo",
+                    SetupAction =
+                            machineManager =>
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo)
+                });
+
             return mongoSteps;
         }
 

@@ -52,6 +52,26 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Clone_SelfHost_Works()
+        {
+            var original = new InitializationStrategySelfHost
+                               {
+                                   SelfHostExeName = "my.exe",
+                                   SelfHostDns = "myDns",
+                                   SslCertificateName = "certName",
+                                   ScheduledTaskAccount = "Monkey"
+                               };
+
+            var cloned = original.Clone() as InitializationStrategySelfHost;
+            Assert.NotNull(cloned);
+            Assert.NotSame(original, cloned);
+            Assert.Equal(original.SelfHostDns, cloned.SelfHostDns);
+            Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
+            Assert.Equal(original.SelfHostExeName, cloned.SelfHostExeName);
+            Assert.Equal(original.ScheduledTaskAccount, cloned.ScheduledTaskAccount);
+        }
+
+        [Fact]
         public static void Clone_Iis_Works()
         {
             var original = new InitializationStrategyIis

@@ -106,6 +106,7 @@
     <Compile Include="InitializationStrategy\InitializationStrategyIis.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMongo.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategySelfHost.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyScheduledTask.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategySqlServer.cs" />
     <Compile Include="InstanceCreationDetails.cs" />

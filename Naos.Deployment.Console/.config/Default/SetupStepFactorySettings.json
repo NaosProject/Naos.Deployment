@@ -1,5 +1,5 @@
 ﻿{
-    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain"],
+    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
@@ -114,18 +114,6 @@
                 "      md $LogDirectory",
                 "   }",
                 "",
-                "   'Remove firewall rules, if they exist...' | Out-File -Append -FilePath $installLogPath",
-                "   netsh advfirewall firewall delete rule name=\"Open mongod port 27017\" protocol=tcp localport=27017",
-                "   netsh advfirewall firewall delete rule name=\"Open mongod shard port 27018\" protocol=tcp localport=27018",
-                "",
-                "   'Create firewall rules...' | Out-File -Append -FilePath $installLogPath",
-                "   netsh advfirewall firewall add rule name=\"Open mongod port 27017\" dir=in action=allow protocol=TCP localport=27017",
-                "   netsh advfirewall firewall add rule name=\"Open mongod shard port 27018\" dir=in action=allow protocol=TCP localport=27018",
-                "",
-                "   'Turn firewall off then back on to reset service...' | Out-File -Append -FilePath $installLogPath",
-                "   netsh advfirewall set allprofiles state off",
-                "   netsh advfirewall set allprofiles state on",
-                "",
                 "   # create config file",
                 "   $scriptsDir = Join-Path $DataDirectory 'Scripts'",
                 "   md $scriptsDir -Force",
@@ -196,6 +184,58 @@
                 "   # Remove-Item $installLogPath -Force -Recurse",
                 "}"
 
+            ]
+        },
+        "configureSslCertificateForHosting": {
+            "parameterNames": [ "CertPath", "CertPassword", "ApplicationId", "HttpsDns" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $CertPath, [SecureString] $CertPassword, [System.Guid] $ApplicationId, [string] $HttpsDns)",
+                "   if (-not (Test-Path $CertPath))",
+                "   {",
+                "      throw \"Cert missing at $CertPath\"",
+                "   }",
+                "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
+                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "   $hostNamePort = \"$($HttpsDns):443\"",
+                "   Write-Output \"HostNamePort: $hostNamePort\"",
+                "   $thumbprint = \"$($certResult.Thumbprint)\"",
+                "   Write-Output \"Thumbprint: $thumbprint\"",
+                "   netsh http add sslcert hostnameport=$hostNamePort appid=\"{$($ApplicationId)}\" certhash=$thumbprint certstorename=MY",
+                "   # save for end in case it's retried...",
+                "   rm $CertPath -Force",
+                "}"
+            ]
+        },
+        "configureUserForHosting": {
+            "parameterNames": [ "User", "HttpsDns" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $User, [string] $HttpsDns)",
+                "   $url = \"https://$($HttpsDns):443/\"",
+                "   Write-Output \"Url: $url\"",
+                "   netsh http add urlacl url=$url user=$User",
+                "}"
+            ]
+        },
+        "openPort": {
+            "parameterNames": [ "Port", "Description" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $Port, [string] $Description)",
+                "   # Turn firewall off then back on to reset service...",
+                "   netsh advfirewall firewall add rule name=\"$Description\" dir=in action=allow protocol=TCP localport=$Port",
+                "   # Turn firewall off then back on to reset service and load the updated rules...",
+                "   netsh advfirewall set allprofiles state off",
+                "   netsh advfirewall set allprofiles state on",
+                "   # Confirm that the firewall is enabled to make sure any issue results in a failed deployment",
+                "   $firewallCheck = netsh advfirewall show all state",
+                "   Write-Output $firewallCheck",
+                "   $isOn = $(($firewallCheck[3] -eq 'State                                 ON') -and ($firewallCheck[7] -eq 'State                                 ON') -and ($firewallCheck[11] -eq 'State                                 ON'))",
+                "   if (-not $isOn) {",
+                "   	throw 'Firewall did not restart as expected, it is currently OFF'",
+                "   }",
+                "}"
             ]
         },
         "installChocolatey": {
@@ -351,7 +391,7 @@
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
                 "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
-                "   Write-Output \"Cert installed with Thumbprint: $($certResult.Thumbprint) - Deleted file\"",
+                "   Write-Output \"Cert installed with Thumbprint: $($certResult.Thumbprint) - Deleting file at end\"",
                 "   # cutting to first 50 chars to avoid the 64 char limit...",
                 "   $limit = 50",
                 "   $trimmedDomain = ''",

@@ -106,8 +106,9 @@ namespace Naos.Deployment.Core
         /// <param name="packagedConfig">Config to base setup steps from.</param>
         /// <param name="environment">Environment that is being deployed.</param>
         /// <param name="adminPassword">Administrator password for the machine in case an application needs to be run as that user (which is discouraged!).</param>
+        /// <param name="funcToCreateNewDnsWithTokensReplaced">Function to apply any token replacements to a DNS entry.</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public async Task<ICollection<SetupStep>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
+        public async Task<ICollection<SetupStep>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
@@ -124,14 +125,14 @@ namespace Naos.Deployment.Core
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
-                var initSteps = await this.GetStrategySpecificSetupStepsAsync(initializationStrategy, packagedConfig, environment, adminPassword);
+                var initSteps = await this.GetStrategySpecificSetupStepsAsync(initializationStrategy, packagedConfig, environment, adminPassword, funcToCreateNewDnsWithTokensReplaced);
                 ret.AddRange(initSteps);
             }
 
             return ret;
         }
 
-        private async Task<ICollection<SetupStep>> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword)
+        private async Task<ICollection<SetupStep>> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var ret = new List<SetupStep>();
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
@@ -145,7 +146,8 @@ namespace Naos.Deployment.Core
                     packageDirectoryPath,
                     webRootPath,
                     environment,
-                    adminPassword);
+                    adminPassword,
+                    funcToCreateNewDnsWithTokensReplaced);
                 ret.AddRange(webSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
@@ -195,6 +197,19 @@ namespace Naos.Deployment.Core
                         consoleRootPath,
                         environment);
                 ret.AddRange(scheduledTaskSteps);
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
+            {
+                var consoleRootPath = Path.Combine(packageDirectoryPath, "packagedConsoleApp"); // this needs to match how the package was built in the build system...
+                var selfHostSteps =
+                    await
+                    this.GetSelfHostSpecificSteps(
+                        (InitializationStrategySelfHost)strategy,
+                        packagedConfig.ItsConfigOverrides,
+                        consoleRootPath,
+                        environment,
+                        funcToCreateNewDnsWithTokensReplaced);
+                ret.AddRange(selfHostSteps);
             }
             else
             {

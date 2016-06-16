@@ -264,6 +264,8 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
             await this.WaitUntilStatusChecksSucceedAsync(instanceNumber, createdInstanceDescription);
 
+            Func<string, string> funcToCreateNewDnsWithTokensReplaced = tokenizedDns => ApplyDnsTokenReplacements(tokenizedDns, numberedInstanceName, environment, instanceNumber);
+
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
@@ -298,7 +300,7 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
-                    var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear);
+                    var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
@@ -311,100 +313,7 @@ namespace Naos.Deployment.Core
                 }
             }
 
-            // get all web initializations to update any DNS entries on the public IP address.
-            var webInitializations =
-                packagedDeploymentConfigsWithDefaultsAndOverrides
-                    .GetInitializationStrategiesOf<InitializationStrategyIis>();
-
-            this.LogAnnouncement("Updating DNS for web initializations (if applicable)", instanceNumber);
-            foreach (var webInitialization in webInitializations)
-            {
-                var ipAddress = createdInstanceDescription.PublicIpAddress
-                                ?? createdInstanceDescription.PrivateIpAddress;
-                var dns = ApplyDnsTokenReplacements(
-                        webInitialization.PrimaryDns,
-                        numberedInstanceName,
-                        environment,
-                        instanceNumber);
-
-                this.LogAnnouncement($" - Pointing {dns} at {ipAddress}.", instanceNumber);
-
-                lock (this.syncDnsManager)
-                {
-                    this.computingManager.UpsertDnsEntryAsync(
-                        environment,
-                        createdInstanceDescription.Location,
-                        dns,
-                        new[] { ipAddress }).Wait();
-                }
-            }
-
-            // get all DNS initializations to update any private DNS entries on the private IP address.
-            this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
-            var dnsInitializations =
-                packagedDeploymentConfigsWithDefaultsAndOverrides
-                    .GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
-            foreach (var initialization in dnsInitializations)
-            {
-                if (string.IsNullOrEmpty(initialization.PublicDnsEntry)
-                    && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
-                {
-                    throw new ArgumentException(
-                        "Instance " + instanceNumber
-                        + " - Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
-                }
-
-                if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
-                {
-                    var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
-                    var privateDnsEntry = ApplyDnsTokenReplacements(
-                        initialization.PrivateDnsEntry,
-                        numberedInstanceName,
-                        environment,
-                        instanceNumber);
-
-                    var pointedPrivateDnsMessage = $" - Pointing {privateDnsEntry} at {privateIpAddress}.";
-                    this.LogAnnouncement(pointedPrivateDnsMessage, instanceNumber);
-
-                    lock (this.syncDnsManager)
-                    {
-                        this.computingManager.UpsertDnsEntryAsync(
-                            environment,
-                            createdInstanceDescription.Location,
-                            privateDnsEntry,
-                            new[] { privateIpAddress }).Wait();
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
-                {
-                    var publicIpAddress = createdInstanceDescription.PublicIpAddress;
-                    if (string.IsNullOrEmpty(publicIpAddress))
-                    {
-                        throw new ArgumentException(
-                            "Instance " + instanceNumber
-                            + " - Cannot assign a public DNS because there isn't a public IP address on the instance.");
-                    }
-
-                    var publicDnsEntry = ApplyDnsTokenReplacements(
-                        initialization.PublicDnsEntry,
-                        numberedInstanceName,
-                        environment,
-                        instanceNumber);
-
-                    var pointedPublicDnsMessage = $" - Pointing {publicDnsEntry} at {publicIpAddress}.";
-                    this.LogAnnouncement(pointedPublicDnsMessage, instanceNumber);
-
-                    lock (this.syncDnsManager)
-                    {
-                        this.computingManager.UpsertDnsEntryAsync(
-                            environment,
-                            createdInstanceDescription.Location,
-                            publicDnsEntry,
-                            new[] { publicIpAddress }).Wait();
-                    }
-                }
-            }
+            this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverrides, createdInstanceDescription, funcToCreateNewDnsWithTokensReplaced);
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
             {
@@ -415,6 +324,82 @@ namespace Naos.Deployment.Core
                     createdInstanceDescription.Location,
                     // ReSharper disable once RedundantArgumentDefaultValue - keeping for clarity of what's happening...
                     WaitUntilOff);
+            }
+        }
+
+        private void UpsertDnsEntriesAsNecessary(
+            int instanceNumber,
+            string environment,
+            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            InstanceDescription createdInstanceDescription,
+            Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        {
+            // get all web initializations to update any DNS entries on the public IP address.
+            var webInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyIis>();
+
+            this.LogAnnouncement("Updating DNS for web initializations (if applicable)", instanceNumber);
+            foreach (var webInitialization in webInitializations)
+            {
+                var ipAddress = createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress;
+                var dns = funcToCreateNewDnsWithTokensReplaced(webInitialization.PrimaryDns);
+
+                this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
+            }
+
+            // get all self host initializations to update any DNS entries on the public IP address.
+            var selfHostInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategySelfHost>();
+
+            this.LogAnnouncement("Updating DNS for self host initializations (if applicable)", instanceNumber);
+            foreach (var selfHostInitialization in selfHostInitializations)
+            {
+                var ipAddress = createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress;
+                var dns = funcToCreateNewDnsWithTokensReplaced(selfHostInitialization.SelfHostDns);
+
+                this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
+            }
+
+            // get all DNS initializations to update any private DNS entries on the private IP address.
+            this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
+            var dnsInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
+            foreach (var initialization in dnsInitializations)
+            {
+                if (string.IsNullOrEmpty(initialization.PublicDnsEntry) && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                {
+                    throw new ArgumentException(
+                        "Instance " + instanceNumber + " - Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
+                }
+
+                if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
+                {
+                    var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
+                    var privateDnsEntry = funcToCreateNewDnsWithTokensReplaced(initialization.PrivateDnsEntry);
+
+                    this.UpsertDnsEntry(instanceNumber, environment, privateDnsEntry, privateIpAddress, createdInstanceDescription.Location);
+                }
+
+                if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
+                {
+                    var publicIpAddress = createdInstanceDescription.PublicIpAddress;
+                    if (string.IsNullOrEmpty(publicIpAddress))
+                    {
+                        throw new ArgumentException(
+                            "Instance " + instanceNumber + " - Cannot assign a public DNS because there isn't a public IP address on the instance.");
+                    }
+
+                    var publicDnsEntry = funcToCreateNewDnsWithTokensReplaced(initialization.PublicDnsEntry);
+
+                    this.UpsertDnsEntry(instanceNumber, environment, publicDnsEntry, publicIpAddress, createdInstanceDescription.Location);
+                }
+            }
+        }
+
+        private void UpsertDnsEntry(int instanceNumber, string environment, string dns, string ipAddress, string instanceLocation)
+        {
+            this.LogAnnouncement($" - Pointing {dns} at {ipAddress}.", instanceNumber);
+
+            lock (this.syncDnsManager)
+            {
+                this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress }).Wait();
             }
         }
 
