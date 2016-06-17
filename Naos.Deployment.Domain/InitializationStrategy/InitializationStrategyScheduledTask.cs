@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using Naos.Cron;
 
     /// <summary>
-    /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
+    /// Custom extension of the DeploymentConfiguration to accommodate console applications run by scheduled tasks deployments.
     /// </summary>
     public class InitializationStrategyScheduledTask : InitializationStrategyBase
     {

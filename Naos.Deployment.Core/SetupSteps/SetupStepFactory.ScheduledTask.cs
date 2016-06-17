@@ -22,55 +22,43 @@ namespace Naos.Deployment.Core
     {
         private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment)
         {
+            var schedule = scheduledTaskStrategy.Schedule;
+            var exeName = scheduledTaskStrategy.ExeName;
+            var name = scheduledTaskStrategy.Name;
+            var description = scheduledTaskStrategy.Description;
+            var arguments = scheduledTaskStrategy.Arguments;
+
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, name, description, arguments);
+        }
+
+        // No specific strategy is used in params so the logic can be shared.
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
+            ICollection<ItsConfigOverride> itsConfigOverrides,
+            string consoleRootPath,
+            string environment,
+            string exeName,
+            ScheduleBase schedule,
+            string name,
+            string description,
+            string arguments)
+        {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
-            var exeFullPath = Path.Combine(consoleRootPath, scheduledTaskStrategy.ExeName);
+            var exeFullPath = Path.Combine(consoleRootPath, exeName);
             var exeConfigFullPath = exeFullPath + ".config";
-            var updateExeConfigScriptBlock = this.settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
-            var precedenceChain = new[] { environment }.ToList();
-            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
-            var updateExeConfigScriptParams = new object[] { exeConfigFullPath, precedenceChain.ToArray() };
 
             scheduledTaskSetupSteps.Add(
                 new SetupStep
-                {
-                    Description = "Enable history for scheduled tasks",
-                    SetupAction =
-                        machineManager =>
-                        machineManager.RunScript(
-                            this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText)
-                });
-
-            scheduledTaskSetupSteps.Add(
-                new SetupStep
-                {
-                    Description = "Update Its.Config precedence: " + string.Join("|", precedenceChain),
-                    SetupAction =
-                        machineManager =>
-                        machineManager.RunScript(
-                            updateExeConfigScriptBlock.ScriptText,
-                            updateExeConfigScriptParams)
-                });
-
-            foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
-            {
-                var itsFileSubPath = $".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json";
-
-                var itsFilePath = Path.Combine(consoleRootPath, itsFileSubPath);
-                var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
-
-                scheduledTaskSetupSteps.Add(
-                    new SetupStep
                     {
-                        Description =
-                            "(Over)write Its.Config file: " + itsConfigOverride.FileNameWithoutExtension,
-                        SetupAction =
-                            machineManager => machineManager.SendFile(itsFilePath, itsFileBytes, false, true)
+                        Description = "Enable history for scheduled tasks",
+                        SetupAction = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText)
                     });
-            }
+            
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, consoleRootPath, environment, exeConfigFullPath);
+            scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
             // in case we're serializing an expression schedule run the loop into a new object...
-            var cronExpression = ScheduleCronExpressionConverter.ToCronExpression(scheduledTaskStrategy.Schedule);
+            var cronExpression = ScheduleCronExpressionConverter.ToCronExpression(schedule);
             var scheduleObject = ScheduleCronExpressionConverter.FromCronExpression(cronExpression);
 
             TimeSpan repetitionInterval;
@@ -104,28 +92,21 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException(
-                    "Unsupported schedule type for scheduled task deployment: " + scheduleObject.GetType());
+                throw new NotSupportedException("Unsupported schedule type for scheduled task deployment: " + scheduleObject.GetType());
             }
 
-            var setupScheduledTaskParams = new object[]
-                                               {
-                                                   scheduledTaskStrategy.Name, scheduledTaskStrategy.Description,
-                                                   exeFullPath, scheduledTaskStrategy.Arguments, dateTimeInUtc,
-                                                   repetitionInterval, daysOfWeek.ToArray()
-                                               };
+            var setupScheduledTaskParams = new object[] { name, description, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
-            {
-                Description =
-                    "Creating scheduled task to run: " + scheduledTaskStrategy.ExeName + " " + scheduledTaskStrategy.Arguments + " with schedule: "
-                    + cronExpression,
-                SetupAction =
-                    machineManager =>
-                    machineManager.RunScript(
-                        this.settings.DeploymentScriptBlocks.SetupScheduledTask
-                        .ScriptText,
-                        setupScheduledTaskParams)
-            };
+                                          {
+                                              Description =
+                                                  "Creating scheduled task to run: " + exeName + " " + (arguments ?? "<no arguments>") + " with schedule: "
+                                                  + cronExpression,
+                                              SetupAction =
+                                                  machineManager =>
+                                                  machineManager.RunScript(
+                                                      this.settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,
+                                                      setupScheduledTaskParams)
+                                          };
 
             scheduledTaskSetupSteps.Add(createScheduledTask);
 

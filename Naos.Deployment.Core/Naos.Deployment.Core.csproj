@@ -296,6 +296,8 @@
     <Compile Include="SetupSteps\SetupStepFactory.Iis.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.InstanceLevel.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Mongo.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.ItsConfig.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.SelfHost.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.ScheduledTask.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.SqlServer.cs" />
   </ItemGroup>

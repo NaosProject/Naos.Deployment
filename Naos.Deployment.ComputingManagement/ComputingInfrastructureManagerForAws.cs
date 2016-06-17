@@ -119,7 +119,7 @@ namespace Naos.Deployment.ComputingManagement
         public async Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false)
         {
             var instanceDescription = await this.tracker.GetInstanceDescriptionByIdAsync(environment, systemId);
-            if (!string.IsNullOrEmpty(instanceDescription.PublicIpAddress))
+            if (!string.IsNullOrEmpty(instanceDescription?.PublicIpAddress))
             {
                 // has a public IP that needs to be dissassociated and released before moving on...
                 var elasticIp = new ElasticIp()

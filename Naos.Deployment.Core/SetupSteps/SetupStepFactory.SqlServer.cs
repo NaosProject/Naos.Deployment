@@ -11,9 +11,6 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-
-    using Its.Log.Instrumentation;
 
     using Naos.Database.Contract;
     using Naos.Database.Migrator;

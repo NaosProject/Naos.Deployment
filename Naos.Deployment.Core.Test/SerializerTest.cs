@@ -219,5 +219,34 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(typeof(InitializationStrategyIis), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyIis>().Single().PrimaryDns);
         }
+
+        [Fact]
+        public static void Deserialize_SingleSelfHostInitStrategy_Valid()
+        {
+            var input = @"
+{
+	""instanceType"": { ""virtualCores"": 2, ""ramInGb"": 3, },
+	""isPubliclyAccessible"": false,
+	""volumes"": [{
+		""driveLetter"": ""C"",
+		""sizeInGb"": ""50"",
+	}],
+	""InitializationStrategies"": [{
+		""selfHostDns"": ""reports.coopmetrics.coop"",
+		""sslCertificateName"": ""MyCert"",
+		""selfHostExeName"": ""My.exe"",
+		""scheduledTaskAccount"": ""Monkey"",
+	}],
+}
+";
+
+            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
+
+            Assert.Equal(typeof(InitializationStrategySelfHost), deserialized.InitializationStrategies.Single().GetType());
+            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostDns);
+            Assert.Equal("My.exe", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostExeName);
+            Assert.Equal("MyCert", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SslCertificateName);
+            Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().ScheduledTaskAccount);
+        }
     }
 }
