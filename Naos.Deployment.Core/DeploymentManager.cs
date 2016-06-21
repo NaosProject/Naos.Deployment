@@ -914,13 +914,9 @@ namespace Naos.Deployment.Core
             if (string.IsNullOrEmpty(systemInstanceId))
             {
                 // this is likely due to a failed previous install - MUST check if the instance actually got created...
-                var activeInstancesFromProvider =
-                    await
-                    this.computingManager.GetActiveInstancesFromProviderAsync(environment, instanceDescription.Location);
+                var activeInstancesFromProvider = await this.computingManager.GetActiveInstancesFromProviderAsync(environment, instanceDescription.Location);
 
-                var any =
-                    activeInstancesFromProvider.SingleOrDefault(
-                        _ => _.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+                var any = activeInstancesFromProvider.SingleOrDefault(_ => _.PrivateIpAddress == instanceDescription.PrivateIpAddress);
 
                 if (any != null)
                 {
@@ -936,14 +932,11 @@ namespace Naos.Deployment.Core
                     await this.tracker.ProcessFailedInstanceDeploymentAsync(environment, instanceDescription.PrivateIpAddress);
                 }
             }
-
-            this.LogAnnouncement("Terminating instance => ID: " + systemInstanceId + ", ComputingName: " + instanceDescription.Name);
-            await
-                this.computingManager.TerminateInstanceAsync(
-                    environment,
-                    systemInstanceId,
-                    instanceDescription.Location,
-                    true);
+            else
+            {
+                this.LogAnnouncement("Terminating instance => ID: " + systemInstanceId + ", ComputingName: " + instanceDescription.Name);
+                await this.computingManager.TerminateInstanceAsync(environment, systemInstanceId, instanceDescription.Location, true);
+            }
         }
 
         private async Task RunActionWithTelemetryAsync(string step, Func<Task> code, int? instanceNumber = null)
