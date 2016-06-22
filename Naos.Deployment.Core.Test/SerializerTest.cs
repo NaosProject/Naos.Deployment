@@ -232,7 +232,7 @@ namespace Naos.Deployment.Core.Test
 		""sizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""selfHostDns"": ""reports.coopmetrics.coop"",
+		""selfHostSupportedDnsEntries"": [ { ""address"":""reports.coopmetrics.coop"", ""shouldUpdate"":true}],
 		""sslCertificateName"": ""MyCert"",
 		""selfHostExeName"": ""My.exe"",
 		""scheduledTaskAccount"": ""Monkey"",
@@ -243,7 +243,8 @@ namespace Naos.Deployment.Core.Test
             var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
 
             Assert.Equal(typeof(InitializationStrategySelfHost), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostDns);
+            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostSupportedDnsEntries.Single().Address);
+            Assert.Equal(true, deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostSupportedDnsEntries.Single().ShouldUpdate);
             Assert.Equal("My.exe", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostExeName);
             Assert.Equal("MyCert", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SslCertificateName);
             Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().ScheduledTaskAccount);

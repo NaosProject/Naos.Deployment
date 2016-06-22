@@ -38,6 +38,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public ScheduleBase Schedule { get; set; }
 
+        /// <summary>
+        /// Gets or sets the account to configure the scheduled task that runs the executable.
+        /// </summary>
+        public string ScheduledTaskAccount { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {

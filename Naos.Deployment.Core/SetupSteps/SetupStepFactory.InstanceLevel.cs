@@ -8,7 +8,9 @@ namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
+    using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
     /// <summary>
@@ -21,8 +23,9 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="computerName">Computer name to use in windows for the instance.</param>
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
+        /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <returns>List of setup steps </returns>
-        public ICollection<SetupStep> GetInstanceLevelSetupSteps(string computerName, IReadOnlyCollection<PackageDescription> chocolateyPackages)
+        public async Task<ICollection<SetupStep>> GetInstanceLevelSetupSteps(string computerName, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
         {
             var ret = new List<SetupStep>();
 
@@ -76,6 +79,25 @@ namespace Naos.Deployment.Core
 
             var installChocoSteps = this.GetChocolateySetupSteps(chocolateyPackages);
             ret.AddRange(installChocoSteps);
+
+            if (!string.IsNullOrEmpty(this.environmentCertificateName))
+            {
+                var distinctInitializationStrategyTypes = allInitializationStrategies.Select(_ => _.GetType()).ToList();
+                if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedEnvironmentCertificate.Contains(_)))
+                {
+                    var usersToGrantAccessToKey = allInitializationStrategies.Select(this.GetAccountToUse).Where(_ => _ != null).Distinct().ToArray();
+
+                    var environmentCertSteps =
+                        await
+                        this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
+                            this.RootDeploymentPath,
+                            this.settings.HarnessSettings.HarnessAccount,
+                            this.settings.WebServerSettings.IisAccount,
+                            usersToGrantAccessToKey,
+                            this.environmentCertificateName);
+                    ret.AddRange(environmentCertSteps);
+                }
+            }
 
             var rename = new SetupStep
                              {

@@ -30,6 +30,8 @@ namespace Naos.Deployment.Core
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
+        private readonly string environmentCertificateName;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SetupStepFactory"/> class.
         /// </summary>
@@ -37,12 +39,14 @@ namespace Naos.Deployment.Core
         /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment)
+        /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
             this.packageManager = packageManager;
             this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
+            this.environmentCertificateName = environmentCertificateName;
         }
 
         /// <summary>
@@ -75,6 +79,17 @@ namespace Naos.Deployment.Core
             get
             {
                 return this.settings.InitializationStrategyTypesThatNeedPackageBytes;
+            }
+        }
+
+        /// <summary>
+        /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
+        /// </summary>
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate
+        {
+            get
+            {
+                return this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
             }
         }
 
@@ -152,7 +167,7 @@ namespace Naos.Deployment.Core
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
             {
-                var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.Package);
+                var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.PackageWithBundleIdentifier.Package);
                 ret.AddRange(databaseSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMongo))
@@ -219,6 +234,26 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
+        private string GetAccountToUse(InitializationStrategyBase strategy)
+        {
+            if (strategy.GetType() == typeof(InitializationStrategyIis))
+            {
+                return this.GetAccountToUse((InitializationStrategyIis)strategy);
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
+            {
+                return this.GetAccountToUse((InitializationStrategyScheduledTask)strategy);
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
+            {
+                return this.GetAccountToUse((InitializationStrategySelfHost)strategy);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private SetupStep GetCopyAndUnzipPackageStep(PackagedDeploymentConfiguration packagedConfig)
         {
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
@@ -229,20 +264,20 @@ namespace Naos.Deployment.Core
                                              {
                                                  Description =
                                                      "Push package file and unzip: "
-                                                     + packagedConfig.Package.PackageDescription
+                                                     + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription
                                                            .GetIdDotVersionString(),
                                                  SetupAction = machineManager =>
                                                      {
                                                          // don't push the null package...
                                                          if (!string.Equals(
-                                                                 packagedConfig.Package.PackageDescription.Id,
+                                                                 packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id,
                                                                  PackageDescription.NullPackageId))
                                                          {
                                                              // in case we're in a retry scenario we should just overwrite...
                                                              const bool Overwrite = true;
                                                              machineManager.SendFile(
                                                                  packageFilePath,
-                                                                 packagedConfig.Package.PackageFileBytes,
+                                                                 packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
                                                                  false,
                                                                  Overwrite);
                                                              Log.Write(
@@ -257,7 +292,7 @@ namespace Naos.Deployment.Core
 
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
-            return Path.Combine(this.RootDeploymentPath, packagedConfig.Package.PackageDescription.Id);
+            return Path.Combine(this.RootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
         }
     }
 }

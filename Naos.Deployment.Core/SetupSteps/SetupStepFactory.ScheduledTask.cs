@@ -9,8 +9,6 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Text;
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
@@ -27,8 +25,9 @@ namespace Naos.Deployment.Core
             var name = scheduledTaskStrategy.Name;
             var description = scheduledTaskStrategy.Description;
             var arguments = scheduledTaskStrategy.Arguments;
+            var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, scheduledTaskAccount, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
@@ -38,6 +37,7 @@ namespace Naos.Deployment.Core
             string environment,
             string exeName,
             ScheduleBase schedule,
+            string scheduledTaskAccount,
             string name,
             string description,
             string arguments)
@@ -95,7 +95,7 @@ namespace Naos.Deployment.Core
                 throw new NotSupportedException("Unsupported schedule type for scheduled task deployment: " + scheduleObject.GetType());
             }
 
-            var setupScheduledTaskParams = new object[] { name, description, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
+            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
                                           {
                                               Description =
@@ -111,6 +111,14 @@ namespace Naos.Deployment.Core
             scheduledTaskSetupSteps.Add(createScheduledTask);
 
             return scheduledTaskSetupSteps;
+        }
+
+        private string GetAccountToUse(InitializationStrategyScheduledTask scheduledTaskStrategy)
+        {
+            var scheduledTaskAccount = string.IsNullOrEmpty(scheduledTaskStrategy.ScheduledTaskAccount)
+                                           ? this.settings.HarnessSettings.HarnessAccount
+                                           : scheduledTaskStrategy.ScheduledTaskAccount;
+            return scheduledTaskAccount;
         }
     }
 }

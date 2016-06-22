@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
@@ -19,15 +20,24 @@ namespace Naos.Deployment.Core
     {
         private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath, string harnessAccount, string iisAccount)
         {
+            var usersToGrantPrivateKeyAccess = new[] { certToInstallStrategy.AccountToGrantPrivateKeyAccess };
+            var certificateName = certToInstallStrategy.CertificateToInstall;
+
+            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName);
+        }
+
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
+            string tempPathToStoreFileWhileInstalling,
+            string harnessAccount,
+            string iisAccount,
+            ICollection<string> usersToGrantPrivateKeyAccess,
+            string certificateName)
+        {
             var certSteps = new List<SetupStep>();
 
-            var userToGrantPrivateKeyAccess = certToInstallStrategy.UserToGrantPrivateKeyAccess;
-            var tokenAppliedUser = TokenSubstitutions.GetSubstitutedStringForAccounts(
-                userToGrantPrivateKeyAccess,
-                harnessAccount,
-                iisAccount);
-
-            var certificateName = certToInstallStrategy.CertificateToInstall;
+            var tokenAppliedUsers =
+                usersToGrantPrivateKeyAccess.Select(_ => TokenSubstitutions.GetSubstitutedStringForAccounts(_, harnessAccount, iisAccount)).ToArray();
+            var tokenAppliedUsersString = string.Join(",", tokenAppliedUsers);
 
             var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(certificateName);
             if (certDetails == null)
@@ -35,30 +45,24 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException("Could not find certificate by name: " + certificateName);
             }
 
-            var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
+            var certificateTargetPath = Path.Combine(tempPathToStoreFileWhileInstalling, certDetails.GenerateFileName());
             certSteps.Add(
                 new SetupStep
-                {
-                    Description =
-                        "Send certificate file (removed after installation): "
-                        + certDetails.GenerateFileName(),
-                    SetupAction =
-                        machineManager =>
-                        machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
-                });
+                    {
+                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
+                        SetupAction = machineManager => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
+                    });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, tokenAppliedUser };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, tokenAppliedUsers };
 
             certSteps.Add(
                 new SetupStep
-                {
-                    Description = "Installing certificate: " + certificateName,
-                    SetupAction =
-                        machineManager =>
-                        machineManager.RunScript(
-                            this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText,
-                            installCertificateParams)
-                });
+                    {
+                        Description = $"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}]",
+                        SetupAction =
+                            machineManager =>
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams)
+                    });
 
             return certSteps;
         }

@@ -17,14 +17,14 @@ namespace Naos.Deployment.Domain
         public string CertificateToInstall { get; set; }
 
         /// <summary>
-        /// Gets or sets the user to grant private key access to on the certificate (null will skip).
+        /// Gets or sets the account to grant private key access to on the certificate (null will skip).
         /// </summary>
-        public string UserToGrantPrivateKeyAccess { get; set; }
+        public string AccountToGrantPrivateKeyAccess { get; set; }
 
         /// <inheritdoc />
         public override object Clone()
         {
-            var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall, UserToGrantPrivateKeyAccess = this.UserToGrantPrivateKeyAccess };
+            var ret = new InitializationStrategyCertificateToInstall { CertificateToInstall = this.CertificateToInstall, AccountToGrantPrivateKeyAccess = this.AccountToGrantPrivateKeyAccess };
             return ret;
         }
     }
