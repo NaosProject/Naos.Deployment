@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Naos.Cron;
@@ -22,9 +23,9 @@ namespace Naos.Deployment.Core
         private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
-            var selfHostDns = funcToCreateNewDnsWithTokensReplaced(selfHostStrategy.SelfHostDns);
+            var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(_ => _.Address).Select(funcToCreateNewDnsWithTokensReplaced).ToList();
             var sslCertificateName = selfHostStrategy.SslCertificateName;
-            var scheduledTaskAccount = selfHostStrategy.ScheduledTaskAccount;
+            var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
             var selfHostExeName = selfHostStrategy.SelfHostExeName;
             var applicationId = Guid.NewGuid().ToString().ToUpper();
 
@@ -44,7 +45,7 @@ namespace Naos.Deployment.Core
                         machineManager => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
                 });
 
-            var configureCertParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, applicationId, selfHostDns };
+            var configureCertParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
@@ -56,12 +57,11 @@ namespace Naos.Deployment.Core
                                 configureCertParams)
                     });
 
-            var account = scheduledTaskAccount ?? this.settings.HarnessSettings.HarnessAccount;
-            var configureUserParams = new[] { account, selfHostDns };
+            var configureUserParams = new object[] { scheduledTaskAccount, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Configure user {account} for Self Hosting",
+                        Description = $"Configure user {scheduledTaskAccount} for Self Hosting",
                         SetupAction =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams)
@@ -88,6 +88,7 @@ namespace Naos.Deployment.Core
                 environment,
                 exeName,
                 schedule,
+                scheduledTaskAccount,
                 name,
                 description,
                 null);
@@ -95,6 +96,14 @@ namespace Naos.Deployment.Core
             selfHostSteps.AddRange(scheduledTaskStesps);
 
             return selfHostSteps;
+        }
+
+        private string GetAccountToUse(InitializationStrategySelfHost selfHostStrategy)
+        {
+            var scheduledTaskAccount = string.IsNullOrEmpty(selfHostStrategy.ScheduledTaskAccount)
+                                           ? this.settings.HarnessSettings.HarnessAccount
+                                           : selfHostStrategy.ScheduledTaskAccount;
+            return scheduledTaskAccount;
         }
     }
 }

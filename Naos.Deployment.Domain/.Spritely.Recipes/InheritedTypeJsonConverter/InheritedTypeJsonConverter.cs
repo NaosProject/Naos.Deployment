@@ -22,7 +22,7 @@ namespace Spritely.Recipes
     using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Significantly rewritten from original source at: http://StackOverflow.com/a/17247339/1442829
+    /// Insprired by: http://StackOverflow.com/a/17247339/1442829
     /// --- This requires the base type it's used on to declare all of the types it might use... ---
     /// Use Bindable Attribute to match a derived class based on the class given to the serializer
     /// Selected class will be the first class to match all properties in the json object.
@@ -31,8 +31,8 @@ namespace Spritely.Recipes
     [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
+#pragma warning disable 0436
 #endif
-
     internal partial class InheritedTypeJsonConverter : JsonConverter
     {
         private readonly ConcurrentDictionary<Type, IReadOnlyCollection<Type>> allChildTypes =
@@ -268,4 +268,7 @@ namespace Spritely.Recipes
             return allChildTypes[type];
         }
     }
+#if !RecipesProject
+#pragma warning restore 0436
+#endif
 }

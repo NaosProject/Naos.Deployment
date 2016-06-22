@@ -82,6 +82,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
             [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson, 
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
+            [Aliases("")] [Description("Optional certificate name for an environment certificate saved in certificate manager being configured.")] [DefaultValue(null)] string environmentCertificateName,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
             [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
@@ -108,6 +109,7 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                       environment: " + environment);
             Console.WriteLine("--                                      instanceName: " + instanceName);
             Console.WriteLine("--                              packagesToDeployJson: " + packagesToDeployJson);
+            Console.WriteLine("--                        environmentCertificateName: " + environmentCertificateName);
             Console.WriteLine("--                              announcementFilePath: " + announcementFilePath);
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
@@ -164,6 +166,8 @@ namespace Naos.Deployment.Console
                 messageBusPersistenceConnectionConfiguration,
                 computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine,
+                unzipDirPath,
+                environmentCertificateName,
                 announcementFilePath,
                 telemetryFilePath);
 

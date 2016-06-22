@@ -39,7 +39,7 @@ namespace Naos.Deployment.Core
                                        ? ApplicationPoolStartMode.OnDemand
                                        : iisStrategy.AppPoolStartMode;
 
-            var appPoolAccount = iisStrategy.AppPoolAccount;
+            var appPoolAccount = this.GetAccountToUse(iisStrategy);
 
             var autoStartProviderName = iisStrategy.AutoStartProvider == null
                                             ? null
@@ -85,6 +85,12 @@ namespace Naos.Deployment.Core
                 });
 
             return webSteps;
+        }
+
+        private string GetAccountToUse(InitializationStrategyIis iisStrategy)
+        {
+            var appPoolAccount = string.IsNullOrEmpty(iisStrategy.AppPoolAccount) ? this.settings.WebServerSettings.IisAccount : iisStrategy.AppPoolAccount;
+            return appPoolAccount;
         }
     }
 }

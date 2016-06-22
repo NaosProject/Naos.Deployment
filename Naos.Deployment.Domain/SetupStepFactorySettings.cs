@@ -70,6 +70,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
         public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the initialization strategy types that require the environment certificate to be installed.
+        /// </summary>
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate { get; set; }
     }
 
     /// <summary>

@@ -20,11 +20,11 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Clone_CertificateToInstall_Works()
         {
-            var original = new InitializationStrategyCertificateToInstall { CertificateToInstall = "cert", UserToGrantPrivateKeyAccess = "someone" };
+            var original = new InitializationStrategyCertificateToInstall { CertificateToInstall = "cert", AccountToGrantPrivateKeyAccess = "someone" };
             var cloned = original.Clone() as InitializationStrategyCertificateToInstall;
             Assert.NotNull(cloned);
             Assert.Equal(original.CertificateToInstall, cloned.CertificateToInstall);
-            Assert.Equal(original.UserToGrantPrivateKeyAccess, cloned.UserToGrantPrivateKeyAccess);
+            Assert.Equal(original.AccountToGrantPrivateKeyAccess, cloned.AccountToGrantPrivateKeyAccess);
         }
 
         [Fact]
@@ -57,7 +57,7 @@ namespace Naos.Deployment.Core.Test
             var original = new InitializationStrategySelfHost
                                {
                                    SelfHostExeName = "my.exe",
-                                   SelfHostDns = "myDns",
+                                   SelfHostSupportedDnsEntries = new[] { new DnsEntry { Address = "myDns", ShouldUpdate = true } },
                                    SslCertificateName = "certName",
                                    ScheduledTaskAccount = "Monkey"
                                };
@@ -65,7 +65,8 @@ namespace Naos.Deployment.Core.Test
             var cloned = original.Clone() as InitializationStrategySelfHost;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
-            Assert.Equal(original.SelfHostDns, cloned.SelfHostDns);
+            Assert.Equal(original.SelfHostSupportedDnsEntries.Single().Address, cloned.SelfHostSupportedDnsEntries.Single().Address);
+            Assert.Equal(original.SelfHostSupportedDnsEntries.Single().ShouldUpdate, cloned.SelfHostSupportedDnsEntries.Single().ShouldUpdate);
             Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
             Assert.Equal(original.SelfHostExeName, cloned.SelfHostExeName);
             Assert.Equal(original.ScheduledTaskAccount, cloned.ScheduledTaskAccount);

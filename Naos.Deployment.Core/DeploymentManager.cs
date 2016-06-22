@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
+    using System.IO.Compression;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -46,6 +47,8 @@ namespace Naos.Deployment.Core
 
         private readonly Action<string> announce;
 
+        private readonly string workingDirectory;
+
         private readonly SetupStepFactory setupStepFactory;
 
         private readonly MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration;
@@ -77,6 +80,8 @@ namespace Naos.Deployment.Core
         /// <param name="messageBusPersistenceConnectionConfiguration">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
+        /// <param name="workingDirectory">Directory to perform temp disk operations.</param>
+        /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
         /// <param name="telemetryFile">Optional file path to record JSON file of certain task timings.</param>
         public DeploymentManager(
@@ -90,6 +95,8 @@ namespace Naos.Deployment.Core
             MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer, 
+            string workingDirectory,
+            string environmentCertificateName = null,
             string announcementFile = null, 
             string telemetryFile = null)
         {
@@ -101,6 +108,7 @@ namespace Naos.Deployment.Core
             this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
+            this.workingDirectory = workingDirectory;
             this.telemetryFile = telemetryFile;
             this.announcementFile = announcementFile;
             this.itsConfigPrecedenceAfterEnvironment = new[] { "Common" };
@@ -108,7 +116,8 @@ namespace Naos.Deployment.Core
                 setupStepFactorySettings,
                 certificateRetriever,
                 packageManager,
-                this.itsConfigPrecedenceAfterEnvironment);
+                this.itsConfigPrecedenceAfterEnvironment,
+                environmentCertificateName);
         }
 
         /// <inheritdoc />
@@ -160,11 +169,11 @@ namespace Naos.Deployment.Core
             {
                 if (config.DeploymentConfiguration == null)
                 {
-                    this.LogAnnouncement("   - Did NOT find config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                    this.LogAnnouncement("   - Did NOT find config in package for: " + config.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString());
                 }
                 else
                 {
-                    this.LogAnnouncement("   - Found config in package for: " + config.Package.PackageDescription.GetIdDotVersionString());
+                    this.LogAnnouncement("   - Found config in package for: " + config.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString());
                 }
             }
 
@@ -290,7 +299,13 @@ namespace Naos.Deployment.Core
                         () => Task.Run(() => this.WaitUntilMachineIsAccessible(machineManager)),
                         instanceNumber);
 
-                var instanceLevelSetupSteps = this.setupStepFactory.GetInstanceLevelSetupSteps(createdInstanceDescription.ComputerName, configToCreateWith.ChocolateyPackages);
+                var instanceLevelSetupSteps =
+                    await
+                    this.setupStepFactory.GetInstanceLevelSetupSteps(
+                        createdInstanceDescription.ComputerName,
+                        configToCreateWith.ChocolateyPackages,
+                        packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList());
+
                 this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
                 await this.RunActionWithTelemetryAsync("Run instance level setup steps", () => this.RunSetupStepsAsync(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
 
@@ -301,7 +316,7 @@ namespace Naos.Deployment.Core
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
                 {
                     var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
-                    this.LogAnnouncement("Running setup actions for package: " + packagedConfig.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
+                    this.LogAnnouncement("Running setup actions for package: " + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
 
@@ -309,7 +324,7 @@ namespace Naos.Deployment.Core
                     await this.tracker.ProcessDeployedPackageAsync(
                         environment,
                         createdInstanceDescription.Id,
-                        packagedConfig.Package.PackageDescription);
+                        packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription);
                 }
             }
 
@@ -334,7 +349,7 @@ namespace Naos.Deployment.Core
             InstanceDescription createdInstanceDescription,
             Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            // get all web initializations to update any DNS entries on the public IP address.
+            // get all web initializations to update any DNS entries.
             var webInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyIis>();
 
             this.LogAnnouncement("Updating DNS for web initializations (if applicable)", instanceNumber);
@@ -346,19 +361,21 @@ namespace Naos.Deployment.Core
                 this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
             }
 
-            // get all self host initializations to update any DNS entries on the public IP address.
+            // get all self host initializations to update any DNS entries.
             var selfHostInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategySelfHost>();
 
             this.LogAnnouncement("Updating DNS for self host initializations (if applicable)", instanceNumber);
             foreach (var selfHostInitialization in selfHostInitializations)
             {
                 var ipAddress = createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress;
-                var dns = funcToCreateNewDnsWithTokensReplaced(selfHostInitialization.SelfHostDns);
-
-                this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
+                foreach (var selfHostSupportedDnsEntry in selfHostInitialization.SelfHostSupportedDnsEntries.Where(_ => _.ShouldUpdate).Select(_ => _.Address).ToList())
+                {
+                    var dns = funcToCreateNewDnsWithTokensReplaced(selfHostSupportedDnsEntry);
+                    this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
+                }
             }
 
-            // get all DNS initializations to update any private DNS entries on the private IP address.
+            // get all DNS initializations to update any private DNS entries.
             this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
             var dnsInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
             foreach (var initialization in dnsInitializations)
@@ -421,7 +438,7 @@ namespace Naos.Deployment.Core
             // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
             var alreadyDeployingTheSamePackageAsHandlersUse =
                 packagedDeploymentConfigsWithDefaultsAndOverrides.Any(
-                    _ => _.Package.PackageDescription.Id == this.messageBusHandlerHarnessConfiguration.Package.Id);
+                    _ => _.PackageWithBundleIdentifier.Package.PackageDescription.Id == this.messageBusHandlerHarnessConfiguration.Package.Id);
 
             var hasMessageBusInitializations = messageBusInitializations.Any();
             if (hasMessageBusInitializations && !alreadyDeployingTheSamePackageAsHandlersUse)
@@ -436,8 +453,7 @@ namespace Naos.Deployment.Core
                     itsConfigOverridesForHandlers.AddRange(
                         packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
 
-                    var packageFolderName =
-                        packageWithMessageBusInitializations.Package.PackageDescription.GetIdDotVersionString();
+                    var packageFolderName = packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString();
 
                     // extract appropriate files from 
                     var itsConfigFilesFromPackage = new Dictionary<string, string>();
@@ -445,13 +461,13 @@ namespace Naos.Deployment.Core
                     precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
                     foreach (var precedenceElement in precedenceChain)
                     {
-                        var itsConfigFolderPattern = packageWithMessageBusInitializations.Package.AreDependenciesBundled
+                        var itsConfigFolderPattern = packageWithMessageBusInitializations.PackageWithBundleIdentifier.AreDependenciesBundled
                                                          ? $"{packageFolderName}/Configuration/.config/{precedenceElement}/"
                                                          : $".config/{precedenceElement}/";
 
                         var itsConfigFilesFromPackageForPrecedenceElement =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                packageWithMessageBusInitializations.Package,
+                                packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package,
                                 itsConfigFolderPattern);
 
                         foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
@@ -563,12 +579,12 @@ namespace Naos.Deployment.Core
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
-                        var package = this.packageManager.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
-                        var actualVersion = this.GetActualVersionFromPackage(package);
+                        var package = this.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var actualVersion = this.GetActualVersionFromPackage(package.Package);
 
                         var deploymentConfigJson =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                package,
+                                package.Package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
                         var deploymentConfig =
                             Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
@@ -582,9 +598,7 @@ namespace Naos.Deployment.Core
                             // since we previously didn't bundle the packages dependencies 
                             //        AND found in the extraced config that we need to 
                             //       THEN we need to re-download with dependencies bundled...
-                            package = this.packageManager.GetPackage(
-                                packageDescriptionWithOverrides,
-                                true);
+                            package = this.GetPackage(packageDescriptionWithOverrides, true);
                         }
 
                         // take overrides if present, otherwise take existing, otherwise take empty
@@ -598,11 +612,11 @@ namespace Naos.Deployment.Core
                                                              ?? new List<InitializationStrategyBase>();
 
                         // Overwrite w/ specific version if able to find...
-                        package.PackageDescription.Version = actualVersion;
+                        package.Package.PackageDescription.Version = actualVersion;
 
                         var newItem = new PackagedDeploymentConfiguration
                                           {
-                                              Package = package,
+                                              PackageWithBundleIdentifier = package,
                                               DeploymentConfiguration = deploymentConfig,
                                               InitializationStrategies =
                                                   initializationStrategies,
@@ -614,6 +628,108 @@ namespace Naos.Deployment.Core
                     }).ToList();
 
             return packagedDeploymentConfigs;
+        }
+
+        private PackageWithBundleIdentifier GetPackage(PackageDescriptionWithOverrides packageDescription, bool bundleAllDependencies)
+        {
+            const string DirectoryDateTimeToStringFormat = "yyyy-MM-dd--HH-mm-ss--ffff";
+            var localWorkingDirectory = Path.Combine(this.workingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat));
+
+            byte[] fileBytes;
+            if (bundleAllDependencies)
+            {
+                var packageFilePaths = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory, true);
+                var bundleStagePath = Path.Combine(localWorkingDirectory, "Bundle");
+                foreach (var packageFilePath in packageFilePaths)
+                {
+                    var packageName = new FileInfo(packageFilePath).Name.Replace(".nupkg", string.Empty);
+                    var targetPath = Path.Combine(bundleStagePath, packageName);
+                    ZipFile.ExtractToDirectory(packageFilePath, targetPath);
+
+                    // delete tools dir to avoid unnecessary issues with unrelated assemblies
+                    var toolsPath = Path.Combine(targetPath, "tools");
+                    if (Directory.Exists(toolsPath))
+                    {
+                        Directory.Delete(toolsPath, true);
+                    }
+
+                    // thin out ref path as it will fail to load
+                    var refPath = Path.Combine(targetPath, "ref");
+                    if (Directory.Exists(refPath))
+                    {
+                        Directory.Delete(refPath, true);
+                    }
+
+                    // thin out runtimes path as it will fail to load
+                    var runtimesPath = Path.Combine(targetPath, "runtimes");
+                    if (Directory.Exists(runtimesPath))
+                    {
+                        Directory.Delete(runtimesPath, true);
+                    }
+
+                    // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep newest...).
+                    var libPath = Path.Combine(targetPath, "lib");
+                    var frameworkDirectories = Directory.Exists(libPath) ? Directory.GetDirectories(libPath) : new string[0];
+
+                    if (frameworkDirectories.Any())
+                    {
+                        var frameworkFolderToKeep = frameworkDirectories.Length == 1
+                                                        ? frameworkDirectories.Single()
+                                                        : frameworkDirectories.Where(
+                                                            directoryPath =>
+                                                                {
+                                                                    var directoryName = Path.GetFileName(directoryPath);
+                                                                    var includeInWhere = directoryName != null
+                                                                                         && directoryName.StartsWith(
+                                                                                             "net",
+                                                                                             StringComparison.InvariantCultureIgnoreCase);
+                                                                    return includeInWhere;
+                                                                }).OrderByDescending(_ => _).FirstOrDefault();
+
+                        // ReSharper disable once ConvertIfStatementToNullCoalescingExpression - seems more confusing that way...
+                        if (frameworkFolderToKeep == null)
+                        {
+                            // this will happen with a package that doesn't honor the 'NET' prefix on framework folders...
+                            frameworkFolderToKeep = frameworkDirectories.Where(
+                                directoryPath =>
+                                    {
+                                        var directoryName = Path.GetFileName(directoryPath);
+                                        var includeInWhere = directoryName != null;
+                                        return includeInWhere;
+                                    }).OrderByDescending(_ => _).FirstOrDefault();
+                        }
+
+                        var unnecessaryFrameworks = frameworkDirectories.Except(new[] { frameworkFolderToKeep }).ToList();
+                        foreach (var unnecessaryFramework in unnecessaryFrameworks)
+                        {
+                            Directory.Delete(unnecessaryFramework, true);
+                        }
+                    }
+                }
+
+                var bundledFilePath = Path.Combine(localWorkingDirectory, packageDescription.Id + "_DependenciesBundled.zip");
+                ZipFile.CreateFromDirectory(bundleStagePath, bundledFilePath);
+                fileBytes = File.ReadAllBytes(bundledFilePath);
+            }
+            else
+            {
+                var packageFilePath = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory).Single();
+                fileBytes = File.ReadAllBytes(packageFilePath);
+            }
+
+            // clean up temp files
+            Directory.Delete(localWorkingDirectory, true);
+
+            var package = new Package
+                              {
+                                  PackageDescription = packageDescription,
+                                  PackageFileBytes = fileBytes,
+                                  PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
+                              };
+
+            var ret = new PackageWithBundleIdentifier { Package = package, AreDependenciesBundled = bundleAllDependencies };
+
+            return ret;
         }
 
         private void RunSetupStepWithRetry(
@@ -704,10 +820,10 @@ namespace Naos.Deployment.Core
             }
 
             var messageBusHandlerPackage =
-                this.packageManager.GetPackage(this.messageBusHandlerHarnessConfiguration.Package);
+                this.GetPackage(this.messageBusHandlerHarnessConfiguration.Package, false);
 
-            var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage);
-            messageBusHandlerPackage.PackageDescription.Version = actualVersion;
+            var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage.Package);
+            messageBusHandlerPackage.Package.PackageDescription.Version = actualVersion;
 
             var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
@@ -757,7 +873,7 @@ namespace Naos.Deployment.Core
                                             {
                                                 DeploymentConfiguration =
                                                     configToCreateWith,
-                                                Package = messageBusHandlerPackage,
+                                                PackageWithBundleIdentifier = messageBusHandlerPackage,
                                                 ItsConfigOverrides =
                                                     itsConfigOverridesToUse,
                                                 InitializationStrategies =

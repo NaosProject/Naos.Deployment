@@ -1,5 +1,6 @@
 ﻿{
     "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
+    "initializationStrategyTypesThatNeedEnvironmentCertificate": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
@@ -48,10 +49,10 @@
             ]
         },
         "setupScheduledTask": {
-            "parameterNames": [ "Name", "Description", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $Name, [String] $Description, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
                 "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
                 "   $trigger = $null",
                 "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
@@ -78,7 +79,7 @@
                 "   {",
                 "       $action = New-ScheduledTaskAction -Execute $ExeFullPath -Argument $Arguments",
                 "   }",
-                "   Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User 'NT AUTHORITY\\NETWORKSERVICE'",
+                "   Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
                 "}"
             ]
         },
@@ -187,34 +188,38 @@
             ]
         },
         "configureSslCertificateForHosting": {
-            "parameterNames": [ "CertPath", "CertPassword", "ApplicationId", "HttpsDns" ],
+            "parameterNames": [ "CertPath", "CertPassword", "ApplicationId", "HttpsDnsEntries" ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword, [System.Guid] $ApplicationId, [string] $HttpsDns)",
+                "param([string] $CertPath, [SecureString] $CertPassword, [System.Guid] $ApplicationId, [Array] $HttpsDnsEntries)",
                 "   if (-not (Test-Path $CertPath))",
                 "   {",
                 "      throw \"Cert missing at $CertPath\"",
                 "   }",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
-                "   $hostNamePort = \"$($HttpsDns):443\"",
-                "   Write-Output \"HostNamePort: $hostNamePort\"",
                 "   $thumbprint = \"$($certResult.Thumbprint)\"",
                 "   Write-Output \"Thumbprint: $thumbprint\"",
-                "   netsh http add sslcert hostnameport=$hostNamePort appid=\"{$($ApplicationId)}\" certhash=$thumbprint certstorename=MY",
+                "   $HttpsDnsEntries | %{",
+                "       $hostNamePort = \"$($_):443\"",
+                "       Write-Output \"HostNamePort: $hostNamePort\"",
+                "       netsh http add sslcert hostnameport=$hostNamePort appid=\"{$($ApplicationId)}\" certhash=$thumbprint certstorename=MY",
+                "   }",
                 "   # save for end in case it's retried...",
                 "   rm $CertPath -Force",
                 "}"
             ]
         },
         "configureUserForHosting": {
-            "parameterNames": [ "User", "HttpsDns" ],
+            "parameterNames": [ "User", "HttpsDnsEntries" ],
             "scriptTextLines": [
                 "{",
-                "param([string] $User, [string] $HttpsDns)",
-                "   $url = \"https://$($HttpsDns):443/\"",
-                "   Write-Output \"Url: $url\"",
-                "   netsh http add urlacl url=$url user=$User",
+                "param([string] $User, [Array] $HttpsDnsEntries)",
+                "   $HttpsDnsEntries | %{",
+                "       $url = \"https://$($_):443/\"",
+                "       Write-Output \"Url: $url\"",
+                "       netsh http add urlacl url=$url user=$User",
+                "   }",
                 "}"
             ]
         },
@@ -327,21 +332,23 @@
             "parameterNames": [
                 "CertPath",
                 "CertPassword",
-                "UserToGrantPrivateKeyAccess"
+                "UsersToGrantPrivateKeyAccess"
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword, [string] $UserToGrantPrivateKeyAccess = $null)",
+                "param([string] $CertPath, [SecureString] $CertPassword, [Array] $UsersToGrantPrivateKeyAccess = $null)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
                 "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
                 "",
-                "   if (-not ([String]::IsNullOrEmpty($UserToGrantPrivateKeyAccess)))",
+                "   if ($UsersToGrantPrivateKeyAccess -ne $null)",
                 "   {",
                 "      $keyname = (((gci $certStoreLocation | ? {$_.thumbprint -like $($certResult.Thumbprint)}).PrivateKey).CspKeyContainerInfo).UniqueKeyContainerName",
                 "      $keypath = Join-Path $env:ProgramData \"Microsoft\\Crypto\\RSA\\MachineKeys\"",
                 "      $fullpath = Join-Path $keypath $keyname",
-                "      icacls $fullpath /grant $UserToGrantPrivateKeyAccess`:RX",
+                "      $UsersToGrantPrivateKeyAccess | %{",
+                "          icacls $fullpath /grant $_`:RX",
+                "      }",
                 "   }",
                 "",
                 "   rm $CertPath -Force",

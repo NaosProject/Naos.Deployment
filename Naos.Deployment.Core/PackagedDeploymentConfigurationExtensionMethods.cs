@@ -33,7 +33,7 @@ namespace Naos.Deployment.Core
                         {
                             new PackagedDeploymentConfiguration
                                 {
-                                    Package = null,
+                                    PackageWithBundleIdentifier = null,
                                     DeploymentConfiguration = defaultDeploymentConfig
                                 }
                         }
@@ -46,7 +46,7 @@ namespace Naos.Deployment.Core
                         _ =>
                         new PackagedDeploymentConfiguration
                             {
-                                Package = _.Package,
+                                PackageWithBundleIdentifier = _.PackageWithBundleIdentifier,
                                 DeploymentConfiguration =
                                     _.DeploymentConfiguration.ApplyDefaults(
                                         defaultDeploymentConfig)
@@ -113,7 +113,7 @@ namespace Naos.Deployment.Core
                     new PackagedDeploymentConfiguration
                         {
                             DeploymentConfiguration = overrideConfig,
-                            Package = _.Package,
+                            PackageWithBundleIdentifier = _.PackageWithBundleIdentifier,
                             ItsConfigOverrides = _.ItsConfigOverrides,
                             InitializationStrategies = _.InitializationStrategies,
                         }).ToList();
