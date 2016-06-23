@@ -91,6 +91,9 @@ namespace Naos.Deployment.Core.Test
             // id for the database (usually just use the environment)
             var databaseId = environment;
 
+            // server dns
+            var server = "deployment.database.development.domain";
+
             // database name to store records in
             var databaseName = "Deployment";
 
@@ -117,6 +120,7 @@ namespace Naos.Deployment.Core.Test
             {
                 ConnectionSettings = new MongoConnectionSettings
                 {
+                    Server = server,
                     Database = databaseName,
                     Credentials = new Credentials
                     {
@@ -193,7 +197,8 @@ namespace Naos.Deployment.Core.Test
                                            {
                                                Name = certificateToLoad.Name,
                                                EncryptedBase64Bytes = encryptedFileBase64,
-                                               EncryptedPassword = encryptedPassword
+                                               EncryptedPassword = encryptedPassword,
+                                               EncryptingCertificateLocator = encryptingCertificateLocator
                                            };
 
                 certificates.Add(certificateToAdd);
