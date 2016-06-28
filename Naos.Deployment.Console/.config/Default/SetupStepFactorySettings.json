@@ -25,7 +25,7 @@
         "defaultDataDirectory": "D:\\SqlData\\"
     },
     "webServerSettings": {
-        "iisAccount": "IIS_IUSRS"
+        "iisAccount": "NT AUTHORITY\\NETWORKSERVICE"
     },
     "defaultDatabaseFileSizeSettings": {
         "dataFileCurrentSizeInKb": 100000,

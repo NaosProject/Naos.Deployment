@@ -232,7 +232,12 @@ namespace Naos.Deployment.Tracking
             }
         }
 
-        private async Task<Arcology> GetArcologyByEnvironmentNameAsync(string environment)
+        /// <summary>
+        /// Gets the arcology by the environment name.
+        /// </summary>
+        /// <param name="environment">Environment to get the arcology by.</param>
+        /// <returns>Arcology of the specified environment.</returns>
+        public async Task<Arcology> GetArcologyByEnvironmentNameAsync(string environment)
         {
             environment = environment ?? "[NULL VALUE PASSED]";
             environment = string.IsNullOrEmpty(environment) ? "[EMPTY STRING PASSED]" : environment;

@@ -788,6 +788,7 @@ namespace Naos.Deployment.Core
                     {
                         var failedRetryingMessage = $"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying";
                         this.LogAnnouncement(failedRetryingMessage, instanceNumber);
+                        this.LogDebugAnnouncement(setupStep.Description, instanceNumber, new[] { ex });
                         Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
                     }
                 }
@@ -1134,11 +1135,13 @@ namespace Naos.Deployment.Core
 
         private void LogDebugAnnouncement(string step, int instanceNumber, ICollection<dynamic> output)
         {
+            var stringOutput = (output ?? new List<dynamic>()).Select(_ => _ == null ? string.Empty : Convert.ToString(_)).Cast<string>().ToList();
+
             var instanceNumberAdjustedStep = "Instance " + instanceNumber + " - " + step;
             this.debugAnnouncer(instanceNumberAdjustedStep);
-            foreach (var o in output ?? new List<dynamic>())
+            foreach (var o in stringOutput)
             {
-                this.debugAnnouncer((o ?? string.Empty).ToString());
+                this.debugAnnouncer(o);
             }
 
             if (this.debugAnnouncementFile == null)
@@ -1146,7 +1149,6 @@ namespace Naos.Deployment.Core
                 return;
             }
 
-            var stringOutput = output.Select(_ => _ ?? string.Empty).Select(_ => (string)_.ToString()).ToList();
             var entry = new DebugAnnouncementEntry
                             {
                                 DateTime = DateTime.UtcNow,
