@@ -264,12 +264,12 @@ namespace Naos.Deployment.Core
                                              {
                                                  Description =
                                                      "Push package file and unzip: "
-                                                     + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription
-                                                           .GetIdDotVersionString(),
-                                                 SetupAction = machineManager =>
+                                                     + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(),
+                                                 SetupFunc = machineManager =>
                                                      {
                                                          // don't push the null package...
-                                                         if (!string.Equals(
+                                                         if (
+                                                             !string.Equals(
                                                                  packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id,
                                                                  PackageDescription.NullPackageId))
                                                          {
@@ -280,10 +280,10 @@ namespace Naos.Deployment.Core
                                                                  packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
                                                                  false,
                                                                  Overwrite);
-                                                             Log.Write(
-                                                                 () =>
-                                                                 machineManager.RunScript(unzipScript, unzipParams));
+                                                             Log.Write(() => machineManager.RunScript(unzipScript, unzipParams));
                                                          }
+
+                                                         return new dynamic[0];
                                                      }
                                              };
 

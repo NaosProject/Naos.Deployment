@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core
 {
     using System;
+    using System.Collections.Generic;
 
     using Naos.WinRM;
 
@@ -23,7 +24,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the action to run for setup (takes a IManageMachines implementation as a parameter to perform necessary actions remotely).
         /// </summary>
-        public Action<IManageMachines> SetupAction { get; set; }
+        public Func<IManageMachines, ICollection<dynamic>> SetupFunc { get; set; }
 
         /// <inheritdoc />
         public override string ToString()

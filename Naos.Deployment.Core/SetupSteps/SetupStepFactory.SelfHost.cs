@@ -39,18 +39,21 @@ namespace Naos.Deployment.Core
             var certificateTargetPath = Path.Combine(consoleRootPath, certDetails.GenerateFileName());
             selfHostSteps.Add(
                 new SetupStep
-                {
-                    Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
-                    SetupAction =
-                        machineManager => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
-                });
+                    {
+                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
+                        SetupFunc = machineManager =>
+                            {
+                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes);
+                                return new dynamic[0];
+                            }
+                    });
 
             var configureCertParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
                         Description = $"Configure SSL Certificate {sslCertificateName} for Self Hosting",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(
                                 this.settings.DeploymentScriptBlocks.ConfigureSslCertificateForHosting.ScriptText,
@@ -62,7 +65,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = $"Configure user {scheduledTaskAccount} for Self Hosting",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams)
                     });
@@ -72,7 +75,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = $"Open port 443 for Self Hosting",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams)
                     });

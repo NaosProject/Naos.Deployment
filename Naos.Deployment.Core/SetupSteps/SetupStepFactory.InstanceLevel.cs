@@ -22,17 +22,19 @@ namespace Naos.Deployment.Core
         /// Gets the instance level setup steps.
         /// </summary>
         /// <param name="computerName">Computer name to use in windows for the instance.</param>
+        /// <param name="windowsSku">The windows SKU used to create the instance.</param>
+        /// <param name="environment">Environment the instance is in.</param>
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<ICollection<SetupStep>> GetInstanceLevelSetupSteps(string computerName, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
+        public async Task<ICollection<SetupStep>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
         {
             var ret = new List<SetupStep>();
 
             var setupWinRm = new SetupStep
                                  {
                                      Description = "Setup WinRM",
-                                     SetupAction =
+                                     SetupFunc =
                                          machineManager =>
                                          machineManager.RunScript(
                                              this.settings.DeploymentScriptBlocks.SetupWinRmScriptBlock
@@ -44,7 +46,7 @@ namespace Naos.Deployment.Core
             var setupUpdates = new SetupStep
                                    {
                                        Description = "Setup Windows Updates",
-                                       SetupAction =
+                                       SetupFunc =
                                            machineManager =>
                                            machineManager.RunScript(
                                                this.settings.DeploymentScriptBlocks
@@ -56,7 +58,7 @@ namespace Naos.Deployment.Core
             var setupTime = new SetupStep
                                 {
                                     Description = "Setup Windows Time",
-                                    SetupAction =
+                                    SetupFunc =
                                         machineManager =>
                                         machineManager.RunScript(
                                             this.settings.DeploymentScriptBlocks.SetupWindowsTimeScriptBlock
@@ -68,7 +70,7 @@ namespace Naos.Deployment.Core
             var execScripts = new SetupStep
                                   {
                                       Description = "Enable Script Execution",
-                                      SetupAction =
+                                      SetupFunc =
                                           machineManager =>
                                           machineManager.RunScript(
                                               this.settings.DeploymentScriptBlocks
@@ -76,6 +78,82 @@ namespace Naos.Deployment.Core
                                   };
 
             ret.Add(execScripts);
+
+            var windowsSkuEnvironmentVariable = "WindowsSku";
+            var addEnvironmentVariables = new SetupStep
+                                              {
+                                                  Description = "Add Machine Level Environment Variables",
+                                                  SetupFunc = machineManager =>
+                                                      {
+                                                          var environmentVariablesToAdd = new[]
+                                                                                                  {
+                                                                                                      new
+                                                                                                          {
+                                                                                                              Name = this.settings.EnvironmentEnvironmentVariableName,
+                                                                                                              Value = environment
+                                                                                                          },
+                                                                                                      new
+                                                                                                          {
+                                                                                                              Name = windowsSkuEnvironmentVariable,
+                                                                                                              Value = windowsSku.ToString()
+                                                                                                          }
+                                                                                                  };
+                                                          return
+                                                              machineManager.RunScript(
+                                                                  this.settings.DeploymentScriptBlocks.AddMachineLevelEnvironmentVariables.ScriptText,
+                                                                  new[] { environmentVariablesToAdd });
+                                                      }
+                                              };
+
+            ret.Add(addEnvironmentVariables);
+
+            var wallpaperUpdate = new SetupStep
+                                      {
+                                          Description = "Customize Instance Wallpaper",
+                                          SetupFunc = machineManager =>
+                                              {
+                                                  var environmentVariablesToAddToWallpaper = new[] { this.settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable };
+                                                  return
+                                                      machineManager.RunScript(
+                                                          this.settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,
+                                                          new[] { environmentVariablesToAddToWallpaper });
+                                              }
+                                      };
+
+            ret.Add(wallpaperUpdate);
+
+            var registryKeysToUpdateExplorer = new[]
+                                               {
+                                                   new
+                                                       {
+                                                           Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                           Name = "Hidden",
+                                                           Value = "1",
+                                                           Type = "DWord"
+                                                       },
+                                                   new
+                                                       {
+                                                           Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                           Name = "ShowSuperHidden",
+                                                           Value = "1",
+                                                           Type = "DWord"
+                                                       }
+                                               };
+
+            var explorerShowHidden = new SetupStep
+                                         {
+                                             Description = "Set Explorer to show all hidden files",
+                                             SetupFunc = machineManager =>
+                                                 {
+                                                     var fileExplorerParams = new[] { registryKeysToUpdateExplorer };
+                                                     return
+                                                         machineManager.RunScript(
+                                                             this.settings.DeploymentScriptBlocks.UpdateWindowsRegistryEntries.ScriptText,
+                                                             fileExplorerParams);
+                                                 }
+                                         };
+
+            ret.Add(explorerShowHidden);
 
             var installChocoSteps = this.GetChocolateySetupSteps(chocolateyPackages);
             ret.AddRange(installChocoSteps);
@@ -102,13 +180,12 @@ namespace Naos.Deployment.Core
             var rename = new SetupStep
                              {
                                  Description = "Rename Computer",
-                                 SetupAction = machineManager =>
+                                 SetupFunc = machineManager =>
                                      {
-                                         var renameScript =
-                                             this.settings.DeploymentScriptBlocks.RenameComputerScriptBlock
-                                                 .ScriptText;
                                          var renameParams = new[] { computerName };
-                                         machineManager.RunScript(renameScript, renameParams);
+                                         return machineManager.RunScript(
+                                             this.settings.DeploymentScriptBlocks.RenameComputerScriptBlock.ScriptText,
+                                             renameParams);
                                      }
                              };
 
@@ -123,13 +200,12 @@ namespace Naos.Deployment.Core
             if (chocolateyPackages != null && chocolateyPackages.Any())
             {
                 var installChocoClientStep = new SetupStep
-                {
-                    Description = "Install Chocolatey Client",
-                    SetupAction = machineManager =>
-                    {
-                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText);
-                    }
-                };
+                                                 {
+                                                     Description = "Install Chocolatey Client",
+                                                     SetupFunc =
+                                                         machineManager =>
+                                                         machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText)
+                                                 };
 
                 installChocoSteps.Add(installChocoClientStep);
 
@@ -138,13 +214,13 @@ namespace Naos.Deployment.Core
                     var installChocoPackagesStep = new SetupStep
                                                        {
                                                            Description = "Install Chocolatey Package: " + chocoPackage.GetIdDotVersionString(),
-                                                           SetupAction = machineManager =>
+                                                           SetupFunc = machineManager =>
                                                                {
-                                                                   var scriptBlockParameters = new object[] { chocoPackage };
-
-                                                                   machineManager.RunScript(
-                                                                       this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
-                                                                       scriptBlockParameters);
+                                                                   var installChocoPackageParams = new object[] { chocoPackage };
+                                                                   return
+                                                                       machineManager.RunScript(
+                                                                           this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
+                                                                           installChocoPackageParams);
                                                                }
                                                        };
 

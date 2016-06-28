@@ -69,17 +69,20 @@ namespace Naos.Deployment.Core
 
             webSteps.Add(
                 new SetupStep
-                {
-                    Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
-                    SetupAction =
-                        machineManager => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
-                });
+                    {
+                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
+                        SetupFunc = machineManager =>
+                            {
+                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes);
+                                return new dynamic[0];
+                            }
+                    });
 
             webSteps.Add(
                 new SetupStep
                 {
                     Description = "Install IIS and configure website/webservice (this could take several minutes).",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters)
                 });
