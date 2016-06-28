@@ -34,7 +34,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Update Its.Config precedence: " + string.Join("|", precedenceChain),
-                        SetupAction = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams)
+                        SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams)
                     });
 
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
@@ -48,7 +48,11 @@ namespace Naos.Deployment.Core
                     new SetupStep
                         {
                             Description = "(Over)write Its.Config file: " + itsConfigOverride.FileNameWithoutExtension,
-                            SetupAction = machineManager => machineManager.SendFile(itsFilePath, itsFileBytes, false, true)
+                            SetupFunc = machineManager =>
+                                {
+                                    machineManager.SendFile(itsFilePath, itsFileBytes, false, true);
+                                    return new dynamic[0];
+                                }
                         });
             }
 

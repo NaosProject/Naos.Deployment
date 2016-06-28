@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core
                 new SetupStep 
                     {
                         Description = "Create " + backupDirectory + " and grant rights to SQL service account.",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams)
                     });
@@ -52,7 +52,7 @@ namespace Naos.Deployment.Core
                 new SetupStep 
                     {
                         Description = "Add rights to " + backupDirectory + " for backup process account.",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams)
                     });
@@ -64,7 +64,7 @@ namespace Naos.Deployment.Core
                 new SetupStep 
                 {
                     Description = "Create " + dataDirectory + " and grant rights to SQL service account.",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams)
                 });
@@ -75,9 +75,21 @@ namespace Naos.Deployment.Core
                 new SetupStep 
                 {
                     Description = "Turn on Mixed Mode Auth, enable SA account, and set password.",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams)
+                });
+
+            var updateDefaultInstancePathsScript = this.settings.DeploymentScriptBlocks.SetDefaultDirectories;
+            var updateDefaultInstancePathsParams = new[] { dataDirectory, dataDirectory, backupDirectory };
+
+            databaseSteps.Add(
+                new SetupStep
+                {
+                    Description = "Update default instance paths on database.",
+                    SetupFunc =
+                        machineManager =>
+                        machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams)
                 });
 
             var restartSqlServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
@@ -86,7 +98,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                 {
                     Description = "Restart SQL server for account change(s) to take effect.",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams)
                 });
@@ -102,12 +114,11 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Create database: " + sqlServerStrategy.Name,
-                        SetupAction = machineManager =>
+                        SetupFunc = machineManager =>
                             {
-                                var realRemoteConnectionString = connectionString.Replace(
-                                    "localhost",
-                                    machineManager.IpAddress);
+                                var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
                                 DatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
+                                return new dynamic[0];
                             }
                     });
 
@@ -129,34 +140,23 @@ namespace Naos.Deployment.Core
                     new SetupStep
                         {
                             Description = $"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}",
-                            SetupAction = machineManager =>
+                            SetupFunc = machineManager =>
                                 {
-                                    var restoreFilePath = Path.Combine(
-                                        sqlServerStrategy.BackupDirectory,
-                                        awsRestore.FileName);
+                                    var restoreFilePath = Path.Combine(sqlServerStrategy.BackupDirectory, awsRestore.FileName);
 
-                                    var remoteDownloadBackupScriptBlock =
-                                        this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
+                                    var remoteDownloadBackupScriptBlock = this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
                                     var remoteDownloadBackupScriptParams = new[]
                                                                                {
-                                                                                   awsRestore.BucketName,
-                                                                                   awsRestore.FileName, restoreFilePath,
-                                                                                   awsRestore.Region,
-                                                                                   awsRestore.DownloadAccessKey,
+                                                                                   awsRestore.BucketName, awsRestore.FileName, restoreFilePath,
+                                                                                   awsRestore.Region, awsRestore.DownloadAccessKey,
                                                                                    awsRestore.DownloadSecretKey
                                                                                };
 
-                                    machineManager.RunScript(
-                                        remoteDownloadBackupScriptBlock,
-                                        remoteDownloadBackupScriptParams);
-                                    var realRemoteConnectionString = connectionString.Replace(
-                                        "localhost",
-                                        machineManager.IpAddress);
+                                    machineManager.RunScript(remoteDownloadBackupScriptBlock, remoteDownloadBackupScriptParams);
+                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
 
                                     var restoreFileUri = new Uri(restoreFilePath);
-                                    var checksumOption = awsRestore.RunChecksum
-                                                             ? ChecksumOption.Checksum
-                                                             : ChecksumOption.NoChecksum;
+                                    var checksumOption = awsRestore.RunChecksum ? ChecksumOption.Checksum : ChecksumOption.NoChecksum;
                                     var restoreDetails = new RestoreDetails
                                                              {
                                                                  ChecksumOption = checksumOption,
@@ -165,16 +165,12 @@ namespace Naos.Deployment.Core
                                                                  DataFilePath = databaseConfigurationForRestore.DataFilePath,
                                                                  LogFilePath = databaseConfigurationForRestore.LogFilePath,
                                                                  RecoveryOption = RecoveryOption.NoRecovery,
-                                                                 ReplaceOption =
-                                                                     ReplaceOption.ReplaceExistingDatabase,
+                                                                 ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
                                                                  RestoreFrom = restoreFileUri,
-                                                                 RestrictedUserOption =
-                                                                     RestrictedUserOption.Normal
+                                                                 RestrictedUserOption = RestrictedUserOption.Normal
                                                              };
-                                    DatabaseManager.RestoreFull(
-                                        realRemoteConnectionString,
-                                        sqlServerStrategy.Name,
-                                        restoreDetails);
+                                    DatabaseManager.RestoreFull(realRemoteConnectionString, sqlServerStrategy.Name, restoreDetails);
+                                    return new dynamic[0];
                                 }
                         });
             }
@@ -192,29 +188,25 @@ namespace Naos.Deployment.Core
                     new SetupStep
                         {
                             Description = "Run Database Fluent Migration to Version: " + fluentMigration.Version,
-                            SetupAction = machineManager =>
+                            SetupFunc = machineManager =>
                                 {
-                                    var realRemoteConnectionString = connectionString.Replace(
-                                        "localhost",
-                                        machineManager.IpAddress);
+                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
                                     var migrationDllBytes =
-                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(
-                                            package,
-                                            package.PackageDescription.Id + ".dll").Select(_ => _.Value).SingleOrDefault();
+                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(package, package.PackageDescription.Id + ".dll")
+                                            .Select(_ => _.Value)
+                                            .SingleOrDefault();
                                     var migrationPdbBytes =
-                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(
-                                            package,
-                                            package.PackageDescription.Id + ".pdb").Select(_ => _.Value).SingleOrDefault();
+                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(package, package.PackageDescription.Id + ".pdb")
+                                            .Select(_ => _.Value)
+                                            .SingleOrDefault();
 
                                     var assembly = migrationPdbBytes == null
-                                                            ? Assembly.Load(migrationDllBytes)
-                                                            : Assembly.Load(migrationDllBytes, migrationPdbBytes);
+                                                       ? Assembly.Load(migrationDllBytes)
+                                                       : Assembly.Load(migrationDllBytes, migrationPdbBytes);
 
-                                    MigrationExecutor.Up(
-                                        assembly,
-                                        realRemoteConnectionString,
-                                        sqlServerStrategy.Name,
-                                        fluentMigration.Version);
+                                    MigrationExecutor.Up(assembly, realRemoteConnectionString, sqlServerStrategy.Name, fluentMigration.Version);
+
+                                    return new dynamic[0];
                                 }
                         });
             }

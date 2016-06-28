@@ -24,11 +24,7 @@ namespace Naos.Deployment.Console
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
 
-    using Newtonsoft.Json;
-
     using OBeautifulCode.Libs.Collections;
-
-    using Spritely.Recipes;
 
     using Serializer = Naos.Deployment.Domain.Serializer;
 
@@ -84,6 +80,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Optional certificate name for an environment certificate saved in certificate manager being configured.")] [DefaultValue(null)] string environmentCertificateName,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
+            [Aliases("")] [Description("Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing).")] [DefaultValue(null)] string debugAnnouncementFilePath,
             [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
@@ -111,6 +108,7 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                              packagesToDeployJson: " + packagesToDeployJson);
             Console.WriteLine("--                        environmentCertificateName: " + environmentCertificateName);
             Console.WriteLine("--                              announcementFilePath: " + announcementFilePath);
+            Console.WriteLine("--                         debugAnnouncementFilePath: " + debugAnnouncementFilePath);
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
@@ -166,9 +164,11 @@ namespace Naos.Deployment.Console
                 messageBusPersistenceConnectionConfiguration,
                 computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                 Console.WriteLine,
+                line => { /* no-op */ },
                 unzipDirPath,
                 environmentCertificateName,
                 announcementFilePath,
+                debugAnnouncementFilePath,
                 telemetryFilePath);
 
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);

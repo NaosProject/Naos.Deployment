@@ -29,7 +29,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Create " + dataDirectory + " and grant rights to Mongo service account.",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(
                                 createDatabaseDirScript.ScriptText,
@@ -43,7 +43,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Create " + logDirectory + " and grant rights to Mongo service account.",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams)
                     });
@@ -60,7 +60,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Install Mongo Server and Client.",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(installMongoScript.ScriptText, installMongoParams)
                     });
@@ -71,7 +71,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                 {
                     Description = "Configure Mongo.",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(configureMongoScript.ScriptText, configureMongoParams)
                 });
@@ -82,7 +82,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                 {
                     Description = "Restart Mongo service for change(s) to take effect.",
-                    SetupAction =
+                    SetupFunc =
                         machineManager =>
                         machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams)
                 });
@@ -92,7 +92,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                 {
                     Description = $"Open port 27017 for Mongo",
-                    SetupAction =
+                    SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne)
                 });
@@ -102,7 +102,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                 {
                     Description = $"Open port 27018 for Mongo",
-                    SetupAction =
+                    SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo)
                 });

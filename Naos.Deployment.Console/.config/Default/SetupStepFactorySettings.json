@@ -4,6 +4,7 @@
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
+    "environmentEnvironmentVariableName": "Environment",
     "administratorAccount": "Administrator",
     "harnessSettings": {
         "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE"
@@ -45,6 +46,30 @@
                 "   $log = New-Object System.Diagnostics.Eventing.Reader.EventLogConfiguration $logName",
                 "   $log.IsEnabled=$true",
                 "   $log.SaveChanges()",
+                "}"
+            ]
+        },
+        "updateWindowsRegistryEntries": {
+            "parameterNames": [ "EntryUpdates" ],
+            "scriptTextLines": [
+                "{",
+                "param([Array] $EntryUpdates)",
+                "# -----Documentation of the 'PropertyType' that can be provided and how it maps to the native types----",
+                "# MSDN article for Microsoft.Win32.RegistryValueKind shows the full map",
+                "# PowerShell type	Registry type",
+                "# Binary	REG_BINARY",
+                "# DWord	REG_DWORD",
+                "# ExpandString	REG_EXPAND_SZ",
+                "# MultiString	REG_MULTI_SZ",
+                "# None	–",
+                "# QWord	REG_QWORD",
+                "# String	REG_SZ",
+                "# Unknown	–",
+                "# ----------------------------------------------------------------------------------------------------",
+                "   $EntryUpdates | %{",
+                "       Write-Output \"Setting '$($_.Path) - $($_.Name)' to '$($_.Value) - $($_.Type)'\"",
+                "       New-ItemProperty -Path $_.Path -Name $_.Name -Value $_.Value -PropertyType $_.Type -Force",
+                "   }",
                 "}"
             ]
         },
@@ -653,6 +678,57 @@
                 "   $statementPassword = \"ALTER LOGIN sa WITH PASSWORD = '\" + $SaPassword + \"'\"",
                 "   &$sqlCmdExe -Q \"$statementPassword\" -E",
                 "   if($lastExitCode -ne 0) { throw \"Exitcode was expected 0 but was $lastExitCode - failed to run $sqlCmdExe -Q $statementPassword -E\" }",
+                "}"
+            ]
+        },
+        "setDefaultDirectories": {
+            "parameterNames": [
+                "Data, Log, Backup"
+            ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $Data, [string] $Log, [string] $Backup)",
+                "   [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO') | out-null",
+                "   $smoServer = new-object ('Microsoft.SqlServer.Management.Smo.Server') 'localhost'",
+                "   $smoServer.Properties['DefaultFile'].Value = $Data",
+                "   $smoServer.Properties['DefaultLog'].Value = $Log",
+                "   $smoServer.Properties['BackupDirectory'].Value = $Backup",
+                "   $smoServer.Alter()",
+                "}"
+            ]
+        },
+        "addMachineLevelEnvironmentVariables": {
+            "parameterNames": [ "EnvironmentVariables" ],
+            "scriptTextLines": [
+                "{",
+                "param([Array] $EnvironmentVariables)",
+                "   $EnvironmentVariables | %{",
+                "       Write-Output \"Setting '$($_.Name)' to '$($_.Value)'\"",
+                "       [Environment]::SetEnvironmentVariable( $_.Name, $_.Value, 'Machine' )",
+                "   }",
+                "}"
+            ]
+        },
+        "updateInstanceWallpaper": {
+            "parameterNames": [ "EnvironmentVariables" ],
+            "scriptTextLines": [
+                "{",
+                "param([Array] $EnvironmentVariables)",
+                "   $wpsettings = 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Settings\\WallpaperSettings.xml'",
+                "   $xmlns      = 'http://tempuri.org/WallpaperSettings.xsd'",
+                "   $wpxml      = [xml]( Get-Content $wpsettings )",
+                "   $EnvironmentVariables | %{",
+                "       $variableName = $_",
+                "       $wpi = $wpxml.WallpaperSettings.AppendChild($wpxml.CreateElement( 'WallpaperInformation', $xmlns ) )",
+                "       $elements = @{}",
+                "       foreach ( $x in $( 'name', 'source', 'identifier' ) ) {",
+                "           $elements.$x = $wpi.AppendChild( $wpxml.CreateElement( $x, $xmlns ) )",
+                "       }",
+                "       $name = $elements.name.AppendChild($wpxml.CreateTextNode( $variableName ) )",
+                "       $source = $elements.source.AppendChild($wpxml.CreateTextNode( 'EnvironmentVariable' ) )",
+                "       $identifier = $elements.identifier.AppendChild($wpxml.CreateTextNode( $variableName ) )",
+                "   }",
+                "   $wpxml.Save( $wpsettings )",
                 "}"
             ]
         },

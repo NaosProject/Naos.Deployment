@@ -47,6 +47,8 @@ namespace Naos.Deployment.Core
 
         private readonly Action<string> announce;
 
+        private readonly Action<string> debugAnnouncer;
+
         private readonly string workingDirectory;
 
         private readonly SetupStepFactory setupStepFactory;
@@ -67,6 +69,10 @@ namespace Naos.Deployment.Core
 
         private readonly string announcementFile;
 
+        private readonly ConcurrentBag<DebugAnnouncementEntry> debugAnnouncements = new ConcurrentBag<DebugAnnouncementEntry>();
+
+        private readonly string debugAnnouncementFile;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -80,9 +86,11 @@ namespace Naos.Deployment.Core
         /// <param name="messageBusPersistenceConnectionConfiguration">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
+        /// <param name="debugAnnouncer">Callback to get more detailed information through process.</param>
         /// <param name="workingDirectory">Directory to perform temp disk operations.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
+        /// <param name="debugAnnouncementFile">Optional file path to record a JSON file of debug announcements.</param>
         /// <param name="telemetryFile">Optional file path to record JSON file of certain task timings.</param>
         public DeploymentManager(
             ITrackComputingInfrastructure tracker,
@@ -95,9 +103,11 @@ namespace Naos.Deployment.Core
             MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer, 
+            Action<string> debugAnnouncer, 
             string workingDirectory,
             string environmentCertificateName = null,
             string announcementFile = null, 
+            string debugAnnouncementFile = null, 
             string telemetryFile = null)
         {
             this.tracker = tracker;
@@ -108,9 +118,11 @@ namespace Naos.Deployment.Core
             this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
+            this.debugAnnouncer = debugAnnouncer;
             this.workingDirectory = workingDirectory;
             this.telemetryFile = telemetryFile;
             this.announcementFile = announcementFile;
+            this.debugAnnouncementFile = debugAnnouncementFile;
             this.itsConfigPrecedenceAfterEnvironment = new[] { "Common" };
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
@@ -303,6 +315,8 @@ namespace Naos.Deployment.Core
                     await
                     this.setupStepFactory.GetInstanceLevelSetupSteps(
                         createdInstanceDescription.ComputerName,
+                        configToCreateWith.InstanceType.WindowsSku,
+                        environment,
                         configToCreateWith.ChocolateyPackages,
                         packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList());
 
@@ -748,7 +762,8 @@ namespace Naos.Deployment.Core
                     tries = tries + 1;
                     lock (this.syncMachineManager)
                     {
-                        setupStep.SetupAction(machineManager);
+                        var output = setupStep.SetupFunc(machineManager);
+                        this.LogDebugAnnouncement("  - " + setupStep.Description, instanceNumber, output);
                     }
 
                     break;
@@ -1117,6 +1132,31 @@ namespace Naos.Deployment.Core
             }
         }
 
+        private void LogDebugAnnouncement(string step, int instanceNumber, ICollection<dynamic> output)
+        {
+            var instanceNumberAdjustedStep = "Instance " + instanceNumber + " - " + step;
+            this.debugAnnouncer(instanceNumberAdjustedStep);
+            foreach (var o in output ?? new List<dynamic>())
+            {
+                this.debugAnnouncer((o ?? string.Empty).ToString());
+            }
+
+            if (this.debugAnnouncementFile == null)
+            {
+                return;
+            }
+
+            var stringOutput = output.Select(_ => _ ?? string.Empty).Select(_ => (string)_.ToString()).ToList();
+            var entry = new DebugAnnouncementEntry
+                            {
+                                DateTime = DateTime.UtcNow,
+                                InstanceNumber = instanceNumber,
+                                Output = new[] { instanceNumberAdjustedStep }.Union(stringOutput).ToArray()
+                            };
+            this.debugAnnouncements.Add(entry);
+            this.FlushDebugs();
+        }
+
         private void LogAnnouncement(string step, int? instanceNumber = null)
         {
             var instanceNumberAdjustedStep = instanceNumber != null ? "Instance " + instanceNumber + " - " + step : step;
@@ -1130,6 +1170,28 @@ namespace Naos.Deployment.Core
             var entry = new AnnouncementEntry { DateTime = DateTime.UtcNow, InstanceNumber = instanceNumber, Step = step };
             this.announcements.Add(entry);
             this.FlushAnnouncements();
+        }
+
+        private void FlushDebugs()
+        {
+            if (this.debugAnnouncementFile == null)
+            {
+                return;
+            }
+
+            var objectToFlush =
+                this.debugAnnouncements.GroupBy(_ => _.InstanceNumber)
+                    .OrderBy(_ => _.Key)
+                    .Select(instanceGroup => instanceGroup.OrderBy(item => item.DateTime))
+                    .SelectMany(_ => _)
+                    .ToList();
+
+            var json = JsonConvert.SerializeObject(objectToFlush);
+
+            lock (this.debugAnnouncementFile)
+            {
+                File.WriteAllText(this.debugAnnouncementFile, json);
+            }
         }
 
         private void FlushAnnouncements()
@@ -1172,6 +1234,16 @@ namespace Naos.Deployment.Core
 
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
             public string Step { get; set; }
+
+            public DateTime? DateTime { get; set; }
+        }
+
+        private class DebugAnnouncementEntry 
+        {
+            public int? InstanceNumber { get; set; }
+
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
+            public string[] Output { get; set; }
 
             public DateTime? DateTime { get; set; }
         }

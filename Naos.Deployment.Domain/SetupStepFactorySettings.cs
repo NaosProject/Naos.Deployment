@@ -17,6 +17,11 @@ namespace Naos.Deployment.Domain
     public class SetupStepFactorySettings
     {
         /// <summary>
+        /// Gets or sets the name of the environment variable to use when setting the 'Environment'.
+        /// </summary>
+        public string EnvironmentEnvironmentVariableName { get; set; }
+
+        /// <summary>
         /// Gets or sets the administrator account of a new instance.
         /// </summary>
         public string AdministratorAccount { get; set; }
@@ -227,6 +232,21 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription EnableSaAccountAndSetPassword { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to set the default directories on the server.
+        /// </summary>
+        public ScriptBlockDescription SetDefaultDirectories { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to add machine level environment variables.
+        /// </summary>
+        public ScriptBlockDescription AddMachineLevelEnvironmentVariables { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to update the wallpaper on the instance's desktop.
+        /// </summary>
+        public ScriptBlockDescription UpdateInstanceWallpaper { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to unzip a file.
         /// </summary>
         public ScriptBlockDescription UnzipFile { get; set; }
@@ -275,6 +295,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the script block to enable history on scheduled tasks.
         /// </summary>
         public ScriptBlockDescription EnableScheduledTaskHistory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to update registry entries.
+        /// </summary>
+        public ScriptBlockDescription UpdateWindowsRegistryEntries { get; set; }
     }
 
     /// <summary>

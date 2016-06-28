@@ -51,7 +51,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Enable history for scheduled tasks",
-                        SetupAction = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText)
+                        SetupFunc = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText)
                     });
             
             var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, consoleRootPath, environment, exeConfigFullPath);
@@ -101,7 +101,7 @@ namespace Naos.Deployment.Core
                                               Description =
                                                   "Creating scheduled task to run: " + exeName + " " + (arguments ?? "<no arguments>") + " with schedule: "
                                                   + cronExpression,
-                                              SetupAction =
+                                              SetupFunc =
                                                   machineManager =>
                                                   machineManager.RunScript(
                                                       this.settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,

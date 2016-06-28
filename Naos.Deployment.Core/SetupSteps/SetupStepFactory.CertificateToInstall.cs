@@ -50,7 +50,11 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
-                        SetupAction = machineManager => machineManager.SendFile(certificateTargetPath, certDetails.FileBytes)
+                        SetupFunc = machineManager =>
+                            {
+                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes);
+                                return new dynamic[0];
+                            }
                     });
 
             var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, tokenAppliedUsers };
@@ -59,7 +63,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = $"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}]",
-                        SetupAction =
+                        SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams)
                     });

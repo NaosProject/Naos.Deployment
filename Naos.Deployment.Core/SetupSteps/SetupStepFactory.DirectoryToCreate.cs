@@ -26,7 +26,7 @@ namespace Naos.Deployment.Core
                 Description =
                     "Creating directory: " + dir.FullPath + " with full control granted to: "
                     + fullControlAccount,
-                SetupAction =
+                SetupFunc =
                     machineManager =>
                     machineManager.RunScript(
                         this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
