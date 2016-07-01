@@ -48,7 +48,7 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams)
                     });
 
-            var installMongoScript = this.settings.DeploymentScriptBlocks.InstallChocolatey;
+            var installMongoScript = this.settings.DeploymentScriptBlocks.InstallChocolateyPackages;
             var installMongoParams =
                 new[]
                     {
