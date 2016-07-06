@@ -14,7 +14,7 @@
         "serviceName": "MongoDB",
         "defaultDataDirectory": "D:\\MongoData",
         "defaultLogDirectory": "D:\\MongoLog",
-        "mongoServerPackage": { "id": "mongodb", "version": "3.0.3" },
+        "mongoServerPackage": { "id": "mongodb", "version": "3.2.7" },
         "mongoClientPackage": { "id": "robomongo", "version": "" }
     },
     "databaseServerSettings": {
@@ -127,8 +127,8 @@
                 "      \"Error stopping mongo: $_\" | Out-File -Append -FilePath $installLogPath",
                 "    }",
                 "",
-                "   $mongoPath = 'C:\\MongoDB\\bin\\mongo.exe'",
-                "   $mongodPath = 'C:\\MongoDB\\bin\\mongod.exe'",
+                "   $mongoPath = 'C:\\Program Files\\MongoDB\\Server\\3.2\\bin\\mongo.exe'",
+                "   $mongodPath = 'C:\\Program Files\\MongoDB\\Server\\3.2\\bin\\mongod.exe'",
                 "",
                 "   # setup service using no auth",
                 "   'Creating db and logs directories...' | Out-File -Append -FilePath $installLogPath",
