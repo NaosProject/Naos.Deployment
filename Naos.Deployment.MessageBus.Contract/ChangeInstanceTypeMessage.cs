@@ -12,7 +12,7 @@ namespace Naos.Deployment.MessageBus.Contract
     /// <summary>
     /// Message to be processed and turn off an instance specified.
     /// </summary>
-    public class ChangeInstanceTypeMessage : IMessage, IShareInstanceTargeter
+    public class ChangeInstanceTypeMessage : IMessage, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public string Description { get; set; }

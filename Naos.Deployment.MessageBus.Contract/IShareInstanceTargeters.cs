@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IShareInstanceTargeter.cs" company="Naos">
+// <copyright file="IShareInstanceTargeters.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -12,7 +12,7 @@ namespace Naos.Deployment.MessageBus.Contract
     /// <summary>
     /// Interface to support sharing the object being used to target the instance
     /// </summary>
-    public interface IShareInstanceTargeter : IShare
+    public interface IShareInstanceTargeters : IShare
     {
         /// <summary>
         /// Gets or sets the targeter to find an instance.

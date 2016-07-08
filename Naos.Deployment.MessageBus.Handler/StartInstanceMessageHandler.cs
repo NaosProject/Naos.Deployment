@@ -22,7 +22,7 @@ namespace Naos.Deployment.MessageBus.Handler
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
-    public class StartInstanceMessageHandler : IHandleMessages<StartInstanceMessage>, IShareInstanceTargeter
+    public class StartInstanceMessageHandler : IHandleMessages<StartInstanceMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public string Description { get; set; }

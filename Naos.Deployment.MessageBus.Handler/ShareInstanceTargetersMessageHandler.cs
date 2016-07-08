@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ShareInstanceTargeterMessageHandler.cs" company="Naos">
+// <copyright file="ShareInstanceTargetersMessageHandler.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -19,7 +19,7 @@ namespace Naos.Deployment.MessageBus.Handler
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
-    public class ShareInstanceTargeterMessageHandler : IHandleMessages<ShareInstanceTargeterMessage>, IShareInstanceTargeter
+    public class ShareInstanceTargetersMessageHandler : IHandleMessages<ShareInstanceTargeterMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public string Description { get; set; }

@@ -22,7 +22,7 @@ namespace Naos.Deployment.MessageBus.Handler
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
-    public class StopInstanceMessageHandler : IHandleMessages<StopInstanceMessage>, IShareInstanceTargeter
+    public class StopInstanceMessageHandler : IHandleMessages<StopInstanceMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public string Description { get; set; }

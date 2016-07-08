@@ -15,10 +15,11 @@ namespace Spritely.Recipes
     using Newtonsoft.Json;
 
     /// <summary>
-    /// This is a wrapper around <see cref="JsonConvert"/> that uses the 
-    /// serialization settings from <see cref="JsonConfiguration.MinimalSerializerSettings"/>.
-    /// This is for internal use-cases where these settings are specifically required 
-    /// and where the caller does not want to rely on <see cref="JsonConvert.DefaultSettings"/>
+    /// This is a wrapper around <see cref="T:Newtonsoft.Json.JsonConvert" /> that uses the 
+    /// serialization settings from <see cref="JsonConfiguration.MinimalSerializerSettings" />.
+    /// This is for internal use-cases where these settings are specifically required and
+    /// where the caller does not want to rely on
+    /// <see cref="T:Newtonsoft.Json.JsonConvert.DefaultSettings" />
     /// </summary>
 #if !RecipesProject
     [System.Diagnostics.DebuggerStepThrough]
