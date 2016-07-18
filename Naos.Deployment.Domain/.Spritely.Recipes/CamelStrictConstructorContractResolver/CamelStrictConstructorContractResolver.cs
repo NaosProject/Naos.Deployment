@@ -11,6 +11,7 @@
 namespace Spritely.Recipes
 {
     using System;
+    using System.Collections.Generic;
     using System.Globalization;
     using System.Reflection;
 
@@ -50,6 +51,41 @@ namespace Spritely.Recipes
             {
                 return ContractResolverInstance;
             }
+        }
+
+        /// <inheritdoc />
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "0", Justification = "This method is largely a copy-paste of the method it overrides, and that method does not validate arguments.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1", Justification = "This method is largely a copy-paste of the method it overrides, and that method does not validate arguments.")]
+        protected override IList<JsonProperty> CreateConstructorParameters(ConstructorInfo constructor, JsonPropertyCollection memberProperties)
+        {
+            var constructorParameters = constructor.GetParameters();
+
+            JsonPropertyCollection parameterCollection = new JsonPropertyCollection(constructor.DeclaringType);
+
+            foreach (ParameterInfo parameterInfo in constructorParameters)
+            {
+                JsonProperty matchingMemberProperty = (parameterInfo.Name != null) ? memberProperties.GetClosestMatchProperty(parameterInfo.Name) : null;
+
+                // Constructor type must be assignable from property type.
+                // Note that this is the only difference between this method and the method it overrides in DefaultContractResolver.
+                // In DefaultContractResolver, the types must match exactly.
+                if (matchingMemberProperty != null && !parameterInfo.ParameterType.IsAssignableFrom(matchingMemberProperty.PropertyType))
+                {
+                    matchingMemberProperty = null;
+                }
+
+                if (matchingMemberProperty != null || parameterInfo.Name != null)
+                {
+                    JsonProperty property = CreatePropertyFromConstructorParameter(matchingMemberProperty, parameterInfo);
+
+                    if (property != null)
+                    {
+                        parameterCollection.AddProperty(property);
+                    }
+                }
+            }
+
+            return parameterCollection;
         }
 
         /// <inheritdoc />
