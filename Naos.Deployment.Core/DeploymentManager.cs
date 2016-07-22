@@ -208,18 +208,6 @@ namespace Naos.Deployment.Core
             var packagedDeploymentConfigsWithDefaultsAndOverrides =
                 packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
-            // determine if a message bus harness package should be included
-            var harnessPackagedConfig = this.GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
-                environment,
-                packagedDeploymentConfigsWithDefaultsAndOverrides,
-                configToCreateWith);
-
-            if (harnessPackagedConfig != null)
-            {
-                this.LogAnnouncement("Configured message bus harness config included in deployed package list");
-                packagedDeploymentConfigsWithDefaultsAndOverrides.Add(harnessPackagedConfig);
-            }
-
             // terminate existing instances...
             await
                 this.RunActionWithTelemetryAsync(
@@ -285,7 +273,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
             await this.WaitUntilStatusChecksSucceedAsync(instanceNumber, createdInstanceDescription);
 
-            Func<string, string> funcToCreateNewDnsWithTokensReplaced = tokenizedDns => ApplyDnsTokenReplacements(tokenizedDns, numberedInstanceName, environment, instanceNumber);
+            Func<string, string> funcToCreateNewDnsWithTokensReplaced = tokenizedDns => TokenSubstitutions.GetSubstitutedStringForDns(tokenizedDns, environment, numberedInstanceName, instanceNumber);
 
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
@@ -327,7 +315,24 @@ namespace Naos.Deployment.Core
                 this.LogAnnouncement("Rebooting new instance to finalize any items from instance setup.", instanceNumber);
                 this.RebootInstance(instanceNumber, machineManager);
 
-                foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverrides)
+                // determine if a message bus harness package should be included
+                var harnessPackagedConfig = this.GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
+                    environment,
+                    instanceName,
+                    instanceNumber,
+                    packagedDeploymentConfigsWithDefaultsAndOverrides,
+                    configToCreateWith);
+
+                // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
+                var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
+
+                if (harnessPackagedConfig != null)
+                {
+                    this.LogAnnouncement("Configured message bus harness config included in deployed package list");
+                    packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness.Add(harnessPackagedConfig);
+                }
+
+                foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
                     var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
@@ -436,6 +441,8 @@ namespace Naos.Deployment.Core
 
         private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
             string environment,
+            string instanceName, 
+            int instanceNumber, 
             ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith)
         {
@@ -501,6 +508,9 @@ namespace Naos.Deployment.Core
                 }
 
                 ret = this.BuildMessageBusHarnessPackagedConfig(
+                    environment,
+                    instanceName,
+                    instanceNumber,
                     messageBusInitializations,
                     itsConfigOverridesForHandlers,
                     configToCreateWith);
@@ -816,7 +826,13 @@ namespace Naos.Deployment.Core
             return actualVersion;
         }
 
-        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith)
+        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(
+            string environment,
+            string instanceName,
+            int instanceNumber,
+            ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, 
+            ICollection<ItsConfigOverride> itsConfigOverrides, 
+            DeploymentConfiguration configToCreateWith)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and 
             // TODO:        only update the private channel to monitor and directory of packages...
@@ -843,7 +859,20 @@ namespace Naos.Deployment.Core
 
             var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
 
-            var workerCount = messageBusInitializations.Min(_ => _.WorkerCount);
+            // recreate channels with channel name substitutions
+            var simpleChannels = channelsToMonitor.OfType<SimpleChannel>().ToList();
+            if (simpleChannels.Count != channelsToMonitor.Count)
+            {
+                throw new ArgumentException("There are IChannels that are NOT SimpleChannels and this is not supported for the token substitution.");
+            }
+
+            var adjustedChannelsToMonitor =
+                simpleChannels
+                    .Select(_ => new SimpleChannel(TokenSubstitutions.GetSubstitutedStringForChannelName(_.Name, environment, instanceName, instanceNumber)))
+                    .Cast<IChannel>()
+                    .ToList();
+
+            var workerCount = messageBusInitializations.Max(_ => _.WorkerCount);
             workerCount = workerCount == 0 ? 1 : workerCount;
 
             var executorRoleSettings = new[]
@@ -851,7 +880,7 @@ namespace Naos.Deployment.Core
                                                new MessageBusHarnessRoleSettingsExecutor
                                                    {
                                                        ChannelsToMonitor =
-                                                           channelsToMonitor,
+                                                           adjustedChannelsToMonitor,
                                                        HandlerAssemblyPath =
                                                            this.setupStepFactory
                                                            .RootDeploymentPath,
@@ -897,16 +926,6 @@ namespace Naos.Deployment.Core
                                             };
 
             return harnessPackagedConfig;
-        }
-
-        private static string ApplyDnsTokenReplacements(string potentiallyTokenizedDns, string instanceName, string environment, int instanceNumber)
-        {
-            var ret = TokenSubstitutions.GetSubstitutedStringForDns(
-                potentiallyTokenizedDns,
-                environment,
-                instanceName,
-                instanceNumber);
-            return ret;
         }
 
         private void RebootInstance(int instanceNumber, MachineManager machineManager)

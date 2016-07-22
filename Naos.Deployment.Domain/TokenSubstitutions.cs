@@ -76,5 +76,26 @@ namespace Naos.Deployment.Domain
                 .Replace("{instanceNumber}", instanceNumber.ToString());
             return ret;
         }
+
+        /// <summary>
+        /// Apply Channel Name substitutions to the provided string.
+        /// </summary>
+        /// <param name="stringToApplyTokenSubstitutions">Tokenized string to apply token substitutions to.</param>
+        /// <param name="environment">Environment being deployed to.</param>
+        /// <param name="instanceName">Name of the created instance.</param>
+        /// <param name="instanceNumber">The number of the instance (used when multiple instances are being created).</param>
+        /// <returns>Provided string with any found substitutions</returns>
+        public static string GetSubstitutedStringForChannelName(string stringToApplyTokenSubstitutions, string environment, string instanceName, int instanceNumber)
+        {
+            if (stringToApplyTokenSubstitutions == null)
+            {
+                return null;
+            }
+
+            var ret = stringToApplyTokenSubstitutions.Replace("{instanceName}", instanceName)
+                .Replace("{environment}", environment)
+                .Replace("{instanceNumber}", instanceNumber.ToString());
+            return ret;
+        }
     }
 }
