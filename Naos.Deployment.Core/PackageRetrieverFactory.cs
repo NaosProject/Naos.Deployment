@@ -20,7 +20,7 @@ namespace Naos.Deployment.Core
         /// <returns>Package retriever to use.</returns>
         public static IGetPackages BuildPackageRetriever(PackageRepositoryConfiguration repoConfig, string defaultWorkingDirectory)
         {
-            return new PackageRetriever(repoConfig, defaultWorkingDirectory);
+            return new PackageRetriever(defaultWorkingDirectory, repoConfig);
         }
     }
 }
