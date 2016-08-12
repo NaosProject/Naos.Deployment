@@ -345,9 +345,9 @@ namespace Naos.Deployment.Core
                         createdInstanceDescription.Id,
                         packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription);
                 }
-            }
 
-            this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverrides, createdInstanceDescription, funcToCreateNewDnsWithTokensReplaced);
+                this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, funcToCreateNewDnsWithTokensReplaced);
+            }
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
             {

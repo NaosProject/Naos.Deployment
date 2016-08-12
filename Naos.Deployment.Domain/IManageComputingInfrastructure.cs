@@ -31,9 +31,10 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
+        /// <param name="force">Force the stop.</param>
         /// <param name="waitUntilOff">Wait until the machine is off.</param>
         /// <returns>Task for async/await</returns>
-        Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true);
+        Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true);
 
         /// <summary>
         /// Turns on an instance.
@@ -41,8 +42,9 @@ namespace Naos.Deployment.Domain
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="waitUntilOn">Wait until the machine is on.</param>
+        /// <param name="maxRebootAttemptsOnFailedStarts">If "waitUntilOn" is true and any status checks failed the instance can have an attempted restart to resolve issues, default is 2.</param>
         /// <returns>Task for async/await</returns>
-        Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true);
+        Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true, int maxRebootAttemptsOnFailedStarts = 2);
 
         /// <summary>
         /// Changes the type of an instance.

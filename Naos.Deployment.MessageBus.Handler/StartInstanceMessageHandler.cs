@@ -78,7 +78,7 @@ namespace Naos.Deployment.MessageBus.Handler
 
             Log.Write(
                 () => new { Info = "Starting Instance", InstanceTargeterJson = Serializer.Serialize(instanceTargeter), SystemId = systemId });
-            await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn);
+            await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
         }
     }
 }

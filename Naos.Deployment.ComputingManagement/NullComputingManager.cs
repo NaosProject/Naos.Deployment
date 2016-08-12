@@ -23,13 +23,13 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true)
+        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
         }
 
         /// <inheritdoc />
-        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true)
+        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true, int maxRebootAttemptsOnFailedStarts = 2)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
         }

@@ -9,7 +9,12 @@ namespace Naos.Deployment.ComputingManagement
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+
+    using Amazon.EC2;
+
+    using Its.Log.Instrumentation;
 
     using Naos.AWS.Contract;
     using Naos.AWS.Core;
@@ -19,6 +24,8 @@ namespace Naos.Deployment.ComputingManagement
     using CheckState = Naos.Deployment.Domain.CheckState;
     using InstanceState = Naos.Deployment.Domain.InstanceState;
     using InstanceStatus = Naos.Deployment.Domain.InstanceStatus;
+    using InstanceType = Naos.Deployment.Domain.InstanceType;
+    using VolumeType = Naos.Deployment.Domain.VolumeType;
 
     /// <inheritdoc />
     public class ComputingInfrastructureManagerForAws : IManageComputingInfrastructure
@@ -141,10 +148,10 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool waitUntilOff = true)
+        public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true)
         {
             var instanceToTurnOff = new Instance() { Id = systemId, Region = systemLocation };
-            await instanceToTurnOff.StopAsync(this.credentials);
+            await instanceToTurnOff.StopAsync(force, this.credentials);
             if (waitUntilOff)
             {
                 await instanceToTurnOff.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Stopped, this.credentials);
@@ -152,14 +159,60 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true)
+        public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true, int maxRebootAttemptsOnFailedStarts = 2)
         {
             var instanceToTurnOn = new Instance() { Id = systemId, Region = systemLocation };
             await instanceToTurnOn.StartAsync(this.credentials);
             if (waitUntilOn)
             {
                 await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Running, this.credentials);
-                await instanceToTurnOn.WaitForSuccessfulChecksAsync(this.credentials);
+                await this.WaitUntilStatusChecksCompleteRebootOnFailures(instanceToTurnOn, maxRebootAttemptsOnFailedStarts);
+            }
+        }
+
+        private async Task WaitUntilStatusChecksCompleteRebootOnFailures(Instance instanceToTurnOn, int maxRebootAttempts)
+        {
+            var reboots = 0;
+
+            try
+            {
+                var timeToSleepInSeconds = .25;
+                var success = false;
+                while (!success)
+                {
+                    timeToSleepInSeconds = timeToSleepInSeconds * 2;
+                    Thread.Sleep(TimeSpan.FromSeconds(timeToSleepInSeconds));
+                    var instanceStatus = await instanceToTurnOn.GetStatusAsync(this.credentials);
+
+                    var anyFailures = instanceStatus.SystemChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed)
+                                       || instanceStatus.InstanceChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed);
+                    if (anyFailures)
+                    {
+                        if (reboots < maxRebootAttempts)
+                        {
+                            Log.Write($"Attempting restart due to failed status checks on {instanceToTurnOn.Id} - attempt: {reboots}/{maxRebootAttempts}");
+
+                            const bool ForceStop = true;
+                            const bool WaitUntilOn = true;
+                            await this.TurnOffInstanceAsync(instanceToTurnOn.Id, instanceToTurnOn.Region, ForceStop, WaitUntilOn);
+                            await instanceToTurnOn.StartAsync(this.credentials);
+                            await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Running, this.credentials);
+                            reboots = reboots + 1;
+                        }
+                        else
+                        {
+                            throw new DeploymentException(
+                                $"Failed to launch instance {instanceToTurnOn.Id} without status check failure; attempted {maxRebootAttempts} restarts.");
+                        }
+                    }
+
+                    success = instanceStatus.SystemChecks.All(_ => _.Value == Naos.AWS.Contract.CheckState.Passed)
+                              && instanceStatus.InstanceChecks.All(_ => _.Value == Naos.AWS.Contract.CheckState.Passed);
+                }
+            }
+            catch (Exception)
+            {
+                /* swallow exceptions on purpose... */
             }
         }
 

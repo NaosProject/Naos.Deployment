@@ -40,6 +40,11 @@ namespace Naos.Deployment.MessageBus.Handler
         public string ContainerSystemLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the max reboots to attempt on a failed status check start to get it to migrate and work.
+        /// </summary>
+        public int MaxRebootsOnFailedStatusCheck { get; set; }
+
+        /// <summary>
         /// Gets or sets the source to use for looking up an instance by name.
         /// </summary>
         public InstanceNameLookupSource InstanceNameLookupSource { get; set; }

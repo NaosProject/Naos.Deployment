@@ -39,8 +39,12 @@
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
+    <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Its.Log.2.9.13\lib\net451\Its.Log.dll</HintPath>
+      <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MongoDB.Bson, Version=2.2.4.26, Culture=neutral, processorArchitecture=MSIL">
@@ -63,16 +67,16 @@
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.6\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.207.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.207\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.210.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.210\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.25\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.WinRM, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.WinRM.1.0.30\lib\net45\Naos.WinRM.dll</HintPath>
+    <Reference Include="Naos.WinRM, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.WinRM.1.0.31\lib\net45\Naos.WinRM.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
@@ -128,6 +132,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Settings.StyleCop" />
