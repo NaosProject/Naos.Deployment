@@ -963,6 +963,9 @@ namespace Naos.Deployment.Core
 
         private void WaitUntilMachineIsAccessible(MachineManager machineManager)
         {
+            const int MaxExceptionCount = 10000;
+            var exceptionCount = 0;
+
             // TODO: move to machineManager.BlockUntilAvailable(TimeSpan.Zero);
             var sleepTimeInSeconds = 10d;
             var reachable = false;
@@ -983,7 +986,12 @@ namespace Naos.Deployment.Core
                 }
                 catch (Exception)
                 {
-                    /* no-op */
+                    // swallow exceptions on purpose unless they exceed threshold...
+                    exceptionCount = exceptionCount + 1;
+                    if (exceptionCount > MaxExceptionCount)
+                    {
+                        throw;
+                    }
                 }
             }
         }

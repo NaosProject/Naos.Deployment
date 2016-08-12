@@ -172,6 +172,8 @@ namespace Naos.Deployment.ComputingManagement
 
         private async Task WaitUntilStatusChecksCompleteRebootOnFailures(Instance instanceToTurnOn, int maxRebootAttempts)
         {
+            const int MaxExceptionCount = 10000;
+            var exceptionCount = 0;
             var reboots = 0;
 
             try
@@ -185,7 +187,7 @@ namespace Naos.Deployment.ComputingManagement
                     var instanceStatus = await instanceToTurnOn.GetStatusAsync(this.credentials);
 
                     var anyFailures = instanceStatus.SystemChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed)
-                                       || instanceStatus.InstanceChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed);
+                                      || instanceStatus.InstanceChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed);
                     if (anyFailures)
                     {
                         if (reboots < maxRebootAttempts)
@@ -210,9 +212,18 @@ namespace Naos.Deployment.ComputingManagement
                               && instanceStatus.InstanceChecks.All(_ => _.Value == Naos.AWS.Contract.CheckState.Passed);
                 }
             }
+            catch (DeploymentException)
+            {
+                throw;
+            }
             catch (Exception)
             {
-                /* swallow exceptions on purpose... */
+                // swallow exceptions on purpose unless they exceed threshold...
+                exceptionCount = exceptionCount + 1;
+                if (exceptionCount > MaxExceptionCount)
+                {
+                    throw;
+                }
             }
         }
 
