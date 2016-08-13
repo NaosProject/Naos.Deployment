@@ -11,6 +11,7 @@ namespace Naos.Deployment.Console
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime.CompilerServices;
 
     using CLAP;
 
@@ -25,6 +26,8 @@ namespace Naos.Deployment.Console
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Libs.Collections;
+
+    using Polly;
 
     using Serializer = Naos.Deployment.Domain.Serializer;
 
@@ -143,10 +146,10 @@ namespace Naos.Deployment.Console
 
             if (Directory.Exists(unzipDirPath))
             {
-                Directory.Delete(unzipDirPath, true);
+                RunWithRetry(() => Directory.Delete(unzipDirPath, true));
             }
 
-            Directory.CreateDirectory(unzipDirPath);
+            RunWithRetry(() => Directory.CreateDirectory(unzipDirPath));
 
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
@@ -174,6 +177,16 @@ namespace Naos.Deployment.Console
             var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
 
             deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+        }
+
+        private static void RunWithRetry(Action action, int retryCount = 3)
+        {
+            Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(action);
+        }
+
+        private static T RunWithRetry<T>(Func<T> func, int retryCount = 3)
+        {
+            return Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(func);
         }
 
         [Empty]

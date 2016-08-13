@@ -116,6 +116,17 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
+        /// Gets the list of directories we've found people add to packages and contain assemblies that fail to load correctly in reflection and are not be necessary for normal function.
+        /// </summary>
+        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune
+        {
+            get
+            {
+                return this.settings.RootPackageDirectoriesToPrune;
+            }
+        }
+
+        /// <summary>
         /// Get the appropriate setup steps for the packaged config.
         /// </summary>
         /// <param name="packagedConfig">Config to base setup steps from.</param>

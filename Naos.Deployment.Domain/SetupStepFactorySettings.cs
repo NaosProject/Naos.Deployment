@@ -80,6 +80,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the initialization strategy types that require the environment certificate to be installed.
         /// </summary>
         public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of directories we've found people add to packages and contain assemblies that fail to load correctly in reflection and are not be necessary for normal function.
+        /// </summary>
+        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune { get; set; }
     }
 
     /// <summary>

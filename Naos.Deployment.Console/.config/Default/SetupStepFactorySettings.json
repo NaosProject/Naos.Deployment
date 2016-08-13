@@ -1,4 +1,5 @@
 ﻿{
+    "rootPackageDirectoriesToPrune": ["tools", "ref", "runtimes", "analyzers"],
     "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
     "initializationStrategyTypesThatNeedEnvironmentCertificate": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
     "maxSetupStepAttempts": 10,

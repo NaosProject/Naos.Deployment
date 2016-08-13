@@ -22,6 +22,8 @@ namespace Naos.Deployment.Core
 
     using Newtonsoft.Json;
 
+    using Polly;
+
     using Serializer = Naos.Deployment.Domain.Serializer;
 
     /// <inheritdoc />
@@ -670,25 +672,13 @@ namespace Naos.Deployment.Core
                     var targetPath = Path.Combine(bundleStagePath, packageName);
                     ZipFile.ExtractToDirectory(packageFilePath, targetPath);
 
-                    // delete tools dir to avoid unnecessary issues with unrelated assemblies
-                    var toolsPath = Path.Combine(targetPath, "tools");
-                    if (Directory.Exists(toolsPath))
+                    foreach (var directoryToTrim in this.setupStepFactory.RootPackageDirectoriesToPrune)
                     {
-                        Directory.Delete(toolsPath, true);
-                    }
-
-                    // thin out ref path as it will fail to load
-                    var refPath = Path.Combine(targetPath, "ref");
-                    if (Directory.Exists(refPath))
-                    {
-                        Directory.Delete(refPath, true);
-                    }
-
-                    // thin out runtimes path as it will fail to load
-                    var runtimesPath = Path.Combine(targetPath, "runtimes");
-                    if (Directory.Exists(runtimesPath))
-                    {
-                        Directory.Delete(runtimesPath, true);
+                        var fullPathDirectoryToTrim = Path.Combine(targetPath, directoryToTrim);
+                        if (Directory.Exists(fullPathDirectoryToTrim))
+                        {
+                            Directory.Delete(fullPathDirectoryToTrim, true);
+                        }
                     }
 
                     // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep newest...).
@@ -742,7 +732,7 @@ namespace Naos.Deployment.Core
             }
 
             // clean up temp files
-            Directory.Delete(localWorkingDirectory, true);
+            this.RunWithRetry(() => Directory.Delete(localWorkingDirectory, true));
 
             var package = new Package
                               {
@@ -1096,6 +1086,16 @@ namespace Naos.Deployment.Core
                 this.LogAnnouncement("Terminating instance => ID: " + systemInstanceId + ", ComputingName: " + instanceDescription.Name);
                 await this.computingManager.TerminateInstanceAsync(environment, systemInstanceId, instanceDescription.Location, true);
             }
+        }
+
+        private void RunWithRetry(Action action, int retryCount = 3)
+        {
+            Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(action);
+        }
+
+        private T RunWithRetry<T>(Func<T> func, int retryCount = 3)
+        {
+            return Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(func);
         }
 
         private async Task RunActionWithTelemetryAsync(string step, Func<Task> code, int? instanceNumber = null)
