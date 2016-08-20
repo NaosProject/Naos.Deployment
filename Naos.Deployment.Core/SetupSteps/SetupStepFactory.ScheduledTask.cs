@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment)
+        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {
             var schedule = scheduledTaskStrategy.Schedule;
             var exeName = scheduledTaskStrategy.ExeName;
@@ -27,20 +27,11 @@ namespace Naos.Deployment.Core
             var arguments = scheduledTaskStrategy.Arguments;
             var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, scheduledTaskAccount, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, scheduledTaskAccount, adminPassword, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
-            ICollection<ItsConfigOverride> itsConfigOverrides,
-            string consoleRootPath,
-            string environment,
-            string exeName,
-            ScheduleBase schedule,
-            string scheduledTaskAccount,
-            string name,
-            string description,
-            string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string exeName, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
@@ -95,7 +86,11 @@ namespace Naos.Deployment.Core
                 throw new NotSupportedException("Unsupported schedule type for scheduled task deployment: " + scheduleObject.GetType());
             }
 
-            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
+            var scheduledTaskPassword = scheduledTaskAccount == null
+                                            ? null
+                                            : scheduledTaskAccount.ToUpperInvariant() == this.AdministratorAccount.ToUpperInvariant() ? adminPassword : null;
+
+            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
                                           {
                                               Description =

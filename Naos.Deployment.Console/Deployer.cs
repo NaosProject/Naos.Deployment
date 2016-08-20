@@ -154,29 +154,32 @@ namespace Naos.Deployment.Console
             var repoConfig =
                 Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
 
-            var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath);
+            using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath))
+            {
+                var deploymentManager = new DeploymentManager(
+                    infrastructureTracker,
+                    computingManager,
+                    packageManager,
+                    certificateRetriever,
+                    defaultDeploymentConfiguration,
+                    messageBusHandlerHarnessConfiguration,
+                    setupFactorySettings,
+                    messageBusPersistenceConnectionConfiguration,
+                    computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
+                    Console.WriteLine,
+                    line =>
+                        {
+                            /* no-op */
+                        },
+                    unzipDirPath,
+                    environmentCertificateName,
+                    announcementFilePath,
+                    debugAnnouncementFilePath,
+                    telemetryFilePath);
+                var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
 
-            var deploymentManager = new DeploymentManager(
-                infrastructureTracker,
-                computingManager,
-                packageManager,
-                certificateRetriever,
-                defaultDeploymentConfiguration,
-                messageBusHandlerHarnessConfiguration,
-                setupFactorySettings,
-                messageBusPersistenceConnectionConfiguration,
-                computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
-                Console.WriteLine,
-                line => { /* no-op */ },
-                unzipDirPath,
-                environmentCertificateName,
-                announcementFilePath,
-                debugAnnouncementFilePath,
-                telemetryFilePath);
-
-            var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
-
-            deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+                deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+            }
         }
 
         private static void RunWithRetry(Action action, int retryCount = 3)

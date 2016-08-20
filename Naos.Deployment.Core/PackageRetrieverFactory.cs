@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
         /// <param name="repoConfig">Package repository configuration.</param>
         /// <param name="defaultWorkingDirectory">Working directory to download temporary files to.</param>
         /// <returns>Package retriever to use.</returns>
-        public static IGetPackages BuildPackageRetriever(PackageRepositoryConfiguration repoConfig, string defaultWorkingDirectory)
+        public static PackageRetriever BuildPackageRetriever(PackageRepositoryConfiguration repoConfig, string defaultWorkingDirectory)
         {
             return new PackageRetriever(defaultWorkingDirectory, repoConfig);
         }

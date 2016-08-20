@@ -221,7 +221,8 @@ namespace Naos.Deployment.Core
                         (InitializationStrategyScheduledTask)strategy,
                         packagedConfig.ItsConfigOverrides,
                         consoleRootPath,
-                        environment);
+                        environment,
+                        adminPassword);
                 ret.AddRange(scheduledTaskSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
@@ -234,6 +235,7 @@ namespace Naos.Deployment.Core
                         packagedConfig.ItsConfigOverrides,
                         consoleRootPath,
                         environment,
+                        adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
                 ret.AddRange(selfHostSteps);
             }

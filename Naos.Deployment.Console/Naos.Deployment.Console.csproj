@@ -60,6 +60,10 @@
     <Reference Include="CLAP">
       <HintPath>..\packages\CLAP.4.6\lib\net35\CLAP.dll</HintPath>
     </Reference>
+    <Reference Include="Conditions, Version=2.1.0.24, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Conditions.2.1.0\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Conditions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
     </Reference>
@@ -107,6 +111,10 @@
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.25\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.25\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.WinRM.1.0.31\lib\net45\Naos.WinRM.dll</HintPath>
       <Private>True</Private>
@@ -121,6 +129,10 @@
     <Reference Include="OBeautifulCode.Libs.String, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\OBeautifulCode.Libs.String.1.0.5\lib\45\OBeautifulCode.Libs.String.dll</HintPath>
+    </Reference>
+    <Reference Include="OBeautifulCode.Reflection, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Reflection.1.0.11\lib\net45\OBeautifulCode.Reflection.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Polly, Version=4.3.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Polly.4.3.0\lib\net45\Polly.dll</HintPath>

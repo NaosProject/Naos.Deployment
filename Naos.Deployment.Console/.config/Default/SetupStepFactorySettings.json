@@ -75,10 +75,10 @@
             ]
         },
         "setupScheduledTask": {
-            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
                 "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
                 "   $trigger = $null",
                 "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
@@ -105,7 +105,14 @@
                 "   {",
                 "       $action = New-ScheduledTaskAction -Execute $ExeFullPath -Argument $Arguments",
                 "   }",
-                "   Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "   if ([String]::IsNullOrEmpty($ScheduledTaskPassword))",
+                "   {",
+                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "   }",
+                "   else",
+                "   {",
+                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "   }",
                 "}"
             ]
         },
