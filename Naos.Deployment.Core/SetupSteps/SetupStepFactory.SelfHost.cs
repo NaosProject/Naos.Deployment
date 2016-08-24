@@ -23,7 +23,7 @@ namespace Naos.Deployment.Core
         private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
-            var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(_ => _.Address).Select(funcToCreateNewDnsWithTokensReplaced).ToList();
+            var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
             var sslCertificateName = selfHostStrategy.SslCertificateName;
             var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
             var selfHostExeName = selfHostStrategy.SelfHostExeName;

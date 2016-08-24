@@ -57,7 +57,7 @@ namespace Naos.Deployment.Core.Test
             var original = new InitializationStrategySelfHost
                                {
                                    SelfHostExeName = "my.exe",
-                                   SelfHostSupportedDnsEntries = new[] { new DnsEntry { Address = "myDns", ShouldUpdate = true } },
+                                   SelfHostSupportedDnsEntries = new[] { "myDns" },
                                    SslCertificateName = "certName",
                                    ScheduledTaskAccount = "Monkey"
                                };
@@ -65,8 +65,7 @@ namespace Naos.Deployment.Core.Test
             var cloned = original.Clone() as InitializationStrategySelfHost;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
-            Assert.Equal(original.SelfHostSupportedDnsEntries.Single().Address, cloned.SelfHostSupportedDnsEntries.Single().Address);
-            Assert.Equal(original.SelfHostSupportedDnsEntries.Single().ShouldUpdate, cloned.SelfHostSupportedDnsEntries.Single().ShouldUpdate);
+            Assert.Equal(original.SelfHostSupportedDnsEntries.Single(), cloned.SelfHostSupportedDnsEntries.Single());
             Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
             Assert.Equal(original.SelfHostExeName, cloned.SelfHostExeName);
             Assert.Equal(original.ScheduledTaskAccount, cloned.ScheduledTaskAccount);

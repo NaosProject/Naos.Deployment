@@ -23,7 +23,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the DNS entries to support access of the self hosted deployment.
         /// </summary>
-        public IReadOnlyCollection<DnsEntry> SelfHostSupportedDnsEntries { get; set; }
+        public IReadOnlyCollection<string> SelfHostSupportedDnsEntries { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the SSL certificate to lookup and use.
@@ -43,35 +43,11 @@ namespace Naos.Deployment.Domain
                               SelfHostExeName = this.SelfHostExeName,
                               SslCertificateName = this.SslCertificateName,
                               SelfHostSupportedDnsEntries =
-                                  this.SelfHostSupportedDnsEntries.Select(_ => _.Clone() as DnsEntry).ToList(),
+                                  this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),
                               ScheduledTaskAccount = this.ScheduledTaskAccount
                           };
 
             return ret;
         }
-    }
-
-    /// <summary>
-    /// Container class for 
-    /// </summary>
-    public class DnsEntry : ICloneable
-    {
-        /// <inheritdoc />
-        public object Clone()
-        {
-            var ret = new DnsEntry { Address = this.Address.Clone().ToString(), ShouldUpdate = this.ShouldUpdate };
-
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether or not to update the DNS entry in the DNS management system.
-        /// </summary>
-        public bool ShouldUpdate { get; set; }
-
-        /// <summary>
-        /// Gets or sets the DNS address to use.
-        /// </summary>
-        public string Address { get; set; }
     }
 }

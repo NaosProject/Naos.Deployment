@@ -370,32 +370,6 @@ namespace Naos.Deployment.Core
             InstanceDescription createdInstanceDescription,
             Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            // get all web initializations to update any DNS entries.
-            var webInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyIis>();
-
-            this.LogAnnouncement("Updating DNS for web initializations (if applicable)", instanceNumber);
-            foreach (var webInitialization in webInitializations)
-            {
-                var ipAddress = createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress;
-                var dns = funcToCreateNewDnsWithTokensReplaced(webInitialization.PrimaryDns);
-
-                this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
-            }
-
-            // get all self host initializations to update any DNS entries.
-            var selfHostInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategySelfHost>();
-
-            this.LogAnnouncement("Updating DNS for self host initializations (if applicable)", instanceNumber);
-            foreach (var selfHostInitialization in selfHostInitializations)
-            {
-                var ipAddress = createdInstanceDescription.PublicIpAddress ?? createdInstanceDescription.PrivateIpAddress;
-                foreach (var selfHostSupportedDnsEntry in selfHostInitialization.SelfHostSupportedDnsEntries.Where(_ => _.ShouldUpdate).Select(_ => _.Address).ToList())
-                {
-                    var dns = funcToCreateNewDnsWithTokensReplaced(selfHostSupportedDnsEntry);
-                    this.UpsertDnsEntry(instanceNumber, environment, dns, ipAddress, createdInstanceDescription.Location);
-                }
-            }
-
             // get all DNS initializations to update any private DNS entries.
             this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
             var dnsInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
