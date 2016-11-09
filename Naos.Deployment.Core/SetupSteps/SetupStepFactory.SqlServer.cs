@@ -107,6 +107,7 @@ namespace Naos.Deployment.Core
             var databaseConfigurationForCreation = this.BuildDatabaseConfiguration(
                 sqlServerStrategy.Name,
                 dataDirectory,
+                sqlServerStrategy.RecoveryMode,
                 sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileNameSettings,
                 sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileSizeSettings);
 
@@ -134,6 +135,7 @@ namespace Naos.Deployment.Core
                 var databaseConfigurationForRestore = this.BuildDatabaseConfiguration(
                     sqlServerStrategy.Name,
                     dataDirectory,
+                    sqlServerStrategy.RecoveryMode,
                 sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileNameSettings,
                 sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileSizeSettings);
                 databaseSteps.Add(
@@ -214,7 +216,7 @@ namespace Naos.Deployment.Core
             return databaseSteps;
         }
 
-        private DatabaseConfiguration BuildDatabaseConfiguration(string databaseName, string dataDirectory, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
+        private DatabaseConfiguration BuildDatabaseConfiguration(string databaseName, string dataDirectory, string recoveryMode, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
         {
             var localDatabaseFileNameSettings = databaseFileNameSettings
                                                 ?? new DatabaseFileNameSettings
@@ -228,10 +230,17 @@ namespace Naos.Deployment.Core
             var localDatabaseFileSizeSettings = databaseFileSizeSettings
                                                 ?? this.settings.DefaultDatabaseFileSizeSettings;
 
+            var recoveryModeEnum = RecoveryMode.Unspecified;
+            if (!string.IsNullOrEmpty(recoveryMode))
+            {
+                recoveryModeEnum = (RecoveryMode)Enum.Parse(typeof(RecoveryMode), recoveryMode, true);
+            }
+
             var databaseConfiguration = new DatabaseConfiguration
             {
                 DatabaseName = databaseName,
                 DatabaseType = DatabaseType.User,
+                RecoveryMode = recoveryModeEnum,
                 DataFileLogicalName = localDatabaseFileNameSettings.DataFileLogicalName,
                 DataFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.DataFileNameOnDisk),
                 DataFileCurrentSizeInKb = localDatabaseFileSizeSettings.DataFileCurrentSizeInKb,

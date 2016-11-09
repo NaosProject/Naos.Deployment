@@ -46,6 +46,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public string DataDirectory { get; set; }
 
+        /// <summary>
+        /// Gets or sets the recovery mode to use for the database.
+        /// </summary>
+        public string RecoveryMode { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
