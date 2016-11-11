@@ -17,8 +17,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.Domain;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
@@ -77,7 +75,7 @@ namespace Naos.Deployment.MessageBus.Handler
                 await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, computingManager);
 
             Log.Write(
-                () => new { Info = "Stopping Instance", InstanceTargeterJson = Serializer.Serialize(instanceTargeter), SystemId = systemId });
+                () => new { Info = "Stopping Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
             await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);
         }
     }

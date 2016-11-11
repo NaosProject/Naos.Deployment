@@ -8,6 +8,8 @@ namespace Naos.Deployment.Tracking
 {
     using System;
 
+    using MongoDB.Bson;
+
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
 
@@ -41,7 +43,7 @@ namespace Naos.Deployment.Tracking
             }
             else
             {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(infrastructureTrackerConfigurationBase));
+                throw new NotSupportedException($"Configuration is not valid: {infrastructureTrackerConfigurationBase.ToJson()}");
             }
 
             return ret;

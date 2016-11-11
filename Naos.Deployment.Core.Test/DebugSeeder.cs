@@ -15,11 +15,13 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
+    using Naos.MessageBus.Domain;
 
-    using Spritely.ReadModel;
     using Spritely.ReadModel.Mongo;
 
     using Xunit;
+
+    using Credentials = Spritely.ReadModel.Credentials;
 
     public class DebugSeeder
     {
@@ -167,7 +169,7 @@ namespace Naos.Deployment.Core.Test
             // Building and writing code...
             var certificates = BuildCertificates(certificatesToLoad);
             var classToSave = new CertificateCollection { Certificates = certificates };
-            var jsonText = Serializer.Serialize(classToSave);
+            var jsonText = classToSave.ToJson();
             File.WriteAllText(certificateRetrieverFilePath, jsonText);
         }
 

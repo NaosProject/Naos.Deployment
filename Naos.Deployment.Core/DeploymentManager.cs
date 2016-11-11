@@ -24,8 +24,6 @@ namespace Naos.Deployment.Core
 
     using Polly;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
     {
@@ -587,8 +585,7 @@ namespace Naos.Deployment.Core
                                 package.Package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
                         var deploymentConfig =
-                            Serializer.Deserialize<DeploymentConfigurationWithStrategies>(
-                                (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty)); // strip the BOM as it makes Newtonsoft bomb...
+                            (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty).FromJson<DeploymentConfigurationWithStrategies>(); // strip the BOM as it makes Newtonsoft bomb...
 
                         // re-check the extracted config to make sure it doesn't change the decision about bundling...
                         var bundleAllDependenciesReCheck = figureOutIfNeedToBundleDependencies(deploymentConfig);
@@ -867,7 +864,7 @@ namespace Naos.Deployment.Core
                                                 };
 
             // add the override that will activate the harness in executor mode.
-            var messageBusHandlerSettingsJson = Serializer.Serialize(messageBusHandlerSettings);
+            var messageBusHandlerSettingsJson = messageBusHandlerSettings.ToJson();
             itsConfigOverridesToUse.Add(
                 new ItsConfigOverride
                     {

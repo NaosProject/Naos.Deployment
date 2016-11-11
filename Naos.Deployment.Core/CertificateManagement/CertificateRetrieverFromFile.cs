@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Implementation using a text file of IGetCertificates.
@@ -38,7 +39,7 @@ namespace Naos.Deployment.Core.CertificateManagement
             lock (this.fileSync)
             {
                 var fileContents = File.ReadAllText(this.filePath);
-                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContents);
+                var certificateCollection = fileContents.FromJson<CertificateCollection>();
                 var certificateDetails = certificateCollection.Certificates.SingleOrDefault(_ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
 
                 certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();

@@ -15,8 +15,6 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     public class SerializerTest
     {
         [Fact]
@@ -29,7 +27,7 @@ namespace Naos.Deployment.Core.Test
 		""privateDnsEntry"": ""something.database.development.cometrics.com""
 	}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualDns =
@@ -48,7 +46,7 @@ namespace Naos.Deployment.Core.Test
 	""id"": ""Naos.Something"",
 	""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeName"":""MyConsole.exe"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args""}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualStrategy = deserialized.Single()
@@ -71,7 +69,7 @@ namespace Naos.Deployment.Core.Test
 		""directoryToCreate"": {""fullPath"": ""C:\\MyPath\\Is\\Here"", ""FullControlAccount"": ""Administrator"" }
 	}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualPath =
@@ -97,7 +95,7 @@ namespace Naos.Deployment.Core.Test
 		""certificateToInstall"": ""ThisIsTheNameOfTheCertInCertRetriever...""
 	}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualCert = deserialized.Single()
@@ -116,7 +114,7 @@ namespace Naos.Deployment.Core.Test
 ""initializationStrategies"": 
     [{""name"": ""DatabaseName"",      ""restore"": {""runChecksum"":true    }}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualRestore = deserialized.Single()
@@ -137,7 +135,7 @@ namespace Naos.Deployment.Core.Test
 ""initializationStrategies"": 
     [{""name"": ""DatabaseName"", ""administratorPassword"":""hello"",      ""migration"": {""version"":17}}]
 }]";
-            var deserialized = Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(input);
+            var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
 
             Assert.NotNull(deserialized);
             var actualMigration = deserialized.Single()
@@ -167,7 +165,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
+            var deserialized = input.FromJson<DeploymentConfigurationWithStrategies>();
 
             Assert.Equal(typeof(InitializationStrategyMessageBusHandler), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("MyChannel", deserialized.InitializationStrategies.Cast<InitializationStrategyMessageBusHandler>().Single().ChannelsToMonitor.OfType<SimpleChannel>().Single().Name);
@@ -191,7 +189,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
+            var deserialized = input.FromJson<DeploymentConfigurationWithStrategies>();
 
             Assert.Equal(typeof(InitializationStrategySqlServer), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategySqlServer>().Single().Name);
@@ -214,7 +212,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
+            var deserialized = input.FromJson<DeploymentConfigurationWithStrategies>();
 
             Assert.Equal(typeof(InitializationStrategyIis), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyIis>().Single().PrimaryDns);
@@ -240,7 +238,7 @@ namespace Naos.Deployment.Core.Test
 }
 ";
 
-            var deserialized = Serializer.Deserialize<DeploymentConfigurationWithStrategies>(input);
+            var deserialized = input.FromJson<DeploymentConfigurationWithStrategies>();
 
             Assert.Equal(typeof(InitializationStrategySelfHost), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.something.com", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostSupportedDnsEntries.Single());

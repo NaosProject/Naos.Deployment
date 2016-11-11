@@ -17,8 +17,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.Domain;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
@@ -86,8 +84,8 @@ namespace Naos.Deployment.MessageBus.Handler
                 new
                     {
                         Info = "Changing Instance Type",
-                        InstanceTargeterJson = Serializer.Serialize(instanceTargeter),
-                        NewInstanceType = Serializer.Serialize(newInstanceType),
+                        InstanceTargeterJson = instanceTargeter.ToJson(),
+                        NewInstanceType = newInstanceType.ToJson(),
                         SystemId = systemId
                     });
 

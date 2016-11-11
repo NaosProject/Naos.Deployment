@@ -22,7 +22,6 @@ namespace Naos.Deployment.Core.Test
     using Xunit;
 
     using MessageBusCredentials = Naos.MessageBus.Domain.Credentials;
-    using Serializer = Naos.Deployment.Domain.Serializer;
     using SpritelyCredentials = Spritely.ReadModel.Credentials;
 
     public class GenerateJsonHelperTest
@@ -101,13 +100,13 @@ namespace Naos.Deployment.Core.Test
                                                                 FileNameWithoutExtension =
                                                                     "DeploymentMessageHandlerSettings",
                                                                 FileContentsJson =
-                                                                    Serializer.Serialize(deploymentMessageHandlerSettings)
+                                                                    deploymentMessageHandlerSettings.ToJson()
                                                             }
                                                     }
                                         };
 
             packages.Add(deploymentHandler);
-            var output = Serializer.Serialize(packages);
+            var output = packages.ToJson();
             Assert.NotNull(output);
         }
 
@@ -211,7 +210,6 @@ namespace Naos.Deployment.Core.Test
                                                               FileNameWithoutExtension =
                                                                   "MessageBusHarnessSettings",
                                                               FileContentsJson =
-                                                                  Serializer.Serialize(
                                                                       new MessageBusHarnessSettings
                                                                           {
                                                                               LogProcessorSettings
@@ -259,13 +257,13 @@ namespace Naos.Deployment.Core.Test
                                                                                                       TimeSpan.FromMinutes(1)
                                                                                               }
                                                                                       }
-                                                                          })
+                                                                          }.ToJson()
                                                           }
                                                   }
                                       };
 
             packages.Add(hangfireHarness);
-            var output = Serializer.Serialize(packages);
+            var output = packages.ToJson();
             Assert.NotNull(output);
         }
     }

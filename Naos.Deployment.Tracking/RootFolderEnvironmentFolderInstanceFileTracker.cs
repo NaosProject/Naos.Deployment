@@ -13,6 +13,7 @@ namespace Naos.Deployment.Tracking
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
+    using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
 
     /// <summary>
@@ -245,10 +246,10 @@ namespace Naos.Deployment.Tracking
             }
 
             var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
-            var instances = instanceFiles.Select(_ => Serializer.Deserialize<DeployedInstance>(File.ReadAllText(_))).ToList();
+            var instances = instanceFiles.Select(_ => File.ReadAllText(_).FromJson<DeployedInstance>()).ToList();
             var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
             var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
-            var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
+            var arcologyInfo = arcologyInfoText.FromJson<ArcologyInfo>();
 
             var ret = new Arcology(environment, arcologyInfo, instances);
             return ret;
@@ -260,7 +261,7 @@ namespace Naos.Deployment.Tracking
 
             foreach (var instanceWrapper in arcology.Instances)
             {
-                var instanceFileContents = Serializer.Serialize(instanceWrapper);
+                var instanceFileContents = instanceWrapper.ToJson();
 
                 var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, instanceWrapper);
                 if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))

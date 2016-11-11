@@ -29,8 +29,6 @@ namespace Naos.Deployment.Console
 
     using Polly;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     /// <summary>
     /// Deployment logic to be invoked from the console harness.
     /// </summary>
@@ -62,7 +60,7 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var rawRet = Serializer.Serialize(retObj);
+            var rawRet = retObj.ToJson();
 
             // prep to be returned in a way that can be piped to a variable and then passed back in...
             var noNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
@@ -115,16 +113,12 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
-            Settings.Deserialize = Serializer.Deserialize;
+            Settings.Deserialize = (type, serialized) => serialized.FromJson(type);
 
-            var packagesToDeploy =
-                Serializer.Deserialize<ICollection<PackageDescriptionWithOverrides>>(packagesToDeployJson);
-            var certificateRetrieverConfiguration =
-                Serializer.Deserialize<CertificateRetrieverConfigurationBase>(certificateRetrieverJson);
-            var infrastructureTrackerConfiguration =
-                Serializer.Deserialize<InfrastructureTrackerConfigurationBase>(infrastructureTrackerJson);
-            var messageBusPersistenceConnectionConfiguration =
-                Serializer.Deserialize<MessageBusConnectionConfiguration>(messageBusPersistenceConnectionConfigurationJson);
+            var packagesToDeploy = packagesToDeployJson.FromJson<ICollection<PackageDescriptionWithOverrides>>();
+            var certificateRetrieverConfiguration = certificateRetrieverJson.FromJson<CertificateRetrieverConfigurationBase>();
+            var infrastructureTrackerConfiguration = infrastructureTrackerJson.FromJson<InfrastructureTrackerConfigurationBase>();
+            var messageBusPersistenceConnectionConfiguration = messageBusPersistenceConnectionConfigurationJson.FromJson<MessageBusConnectionConfiguration>();
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
@@ -134,7 +128,7 @@ namespace Naos.Deployment.Console
             var certificateRetriever = CertificateRetrieverFactory.Create(environment, certificateRetrieverConfiguration);
             var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration);
 
-            var credentials = Serializer.Deserialize<CredentialContainer>(credentialsJson);
+            var credentials = credentialsJson.FromJson<CredentialContainer>();
             var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
 
             var tempDir = Path.GetTempPath();
@@ -151,8 +145,7 @@ namespace Naos.Deployment.Console
 
             RunWithRetry(() => Directory.CreateDirectory(unzipDirPath));
 
-            var repoConfig =
-                Serializer.Deserialize<PackageRepositoryConfiguration>(nugetPackageRepositoryConfigurationJson);
+            var repoConfig = nugetPackageRepositoryConfigurationJson.FromJson<PackageRepositoryConfiguration>();
 
             using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath))
             {
@@ -176,7 +169,7 @@ namespace Naos.Deployment.Console
                     announcementFilePath,
                     debugAnnouncementFilePath,
                     telemetryFilePath);
-                var overrideConfig = Serializer.Deserialize<DeploymentConfiguration>(overrideDeploymentConfigJson);
+                var overrideConfig = overrideDeploymentConfigJson.FromJson<DeploymentConfiguration>();
 
                 deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
             }

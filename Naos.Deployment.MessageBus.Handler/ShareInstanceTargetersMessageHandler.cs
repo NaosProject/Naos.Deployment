@@ -14,8 +14,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.MessageBus.Contract;
     using Naos.MessageBus.Domain;
 
-    using Serializer = Naos.Deployment.Domain.Serializer;
-
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
@@ -30,7 +28,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <inheritdoc />
         public async Task HandleAsync(ShareInstanceTargeterMessage message)
         {
-            Log.Write(() => new { Info = "Sharing Targeter", MessageJson = Serializer.Serialize(message) });
+            Log.Write(() => new { Info = "Sharing Targeter", MessageJson = message.ToJson() });
             this.InstanceTargeters = await Task.FromResult(message.InstanceTargetersToShare);
         }
     }

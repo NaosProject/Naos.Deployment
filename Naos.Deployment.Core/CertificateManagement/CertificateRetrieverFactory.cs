@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Factory for creating certificate retrievers.
@@ -40,7 +41,7 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException("Configuration is not valid: " + Serializer.Serialize(certificateRetrieverConfigurationBase));
+                throw new NotSupportedException($"Configuration is not valid: {certificateRetrieverConfigurationBase.ToJson()}");
             }
 
             return ret;
