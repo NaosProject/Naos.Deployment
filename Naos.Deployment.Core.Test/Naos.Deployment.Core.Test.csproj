@@ -36,8 +36,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Conditions, Version=2.1.0.24, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Conditions.2.1.0\lib\portable-net45+win+wpa81+wp80+MonoAndroid10+MonoTouch10\Conditions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="CuttingEdge.Conditions">
       <HintPath>..\packages\CuttingEdge.Conditions.1.2.0.0\lib\NET35\CuttingEdge.Conditions.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentAssertions, Version=4.17.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.17.0\lib\net45\FluentAssertions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FluentAssertions.Core, Version=4.17.0.0, Culture=neutral, PublicKeyToken=33f2691a05b67b6a, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentAssertions.4.17.0\lib\net45\FluentAssertions.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
@@ -73,6 +85,10 @@
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.26\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.26\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.WinRM, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
@@ -123,9 +139,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\DefaultJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\MinimalJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.Flatten.cs" />
+    <Compile Include="PackageHelperTests.cs" />
     <Compile Include="InitializationStrategyCloningTest.cs" />
     <Compile Include="ArcologyTest.cs" />
     <Compile Include="ComputingInfrastructureNamerTest.cs" />
@@ -136,7 +160,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
+    <None Include=".config\Default\CloudInfrastructureManagerSettings.json" />
+    <None Include=".config\Default\SetupStepFactorySettings.json" />
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Settings.StyleCop" />

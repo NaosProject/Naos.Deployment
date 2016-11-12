@@ -185,6 +185,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".Naos.Recipes\Retry.cs" />
     <Compile Include="CertificateManagement\CertificateCollection.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverConfigurationBase.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverFromFile.cs" />
@@ -194,6 +195,7 @@
     <Compile Include="DefaultDeploymentConfiguration.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
+    <Compile Include="PackageHelper.cs" />
     <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />
     <Compile Include="MessageBusHandlerHarnessConfiguration.cs" />
     <Compile Include="PackagedDeploymentConfiguration.cs" />

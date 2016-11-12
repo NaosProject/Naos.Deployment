@@ -73,6 +73,8 @@ namespace Naos.Deployment.Core
 
         private readonly string debugAnnouncementFile;
 
+        private readonly PackageHelper packageHelper;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -130,6 +132,8 @@ namespace Naos.Deployment.Core
                 packageManager,
                 this.itsConfigPrecedenceAfterEnvironment,
                 environmentCertificateName);
+
+            this.packageHelper = new PackageHelper(packageManager, this.setupStepFactory.RootPackageDirectoriesToPrune, this.workingDirectory);
         }
 
         /// <inheritdoc />
@@ -577,7 +581,7 @@ namespace Naos.Deployment.Core
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
-                        var package = this.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
                         var actualVersion = this.GetActualVersionFromPackage(package.Package);
 
                         var deploymentConfigJson =
@@ -595,7 +599,7 @@ namespace Naos.Deployment.Core
                             // since we previously didn't bundle the packages dependencies 
                             //        AND found in the extraced config that we need to 
                             //       THEN we need to re-download with dependencies bundled...
-                            package = this.GetPackage(packageDescriptionWithOverrides, true);
+                            package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, true);
                         }
 
                         // take overrides if present, otherwise take existing, otherwise take empty
@@ -625,96 +629,6 @@ namespace Naos.Deployment.Core
                     }).ToList();
 
             return packagedDeploymentConfigs;
-        }
-
-        private PackageWithBundleIdentifier GetPackage(PackageDescriptionWithOverrides packageDescription, bool bundleAllDependencies)
-        {
-            const string DirectoryDateTimeToStringFormat = "yyyy-MM-dd--HH-mm-ss--ffff";
-            var localWorkingDirectory = Path.Combine(this.workingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat));
-
-            byte[] fileBytes;
-            if (bundleAllDependencies)
-            {
-                var packageFilePaths = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory, true);
-                var bundleStagePath = Path.Combine(localWorkingDirectory, "Bundle");
-                foreach (var packageFilePath in packageFilePaths)
-                {
-                    var packageName = new FileInfo(packageFilePath).Name.Replace(".nupkg", string.Empty);
-                    var targetPath = Path.Combine(bundleStagePath, packageName);
-                    ZipFile.ExtractToDirectory(packageFilePath, targetPath);
-
-                    foreach (var directoryToTrim in this.setupStepFactory.RootPackageDirectoriesToPrune)
-                    {
-                        var fullPathDirectoryToTrim = Path.Combine(targetPath, directoryToTrim);
-                        if (Directory.Exists(fullPathDirectoryToTrim))
-                        {
-                            Directory.Delete(fullPathDirectoryToTrim, true);
-                        }
-                    }
-
-                    // thin out older frameworks so there is a single copy of the assembly (like if we have net45, net40, net35, windows8, etc. - only keep newest...).
-                    var libPath = Path.Combine(targetPath, "lib");
-                    var frameworkDirectories = Directory.Exists(libPath) ? Directory.GetDirectories(libPath) : new string[0];
-
-                    if (frameworkDirectories.Any())
-                    {
-                        var frameworkFolderToKeep = frameworkDirectories.Length == 1
-                                                        ? frameworkDirectories.Single()
-                                                        : frameworkDirectories.Where(
-                                                            directoryPath =>
-                                                                {
-                                                                    var directoryName = Path.GetFileName(directoryPath);
-                                                                    var includeInWhere = directoryName != null
-                                                                                         && directoryName.StartsWith(
-                                                                                             "net",
-                                                                                             StringComparison.InvariantCultureIgnoreCase);
-                                                                    return includeInWhere;
-                                                                }).OrderByDescending(_ => _).FirstOrDefault();
-
-                        // ReSharper disable once ConvertIfStatementToNullCoalescingExpression - seems more confusing that way...
-                        if (frameworkFolderToKeep == null)
-                        {
-                            // this will happen with a package that doesn't honor the 'NET' prefix on framework folders...
-                            frameworkFolderToKeep = frameworkDirectories.Where(
-                                directoryPath =>
-                                    {
-                                        var directoryName = Path.GetFileName(directoryPath);
-                                        var includeInWhere = directoryName != null;
-                                        return includeInWhere;
-                                    }).OrderByDescending(_ => _).FirstOrDefault();
-                        }
-
-                        var unnecessaryFrameworks = frameworkDirectories.Except(new[] { frameworkFolderToKeep }).ToList();
-                        foreach (var unnecessaryFramework in unnecessaryFrameworks)
-                        {
-                            Directory.Delete(unnecessaryFramework, true);
-                        }
-                    }
-                }
-
-                var bundledFilePath = Path.Combine(localWorkingDirectory, packageDescription.Id + "_DependenciesBundled.zip");
-                ZipFile.CreateFromDirectory(bundleStagePath, bundledFilePath);
-                fileBytes = File.ReadAllBytes(bundledFilePath);
-            }
-            else
-            {
-                var packageFilePath = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory).Single();
-                fileBytes = File.ReadAllBytes(packageFilePath);
-            }
-
-            // clean up temp files
-            this.RunWithRetry(() => Directory.Delete(localWorkingDirectory, true));
-
-            var package = new Package
-                              {
-                                  PackageDescription = packageDescription,
-                                  PackageFileBytes = fileBytes,
-                                  PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
-                              };
-
-            var ret = new PackageWithBundleIdentifier { Package = package, AreDependenciesBundled = bundleAllDependencies };
-
-            return ret;
         }
 
         private void RunSetupStepWithRetry(
@@ -812,8 +726,7 @@ namespace Naos.Deployment.Core
                 itsConfigOverridesToUse.AddRange(this.messageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides);
             }
 
-            var messageBusHandlerPackage =
-                this.GetPackage(this.messageBusHandlerHarnessConfiguration.Package, false);
+            var messageBusHandlerPackage = this.packageHelper.GetPackage(this.messageBusHandlerHarnessConfiguration.Package, false);
 
             var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage.Package);
             messageBusHandlerPackage.Package.PackageDescription.Version = actualVersion;
