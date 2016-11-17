@@ -14,7 +14,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    public partial class SetupStepFactory
+    internal partial class SetupStepFactory
     {
         private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string harnessAccount, string iisAccount)
         {

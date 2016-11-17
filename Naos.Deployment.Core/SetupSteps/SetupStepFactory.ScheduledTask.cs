@@ -16,7 +16,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    public partial class SetupStepFactory
+    internal partial class SetupStepFactory
     {
         private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {

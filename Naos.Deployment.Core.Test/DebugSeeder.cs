@@ -18,6 +18,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.MessageBus.Domain;
 
     using Spritely.ReadModel.Mongo;
+    using Spritely.Recipes;
 
     using Xunit;
 
@@ -41,7 +42,7 @@ namespace Naos.Deployment.Core.Test
             var databaseUser = "sa";
 
             // database user password to connect to database to store in
-            var databasePassword = WinRM.MachineManager.ConvertStringToSecureString("password");
+            var databasePassword = "password".ToSecureString();
 
             var arcologyInfo = new ArcologyInfo();
             var deployedInstances = new List<DeployedInstance>();
@@ -103,7 +104,7 @@ namespace Naos.Deployment.Core.Test
             var databaseUser = "sa";
 
             // database user password to connect to database to store in
-            var databasePassword = WinRM.MachineManager.ConvertStringToSecureString("password");
+            var databasePassword = "password".ToSecureString();
 
             var certificatesToLoad = new[]
                                          {

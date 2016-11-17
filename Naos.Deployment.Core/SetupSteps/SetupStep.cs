@@ -9,12 +9,12 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
 
-    using Naos.WinRM;
+    using Naos.Recipes.WinRM;
 
     /// <summary>
     /// Model object for a setup step when provisioning a box.
     /// </summary>
-    public class SetupStep
+    internal class SetupStep
     {
         /// <summary>
         /// Gets or sets the description of the step.

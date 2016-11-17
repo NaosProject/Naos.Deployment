@@ -135,10 +135,6 @@
       <HintPath>..\packages\Naos.Packaging.NuGet.1.0.26\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.WinRM, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.WinRM.1.0.32\lib\net45\Naos.WinRM.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -185,7 +181,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".Naos.Recipes\Naos.WinRM.cs" />
     <Compile Include=".Naos.Recipes\Retry.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="CertificateManagement\CertificateCollection.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverConfigurationBase.cs" />
     <Compile Include="CertificateManagement\CertificateRetrieverFromFile.cs" />

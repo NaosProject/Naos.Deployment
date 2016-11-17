@@ -10,7 +10,6 @@ namespace Naos.Deployment.Core
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.IO;
-    using System.IO.Compression;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,11 +17,13 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
-    using Naos.WinRM;
+    using Naos.Recipes.WinRM;
 
     using Newtonsoft.Json;
 
     using Polly;
+
+    using Spritely.Recipes;
 
     /// <inheritdoc />
     public class DeploymentManager : IManageDeployments
@@ -293,7 +294,7 @@ namespace Naos.Deployment.Core
                 var machineManager = new MachineManager(
                     createdInstanceDescription.PrivateIpAddress,
                     this.setupStepFactory.AdministratorAccount,
-                    MachineManager.ConvertStringToSecureString(adminPasswordClear),
+                    adminPasswordClear.ToSecureString(),
                     true);
 
                 this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);

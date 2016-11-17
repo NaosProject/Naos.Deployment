@@ -48,7 +48,7 @@ namespace Naos.Deployment.Core.Test
             output.SingleOrDefault(_ => _ == "netstandard1.3").Should().NotBeNull();
         }
 
-		[Fact(Skip = "Debug test designed to aid in fetching bundled packages.")]
+        [Fact(Skip = "Debug test designed to aid in fetching bundled packages.")]
         public static void DownloadPackage()
         {
             var packageId = "Naos.FileJanitor.MessageBus.Handler";
