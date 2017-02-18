@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
+
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
 
@@ -17,10 +19,11 @@ namespace Naos.Deployment.Core
         /// <summary>Creates a package retriever to use.</summary>
         /// <param name="repoConfig">Package repository configuration.</param>
         /// <param name="defaultWorkingDirectory">Working directory to download temporary files to.</param>
+        /// <param name="consoleOutputCallback">Action to write console output to from package download process.</param>
         /// <returns>Package retriever to use.</returns>
-        public static PackageRetriever BuildPackageRetriever(PackageRepositoryConfiguration repoConfig, string defaultWorkingDirectory)
+        public static PackageRetriever BuildPackageRetriever(PackageRepositoryConfiguration repoConfig, string defaultWorkingDirectory, Action<string> consoleOutputCallback)
         {
-            return new PackageRetriever(defaultWorkingDirectory, repoConfig);
+            return new PackageRetriever(defaultWorkingDirectory, repoConfig, null, null, consoleOutputCallback);
         }
     }
 }

@@ -9,13 +9,14 @@ namespace Naos.Deployment.Console
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using static System.FormattableString;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
 
     using CLAP;
 
     using Its.Configuration;
+    using Its.Log.Instrumentation;
 
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
@@ -25,15 +26,17 @@ namespace Naos.Deployment.Console
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Libs.Collections;
+    using OBeautifulCode.Collection;
 
-    using Polly;
+    using Spritely.Redo;
 
     /// <summary>
     /// Deployment logic to be invoked from the console harness.
     /// </summary>
     public class Deployer
     {
+        private static readonly object NugetAnnouncementFileLock = new object();
+
         [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.")]
 #pragma warning disable 1591
         public static void GetNewCredentialJson(
@@ -83,6 +86,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing).")] [DefaultValue(null)] string debugAnnouncementFilePath,
             [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
+            [Aliases("")] [Description("Optional nuget file path to write a JSON file of output from nuget (will overwrite if existing).")] [DefaultValue(null)] string nugetAnnouncementFilePath,
             [Aliases("")] [Description("Environment to deploy to.")] string environment, 
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
             [Aliases("")] [Description("Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).")] [DefaultValue(null)] string workingPath, 
@@ -110,6 +114,7 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                        environmentCertificateName: " + environmentCertificateName);
             Console.WriteLine("--                              announcementFilePath: " + announcementFilePath);
             Console.WriteLine("--                         debugAnnouncementFilePath: " + debugAnnouncementFilePath);
+            Console.WriteLine("--                         nugetAnnouncementFilePath: " + nugetAnnouncementFilePath);
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
@@ -140,14 +145,27 @@ namespace Naos.Deployment.Console
 
             if (Directory.Exists(unzipDirPath))
             {
-                RunWithRetry(() => Directory.Delete(unzipDirPath, true));
+                Using.LinearBackOff(TimeSpan.FromSeconds(5))
+                    .WithMaxRetries(3)
+                    .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying delete deployment working directory {unzipDirPath} due to error."), _)))
+                    .Run(() => Directory.Delete(unzipDirPath, true))
+                    .Now();
             }
 
-            RunWithRetry(() => Directory.CreateDirectory(unzipDirPath));
+            Using.LinearBackOff(TimeSpan.FromSeconds(5))
+                .WithMaxRetries(3)
+                .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying create deployment working directory {unzipDirPath} due to error."), _)))
+                .Run(() => Directory.CreateDirectory(unzipDirPath))
+                .Now();
 
             var repoConfig = nugetPackageRepositoryConfigurationJson.FromJson<PackageRepositoryConfiguration>();
 
-            using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath))
+            if (File.Exists(nugetAnnouncementFilePath))
+            {
+                File.Delete(nugetAnnouncementFilePath);
+            }
+
+            using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
             {
                 var deploymentManager = new DeploymentManager(
                     infrastructureTracker,
@@ -175,14 +193,15 @@ namespace Naos.Deployment.Console
             }
         }
 
-        private static void RunWithRetry(Action action, int retryCount = 3)
+        private static void NugetAnnouncementAction(string output, string nugetAnnouncementFilePath)
         {
-            Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(action);
-        }
-
-        private static T RunWithRetry<T>(Func<T> func, int retryCount = 3)
-        {
-            return Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(func);
+            if (!string.IsNullOrWhiteSpace(nugetAnnouncementFilePath))
+            {
+                lock (NugetAnnouncementFileLock)
+                {
+                    File.AppendAllText(nugetAnnouncementFilePath, output);
+                }
+            }
         }
 
         [Empty]

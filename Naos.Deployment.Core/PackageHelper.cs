@@ -8,14 +8,16 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
+    using static System.FormattableString;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
-    using System.Threading.Tasks;
 
-    using Naos.Deployment.Domain;
+    using Its.Log.Instrumentation;
+
     using Naos.Packaging.Domain;
-    using Naos.Recipes.RunWithRetry;
+
+    using Spritely.Redo;
 
     /// <summary>
     /// Helper methods for using a package manager.
@@ -93,12 +95,22 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                var packageFilePath = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory).Single();
+                var packageDownloadPaths = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory);
+                if (packageDownloadPaths.Count <= 0)
+                {
+                    throw new InvalidOperationException(Invariant($"Failed to get a package path for package description: {packageDescription.GetIdDotVersionString()} from PackageManager.DownloadPackages"));
+                }
+
+                var packageFilePath = packageDownloadPaths.Single();
                 fileBytes = File.ReadAllBytes(packageFilePath);
             }
 
             // clean up temp files
-            Retry.RunAsync(() => Task.Run(() => Directory.Delete(localWorkingDirectory, true))).Wait();
+            Using.LinearBackOff(TimeSpan.FromSeconds(5))
+                .WithMaxRetries(3)
+                .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying delete package working directory {localWorkingDirectory} due to error."), _)))
+                .Run(() => Directory.Delete(localWorkingDirectory, true))
+                .Now();
 
             var package = new Package
             {

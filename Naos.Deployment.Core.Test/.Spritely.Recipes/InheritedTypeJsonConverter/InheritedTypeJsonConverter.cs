@@ -17,6 +17,7 @@ namespace Spritely.Recipes
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
 
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -27,34 +28,115 @@ namespace Spritely.Recipes
     /// Use Bindable Attribute to match a derived class based on the class given to the serializer
     /// Selected class will be the first class to match all properties in the json object.
     /// </summary>
-#if !RecipesProject
+#if !SpritelyRecipesProject
     [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
 #pragma warning disable 0436
 #endif
-    internal partial class InheritedTypeJsonConverter : JsonConverter
+    internal abstract partial class InheritedTypeJsonConverter : JsonConverter
     {
+        protected readonly string TypeTokenName = "$concreteType";
+
         private readonly ConcurrentDictionary<Type, IReadOnlyCollection<Type>> allChildTypes =
             new ConcurrentDictionary<Type, IReadOnlyCollection<Type>>();
+
+        protected IEnumerable<Type> GetChildTypes(Type type)
+        {
+            if (!allChildTypes.ContainsKey(type))
+            {
+                var childTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(a => !a.FullName.Contains("Microsoft.GeneratedCode"))
+                    .SelectMany(
+                        a =>
+                        {
+                            try
+                            {
+                                return a.GetTypes();
+                            }
+                            catch (ReflectionTypeLoadException)
+                            {
+                                return new Type[] { };
+                            }
+                        })
+                    .Where(
+                        t =>
+                            t != null && t.IsClass && !t.IsAbstract && !t.IsGenericTypeDefinition && t != type && type.IsAssignableFrom(t))
+                    .ToList();
+
+                allChildTypes.AddOrUpdate(type, t => childTypes, (t, cts) => childTypes);
+            }
+
+            return allChildTypes[type];
+        }
+
+        protected static BindableAttribute GetBindableAttribute(Type objectType)
+        {
+            // If multiple types in the hierarchy have a Bindable attribute, only one is returned.
+            // If the type is Bindable then that attribute is returned.  Otherwise, the attribute on
+            // the type that is closest to the current type, going up the hierarchy, is returned.
+            // A single type cannot specify Bindable multiple times, the compiler throws with CS0579.
+            var attribute = Attribute.GetCustomAttributes(objectType, typeof(BindableAttribute)).OfType<BindableAttribute>().SingleOrDefault();
+            return attribute;
+        }
+
+        protected static bool IsTwoWayBindable(BindableAttribute bindableAttribute)
+        {
+            var bindingDirectionIsTwoWay = bindableAttribute.Direction == BindingDirection.TwoWay;
+            return bindingDirectionIsTwoWay;
+        }
+    }
+
+    /// <summary>
+    /// An <see cref="InheritedTypeJsonConverter"/> that handles reads/deserialization.
+    /// </summary>
+#if !SpritelyRecipesProject
+    [System.Diagnostics.DebuggerStepThrough]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
+#pragma warning disable 0436
+#endif
+    internal partial class InheritedTypeReaderJsonConverter : InheritedTypeJsonConverter
+    {
+        /// <inheritdoc />
+        public override bool CanRead
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <inheritdoc />
+        public override bool CanWrite
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         /// <inheritdoc />
         public override bool CanConvert(Type objectType)
         {
-            var attributes = Attribute.GetCustomAttributes(objectType, typeof(BindableAttribute));
-            if (!attributes.Any())
+            var bindableAttribute = GetBindableAttribute(objectType);
+            if (bindableAttribute == null)
             {
                 return false;
             }
 
+            // When de-serializing, objectType will be whatever type the caller wants to de-serialize into.
+            // If the type has children, then we want to use our implementation of ReadJson to pick the
+            // right child, otherwise there is no ambiguity about which type to create and json.net can just handle it.
             var childTypes = GetChildTypes(objectType);
-
             return childTypes.Any();
         }
 
         /// <inheritdoc />
         /// <remarks>
         /// - Methodology
+        ///   - Is the type Two-Way bindable and has the type of the object written into the json?  If yes then strip
+        ///     out the type information and ask Json.net to deserialize into that type.  If not then...
         ///   - Get all child types of the specified type.
         ///   - Filter to child types where every 1st level JSON property is either a public (accessor is public)
         ///     property or a public field of the child type, using case-insensitive matching.  Child types passing
@@ -117,6 +199,14 @@ namespace Spritely.Recipes
             var jsonObject = JObject.Load(reader);
             var jsonProperties = new HashSet<string>(GetProperties(jsonObject), StringComparer.OrdinalIgnoreCase);
 
+            // if two-way bindable then then type should be written into the json
+            // if it's not then fallback on the typical strategy
+            var bindableAttribute = GetBindableAttribute(objectType);
+            if (IsTwoWayBindable(bindableAttribute) && jsonProperties.Contains(TypeTokenName))
+            {
+                return ReadUsingTypeSpecifiedInJson(serializer, jsonObject);
+            }
+
             var childTypes = GetChildTypes(objectType);
             var candidateChildTypes = GetCandidateChildTypes(childTypes, jsonProperties);
             var deserializedChildren = DeserializeCandidates(candidateChildTypes, serializer, jsonObject).ToList();
@@ -140,11 +230,20 @@ namespace Spritely.Recipes
             return matchedChild.DeserializedObject;
         }
 
+        private object ReadUsingTypeSpecifiedInJson(JsonSerializer serializer, JObject jsonObject)
+        {
+            var concreteType = jsonObject[TypeTokenName].ToString();
+            jsonObject.Remove(TypeTokenName);
+            var objectType = Type.GetType(concreteType);
+            var reader = jsonObject.CreateReader();
+            var result = serializer.Deserialize(reader, objectType);
+            return result;
+        }
+
         /// <inheritdoc />
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var jsonObject = JObject.FromObject(value, serializer);
-            jsonObject.WriteTo(writer);
+            throw new NotSupportedException("This is a read-only converter.");
         }
 
         private class CandidateChildType
@@ -200,9 +299,12 @@ namespace Spritely.Recipes
 
                 try
                 {
-                    deserializedObject = serializer.Deserialize(jsonObject.CreateReader(), candidateChildType.Type);                    
+                    deserializedObject = serializer.Deserialize(jsonObject.CreateReader(), candidateChildType.Type);
                 }
                 catch (JsonException)
+                {
+                }
+                catch (ArgumentException)
                 {
                 }
 
@@ -213,7 +315,7 @@ namespace Spritely.Recipes
                         {
                             Type = candidateChildType.Type,
                             PropertiesAndFields = candidateChildType.PropertiesAndFields,
-                            DeserializedObject = deserializedObject                            
+                            DeserializedObject = deserializedObject
                         };
                 }
             }
@@ -238,37 +340,93 @@ namespace Spritely.Recipes
 
             return strictCandidates.Single();
         }
+    }
 
-        private IEnumerable<Type> GetChildTypes(Type type)
+    /// <summary>
+    /// An <see cref="InheritedTypeJsonConverter"/> that handles writes/serialization.
+    /// </summary>
+#if !SpritelyRecipesProject
+    [System.Diagnostics.DebuggerStepThrough]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
+#pragma warning disable 0436
+#endif
+    internal partial class InheritedTypeWriterJsonConverter : InheritedTypeJsonConverter
+    {
+        private static readonly ThreadLocal<bool> WriteJsonCalled = new ThreadLocal<bool>(() => false);
+
+        /// <inheritdoc />
+        public override bool CanRead
         {
-            if (!allChildTypes.ContainsKey(type))
+            get
             {
-                var childTypes = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => !a.FullName.Contains("Microsoft.GeneratedCode"))
-                    .SelectMany(
-                        a =>
-                        {
-                            try
-                            {
-                                return a.GetTypes();
-                            }
-                            catch (ReflectionTypeLoadException)
-                            {
-                                return new Type[] { };
-                            }
-                        })
-                    .Where(
-                        t =>
-                            t != null && t.IsClass && !t.IsAbstract && !t.IsGenericTypeDefinition && t != type && type.IsAssignableFrom(t))
-                    .ToList();
+                return false;
+            }
+        }
 
-                allChildTypes.AddOrUpdate(type, t => childTypes, (t, cts) => childTypes);
+        /// <inheritdoc />
+        public override bool CanWrite
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        /// <inheritdoc />
+        public override bool CanConvert(Type objectType)
+        {
+            // WriteJson needs to use the JsonSerializer passed to the method so that
+            // the various settings in the serializer are utilized for writing.
+            // Using the serializer as-is, however, will cause infinite recursion because
+            // this Converter is utilized by the serializer.  If we modify the serializer
+            // to remove this converter, it will affect all other consumers of the serializer.
+            // Also, the object to serialize might contain types that require this converter.
+            // The only way to manage this to store some state when WriteJson is called,
+            // detect that state here, and tell json.net that we cannot convert the type.
+            if (WriteJsonCalled.Value)
+            {
+                WriteJsonCalled.Value = false;
+                return false;
             }
 
-            return allChildTypes[type];
+            var bindableAttribute = GetBindableAttribute(objectType);
+            if (bindableAttribute == null)
+            {
+                return false;
+            }
+
+            // Two-way instructs the converter to add the name of the type to the JSON payload
+            // when serializing.  This is sometimes required to disambiguate types when de-serializing.
+            // Sometimes, multiple types have the same named properties and share an abstract parent.  De-serializing
+            // the JSON into the abstract parent won't work without some extra information to determine which
+            // of those multiple types to create.  In this case, we want to call our implementation of WriteJson.
+            var isTwoWayBindable = IsTwoWayBindable(bindableAttribute);
+            return isTwoWayBindable;
+        }
+
+        /// <inheritdoc />
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            throw new NotSupportedException("This is a write-only converter");
+        }
+
+        /// <inheritdoc />
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException("value");
+            }
+
+            string typeName = value.GetType().FullName + ", " + value.GetType().Assembly.GetName().Name;
+            WriteJsonCalled.Value = true;
+            var jo = JObject.FromObject(value, serializer);
+            jo.Add(TypeTokenName, typeName);
+            jo.WriteTo(writer);
         }
     }
-#if !RecipesProject
+#if !SpritelyRecipesProject
 #pragma warning restore 0436
 #endif
 }

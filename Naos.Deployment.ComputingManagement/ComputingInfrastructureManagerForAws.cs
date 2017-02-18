@@ -413,6 +413,10 @@ namespace Naos.Deployment.ComputingManagement
 
             await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, this.credentials);
 
+            await createdInstance.AddTagInAwsAsync(this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString(), this.credentials);
+
+            await createdInstance.AddTagInAwsAsync(this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString(), this.credentials);
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,

@@ -8,6 +8,8 @@
     },
     "nameTagKey": "Name",
     "environmentTagKey": "Environment",
+    "windowsSkuTagKey": "WindowsSku",
+    "instanceAccessibilityTagKey": "Accessibility",
     "volumeTypeValueMap": {
     "doesNotMatter": "gp2",
     "lowPerformance": "standard",

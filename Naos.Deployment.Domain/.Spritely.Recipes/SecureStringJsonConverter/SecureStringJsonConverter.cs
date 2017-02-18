@@ -17,7 +17,7 @@ namespace Spritely.Recipes
     /// <summary>
     ///     Class that enables the Json serializer to construct SecureString instances.
     /// </summary>
-#if !RecipesProject
+#if !SpritelyRecipesProject
     [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
@@ -81,7 +81,7 @@ namespace Spritely.Recipes
             }
         }
     }
-#if !RecipesProject
+#if !SpritelyRecipesProject
 #pragma warning restore 0436
 #endif
 }

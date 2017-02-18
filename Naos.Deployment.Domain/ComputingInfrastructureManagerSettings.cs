@@ -60,6 +60,16 @@ namespace Naos.Deployment.Domain
         public string EnvironmentTagKey { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the key to use when tagging an instance with the type of Windows OS deployed.
+        /// </summary>
+        public string WindowsSkuTagKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the key to use when tagging an instance with whether it's public or private.
+        /// </summary>
+        public string InstanceAccessibilityTagKey { get; set; }
+
+        /// <summary>
         /// Combines the lines of user data and replaces the token '{ComputerName}' with the name provided.
         /// </summary>
         /// <returns>User data as an un-encoded string to provide to AWS for creating an instance.</returns>

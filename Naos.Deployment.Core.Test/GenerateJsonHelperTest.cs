@@ -16,6 +16,8 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
+    using OBeautifulCode.TypeRepresentation;
+
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
 

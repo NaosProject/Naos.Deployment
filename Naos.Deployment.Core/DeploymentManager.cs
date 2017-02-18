@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core
 
     using Newtonsoft.Json;
 
-    using Polly;
+    using OBeautifulCode.TypeRepresentation;
 
     using Spritely.Recipes;
 
@@ -971,16 +971,6 @@ namespace Naos.Deployment.Core
                 this.LogAnnouncement("Terminating instance => ID: " + systemInstanceId + ", ComputingName: " + instanceDescription.Name);
                 await this.computingManager.TerminateInstanceAsync(environment, systemInstanceId, instanceDescription.Location, true);
             }
-        }
-
-        private void RunWithRetry(Action action, int retryCount = 3)
-        {
-            Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(action);
-        }
-
-        private T RunWithRetry<T>(Func<T> func, int retryCount = 3)
-        {
-            return Policy.Handle<Exception>().WaitAndRetry(retryCount, attempt => TimeSpan.FromSeconds(attempt * 5)).Execute(func);
         }
 
         private async Task RunActionWithTelemetryAsync(string step, Func<Task> code, int? instanceNumber = null)

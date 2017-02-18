@@ -18,7 +18,7 @@ namespace Spritely.Recipes
     /// <summary>
     ///     Static container for common Json settings defaults.
     /// </summary>
-#if !RecipesProject
+#if !SpritelyRecipesProject
     [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
@@ -44,7 +44,8 @@ namespace Spritely.Recipes
                     {
                         new StringEnumConverter { CamelCaseText = true },
                         new SecureStringJsonConverter(),
-                        new InheritedTypeJsonConverter()
+                        new InheritedTypeReaderJsonConverter(),
+                        new InheritedTypeWriterJsonConverter()
                     }
                 };
             }
@@ -69,7 +70,8 @@ namespace Spritely.Recipes
                     {
                         new StringEnumConverter { CamelCaseText = true },
                         new SecureStringJsonConverter(),
-                        new InheritedTypeJsonConverter()
+                        new InheritedTypeReaderJsonConverter(),
+                        new InheritedTypeWriterJsonConverter()
                     }
                 };
             }
@@ -94,13 +96,14 @@ namespace Spritely.Recipes
                     {
                         new StringEnumConverter { CamelCaseText = true },
                         new SecureStringJsonConverter(),
-                        new InheritedTypeJsonConverter()
+                        new InheritedTypeReaderJsonConverter(),
+                        new InheritedTypeWriterJsonConverter()
                     }
                 };
             }
         }
     }
-#if !RecipesProject
+#if !SpritelyRecipesProject
 #pragma warning restore 0436
 #endif
 }
