@@ -123,26 +123,34 @@ namespace Naos.Deployment.Core
             ret.Add(wallpaperUpdate);
 
             var registryKeysToUpdateExplorer = new[]
-                                               {
-                                                   new
-                                                       {
-                                                           Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
-                                                           Name = "Hidden",
-                                                           Value = "1",
-                                                           Type = "DWord"
-                                                       },
-                                                   new
-                                                       {
-                                                           Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
-                                                           Name = "ShowSuperHidden",
-                                                           Value = "1",
-                                                           Type = "DWord"
-                                                       }
-                                               };
+                                                   {
+                                                       new
+                                                           {
+                                                               Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                               Name = "Hidden",
+                                                               Value = "1",
+                                                               Type = "DWord"
+                                                           },
+                                                       new
+                                                           {
+                                                               Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                               Name = "ShowSuperHidden",
+                                                               Value = "1",
+                                                               Type = "DWord"
+                                                           },
+                                                       new
+                                                           {
+                                                               // http://superuser.com/questions/666891/script-to-set-hide-file-extensions
+                                                               Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
+                                                               Name = "HideFileExt",
+                                                               Value = "0",
+                                                               Type = "DWord"
+                                                           }
+                                                   };
 
             var explorerShowHidden = new SetupStep
                                          {
-                                             Description = "Set Explorer to show all hidden files",
+                                             Description = "Set Explorer to show all hidden files with extensions",
                                              SetupFunc = machineManager =>
                                                  {
                                                      var fileExplorerParams = new[] { registryKeysToUpdateExplorer };
