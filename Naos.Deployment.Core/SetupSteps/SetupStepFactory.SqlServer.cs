@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
+    using static System.FormattableString;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -17,6 +18,8 @@ namespace Naos.Deployment.Core
     using Naos.Database.Tools;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -193,20 +196,49 @@ namespace Naos.Deployment.Core
                             SetupFunc = machineManager =>
                                 {
                                     var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
-                                    var migrationDllBytes =
-                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(package, package.PackageDescription.Id + ".dll")
-                                            .Select(_ => _.Value)
-                                            .SingleOrDefault();
-                                    var migrationPdbBytes =
-                                        this.packageManager.GetMultipleFileContentsFromPackageAsBytes(package, package.PackageDescription.Id + ".pdb")
-                                            .Select(_ => _.Value)
-                                            .SingleOrDefault();
 
-                                    var assembly = migrationPdbBytes == null
-                                                       ? Assembly.Load(migrationDllBytes)
-                                                       : Assembly.Load(migrationDllBytes, migrationPdbBytes);
+                                    var workingPath = Path.Combine(this.workingDirectory, "DeployMigration-" + Guid.NewGuid().ToString().Substring(0, 4));
+                                    this.packageManager.DownloadPackages(new[] { package.PackageDescription }, workingPath, true);
 
+                                    var allFilePaths = Directory.GetFiles(workingPath, "*", SearchOption.AllDirectories);
+                                    var migrationAssemblyFilePath =
+                                        allFilePaths.Where(_ => Path.GetFileNameWithoutExtension(_) == package.PackageDescription.Id)
+                                            .SingleOrDefault(_ => _.EndsWith(".dll") || _.EndsWith(".exe"));
+
+                                    new { migrationAssemblyFilePath }.Must()
+                                        .NotBeNull()
+                                        .Because(Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"))
+                                        .OrThrow();
+
+                                    // ReSharper disable once AssignNullToNotNullAttribute - checked above with Must
+                                    var assembly = Assembly.LoadFrom(migrationAssemblyFilePath);
+
+                                    ResolveEventHandler resolve = (sender, args) =>
+                                    {
+                                        var dllNameWithoutExtension = args.Name.Split(',')[0];
+                                        var dllName = dllNameWithoutExtension + ".dll";
+                                        var fullDllPath = allFilePaths.FirstOrDefault(_ => _.EndsWith(dllName));
+                                        if (fullDllPath == null)
+                                        {
+                                            var message = Invariant($"Assembly not found Name: {args.Name}, Requesting Assembly FullName: {args.RequestingAssembly?.FullName}");
+                                            throw new TypeInitializationException(message, null);
+                                        }
+
+                                        // since the assembly might have been already loaded as a depdendency of another assembly...
+                                        var pathAsUri = new Uri(fullDllPath).ToString();
+                                        var alreadyLoaded =
+                                            AppDomain.CurrentDomain.GetAssemblies()
+                                                .Where(a => !a.IsDynamic)
+                                                .SingleOrDefault(_ => _.CodeBase == pathAsUri || _.Location == pathAsUri);
+
+                                        var ret = alreadyLoaded ?? Assembly.LoadFrom(fullDllPath);
+
+                                        return ret;
+                                    };
+
+                                    AppDomain.CurrentDomain.AssemblyResolve += resolve;
                                     MigrationExecutor.Up(assembly, realRemoteConnectionString, sqlServerStrategy.Name, fluentMigration.Version);
+                                    AppDomain.CurrentDomain.AssemblyResolve -= resolve;
 
                                     return new dynamic[0];
                                 }

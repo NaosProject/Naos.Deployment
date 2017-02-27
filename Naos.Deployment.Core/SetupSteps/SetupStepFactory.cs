@@ -32,6 +32,8 @@ namespace Naos.Deployment.Core
 
         private readonly string environmentCertificateName;
 
+        private readonly string workingDirectory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SetupStepFactory"/> class.
         /// </summary>
@@ -40,13 +42,15 @@ namespace Naos.Deployment.Core
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName)
+        /// <param name="workingDirectory">Working directory to create scratch files.</param>
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
             this.packageManager = packageManager;
             this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
             this.environmentCertificateName = environmentCertificateName;
+            this.workingDirectory = workingDirectory;
         }
 
         /// <summary>

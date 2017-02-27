@@ -170,6 +170,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include=".Naos.Recipes\Naos.WinRM.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\Rules.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include=".Spritely.Recipes\Redo\BackOffStrategy.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableAction.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableActionAsync.cs" />
