@@ -34,6 +34,8 @@ namespace Naos.Deployment.Core
 
         private readonly string workingDirectory;
 
+        private readonly Action<string> debugAnnouncer;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="SetupStepFactory"/> class.
         /// </summary>
@@ -43,7 +45,8 @@ namespace Naos.Deployment.Core
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="workingDirectory">Working directory to create scratch files.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory)
+        /// <param name="debugAnnouncer">Announcer for events.</param>
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory, Action<string> debugAnnouncer)
         {
             this.certificateRetriever = certificateRetriever;
             this.settings = settings;
@@ -51,6 +54,7 @@ namespace Naos.Deployment.Core
             this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
             this.environmentCertificateName = environmentCertificateName;
             this.workingDirectory = workingDirectory;
+            this.debugAnnouncer = debugAnnouncer;
         }
 
         /// <summary>

@@ -212,33 +212,15 @@ namespace Naos.Deployment.Core
 
                                     // ReSharper disable once AssignNullToNotNullAttribute - checked above with Must
                                     var assembly = Assembly.LoadFrom(migrationAssemblyFilePath);
-
-                                    ResolveEventHandler resolve = (sender, args) =>
-                                    {
-                                        var dllNameWithoutExtension = args.Name.Split(',')[0];
-                                        var dllName = dllNameWithoutExtension + ".dll";
-                                        var fullDllPath = allFilePaths.FirstOrDefault(_ => _.EndsWith(dllName));
-                                        if (fullDllPath == null)
-                                        {
-                                            var message = Invariant($"Assembly not found Name: {args.Name}, Requesting Assembly FullName: {args.RequestingAssembly?.FullName}");
-                                            throw new TypeInitializationException(message, null);
-                                        }
-
-                                        // since the assembly might have been already loaded as a depdendency of another assembly...
-                                        var pathAsUri = new Uri(fullDllPath).ToString();
-                                        var alreadyLoaded =
-                                            AppDomain.CurrentDomain.GetAssemblies()
-                                                .Where(a => !a.IsDynamic)
-                                                .SingleOrDefault(_ => _.CodeBase == pathAsUri || _.Location == pathAsUri);
-
-                                        var ret = alreadyLoaded ?? Assembly.LoadFrom(fullDllPath);
-
-                                        return ret;
-                                    };
-
-                                    AppDomain.CurrentDomain.AssemblyResolve += resolve;
-                                    MigrationExecutor.Up(assembly, realRemoteConnectionString, sqlServerStrategy.Name, fluentMigration.Version);
-                                    AppDomain.CurrentDomain.AssemblyResolve -= resolve;
+                                    MigrationExecutor.Up(
+                                        assembly,
+                                        realRemoteConnectionString,
+                                        sqlServerStrategy.Name,
+                                        fluentMigration.Version,
+                                        this.debugAnnouncer,
+                                        default(TimeSpan),
+                                        null,
+                                        workingPath);
 
                                     return new dynamic[0];
                                 }

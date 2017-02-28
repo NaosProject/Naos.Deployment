@@ -133,7 +133,8 @@ namespace Naos.Deployment.Core
                 packageManager,
                 this.itsConfigPrecedenceAfterEnvironment,
                 environmentCertificateName,
-                this.workingDirectory);
+                this.workingDirectory,
+                this.debugAnnouncer);
 
             this.packageHelper = new PackageHelper(packageManager, this.setupStepFactory.RootPackageDirectoriesToPrune, this.workingDirectory);
         }
