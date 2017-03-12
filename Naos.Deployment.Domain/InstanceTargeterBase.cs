@@ -22,9 +22,18 @@ namespace Naos.Deployment.Domain
     public class InstanceTargeterSystemId : InstanceTargeterBase
     {
         /// <summary>
-        /// Gets or sets the ID (per the computing platform provider) of the instance to change the type of.
+        /// Initializes a new instance of the <see cref="InstanceTargeterSystemId"/> class.
         /// </summary>
-        public string InstanceId { get; set; }
+        /// <param name="instanceId">ID of instance to target.</param>
+        public InstanceTargeterSystemId(string instanceId)
+        {
+            this.InstanceId = instanceId;
+        }
+
+        /// <summary>
+        /// Gets the ID (per the computing platform provider) of the instance to change the type of.
+        /// </summary>
+        public string InstanceId { get; private set; }
     }
 
     /// <summary>
@@ -33,8 +42,17 @@ namespace Naos.Deployment.Domain
     public class InstanceTargeterNameLookup : InstanceTargeterBase
     {
         /// <summary>
-        /// Gets or sets the name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a)'.
+        /// Initializes a new instance of the <see cref="InstanceTargeterNameLookup"/> class.
         /// </summary>
-        public string Name { get; set; }
+        /// <param name="name">Name to lookup in the arcology to find the instance to target (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a).</param>
+        public InstanceTargeterNameLookup(string name)
+        {
+            this.Name = name;
+        }
+
+        /// <summary>
+        /// Gets the name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a)'.
+        /// </summary>
+        public string Name { get; private set; }
     }
 }
