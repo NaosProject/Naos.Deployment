@@ -130,23 +130,16 @@ namespace Naos.Deployment.Core
             var ret = new DeploymentConfiguration()
                           {
                               InstanceCount = instanceCount,
-                              InstanceType = 
+                              InstanceType =
                                   new InstanceType
                                       {
-                                          RamInGb =
-                                              deploymentConfigs.Max(
-                                                  _ => _.InstanceType == null ? 0 : _.InstanceType.RamInGb),
-                                          VirtualCores =
-                                              deploymentConfigs.Max(
-                                                  _ =>
-                                                  _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
+                                          SpecificInstanceTypeSystemId = deploymentConfigs.Select(_ => _.InstanceType?.SpecificInstanceTypeSystemId).Distinct().SingleOrDefault(_ => _ != null),
+                                          SpecificImageSystemId = deploymentConfigs.Select(_ => _.InstanceType?.SpecificImageSystemId).Distinct().SingleOrDefault(_ => _ != null),
+                                          RamInGb = deploymentConfigs.Max(_ => _.InstanceType == null ? 0 : _.InstanceType.RamInGb),
+                                          VirtualCores = deploymentConfigs.Max(_ => _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
                                           WindowsSku =
                                               GetLargestWindowsSku(
-                                                deploymentConfigs
-                                                    .Where(_ => _.InstanceType != null)
-                                                    .Select(_ => _.InstanceType.WindowsSku)
-                                                    .Distinct()
-                                                    .ToList()),
+                                                  deploymentConfigs.Where(_ => _.InstanceType != null).Select(_ => _.InstanceType.WindowsSku).Distinct().ToList()),
                                       },
                               InstanceAccessibility = accessibilityToUse,
                               Volumes = volumes,

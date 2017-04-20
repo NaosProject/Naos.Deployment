@@ -10,12 +10,54 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.Linq;
 
+    using FluentAssertions;
+
     using Naos.Deployment.Domain;
 
     using Xunit;
 
     public partial class DeploymentConfigurationExtensionMethodsTest
     {
+        [Fact]
+        public static void Flatten_DifferentSpecificInstanceType_Throws()
+        {
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificInstanceTypeSystemId = "server" } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificInstanceTypeSystemId = "monkey" } };
+
+            Action action = () => new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
+            action.ShouldThrow<InvalidOperationException>().WithMessage("Sequence contains more than one matching element");
+        }
+
+        [Fact]
+        public static void Flatten_SameSpecificInstanceType_Uses()
+        {
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificInstanceTypeSystemId = "server" } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificInstanceTypeSystemId = "server" } };
+
+            var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
+            Assert.Equal(deploymentConfigTwo.InstanceType.SpecificInstanceTypeSystemId, config.InstanceType.SpecificInstanceTypeSystemId);
+        }
+
+        [Fact]
+        public static void Flatten_DifferentSpecificImage_Throws()
+        {
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server" } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "monkey" } };
+
+            Action action = () => new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
+            action.ShouldThrow<InvalidOperationException>().WithMessage("Sequence contains more than one matching element");
+        }
+
+        [Fact]
+        public static void Flatten_SameSpecificImage_Uses()
+        {
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server" } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server" } };
+
+            var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
+            Assert.Equal(deploymentConfigTwo.InstanceType.SpecificInstanceTypeSystemId, config.InstanceType.SpecificInstanceTypeSystemId);
+        }
+
         [Fact]
         public static void Flatten_DifferentInstanceCount_TakesMax()
         {
