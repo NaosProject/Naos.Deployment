@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
+    using Naos.Recipes.Configuration.Setup;
     using Naos.Recipes.WinRM;
 
     using Newtonsoft.Json;
@@ -126,7 +127,7 @@ namespace Naos.Deployment.Core
             this.telemetryFile = telemetryFile;
             this.announcementFile = announcementFile;
             this.debugAnnouncementFile = debugAnnouncementFile;
-            this.itsConfigPrecedenceAfterEnvironment = new[] { "Common" };
+            this.itsConfigPrecedenceAfterEnvironment = new[] { Config.CommonPrecedence };
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
                 certificateRetriever,

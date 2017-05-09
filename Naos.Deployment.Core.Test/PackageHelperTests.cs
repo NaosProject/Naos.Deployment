@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
+    using Naos.Recipes.Configuration.Setup;
 
     using Newtonsoft.Json;
 
@@ -66,7 +67,7 @@ namespace Naos.Deployment.Core.Test
                                  };
 
             var packageManager = new PackageRetriever(tempPath, repoConfig);
-            Factory.SetupSettings("Default");
+            Config.SetupForUnitTest("Common");
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var packageHelper = new PackageHelper(packageManager, setupFactorySettings.RootPackageDirectoriesToPrune, tempPath);
 
@@ -74,17 +75,6 @@ namespace Naos.Deployment.Core.Test
             var bundled = packageHelper.GetPackage(package, true);
             File.WriteAllBytes(outputPath, bundled.Package.PackageFileBytes);
             Directory.Delete(tempPath, true);
-        }
-    }
-
-    public class Factory
-    {
-        public static void SetupSettings(string precedence)
-        {
-            JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
-            Settings.Deserialize = (type, serialized) => JsonConvert.DeserializeObject(serialized, type);
-            Settings.SettingsDirectory = Settings.SettingsDirectory.Replace("\\bin\\Debug", string.Empty);
-            Settings.Precedence = new[] { precedence };
         }
     }
 }

@@ -80,12 +80,12 @@
       <HintPath>..\packages\MongoDB.Driver.Core.2.4.0\lib\net45\MongoDB.Driver.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.AWS.Contract, Version=1.0.46.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Contract.1.0.46\lib\net461\Naos.AWS.Contract.dll</HintPath>
+    <Reference Include="Naos.AWS.Contract, Version=1.0.49.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Contract.1.0.49\lib\net461\Naos.AWS.Contract.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.46.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.46\lib\net461\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.49.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.49\lib\net461\Naos.AWS.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Cron, Version=1.0.15.0, Culture=neutral, processorArchitecture=MSIL">
@@ -96,8 +96,8 @@
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.8\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.229.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.229\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.230.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.230\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
@@ -139,12 +139,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".config\Default\ComputingInfrastructureManagerSettings.json" />
-    <None Include=".config\Default\DefaultDeploymentConfiguration.json" />
-    <None Include=".config\Default\MessageBusHandlerHarnessConfiguration.json" />
-    <None Include=".config\Default\SetupStepFactorySettings.json" />
+    <None Include=".config\Common\ComputingInfrastructureManagerSettings.json" />
+    <None Include=".config\Common\DefaultDeploymentConfiguration.json" />
+    <None Include=".config\Common\MessageBusHandlerHarnessConfiguration.json" />
+    <None Include=".config\Common\SetupStepFactorySettings.json" />
+    <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.String\StringExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
+    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\DefaultJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
+    <Compile Include=".Spritely.Recipes\JsonConfiguration\MinimalJsonSerializer.cs" />
     <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
     <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
     <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
@@ -156,6 +163,8 @@
     <Compile Include=".Spritely.Recipes\Redo\RetriableFunction.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".Spritely.Recipes\Redo\Using.cs" />
+    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
+    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="Deployer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

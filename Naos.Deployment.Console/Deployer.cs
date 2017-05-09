@@ -25,6 +25,7 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
+    using Naos.Recipes.Configuration.Setup;
 
     using OBeautifulCode.Collection;
 
@@ -118,7 +119,7 @@ namespace Naos.Deployment.Console
             Console.WriteLine("--                                 telemetryFilePath: " + telemetryFilePath);
             Console.WriteLine(string.Empty);
 
-            Settings.Deserialize = (type, serialized) => serialized.FromJson(type);
+            Config.SetupSerialization();
 
             var packagesToDeploy = packagesToDeployJson.FromJson<ICollection<PackageDescriptionWithOverrides>>();
             var certificateRetrieverConfiguration = certificateRetrieverJson.FromJson<CertificateRetrieverConfigurationBase>();

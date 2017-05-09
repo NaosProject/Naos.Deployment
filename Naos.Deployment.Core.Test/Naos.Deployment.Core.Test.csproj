@@ -72,8 +72,8 @@
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.8\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.229.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.229\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.230.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.230\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
@@ -128,6 +128,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
     <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
     <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />
@@ -149,8 +150,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include=".config\Default\CloudInfrastructureManagerSettings.json" />
-    <None Include=".config\Default\SetupStepFactorySettings.json" />
+    <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
+    <None Include=".config\Common\SetupStepFactorySettings.json" />
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Settings.StyleCop" />
