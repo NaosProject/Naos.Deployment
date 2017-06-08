@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
@@ -84,7 +85,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
-        public static void Debug_CreateCertificateEntryInDatabase()
+        public static async Task Debug_CreateCertificateEntryInDatabase()
         {
             // this is because the passwords are encrypted, so this is just a convenience test for loading the db
 
@@ -108,14 +109,11 @@ namespace Naos.Deployment.Core.Test
 
             var certificatesToLoad = new[]
                                          {
-                                             new CertificateToLoad
-                                                 {
-                                                     EncryptingCertificateThumbprint = "323423423",
-                                                     EncryptingCertificateIsValid = false,
-                                                     FilePath = @"D:\Temp\DevelopmentCert.pfx",
-                                                     Name = "DevelopmentCertificate",
-                                                     PasswordInClearText = "password"
-                                                 }
+                                             new CertificateToLoad(
+                                                 "DevelopmentCertificate",
+                                                 @"D:\Temp\DevelopmentCert.pfx",
+                                                 "password",
+                                                 new CertificateLocator("323423423", false))
                                          };
 
             // Building and writing code...
@@ -135,16 +133,11 @@ namespace Naos.Deployment.Core.Test
 
             var certificates = BuildCertificates(certificatesToLoad);
 
-            BsonClassMapManager.RegisterClassMaps();
-            var commands = database.GetCommandsInterface<string, CertificateContainer>();
-            var certificateContainer = new CertificateContainer
-                                           {
-                                               Id = databaseId,
-                                               Environment = environment,
-                                               Certificates = certificates.ToArray()
-                                           };
-
-            commands.AddOrUpdateOneAsync(certificateContainer).Wait();
+            var writer = CertificateManagementFactory.CreateWriter(new CertificateManagementConfigurationDatabase { Database = database });
+            foreach (var certificate in certificates)
+            {
+                await writer.LoadCertficateAsync(certificate);
+            }
         }
 
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
@@ -157,14 +150,11 @@ namespace Naos.Deployment.Core.Test
 
             var certificatesToLoad = new[]
                                          {
-                                             new CertificateToLoad
-                                                 {
-                                                     EncryptingCertificateThumbprint = "323423423",
-                                                     EncryptingCertificateIsValid = false,
-                                                     FilePath = @"D:\Temp\DevelopmentCert.pfx",
-                                                     Name = "DevelopmentCertificate",
-                                                     PasswordInClearText = "password"
-                                                 }
+                                             new CertificateToLoad(
+                                                 "DevelopmentCertificate",
+                                                 @"D:\Temp\DevelopmentCert.pfx",
+                                                 "password",
+                                                 new CertificateLocator("323423423", false))
                                          };
 
             // Building and writing code...
@@ -180,62 +170,11 @@ namespace Naos.Deployment.Core.Test
 
             foreach (var certificateToLoad in certificatesToLoad)
             {
-                var encryptingCertificateLocator = new CertificateLocator
-                                                       {
-                                                           CertificateThumbprint =
-                                                               certificateToLoad
-                                                               .EncryptingCertificateThumbprint,
-                                                           CertificateIsValid =
-                                                               certificateToLoad
-                                                               .EncryptingCertificateIsValid
-                                                       };
-
-                var encryptedPassword = Encryptor.Encrypt(certificateToLoad.PasswordInClearText, encryptingCertificateLocator);
-
-                var certificateBytes = File.ReadAllBytes(certificateToLoad.FilePath);
-                var certificateFileBase64 = Convert.ToBase64String(certificateBytes);
-                var encryptedFileBase64 = Encryptor.Encrypt(certificateFileBase64, encryptingCertificateLocator);
-
-                var certificateToAdd = new CertificateDetails
-                                           {
-                                               Name = certificateToLoad.Name,
-                                               EncryptedBase64Bytes = encryptedFileBase64,
-                                               EncryptedPassword = encryptedPassword,
-                                               EncryptingCertificateLocator = encryptingCertificateLocator
-                                           };
-
+                var certificateToAdd = certificateToLoad.ToCertificateDetails();
                 certificates.Add(certificateToAdd);
             }
 
             return certificates;
-        }
-
-        private class CertificateToLoad
-        {
-            /// <summary>
-            /// Gets or sets the name of the certificate.
-            /// </summary>
-            public string Name { get; set; }
-
-            /// <summary>
-            /// Gets or sets the local path of the certificate file.
-            /// </summary>
-            public string FilePath { get; set; }
-
-            /// <summary>
-            /// Gets or sets the certificate file password in clear text (to be encrypted).
-            /// </summary>
-            public string PasswordInClearText { get; set; }
-
-            /// <summary>
-            /// Gets or sets the certificate thumbprint of a certificate on the running machine that will be used to encrypt the password.
-            /// </summary>
-            public string EncryptingCertificateThumbprint { get; set; }
-
-            /// <summary>
-            /// Gets or sets a value indicating whether or not the certificate being used to encrypt the password is "valid".
-            /// </summary>
-            public bool EncryptingCertificateIsValid { get; set; }
         }
     }
 }

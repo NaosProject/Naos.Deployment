@@ -37,6 +37,10 @@
     <DocumentationFile>bin\Release\Naos.Deployment.Console.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AsynchronousBridge.1.2.2\lib\Net45\AsyncBridge.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="AWSSDK.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.Core.3.3.4.1\lib\net45\AWSSDK.Core.dll</HintPath>
       <Private>True</Private>
@@ -141,7 +145,6 @@
   <ItemGroup>
     <None Include=".config\Common\ComputingInfrastructureManagerSettings.json" />
     <None Include=".config\Common\DefaultDeploymentConfiguration.json" />
-    <None Include=".config\Common\MessageBusHandlerHarnessConfiguration.json" />
     <None Include=".config\Common\SetupStepFactorySettings.json" />
     <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />

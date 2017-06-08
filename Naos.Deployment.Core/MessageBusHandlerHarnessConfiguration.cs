@@ -29,5 +29,10 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
         public LogProcessorSettings LogProcessorSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets connection configuration for the message bus handler harness to be configured with.
+        /// </summary>
+        public MessageBusConnectionConfiguration PersistenceConnectionConfiguration { get; set; }
     }
 }

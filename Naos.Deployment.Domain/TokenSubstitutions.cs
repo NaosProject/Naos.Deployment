@@ -50,9 +50,10 @@ namespace Naos.Deployment.Domain
                 return null;
             }
 
-            var ret =
-                stringToApplyTokenSubstitutions.Replace(HarnessAccountToken, harnessAccount)
-                    .Replace(IisAccountToken, iisAccount);
+            var ret = stringToApplyTokenSubstitutions
+                .Replace(HarnessAccountToken, harnessAccount)
+                .Replace(IisAccountToken, iisAccount);
+
             return ret;
         }
 
@@ -71,7 +72,8 @@ namespace Naos.Deployment.Domain
                 return null;
             }
 
-            var ret = stringToApplyTokenSubstitutions.Replace("{instanceName}", instanceName)
+            var ret = stringToApplyTokenSubstitutions
+                .Replace("{instanceName}", instanceName)
                 .Replace("{environment}", environment)
                 .Replace("{instanceNumber}", instanceNumber.ToString());
             return ret;
@@ -92,7 +94,8 @@ namespace Naos.Deployment.Domain
                 return null;
             }
 
-            var ret = stringToApplyTokenSubstitutions.Replace("{instanceName}", instanceName)
+            var ret = stringToApplyTokenSubstitutions
+                .Replace("{instanceName}", instanceName)
                 .Replace("{environment}", environment)
                 .Replace("{instanceNumber}", instanceNumber.ToString());
             return ret;
