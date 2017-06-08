@@ -69,6 +69,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\Rules.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="IShareInstanceTargeters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

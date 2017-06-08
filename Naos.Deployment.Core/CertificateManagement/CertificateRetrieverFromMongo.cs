@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
@@ -20,28 +19,19 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class CertificateRetrieverFromMongo : IGetCertificates
     {
-        private readonly string environment;
-
         private readonly IQueries<CertificateContainer> certificateContainerQueries;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CertificateRetrieverFromMongo"/> class.
         /// </summary>
-        /// <param name="environment">Environment executing against.</param>
         /// <param name="certificateContainerQueries">Query interface for retrieving the certificates.</param>
-        public CertificateRetrieverFromMongo(string environment, IQueries<CertificateContainer> certificateContainerQueries)
+        public CertificateRetrieverFromMongo(IQueries<CertificateContainer> certificateContainerQueries)
         {
-            if (environment == null)
-            {
-                throw new ArgumentNullException("environment");
-            }
-
             if (certificateContainerQueries == null)
             {
-                throw new ArgumentNullException("certificateContainerQueries");
+                throw new ArgumentNullException(nameof(certificateContainerQueries));
             }
 
-            this.environment = environment;
             this.certificateContainerQueries = certificateContainerQueries;
 
             BsonClassMapManager.RegisterClassMaps();
@@ -50,14 +40,12 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <inheritdoc />
         public async Task<CertificateFile> GetCertificateByNameAsync(string name)
         {
-            var certificateContainer =
-                await this.certificateContainerQueries.GetOneAsync(_ => _.Environment == this.environment);
+            var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => string.Equals(_.Id, name, StringComparison.CurrentCultureIgnoreCase));
 
-            var certificateDetails =
-                certificateContainer.Certificates.SingleOrDefault(
-                    _ => string.Equals(_.Name, name, StringComparison.CurrentCultureIgnoreCase));
+            var certificateDetails = certificateContainer?.Certificate;
 
-            var certDetails = certificateDetails == null ? null : certificateDetails.ToCertificateFile();
+            var certDetails = certificateDetails?.ToCertificateFile();
+
             return certDetails;
         }
     }

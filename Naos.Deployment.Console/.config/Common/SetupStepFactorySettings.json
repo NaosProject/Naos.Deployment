@@ -230,7 +230,7 @@
                 "      throw \"Cert missing at $CertPath\"",
                 "   }",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
-                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation",
                 "   $thumbprint = \"$($certResult.Thumbprint)\"",
                 "   Write-Output \"Thumbprint: $thumbprint\"",
                 "   $HttpsDnsEntries | %{",

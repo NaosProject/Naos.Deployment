@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CertificateRetrieverConfigurationBase.cs" company="Naos">
+// <copyright file="CertificateManagementConfigurationBase.cs" company="Naos">
 //   Copyright 2015 Naos
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -14,14 +14,14 @@ namespace Naos.Deployment.Core
     /// Class to hold necessary information to create a certificate retriever.
     /// </summary>
     [Bindable(BindableSupport.Default)]
-    public abstract class CertificateRetrieverConfigurationBase
+    public abstract class CertificateManagementConfigurationBase
     {
     }
 
     /// <summary>
-    /// Database implementation of <see cref="CertificateRetrieverConfigurationBase"/>.
+    /// Database implementation of <see cref="CertificateManagementConfigurationBase"/>.
     /// </summary>
-    public class CertificateRetrieverConfigurationDatabase : CertificateRetrieverConfigurationBase
+    public class CertificateManagementConfigurationDatabase : CertificateManagementConfigurationBase
     {
         /// <summary>
         /// Gets or sets the database connection that the certificate retriever is stored in.
@@ -30,9 +30,9 @@ namespace Naos.Deployment.Core
     }
 
     /// <summary>
-    /// File based implementation of <see cref="CertificateRetrieverConfigurationBase"/>.
+    /// File based implementation of <see cref="CertificateManagementConfigurationBase"/>.
     /// </summary>
-    public class CertificateRetrieverConfigurationFile : CertificateRetrieverConfigurationBase
+    public class CertificateManagementConfigurationFile : CertificateManagementConfigurationBase
     {
         /// <summary>
         /// Gets or sets the file that the certificate retriever is stored in.

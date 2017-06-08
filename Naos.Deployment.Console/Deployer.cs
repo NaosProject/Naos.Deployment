@@ -13,6 +13,8 @@ namespace Naos.Deployment.Console
     using System.IO;
     using System.Linq;
 
+    using AsyncBridge;
+
     using CLAP;
 
     using Its.Configuration;
@@ -79,7 +81,6 @@ namespace Naos.Deployment.Console
         public static void Deploy(
             [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson, 
             [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
-            [Aliases("")] [Description("Message bus persistence connection configuration JSON.")] [DefaultValue(null)] string messageBusPersistenceConnectionConfigurationJson,
             [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
             [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson, 
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
@@ -92,6 +93,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
             [Aliases("")] [Description("Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).")] [DefaultValue(null)] string workingPath, 
             [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson, 
+            [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson, 
             [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
 #pragma warning restore 1591
         {
@@ -105,6 +107,7 @@ namespace Naos.Deployment.Console
             Console.WriteLine("PARAMETERS:");
             Console.WriteLine("--                                       workingPath: " + workingPath);
             Console.WriteLine("--                                   credentialsJson: " + credentialsJson);
+            Console.WriteLine("--                deploymentAdjustmentApplicatorJson: " + deploymentAdjustmentApplicatorJson);
             Console.WriteLine("--           nugetPackageRepositoryConfigurationJson: " + nugetPackageRepositoryConfigurationJson);
             Console.WriteLine("--                          certificateRetrieverJson: " + certificateRetrieverJson);
             Console.WriteLine("--                         infrastructureTrackerJson: " + infrastructureTrackerJson);
@@ -122,16 +125,15 @@ namespace Naos.Deployment.Console
             Config.SetupSerialization();
 
             var packagesToDeploy = packagesToDeployJson.FromJson<ICollection<PackageDescriptionWithOverrides>>();
-            var certificateRetrieverConfiguration = certificateRetrieverJson.FromJson<CertificateRetrieverConfigurationBase>();
+            var certificateRetrieverConfiguration = certificateRetrieverJson.FromJson<CertificateManagementConfigurationBase>();
             var infrastructureTrackerConfiguration = infrastructureTrackerJson.FromJson<InfrastructureTrackerConfigurationBase>();
-            var messageBusPersistenceConnectionConfiguration = messageBusPersistenceConnectionConfigurationJson.FromJson<MessageBusConnectionConfiguration>();
+            var deploymentAdjustmentStrategiesApplicator = deploymentAdjustmentApplicatorJson.FromJson<DeploymentAdjustmentStrategiesApplicator>();
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
-            var messageBusHandlerHarnessConfiguration = Settings.Get<MessageBusHandlerHarnessConfiguration>();
 
-            var certificateRetriever = CertificateRetrieverFactory.Create(environment, certificateRetrieverConfiguration);
+            var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
             var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration);
 
             var credentials = credentialsJson.FromJson<CredentialContainer>();
@@ -174,9 +176,8 @@ namespace Naos.Deployment.Console
                     packageManager,
                     certificateRetriever,
                     defaultDeploymentConfiguration,
-                    messageBusHandlerHarnessConfiguration,
                     setupFactorySettings,
-                    messageBusPersistenceConnectionConfiguration,
+                    deploymentAdjustmentStrategiesApplicator,
                     computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                     Console.WriteLine,
                     line =>
@@ -191,6 +192,53 @@ namespace Naos.Deployment.Console
                 var overrideConfig = overrideDeploymentConfigJson.FromJson<DeploymentConfiguration>();
 
                 deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+            }
+        }
+
+        [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
+#pragma warning disable 1591
+        public static void UploadCertficate(
+                [Aliases("")] [Description("Certificate writer configuration JSON.")] string certificateWriterJson,
+                [Aliases("")] [Description("Name of the certificate to load.")] string name,
+                [Aliases("")] [Description("File path to the certificate to load (in PFX file format).")] string pfxFilePath,
+                [Aliases("")] [Description("Clear text password of the certificate to load.")] string clearTextPassword,
+                [Aliases("")] [Description("Thumbprint of the encrypting certificate.")] string encryptingCertificateThumbprint,
+                [Aliases("")] [Description("Value indicating whether or not the encrypting certificate is valid.")] bool encryptingCertificateIsValid,
+                [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
+#pragma warning restore 1591
+        {
+            if (startDebugger)
+            {
+                Debugger.Launch();
+            }
+
+            WriteAsciiArt();
+
+            var cleanPassword = new string('*', clearTextPassword.Length / 2) + string.Join(string.Empty, clearTextPassword.Skip(clearTextPassword.Length / 2));
+
+            Console.WriteLine("PARAMETERS:");
+            Console.WriteLine("--                            name: " + name);
+            Console.WriteLine("--                     pfxFilePath: " + pfxFilePath);
+            Console.WriteLine("--                   cleanPassword: " + cleanPassword);
+            Console.WriteLine("-- encryptingCertificateThumbprint: " + encryptingCertificateThumbprint);
+            Console.WriteLine("--    encryptingCertificateIsValid: " + encryptingCertificateIsValid);
+            Console.WriteLine("--           certificateWriterJson: " + certificateWriterJson);
+            Console.WriteLine(string.Empty);
+
+            Config.SetupSerialization();
+            var certificateConfiguration = certificateWriterJson.FromJson<CertificateManagementConfigurationBase>();
+            var writer = CertificateManagementFactory.CreateWriter(certificateConfiguration);
+
+            var certToLoad = new CertificateToLoad(
+                                 name,
+                                 pfxFilePath,
+                                 clearTextPassword,
+                                 new CertificateLocator(encryptingCertificateThumbprint, encryptingCertificateIsValid));
+            var cert = certToLoad.ToCertificateDetails();
+
+            using (var async = AsyncHelper.Wait)
+            {
+                async.Run(writer.LoadCertficateAsync(cert));
             }
         }
 

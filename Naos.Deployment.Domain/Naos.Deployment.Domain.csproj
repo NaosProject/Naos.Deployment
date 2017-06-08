@@ -80,9 +80,16 @@
     <Compile Include=".Spritely.Recipes\JsonConfiguration\DefaultJsonSerializer.cs" />
     <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
     <Compile Include=".Spritely.Recipes\JsonConfiguration\MinimalJsonSerializer.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\Rules.cs" />
+    <Compile Include=".Spritely.Recipes\MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="ArcologyInfo.cs" />
+    <Compile Include="Certificate\CertificateToLoad.cs" />
+    <Compile Include="Certificate\ILoadCertificates.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />
     <Compile Include="Certificate\CertificateDetails.cs" />
@@ -101,7 +108,7 @@
     <Compile Include="InitializationStrategy\DirectoryToCreateDetails.cs" />
     <Compile Include="Encryptor.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="IGetCertificates.cs" />
+    <Compile Include="Certificate\IGetCertificates.cs" />
     <Compile Include="IHaveInitializationStrategies.cs" />
     <Compile Include="IHaveItsConfigOverrides.cs" />
     <Compile Include="ImageDetails.cs" />

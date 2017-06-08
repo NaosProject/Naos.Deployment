@@ -22,8 +22,6 @@ namespace Naos.Deployment.Core
 
     using Newtonsoft.Json;
 
-    using OBeautifulCode.TypeRepresentation;
-
     using Spritely.Recipes;
 
     /// <inheritdoc />
@@ -51,15 +49,11 @@ namespace Naos.Deployment.Core
 
         private readonly Action<string> debugAnnouncer;
 
-        private readonly string workingDirectory;
-
         private readonly SetupStepFactory setupStepFactory;
 
-        private readonly MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration;
+        private readonly DeploymentAdjustmentStrategiesApplicator deploymentAdjustmentStrategiesApplicator;
 
         private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
-
-        private readonly MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration;
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
@@ -85,9 +79,8 @@ namespace Naos.Deployment.Core
         /// <param name="packageManager">Proxy to retrieve packages.</param>
         /// <param name="certificateRetriever">Manager of certificates (get passwords and file bytes by name).</param>
         /// <param name="defaultDeploymentConfiguration">Default deployment configuration to substitute the values for any nulls.</param>
-        /// <param name="messageBusHandlerHarnessConfiguration">Settings and description of the harness to use for message bus handler initializations.</param>
         /// <param name="setupStepFactorySettings">Settings for the setup step factory.</param>
-        /// <param name="messageBusPersistenceConnectionConfiguration">Connection string to the message bus harness.</param>
+        /// <param name="deploymentAdjustmentStrategiesApplicator">Connection string to the message bus harness.</param>
         /// <param name="packageIdsToIgnoreDuringTerminationSearch">List of package IDs to exclude during replacement search.</param>
         /// <param name="announcer">Callback to get status messages through process.</param>
         /// <param name="debugAnnouncer">Callback to get more detailed information through process.</param>
@@ -102,9 +95,8 @@ namespace Naos.Deployment.Core
             IGetPackages packageManager,
             IGetCertificates certificateRetriever,
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
-            MessageBusHandlerHarnessConfiguration messageBusHandlerHarnessConfiguration,
             SetupStepFactorySettings setupStepFactorySettings,
-            MessageBusConnectionConfiguration messageBusPersistenceConnectionConfiguration,
+            DeploymentAdjustmentStrategiesApplicator deploymentAdjustmentStrategiesApplicator,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer, 
             Action<string> debugAnnouncer, 
@@ -118,26 +110,25 @@ namespace Naos.Deployment.Core
             this.computingManager = computingManager;
             this.packageManager = packageManager;
             this.defaultDeploymentConfiguration = defaultDeploymentConfiguration;
-            this.messageBusPersistenceConnectionConfiguration = messageBusPersistenceConnectionConfiguration;
-            this.messageBusHandlerHarnessConfiguration = messageBusHandlerHarnessConfiguration;
+            this.deploymentAdjustmentStrategiesApplicator = deploymentAdjustmentStrategiesApplicator;
             this.packageIdsToIgnoreDuringTerminationSearch = packageIdsToIgnoreDuringTerminationSearch;
             this.announce = announcer;
             this.debugAnnouncer = debugAnnouncer;
-            this.workingDirectory = workingDirectory;
             this.telemetryFile = telemetryFile;
             this.announcementFile = announcementFile;
             this.debugAnnouncementFile = debugAnnouncementFile;
             this.itsConfigPrecedenceAfterEnvironment = new[] { Config.CommonPrecedence };
+
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
                 certificateRetriever,
                 packageManager,
                 this.itsConfigPrecedenceAfterEnvironment,
                 environmentCertificateName,
-                this.workingDirectory,
+                workingDirectory,
                 this.debugAnnouncer);
 
-            this.packageHelper = new PackageHelper(packageManager, this.setupStepFactory.RootPackageDirectoriesToPrune, this.workingDirectory);
+            this.packageHelper = new PackageHelper(packageManager, this.setupStepFactory.RootPackageDirectoriesToPrune, workingDirectory);
         }
 
         /// <inheritdoc />
@@ -323,21 +314,27 @@ namespace Naos.Deployment.Core
                 this.LogAnnouncement("Rebooting new instance to finalize any items from instance setup.", instanceNumber);
                 this.RebootInstance(instanceNumber, machineManager);
 
-                // determine if a message bus harness package should be included
-                var harnessPackagedConfig = this.GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
+                var additionalPackages = this.deploymentAdjustmentStrategiesApplicator.IdentifyAdditionalPackages(
                     environment,
                     instanceName,
                     instanceNumber,
                     packagedDeploymentConfigsWithDefaultsAndOverrides,
-                    configToCreateWith);
+                    configToCreateWith,
+                    this.packageHelper,
+                    this.itsConfigPrecedenceAfterEnvironment,
+                    this.setupStepFactory.RootDeploymentPath);
 
                 // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
                 var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
 
-                if (harnessPackagedConfig != null)
+                if (additionalPackages.Any())
                 {
-                    this.LogAnnouncement("Configured message bus harness config included in deployed package list");
-                    packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness.Add(harnessPackagedConfig);
+                    additionalPackages.ToList().ForEach(
+                        _ =>
+                            {
+                                this.LogAnnouncement("Identified Additional Package to add; " + _.Reason);
+                                packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness.Add(_.PackagedConfig);
+                            });
                 }
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
@@ -421,93 +418,6 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private PackagedDeploymentConfiguration GetMessageBusHarnessPackagedDeploymentConfigurationIfNecessary(
-            string environment,
-            string instanceName, 
-            int instanceNumber, 
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
-            DeploymentConfiguration configToCreateWith)
-        {
-            PackagedDeploymentConfiguration ret = null;
-
-            // get all message bus handler initializations to know if we need a handler.
-            var packagesWithMessageBusInitializations =
-                packagedDeploymentConfigsWithDefaultsAndOverrides
-                    .WhereContainsInitializationStrategyOf<InitializationStrategyMessageBusHandler>();
-
-            var messageBusInitializations =
-                packagesWithMessageBusInitializations.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>();
-
-            // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
-            var alreadyDeployingTheSamePackageAsHandlersUse =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.Any(
-                    _ => _.PackageWithBundleIdentifier.Package.PackageDescription.Id == this.messageBusHandlerHarnessConfiguration.Package.Id);
-
-            var hasMessageBusInitializations = messageBusInitializations.Any();
-            if (hasMessageBusInitializations && !alreadyDeployingTheSamePackageAsHandlersUse)
-            {
-                this.LogAnnouncement("Including MessageBusHandlerHarness in deployment since MessageBusHandlers are being deployed.");
-
-                var itsConfigOverridesForHandlers = new List<ItsConfigOverride>();
-
-                this.LogAnnouncement("Adding any Its.Config overrides AND/OR embedded Its.Config files from Message Handler package into Its.Config overrides of the Harness.");
-                foreach (var packageWithMessageBusInitializations in packagesWithMessageBusInitializations)
-                {
-                    itsConfigOverridesForHandlers.AddRange(
-                        packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
-
-                    var packageFolderName = packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString();
-
-                    // extract appropriate files from 
-                    var itsConfigFilesFromPackage = new Dictionary<string, string>();
-                    var precedenceChain = new[] { environment }.ToList();
-                    precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
-                    foreach (var precedenceElement in precedenceChain)
-                    {
-                        var itsConfigFolderPattern = packageWithMessageBusInitializations.PackageWithBundleIdentifier.AreDependenciesBundled
-                                                         ? $"{packageFolderName}/Configuration/.config/{precedenceElement}/"
-                                                         : $".config/{precedenceElement}/";
-
-                        var itsConfigFilesFromPackageForPrecedenceElement =
-                            this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
-                                packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package,
-                                itsConfigFolderPattern);
-
-                        foreach (var item in itsConfigFilesFromPackageForPrecedenceElement)
-                        {
-                            itsConfigFilesFromPackage.Add(item.Key, item.Value);
-                        }
-                    }
-
-                    itsConfigOverridesForHandlers.AddRange(
-                        itsConfigFilesFromPackage.Select(
-                            _ =>
-                            new ItsConfigOverride
-                            {
-                                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(_.Key),
-                                FileContentsJson = _.Value
-                            }));
-                }
-
-                ret = this.BuildMessageBusHarnessPackagedConfig(
-                    environment,
-                    instanceName,
-                    instanceNumber,
-                    messageBusInitializations,
-                    itsConfigOverridesForHandlers,
-                    configToCreateWith);
-            }
-            else
-            {
-                var message = "No need for MessageBusHandlerHarness in deployment - HasMessageBusInitializations: "
-                              + hasMessageBusInitializations + " AlreadyDeployingTheSamePackageAsHandlersUse: "
-                              + alreadyDeployingTheSamePackageAsHandlersUse;
-                this.LogAnnouncement(message);
-            }
-
-            return ret;
-        }
-
         private async Task WaitUntilStatusChecksSucceedAsync(int instanceNumber, InstanceDescription createdInstanceDescription)
         {
             var sleepTimeInSeconds = 10d;
@@ -586,7 +496,7 @@ namespace Naos.Deployment.Core
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
                         var package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
-                        var actualVersion = this.GetActualVersionFromPackage(package.Package);
+                        var actualVersion = this.packageHelper.GetActualVersionFromPackage(package.Package);
 
                         var deploymentConfigJson =
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
@@ -682,128 +592,6 @@ namespace Naos.Deployment.Core
                     }
                 }
             }
-        }
-
-        private string GetActualVersionFromPackage(Package package)
-        {
-            if (string.Equals(
-                package.PackageDescription.Id,
-                PackageDescription.NullPackageId,
-                StringComparison.CurrentCultureIgnoreCase))
-            {
-                return "[DOES NOT HAVE A VERSION]";
-            }
-
-            var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
-            var nuSpecFileContents =
-                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
-                    .Select(_ => _.Value)
-                    .SingleOrDefault();
-            var actualVersion = nuSpecFileContents == null
-                                    ? "[FAILED TO EXTRACT FROM PACKAGE]"
-                                    : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
-            return actualVersion;
-        }
-
-        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(
-            string environment,
-            string instanceName,
-            int instanceNumber,
-            ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, 
-            ICollection<ItsConfigOverride> itsConfigOverrides, 
-            DeploymentConfiguration configToCreateWith)
-        {
-            // TODO:    Maybe this should be exclusively done with that provided package and 
-            // TODO:        only update the private channel to monitor and directory of packages...
-
-            // Create a new list to use for the overrides of the handler harness deployment
-            var itsConfigOverridesToUse = new List<ItsConfigOverride>();
-            if (itsConfigOverrides != null)
-            {
-                // merge in any ItsConfig overrides supplied with handler packages
-                itsConfigOverridesToUse.AddRange(itsConfigOverrides);
-            }
-
-            if (this.messageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides != null)
-            {
-                // merge in any overrides specified with the handler package
-                itsConfigOverridesToUse.AddRange(this.messageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides);
-            }
-
-            var messageBusHandlerPackage = this.packageHelper.GetPackage(this.messageBusHandlerHarnessConfiguration.Package, false);
-
-            var actualVersion = this.GetActualVersionFromPackage(messageBusHandlerPackage.Package);
-            messageBusHandlerPackage.Package.PackageDescription.Version = actualVersion;
-
-            var channelsToMonitor = messageBusInitializations.SelectMany(_ => _.ChannelsToMonitor).Distinct().ToList();
-
-            // recreate channels with channel name substitutions
-            var simpleChannels = channelsToMonitor.OfType<SimpleChannel>().ToList();
-            if (simpleChannels.Count != channelsToMonitor.Count)
-            {
-                throw new ArgumentException("There are IChannels that are NOT SimpleChannels and this is not supported for the token substitution.");
-            }
-
-            var adjustedChannelsToMonitor =
-                simpleChannels
-                    .Select(_ => new SimpleChannel(TokenSubstitutions.GetSubstitutedStringForChannelName(_.Name, environment, instanceName, instanceNumber)))
-                    .Cast<IChannel>()
-                    .ToList();
-
-            var workerCount = messageBusInitializations.Max(_ => _.WorkerCount);
-            workerCount = workerCount == 0 ? 1 : workerCount;
-
-            var executorRoleSettings = new[]
-                                           {
-                                               new MessageBusHarnessRoleSettingsExecutor
-                                                   {
-                                                       ChannelsToMonitor =
-                                                           adjustedChannelsToMonitor,
-                                                       HandlerAssemblyPath =
-                                                           this.setupStepFactory
-                                                           .RootDeploymentPath,
-                                                       WorkerCount = workerCount,
-                                                       PollingTimeSpan =
-                                                           TimeSpan.FromMinutes(1),
-                                                       TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
-                                                       MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
-                                                       RetryCount = 0,
-                                                       HarnessProcessTimeToLive = this.messageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive
-                                               }
-                                           };
-
-            var messageBusHandlerSettings = new MessageBusHarnessSettings
-                                                {
-                                                    ConnectionConfiguration = this.messageBusPersistenceConnectionConfiguration,
-                                                    RoleSettings = executorRoleSettings,
-                                                    LogProcessorSettings =
-                                                        this.messageBusHandlerHarnessConfiguration.LogProcessorSettings
-                                                };
-
-            // add the override that will activate the harness in executor mode.
-            var messageBusHandlerSettingsJson = messageBusHandlerSettings.ToJson();
-            itsConfigOverridesToUse.Add(
-                new ItsConfigOverride
-                    {
-                        FileNameWithoutExtension = "MessageBusHarnessSettings",
-                        FileContentsJson = messageBusHandlerSettingsJson
-                    });
-
-            var messageBusHandlerHarnessInitializationStrategies =
-                this.messageBusHandlerHarnessConfiguration.Package.InitializationStrategies.Select(
-                    _ => (InitializationStrategyBase)_.Clone()).ToList();
-            var harnessPackagedConfig = new PackagedDeploymentConfiguration
-                                            {
-                                                DeploymentConfiguration =
-                                                    configToCreateWith,
-                                                PackageWithBundleIdentifier = messageBusHandlerPackage,
-                                                ItsConfigOverrides =
-                                                    itsConfigOverridesToUse,
-                                                InitializationStrategies =
-                                                    messageBusHandlerHarnessInitializationStrategies,
-                                            };
-
-            return harnessPackagedConfig;
         }
 
         private void RebootInstance(int instanceNumber, MachineManager machineManager)

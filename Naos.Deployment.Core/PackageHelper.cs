@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
+    using System.Text;
 
     using Its.Log.Instrumentation;
 
@@ -161,6 +162,55 @@ namespace Naos.Deployment.Core
             directoriesToDelete.AddRange(unnecessaryFrameworks);
 
             return directoriesToDelete;
+        }
+
+        /// <summary>
+        /// Gets the specified version from the NUSPEC file in the package.
+        /// </summary>
+        /// <param name="package">Package to interrogate.</param>
+        /// <returns>Version specified in the NUSPEC config.</returns>
+        public string GetActualVersionFromPackage(Package package)
+        {
+            if (string.Equals(
+                package.PackageDescription.Id,
+                PackageDescription.NullPackageId,
+                StringComparison.CurrentCultureIgnoreCase))
+            {
+                return "[DOES NOT HAVE A VERSION]";
+            }
+
+            var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
+            var nuSpecFileContents =
+                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
+                    .Select(_ => _.Value)
+                    .SingleOrDefault();
+            var actualVersion = nuSpecFileContents == null
+                                    ? "[FAILED TO EXTRACT FROM PACKAGE]"
+                                    : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+            return actualVersion;
+        }
+
+        /// <summary>
+        /// Gets the contents of a file (as a string) matching the search pattern for the package in question (will decompress and search through the contents of the package).
+        /// </summary>
+        /// <param name="package">Package to find the file(s) in.</param>
+        /// <param name="searchPattern">Infix pattern to use for searching for files.</param>
+        /// <param name="encoding">Optional encoding to use (UTF-8 [no BOM] is default).</param>
+        /// <returns>Dictionary of file name and contents of the file found as a string.</returns>
+        public IDictionary<string, string> GetMultipleFileContentsFromPackageAsStrings(Package package, string searchPattern, Encoding encoding = null)
+        {
+            return this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, searchPattern, encoding);
+        }
+
+        /// <summary>
+        /// Gets the contents of a file (as a string) matching the search pattern for the package in question (will decompress and search through the contents of the package).
+        /// </summary>
+        /// <param name="package">Package to find the file(s) in.</param>
+        /// <param name="searchPattern">Infix pattern to use for searching for files.</param>
+        /// <returns>Dictionary of file name and contents of the file found as a byte array.</returns>
+        public IDictionary<string, byte[]> GetMultipleFileContentsFromPackageAsBytes(Package package, string searchPattern)
+        {
+            return this.packageManager.GetMultipleFileContentsFromPackageAsBytes(package, searchPattern);
         }
     }
 }

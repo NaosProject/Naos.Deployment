@@ -12,13 +12,24 @@ namespace Naos.Deployment.Domain
     public class CertificateLocator
     {
         /// <summary>
-        /// Gets or sets the thumbprint of the certificate.
+        /// Initializes a new instance of the <see cref="CertificateLocator"/> class.
         /// </summary>
-        public string CertificateThumbprint { get; set; }
+        /// <param name="certificateThumbprint">Thumbprint of certificate.</param>
+        /// <param name="certificateIsValid">Value indicating whether or not the certificate is "valid".</param>
+        public CertificateLocator(string certificateThumbprint, bool certificateIsValid)
+        {
+            this.CertificateIsValid = certificateIsValid;
+            this.CertificateThumbprint = certificateThumbprint;
+        }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not the certificate is valid.
+        /// Gets the thumbprint of the certificate.
         /// </summary>
-        public bool CertificateIsValid { get; set; }
+        public string CertificateThumbprint { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not the certificate is valid.
+        /// </summary>
+        public bool CertificateIsValid { get; private set; }
     }
 }
