@@ -109,11 +109,15 @@ namespace Naos.Deployment.Core.Test
 
             var certificatesToLoad = new[]
                                          {
-                                             new CertificateToLoad(
+                                             new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
-                                                 @"D:\Temp\DevelopmentCert.pfx",
+                                                 new DateTimeRange(
+                                                     new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                                                     new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
+                                                 new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
+                                                 File.ReadAllBytes(@"D:\Temp\DevelopmentCert.pfx"),
                                                  "password",
-                                                 new CertificateLocator("323423423", false))
+                                                 "CSR-PEM")
                                          };
 
             // Building and writing code...
@@ -131,12 +135,12 @@ namespace Naos.Deployment.Core.Test
                 }
             };
 
-            var certificates = BuildCertificates(certificatesToLoad);
+            var certificates = BuildCertificates(certificatesToLoad, new CertificateLocator("323423423", false));
 
             var writer = CertificateManagementFactory.CreateWriter(new CertificateManagementConfigurationDatabase { Database = database });
             foreach (var certificate in certificates)
             {
-                await writer.LoadCertficateAsync(certificate);
+                await writer.PersistCertficateAsync(certificate);
             }
         }
 
@@ -150,27 +154,31 @@ namespace Naos.Deployment.Core.Test
 
             var certificatesToLoad = new[]
                                          {
-                                             new CertificateToLoad(
+                                             new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
-                                                 @"D:\Temp\DevelopmentCert.pfx",
+                                                 new DateTimeRange(
+                                                     new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                                                     new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
+                                                 new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
+                                                 File.ReadAllBytes(@"D:\Temp\DevelopmentCert.pfx"),
                                                  "password",
-                                                 new CertificateLocator("323423423", false))
+                                                 "CSR-PEM")
                                          };
 
             // Building and writing code...
-            var certificates = BuildCertificates(certificatesToLoad);
+            var certificates = BuildCertificates(certificatesToLoad, new CertificateLocator("323423423", false));
             var classToSave = new CertificateCollection { Certificates = certificates };
             var jsonText = classToSave.ToJson();
             File.WriteAllText(certificateRetrieverFilePath, jsonText);
         }
 
-        private static List<CertificateDetails> BuildCertificates(IList<CertificateToLoad> certificatesToLoad)
+        private static List<CertificateDescriptionWithEncryptedPfxPayload> BuildCertificates(IList<CertificateDescriptionWithClearPfxPayload> certificatesToLoad, CertificateLocator encryptingCertificateLocator)
         {
-            var certificates = new List<CertificateDetails>();
+            var certificates = new List<CertificateDescriptionWithEncryptedPfxPayload>();
 
             foreach (var certificateToLoad in certificatesToLoad)
             {
-                var certificateToAdd = certificateToLoad.ToCertificateDetails();
+                var certificateToAdd = certificateToLoad.ToEncryptedVersion(encryptingCertificateLocator);
                 certificates.Add(certificateToAdd);
             }
 

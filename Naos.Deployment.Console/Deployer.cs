@@ -12,6 +12,7 @@ namespace Naos.Deployment.Console
     using static System.FormattableString;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
 
     using AsyncBridge;
 
@@ -31,6 +32,7 @@ namespace Naos.Deployment.Console
 
     using OBeautifulCode.Collection;
 
+    using Spritely.Recipes;
     using Spritely.Redo;
 
     /// <summary>
@@ -202,8 +204,11 @@ namespace Naos.Deployment.Console
                 [Aliases("")] [Description("Name of the certificate to load.")] string name,
                 [Aliases("")] [Description("File path to the certificate to load (in PFX file format).")] string pfxFilePath,
                 [Aliases("")] [Description("Clear text password of the certificate to load.")] string clearTextPassword,
+                [Aliases("")] [DefaultValue(null)] [Description("File path to Certificate Signing Request (PEM encoded).")] string certificateSigningRequestPemEncodedFilePath,
                 [Aliases("")] [Description("Thumbprint of the encrypting certificate.")] string encryptingCertificateThumbprint,
                 [Aliases("")] [Description("Value indicating whether or not the encrypting certificate is valid.")] bool encryptingCertificateIsValid,
+                [Aliases("")] [DefaultValue(null)] [Description("Store name to find the encrypting certificate is valid.")] string encryptingCertificateStoreName,
+                [Aliases("")] [DefaultValue(null)] [Description("Store location to find the encrypting certificate is valid.")] string encryptingCertificateStoreLocation,
                 [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
 #pragma warning restore 1591
         {
@@ -214,31 +219,61 @@ namespace Naos.Deployment.Console
 
             WriteAsciiArt();
 
+            new { name, pfxFilePath, clearTextPassword, encryptingCertificateThumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
+            if (!File.Exists(pfxFilePath))
+            {
+                throw new FileNotFoundException("Could not find specified PFX file path: " + pfxFilePath);
+            }
+
+            if (!string.IsNullOrWhiteSpace(certificateSigningRequestPemEncodedFilePath) && !File.Exists(certificateSigningRequestPemEncodedFilePath))
+            {
+                throw new FileNotFoundException("Could not find specified Certificate Signing Request (PEM Encoded) file path: " + certificateSigningRequestPemEncodedFilePath);
+            }
+
             var cleanPassword = new string('*', clearTextPassword.Length / 2) + string.Join(string.Empty, clearTextPassword.Skip(clearTextPassword.Length / 2));
 
             Console.WriteLine("PARAMETERS:");
-            Console.WriteLine("--                            name: " + name);
-            Console.WriteLine("--                     pfxFilePath: " + pfxFilePath);
-            Console.WriteLine("--                   cleanPassword: " + cleanPassword);
-            Console.WriteLine("-- encryptingCertificateThumbprint: " + encryptingCertificateThumbprint);
-            Console.WriteLine("--    encryptingCertificateIsValid: " + encryptingCertificateIsValid);
-            Console.WriteLine("--           certificateWriterJson: " + certificateWriterJson);
+            Console.WriteLine("--                               name: " + name);
+            Console.WriteLine("--                        pfxFilePath: " + pfxFilePath);
+            Console.WriteLine("--                      cleanPassword: " + cleanPassword);
+            Console.WriteLine("--    encryptingCertificateThumbprint: " + encryptingCertificateThumbprint);
+            Console.WriteLine("--       encryptingCertificateIsValid: " + encryptingCertificateIsValid);
+            Console.WriteLine("--     encryptingCertificateStoreName: " + encryptingCertificateStoreName);
+            Console.WriteLine("-- encryptingCertificateStoreLocation: " + encryptingCertificateStoreLocation);
+            Console.WriteLine("--              certificateWriterJson: " + certificateWriterJson);
             Console.WriteLine(string.Empty);
 
             Config.SetupSerialization();
+
             var certificateConfiguration = certificateWriterJson.FromJson<CertificateManagementConfigurationBase>();
             var writer = CertificateManagementFactory.CreateWriter(certificateConfiguration);
 
-            var certToLoad = new CertificateToLoad(
-                                 name,
-                                 pfxFilePath,
-                                 clearTextPassword,
-                                 new CertificateLocator(encryptingCertificateThumbprint, encryptingCertificateIsValid));
-            var cert = certToLoad.ToCertificateDetails();
+            var encryptingCertificateStoreNameEnum = encryptingCertificateStoreName == null
+                                                         ? CertificateLocator.DefaultCertificateStoreName
+                                                         : (StoreName)Enum.Parse(typeof(StoreName), encryptingCertificateStoreName);
+            var encryptingCertificateStoreLocationEnum = encryptingCertificateStoreLocation == null
+                                                             ? CertificateLocator.DefaultCertificateStoreLocation
+                                                             : (StoreLocation)Enum.Parse(typeof(StoreLocation), encryptingCertificateStoreLocation);
+
+            var encryptingCertificateLocator = new CertificateLocator(
+                                                   encryptingCertificateThumbprint,
+                                                   encryptingCertificateIsValid,
+                                                   encryptingCertificateStoreNameEnum,
+                                                   encryptingCertificateStoreLocationEnum);
+
+            var bytes = File.ReadAllBytes(pfxFilePath);
+            var certificateSigningRequestPemEncoded = certificateSigningRequestPemEncodedFilePath == null
+                                                          ? null
+                                                          : File.ReadAllText(certificateSigningRequestPemEncodedFilePath);
+
+            var certToLoad = CertificateManagementFactory.BuildCertificateDescriptionWithClearPfxPayload(name, bytes, clearTextPassword, certificateSigningRequestPemEncoded);
+
+            var cert = certToLoad.ToEncryptedVersion(encryptingCertificateLocator);
 
             using (var async = AsyncHelper.Wait)
             {
-                async.Run(writer.LoadCertficateAsync(cert));
+                async.Run(writer.PersistCertficateAsync(cert));
             }
         }
 

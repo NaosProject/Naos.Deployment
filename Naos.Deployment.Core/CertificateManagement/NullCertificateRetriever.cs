@@ -15,10 +15,10 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class NullCertificateRetriever : IGetCertificates
     {
-        /// <inheritdoc />
-        public Task<CertificateFile> GetCertificateByNameAsync(string name)
+        /// <inheritdoc cref="IGetCertificates"/>>
+        public Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            return Task.FromResult(new CertificateFile());
+            return Task.FromResult((CertificateDescriptionWithClearPfxPayload)null);
         }
     }
 }

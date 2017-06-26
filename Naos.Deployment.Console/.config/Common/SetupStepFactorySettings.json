@@ -372,7 +372,7 @@
                 "param([string] $CertPath, [SecureString] $CertPassword, [Array] $UsersToGrantPrivateKeyAccess = $null)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
-                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation",
                 "",
                 "   if ($UsersToGrantPrivateKeyAccess -ne $null)",
                 "   {",

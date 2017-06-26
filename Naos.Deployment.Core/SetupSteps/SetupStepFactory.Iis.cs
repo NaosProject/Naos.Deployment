@@ -63,7 +63,7 @@ namespace Naos.Deployment.Core
             var installWebParameters = new object[]
                                            {
                                                webRootPath, primaryDns, certificateTargetPath,
-                                               certDetails.CertificatePassword, appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
+                                               certDetails.PfxPasswordInClearText, appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
                                                autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
                                            };
 
@@ -73,7 +73,7 @@ namespace Naos.Deployment.Core
                         Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
                         SetupFunc = machineManager =>
                             {
-                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes);
+                                machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
                                 return new dynamic[0];
                             }
                     });

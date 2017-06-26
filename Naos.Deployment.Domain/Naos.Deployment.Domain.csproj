@@ -88,12 +88,12 @@
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="ArcologyInfo.cs" />
-    <Compile Include="Certificate\CertificateToLoad.cs" />
-    <Compile Include="Certificate\ILoadCertificates.cs" />
+    <Compile Include="Certificate\CertificateDescriptionWithClearPfxPayload.cs" />
+    <Compile Include="Certificate\CertificateDescriptionWithEncryptedPfxPayload.cs" />
+    <Compile Include="Certificate\IPersistCertificates.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />
-    <Compile Include="Certificate\CertificateDetails.cs" />
-    <Compile Include="Certificate\CertificateFile.cs" />
+    <Compile Include="Certificate\CertificateDescription.cs" />
     <Compile Include="Certificate\CertificateLocator.cs" />
     <Compile Include="ComputingContainerDescription.cs" />
     <Compile Include="ComputingInfrastructureManagerSettings.cs" />

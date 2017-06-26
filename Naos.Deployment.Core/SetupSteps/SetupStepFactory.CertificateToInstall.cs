@@ -13,6 +13,8 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
+    using Spritely.Recipes;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -52,12 +54,12 @@ namespace Naos.Deployment.Core
                         Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
                         SetupFunc = machineManager =>
                             {
-                                machineManager.SendFile(certificateTargetPath, certDetails.FileBytes);
+                                machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
                                 return new dynamic[0];
                             }
                     });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.CertificatePassword, tokenAppliedUsers };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText, tokenAppliedUsers };
 
             certSteps.Add(
                 new SetupStep

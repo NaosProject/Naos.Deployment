@@ -6,16 +6,15 @@
 
 namespace Naos.Deployment.Core
 {
-    using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
-    using System.IO;
     using System.Linq;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Class to implement <see cref="AdjustDeploymentBase"/> to add message bus harness package when needed.
@@ -26,11 +25,13 @@ namespace Naos.Deployment.Core
         /// Initializes a new instance of the <see cref="AddPackageAdjuster"/> class.
         /// </summary>
         /// <param name="matchCriterion">Criterion to match on.</param>
-        /// <param name="configToInject">The config to inject for a match.</param>
-        public AddPackageAdjuster(IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> matchCriterion, PackagedDeploymentConfiguration configToInject)
+        /// <param name="packagesToInject">Packages to inject.</param>
+        /// <param name="shouldBundleDependenciesOfPackage">Value indicating whether or not the dependencies of the package should be bundled when injecting the package.</param>
+        public AddPackageAdjuster(IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> matchCriterion, IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToInject, bool shouldBundleDependenciesOfPackage)
         {
             this.MatchCriterion = matchCriterion;
-            this.ConfigToInject = configToInject;
+            this.PackagesToInject = packagesToInject;
+            this.ShouldBundleDependenciesOfPackage = shouldBundleDependenciesOfPackage;
         }
 
         /// <summary>
@@ -39,19 +40,20 @@ namespace Naos.Deployment.Core
         public IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> MatchCriterion { get; private set; }
 
         /// <summary>
-        /// Gets the config to inject.
+        /// Gets the package to inject.
         /// </summary>
-        public PackagedDeploymentConfiguration ConfigToInject { get; private set; }
+        public IReadOnlyCollection<PackageDescriptionWithOverrides> PackagesToInject { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not the dependencies of the package should be bundled when injecting the package.
+        /// </summary>
+        public bool ShouldBundleDependenciesOfPackage { get; private set; }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
         public override bool IsMatch(ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
-            var initializationStrategies =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToTypeDescription()))
-                    .ToList();
-
-            var ret = this.MatchCriterion.Any(_ => _.Matches(configToCreateWith.InstanceType.WindowsSku, initializationStrategies));
-            return ret;
+            var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
+            return matches.Any();
         }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
@@ -65,7 +67,34 @@ namespace Naos.Deployment.Core
             string[] itsConfigPrecedenceAfterEnvironment,
             string rootDeploymentPath)
         {
-            return null;
+            var ret = new List<InjectedPackage>();
+            var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
+            var reason = string.Join(",", matches.Select(_ => _.Name));
+            foreach (var packageToInject in this.PackagesToInject)
+            {
+                var package = packageHelper.GetPackage(packageToInject, this.ShouldBundleDependenciesOfPackage);
+
+                var packagedConfig = new PackagedDeploymentConfiguration
+                             {
+                                 PackageWithBundleIdentifier = package,
+                                 DeploymentConfiguration = configToCreateWith,
+                                 InitializationStrategies = packageToInject.InitializationStrategies,
+                                 ItsConfigOverrides = packageToInject.ItsConfigOverrides
+                             };
+
+                ret.Add(new InjectedPackage(reason, packagedConfig));
+            }
+
+            return ret;
+        }
+
+        private IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> GetMatches(ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
+        {
+            var initializationStrategies =
+                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToTypeDescription())).ToList();
+
+            var ret = this.MatchCriterion.Where(_ => _.Matches(configToCreateWith.InstanceType.WindowsSku, initializationStrategies));
+            return ret.ToList();
         }
     }
 
@@ -84,6 +113,8 @@ namespace Naos.Deployment.Core
         /// <param name="criteriaMatchStrategy"><see cref="CriteriaMatchStrategy"/> to use when matching.</param>
         public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<TypeDescription> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
         {
+            new { name }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
             this.Name = name;
             this.SkusToMatch = skusToMatch;
             this.InitializationStrategiesToMatch = initializationStrategiesToMatch;

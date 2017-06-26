@@ -103,6 +103,19 @@ namespace Naos.Deployment.Persistence
                                             new EnumSerializer<InstanceAccessibility>(MongoDB.Bson.BsonType.String));
                                 });
 
+                        BsonClassMap.RegisterClassMap<CertificateDescription>(
+                            cm =>
+                                {
+                                    cm.AutoMap();
+                                    cm.MapMember(c => c.CertificateAttributes)
+                                        .SetSerializer(
+                                            new DictionaryInterfaceImplementerSerializer<Dictionary<string, string>>(DictionaryRepresentation.ArrayOfDocuments));
+                                });
+
+                        BsonClassMap.RegisterClassMap<CertificateDescriptionWithEncryptedPfxPayload>();
+                        BsonClassMap.RegisterClassMap<CertificateDescriptionWithClearPfxPayload>();
+                        BsonClassMap.RegisterClassMap<CertificateContainer>();
+
                        registered = true;
                     }
                 }

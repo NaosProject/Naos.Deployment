@@ -38,13 +38,13 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public async Task<CertificateFile> GetCertificateByNameAsync(string name)
+        public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => string.Equals(_.Id, name, StringComparison.CurrentCultureIgnoreCase));
+            CertificateContainer certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => _.Id.ToLowerInvariant() == name.ToLowerInvariant());
 
             var certificateDetails = certificateContainer?.Certificate;
 
-            var certDetails = certificateDetails?.ToCertificateFile();
+            var certDetails = certificateDetails?.ToDecryptedVersion();
 
             return certDetails;
         }

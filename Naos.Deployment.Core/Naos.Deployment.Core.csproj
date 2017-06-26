@@ -55,6 +55,10 @@
       <HintPath>..\packages\AWSSDK.SecurityToken.3.3.0.2\lib\net45\AWSSDK.SecurityToken.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FluentMigrator, Version=1.6.2.0, Culture=neutral, PublicKeyToken=aacfc7de5acabf05, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentMigrator.1.6.2\lib\40\FluentMigrator.dll</HintPath>
       <Private>True</Private>
@@ -171,6 +175,13 @@
   <ItemGroup>
     <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
     <Compile Include=".Naos.Recipes\Naos.WinRM.cs" />
+    <Compile Include=".Naos.Recipes\TupleInitializers\Initializers.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\CertHelper.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\DateTimeRange.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\PemHelper.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\SignatureAlgorithm.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\X509FieldKind.cs" />
+    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\X509SubjectAttributeKind.cs" />
     <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
     <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />

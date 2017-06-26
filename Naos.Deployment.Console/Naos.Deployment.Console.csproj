@@ -147,6 +147,7 @@
     <None Include=".config\Common\DefaultDeploymentConfiguration.json" />
     <None Include=".config\Common\SetupStepFactorySettings.json" />
     <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
+    <Compile Include=".Naos.Recipes\TupleInitializers\Initializers.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.String\StringExtensions.cs" />
     <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
