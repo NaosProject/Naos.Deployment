@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Persistence
 {
     using System.Collections.Generic;
+    using System.Security.Cryptography.X509Certificates;
 
     using MongoDB.Bson.Serialization;
     using MongoDB.Bson.Serialization.Options;
@@ -112,8 +113,17 @@ namespace Naos.Deployment.Persistence
                                             new DictionaryInterfaceImplementerSerializer<Dictionary<string, string>>(DictionaryRepresentation.ArrayOfDocuments));
                                 });
 
-                        BsonClassMap.RegisterClassMap<CertificateDescriptionWithEncryptedPfxPayload>();
+                        BsonClassMap.RegisterClassMap<CertificateLocator>(
+                            cm =>
+                                {
+                                    cm.AutoMap();
+                                    cm.MapMember(c => c.CertificateStoreName).SetSerializer(new EnumSerializer<StoreName>(MongoDB.Bson.BsonType.String));
+                                    cm.MapMember(c => c.CertificateStoreLocation).SetSerializer(new EnumSerializer<StoreLocation>(MongoDB.Bson.BsonType.String));
+                                });
+
                         BsonClassMap.RegisterClassMap<CertificateDescriptionWithClearPfxPayload>();
+                        BsonClassMap.RegisterClassMap<CertificateDescriptionWithEncryptedPfxPayload>();
+
                         BsonClassMap.RegisterClassMap<CertificateContainer>();
 
                        registered = true;
