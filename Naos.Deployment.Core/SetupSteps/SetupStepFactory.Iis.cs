@@ -13,6 +13,8 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
+    using Spritely.Recipes;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -63,7 +65,7 @@ namespace Naos.Deployment.Core
             var installWebParameters = new object[]
                                            {
                                                webRootPath, primaryDns, certificateTargetPath,
-                                               certDetails.PfxPasswordInClearText, appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
+                                               certDetails.PfxPasswordInClearText.ToSecureString(), appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
                                                autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
                                            };
 

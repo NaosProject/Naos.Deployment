@@ -59,7 +59,7 @@ namespace Naos.Deployment.Core
                             }
                     });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText, tokenAppliedUsers };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), tokenAppliedUsers };
 
             certSteps.Add(
                 new SetupStep

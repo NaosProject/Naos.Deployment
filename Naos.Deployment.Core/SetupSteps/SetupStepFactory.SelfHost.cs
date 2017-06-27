@@ -15,6 +15,8 @@ namespace Naos.Deployment.Core
     using Naos.Cron;
     using Naos.Deployment.Domain;
 
+    using Spritely.Recipes;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -48,7 +50,7 @@ namespace Naos.Deployment.Core
                             }
                     });
 
-            var configureCertParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText, applicationId, selfHostDnsEntries };
+            var configureCertParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
