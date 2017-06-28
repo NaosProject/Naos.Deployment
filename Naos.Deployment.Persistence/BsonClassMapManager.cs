@@ -16,6 +16,8 @@ namespace Naos.Deployment.Persistence
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using OBeautifulCode.DateTime;
+
     /// <summary>
     /// Register class mapping necessary for the StorageModel.
     /// </summary>
@@ -103,7 +105,7 @@ namespace Naos.Deployment.Persistence
                                         .SetSerializer(
                                             new EnumSerializer<InstanceAccessibility>(MongoDB.Bson.BsonType.String));
                                 });
-
+                        
                         BsonClassMap.RegisterClassMap<CertificateDescription>(
                             cm =>
                                 {

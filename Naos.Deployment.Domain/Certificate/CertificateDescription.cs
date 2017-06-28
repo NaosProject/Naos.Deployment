@@ -6,9 +6,10 @@
 
 namespace Naos.Deployment.Domain
 {
-    using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+
+    using OBeautifulCode.DateTime;
 
     using Spritely.Recipes;
 
@@ -22,15 +23,17 @@ namespace Naos.Deployment.Domain
         /// Initializes a new instance of the <see cref="CertificateDescription"/> class.
         /// </summary>
         /// <param name="friendlyName">Friendly name of the certificate (does NOT have to match the "Common Name").</param>
+        /// <param name="thumbprint">Thumbprint of the certificate.</param>
         /// <param name="validityWindowInUtc">Date range that the certificate is valid.</param>
         /// <param name="certificateAttributes">Attributes of the certificate.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
-        protected CertificateDescription(string friendlyName, DateTimeRange validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
+        protected CertificateDescription(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
         {
-            new { friendlyName }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { friendlyName, thumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
             new { validityWindowInUtc, certificateAttributes }.Must().NotBeNull().OrThrowFirstFailure();
 
             this.FriendlyName = friendlyName;
+            this.Thumbprint = thumbprint;
             this.ValidityWindowInUtc = validityWindowInUtc;
             this.CertificateAttributes = certificateAttributes;
             this.CertificateSigningRequestPemEncoded = certificateSigningRequestPemEncoded;
@@ -42,9 +45,14 @@ namespace Naos.Deployment.Domain
         public string FriendlyName { get; private set; }
 
         /// <summary>
+        /// Gets the thumbprint of the certificate.
+        /// </summary>
+        public string Thumbprint { get; private set; }
+
+        /// <summary>
         /// Gets the date range that the certificate is valid.
         /// </summary>
-        public DateTimeRange ValidityWindowInUtc { get; private set; }
+        public DateTimeRangeInclusive ValidityWindowInUtc { get; private set; }
 
         /// <summary>
         /// Gets the attributes of the certificate.
@@ -65,32 +73,5 @@ namespace Naos.Deployment.Domain
         {
             return this.FriendlyName + ".pfx";
         }
-    }
-
-    /// <summary>
-    /// Placeholder date time range class.
-    /// </summary>
-    public class DateTimeRange
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DateTimeRange"/> class.
-        /// </summary>
-        /// <param name="start">Start date time.</param>
-        /// <param name="end">End date time.</param>
-        public DateTimeRange(DateTime start, DateTime end)
-        {
-            this.Start = start;
-            this.End = end;
-        }
-
-        /// <summary>
-        /// Gets the start date time.
-        /// </summary>
-        public DateTime Start { get; private set; }
-
-        /// <summary>
-        /// Gets the end date time.
-        /// </summary>
-        public DateTime End { get; private set; }
     }
 }

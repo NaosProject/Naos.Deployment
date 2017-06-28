@@ -18,6 +18,8 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
+    using OBeautifulCode.DateTime;
+
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
 
@@ -111,7 +113,8 @@ namespace Naos.Deployment.Core.Test
                                          {
                                              new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
-                                                 new DateTimeRange(
+                                                 "ThumbprintOfCertificate",
+                                                 new DateTimeRangeInclusive(
                                                      new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                                                      new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
@@ -156,7 +159,8 @@ namespace Naos.Deployment.Core.Test
                                          {
                                              new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
-                                                 new DateTimeRange(
+                                                 "ThumbprintOfCertificate",
+                                                 new DateTimeRangeInclusive(
                                                      new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                                                      new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },

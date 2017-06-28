@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Core
 {
     using System;
-    using System.IO;
     using System.Linq;
 
     using Naos.Deployment.Core.CertificateManagement;
@@ -15,6 +14,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Persistence;
     using Naos.MessageBus.Domain;
 
+    using OBeautifulCode.DateTime;
     using OBeautifulCode.Security;
 
     /// <summary>
@@ -92,9 +92,12 @@ namespace Naos.Deployment.Core
             var certFields = endUserCert.GetX509Fields();
             var certFieldsAsStrings = certFields.ToDictionary(k => k.Key.ToString(), v => v.Value?.ToString());
             var certValidityPeriod = endUserCert.GetValidityPeriod();
+            var thumbprint = endUserCert.GetThumbprint();
+
             return new CertificateDescriptionWithClearPfxPayload(
                        friendlyName,
-                       new Domain.DateTimeRange(certValidityPeriod.StartDateTimeInUtc, certValidityPeriod.EndDateTimeInUtc),
+                       thumbprint,
+                       certValidityPeriod,
                        certFieldsAsStrings,
                        pfxBytes,
                        pfxPasswordInClearText,

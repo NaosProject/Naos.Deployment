@@ -14,9 +14,12 @@ namespace OBeautifulCode.Security
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography;
     using System.Text.RegularExpressions;
 
     using Naos.Recipes.TupleInitializers;
+
+    using OBeautifulCode.DateTime;
 
     using Org.BouncyCastle.Asn1;
     using Org.BouncyCastle.Asn1.Pkcs;
@@ -532,6 +535,28 @@ namespace OBeautifulCode.Security
         }
 
         /// <summary>
+        /// Gets the thumbprint of an X509 certificate.
+        /// </summary>
+        /// <param name="cert">The certificate.</param>
+        /// <returns>
+        /// The thumbprint of the specified X509 certificate.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "We specifically want lower-case here.")]
+        public static string GetThumbprint(
+            this X509Certificate cert)
+        {
+            new { cert }.Must().NotBeNull().OrThrow();
+
+            using (var shaProvider = new SHA1CryptoServiceProvider())
+            {
+                var hash = shaProvider.ComputeHash(cert.GetEncoded());
+                var result = BitConverter.ToString(hash).Replace("-", " ").ToLowerInvariant();
+                return result;
+            }            
+        }
+
+        /// <summary>
         /// Gets the range of time over which a certificate is valid.
         /// </summary>
         /// <param name="cert">The certificate.</param>
@@ -539,12 +564,12 @@ namespace OBeautifulCode.Security
         /// The range of time over which the specified certificate is valid.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
-        public static DateTimeRange GetValidityPeriod(
+        public static DateTimeRangeInclusive GetValidityPeriod(
             this X509Certificate cert)
         {
             new { cert }.Must().NotBeNull().OrThrow();
 
-            var result = new DateTimeRange(cert.NotBefore, cert.NotAfter);
+            var result = new DateTimeRangeInclusive(cert.NotBefore, cert.NotAfter);
 
             return result;
         }

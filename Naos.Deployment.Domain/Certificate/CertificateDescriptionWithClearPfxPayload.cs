@@ -9,6 +9,8 @@ namespace Naos.Deployment.Domain
     using System;
     using System.Collections.Generic;
 
+    using OBeautifulCode.DateTime;
+
     using Spritely.Recipes;
 
     /// <summary>
@@ -20,13 +22,14 @@ namespace Naos.Deployment.Domain
         /// Initializes a new instance of the <see cref="CertificateDescriptionWithClearPfxPayload"/> class.
         /// </summary>
         /// <param name="friendlyName">Friendly name of the certificate (does NOT have to match the "Common Name").</param>
+        /// <param name="thumbprint">Thumbprint of the certificate.</param>
         /// <param name="validityWindowInUtc">Date range that the certificate is valid.</param>
         /// <param name="certificateAttributes">Attributes of the certificate.</param>
         /// <param name="pfxBytes">Bytes of the certificate's PFX file.</param>
         /// <param name="pfxPasswordInClearText">Password of the certificate's PFX file in clear text.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
-        public CertificateDescriptionWithClearPfxPayload(string friendlyName, DateTimeRange validityWindowInUtc, Dictionary<string, string> certificateAttributes, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
-            : base(friendlyName, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
+        public CertificateDescriptionWithClearPfxPayload(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
+            : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {
             new { pfxPasswordInClearText }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
             new { pfxBytes }.Must().NotBeNull().OrThrowFirstFailure();
@@ -57,7 +60,7 @@ namespace Naos.Deployment.Domain
             var certificateFileBase64 = Convert.ToBase64String(this.PfxBytes);
             var encryptedFileBase64 = Encryptor.Encrypt(certificateFileBase64, encryptingCertificateLocator);
 
-            var ret = new CertificateDescriptionWithEncryptedPfxPayload(this.FriendlyName, this.ValidityWindowInUtc, this.CertificateAttributes, encryptingCertificateLocator, encryptedFileBase64, encryptedPassword, this.CertificateSigningRequestPemEncoded);
+            var ret = new CertificateDescriptionWithEncryptedPfxPayload(this.FriendlyName, this.Thumbprint, this.ValidityWindowInUtc, this.CertificateAttributes, encryptingCertificateLocator, encryptedFileBase64, encryptedPassword, this.CertificateSigningRequestPemEncoded);
 
             return ret;
         }
