@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Persistence
 {
+    using System;
+
     using Naos.Deployment.Domain;
 
     /// <summary>
@@ -19,8 +21,13 @@ namespace Naos.Deployment.Persistence
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="CertificateDetails"/>.
+        /// Gets or sets the <see cref="CertificateDescriptionWithEncryptedPfxPayload"/>.
         /// </summary>
-        public CertificateDetails Certificate { get; set; }
+        public CertificateDescriptionWithEncryptedPfxPayload Certificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last updated date time in UTC.
+        /// </summary>
+        public DateTime LastUpdatedUtc { get; set; }
     }
 }

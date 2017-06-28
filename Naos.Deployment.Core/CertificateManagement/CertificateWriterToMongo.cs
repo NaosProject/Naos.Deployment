@@ -15,9 +15,9 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Spritely.ReadModel;
 
     /// <summary>
-    /// Implementation using Mongo of <see cref="ILoadCertificates"/>.
+    /// Implementation using Mongo of <see cref="IPersistCertificates"/>.
     /// </summary>
-    public class CertificateWriterToMongo : ILoadCertificates
+    public class CertificateWriterToMongo : IPersistCertificates
     {
         private readonly ICommands<string, CertificateContainer> certificateContainerCommands;
 
@@ -38,16 +38,16 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public async Task LoadCertficateAsync(CertificateToLoad certificateToLoad)
+        public async Task PersistCertficateAsync(CertificateDescriptionWithClearPfxPayload certificateToLoad, CertificateLocator encryptingCertificateLocator)
         {
-            var newCert = certificateToLoad.ToCertificateDetails();
-            await this.LoadCertficateAsync(newCert);
+            var newCert = certificateToLoad.ToEncryptedVersion(encryptingCertificateLocator);
+            await this.PersistCertficateAsync(newCert);
         }
 
         /// <inheritdoc />
-        public async Task LoadCertficateAsync(CertificateDetails certificate)
+        public async Task PersistCertficateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
         {
-            var container = new CertificateContainer { Id = certificate.Name, Certificate = certificate };
+            var container = new CertificateContainer { Id = certificate.FriendlyName, Certificate = certificate, LastUpdatedUtc = DateTime.UtcNow };
 
             await this.certificateContainerCommands.AddOrUpdateOneAsync(container);
         }

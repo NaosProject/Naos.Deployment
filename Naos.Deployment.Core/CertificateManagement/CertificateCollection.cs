@@ -18,6 +18,6 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <summary>
         /// Gets or sets the certificates.
         /// </summary>
-        public List<CertificateDetails> Certificates { get; set; }
+        public List<CertificateDescriptionWithEncryptedPfxPayload> Certificates { get; set; }
     }
 }

@@ -51,6 +51,10 @@
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.31\lib\net45\Naos.Packaging.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OBeautifulCode.DateTime, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.3\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Spritely.ReadModel, Version=0.6.1.41, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Spritely.ReadModel.0.6.1\lib\net461\Spritely.ReadModel.dll</HintPath>
       <Private>True</Private>

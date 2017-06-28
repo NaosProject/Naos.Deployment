@@ -18,6 +18,6 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <param name="name">Name of the certificate to find.</param>
         /// <returns>Certificate details matching name; null if not found.</returns>
-        Task<CertificateFile> GetCertificateByNameAsync(string name);
+        Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name);
     }
 }

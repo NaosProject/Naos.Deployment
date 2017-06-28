@@ -59,6 +59,10 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OBeautifulCode.DateTime, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.3\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.3\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
       <Private>True</Private>
@@ -88,12 +92,12 @@
     <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
     <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="ArcologyInfo.cs" />
-    <Compile Include="Certificate\CertificateToLoad.cs" />
-    <Compile Include="Certificate\ILoadCertificates.cs" />
+    <Compile Include="Certificate\CertificateDescriptionWithClearPfxPayload.cs" />
+    <Compile Include="Certificate\CertificateDescriptionWithEncryptedPfxPayload.cs" />
+    <Compile Include="Certificate\IPersistCertificates.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />
-    <Compile Include="Certificate\CertificateDetails.cs" />
-    <Compile Include="Certificate\CertificateFile.cs" />
+    <Compile Include="Certificate\CertificateDescription.cs" />
     <Compile Include="Certificate\CertificateLocator.cs" />
     <Compile Include="ComputingContainerDescription.cs" />
     <Compile Include="ComputingInfrastructureManagerSettings.cs" />

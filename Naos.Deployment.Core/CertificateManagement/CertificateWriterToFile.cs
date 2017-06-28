@@ -14,9 +14,9 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.MessageBus.Domain;
 
     /// <summary>
-    /// Implementation using a text file of <see cref="ILoadCertificates"/>.
+    /// Implementation using a text file of <see cref="IPersistCertificates"/>.
     /// </summary>
-    public class CertificateWriterToFile : ILoadCertificates
+    public class CertificateWriterToFile : IPersistCertificates
     {
         private readonly object fileSync = new object();
 
@@ -32,21 +32,21 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public async Task LoadCertficateAsync(CertificateToLoad certificateToLoad)
+        public async Task PersistCertficateAsync(CertificateDescriptionWithClearPfxPayload certificateToLoad, CertificateLocator encryptingCertificateLocator)
         {
-            var newCert = certificateToLoad.ToCertificateDetails();
-            await this.LoadCertficateAsync(newCert);
+            var newCert = certificateToLoad.ToEncryptedVersion(encryptingCertificateLocator);
+            await this.PersistCertficateAsync(newCert);
         }
 
         /// <inheritdoc />
-        public async Task LoadCertficateAsync(CertificateDetails certificate)
+        public async Task PersistCertficateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
         {
             lock (this.fileSync)
             {
                 var fileContentsRead = File.ReadAllText(this.filePath);
                 var certificateCollection = fileContentsRead.FromJson<CertificateCollection>();
 
-                var idxToDelete = certificateCollection.Certificates.FindIndex(_ => string.Equals(_.Name, certificate.Name, StringComparison.CurrentCultureIgnoreCase));
+                var idxToDelete = certificateCollection.Certificates.FindIndex(_ => string.Equals(_.FriendlyName, certificate.FriendlyName, StringComparison.CurrentCultureIgnoreCase));
                 if (idxToDelete != -1)
                 {
                     certificateCollection.Certificates.RemoveAt(idxToDelete);
