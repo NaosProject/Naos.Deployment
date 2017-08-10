@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Deployer.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,18 +9,13 @@ namespace Naos.Deployment.Console
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using static System.FormattableString;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
-
     using AsyncBridge;
-
     using CLAP;
-
     using Its.Configuration;
     using Its.Log.Instrumentation;
-
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
@@ -29,21 +24,32 @@ namespace Naos.Deployment.Console
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Recipes.Configuration.Setup;
-
     using OBeautifulCode.Collection;
-
     using Spritely.Recipes;
     using Spritely.Redo;
+    using static System.FormattableString;
 
     /// <summary>
     /// Deployment logic to be invoked from the console harness.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1053:StaticHolderTypesShouldNotHaveConstructors", Justification = "Used by CLAP.")]
     public class Deployer
     {
         private static readonly object NugetAnnouncementFileLock = new object();
 
+        /// <summary>
+        /// Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.
+        /// </summary>
+        /// <param name="location">Computing platform provider location to make the call against.</param>
+        /// <param name="tokenLifespan">Life span of the credentials (in format dd:hh:mm).</param>
+        /// <param name="username">Username of the credentials.</param>
+        /// <param name="password">Password of the credentials.</param>
+        /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
+        /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
+        /// <param name="startDebugger">A value indicating whether or not to launch the debugger.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.")]
-#pragma warning disable 1591
         public static void GetNewCredentialJson(
             [Aliases("")] [Description("Computing platform provider location to make the call against.")] string location,
             [Aliases("")] [Description("Life span of the credentials (in format dd:hh:mm).")] string tokenLifespan,
@@ -52,7 +58,6 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Virtual MFA device id of the credentials.")] string virtualMfaDeviceId,
             [Aliases("")] [Description("Token from the MFA device to use when authenticating.")] string mfaValue,
             [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
-#pragma warning restore 1591
         {
             if (startDebugger)
             {
@@ -71,33 +76,66 @@ namespace Naos.Deployment.Console
             var rawRet = retObj.ToJson();
 
             // prep to be returned in a way that can be piped to a variable and then passed back in...
-            var noNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
-            var escapedQuotes = noNewLines.Replace("\"", "\\\"");
+            var withoutNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
+            var escapedQuotes = withoutNewLines.Replace("\"", "\\\"");
 
             var ret = escapedQuotes;
             Console.Write(ret);
         }
 
+        /// <summary>
+        /// Deploys a new instance with specified packages.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="nugetPackageRepositoryConfigurationJson">NuGet Repository/Gallery configuration.</param>
+        /// <param name="certificateRetrieverJson">Certificate retriever configuration JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="overrideDeploymentConfigJson">Optional deployment configuration to use as an override in JSON.</param>
+        /// <param name="environmentCertificateName">Optional certificate name for an environment certificate saved in certificate manager being configured.</param>
+        /// <param name="announcementFilePath">Optional announcement file path to write a JSON file of announcements (will overwrite if existing).</param>
+        /// <param name="debugAnnouncementFilePath">Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing)</param>
+        /// <param name="telemetryFilePath">Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).</param>
+        /// <param name="nugetAnnouncementFilePath">Optional nuget file path to write a JSON file of output from nuget (will overwrite if existing).</param>
+        /// <param name="environment">Environment to deploy to.</param>
+        /// <param name="instanceName">Optional name of the instance (one will be generated from the package list if not provided).</param>
+        /// <param name="workingPath">Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).</param>
+        /// <param name="packagesToDeployJson">Optional packages descriptions (with overrides) to configure the instance with.</param>
+        /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
+        /// <param name="startDebugger">A value indicating whether or not to launch the debugger.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "telemetryFilePath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "nugetAnnouncementFilePath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "debugAnnouncementFilePath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "announcementFilePath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "environmentCertificateName", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "packagesToDeployJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "instanceName", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "overrideDeploymentConfigJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "infrastructureTrackerJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "certificateRetrieverJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "nugetPackageRepositoryConfigurationJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "deploymentAdjustmentApplicatorJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "credentialsJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "workingPath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "nuget", Justification = "Not sure why it's complaining...")]
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
-#pragma warning disable 1591
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson, 
-            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson, 
+            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson,
             [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
-            [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson, 
+            [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Optional certificate name for an environment certificate saved in certificate manager being configured.")] [DefaultValue(null)] string environmentCertificateName,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing).")] [DefaultValue(null)] string debugAnnouncementFilePath,
             [Aliases("")] [Description("Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).")] [DefaultValue(null)] string telemetryFilePath,
             [Aliases("")] [Description("Optional nuget file path to write a JSON file of output from nuget (will overwrite if existing).")] [DefaultValue(null)] string nugetAnnouncementFilePath,
-            [Aliases("")] [Description("Environment to deploy to.")] string environment, 
+            [Aliases("")] [Description("Environment to deploy to.")] string environment,
             [Aliases("")] [Description("Optional name of the instance (one will be generated from the package list if not provided).")] [DefaultValue(null)] string instanceName,
-            [Aliases("")] [Description("Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).")] [DefaultValue(null)] string workingPath, 
-            [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson, 
-            [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson, 
+            [Aliases("")] [Description("Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).")] [DefaultValue(null)] string workingPath,
+            [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
+            [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
-#pragma warning restore 1591
         {
             if (startDebugger)
             {
@@ -136,70 +174,94 @@ namespace Naos.Deployment.Console
             var defaultDeploymentConfiguration = Settings.Get<DefaultDeploymentConfiguration>();
 
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
-            var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration);
-
             var credentials = credentialsJson.FromJson<CredentialContainer>();
-            var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker).InitializeCredentials(credentials);
-
-            var tempDir = Path.GetTempPath();
-            var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
-            if (!string.IsNullOrEmpty(workingPath))
+            using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
-                unzipDirPath = workingPath;
-            }
+                using (var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker))
+                {
+                    computingManager.InitializeCredentials(credentials);
+                    var tempDir = Path.GetTempPath();
+                    var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
+                    if (!string.IsNullOrEmpty(workingPath))
+                    {
+                        unzipDirPath = workingPath;
+                    }
 
-            if (Directory.Exists(unzipDirPath))
-            {
-                Using.LinearBackOff(TimeSpan.FromSeconds(5))
-                    .WithMaxRetries(3)
-                    .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying delete deployment working directory {unzipDirPath} due to error."), _)))
-                    .Run(() => Directory.Delete(unzipDirPath, true))
-                    .Now();
-            }
+                    if (Directory.Exists(unzipDirPath))
+                    {
+                        Using.LinearBackOff(TimeSpan.FromSeconds(5))
+                            .WithMaxRetries(3)
+                            .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying delete deployment working directory {unzipDirPath} due to error."), _)))
+                            .Run(() => Directory.Delete(unzipDirPath, true))
+                            .Now();
+                    }
 
-            Using.LinearBackOff(TimeSpan.FromSeconds(5))
-                .WithMaxRetries(3)
-                .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying create deployment working directory {unzipDirPath} due to error."), _)))
-                .Run(() => Directory.CreateDirectory(unzipDirPath))
-                .Now();
+                    Using.LinearBackOff(TimeSpan.FromSeconds(5))
+                        .WithMaxRetries(3)
+                        .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying create deployment working directory {unzipDirPath} due to error."), _)))
+                        .Run(() => Directory.CreateDirectory(unzipDirPath))
+                        .Now();
 
-            var repoConfig = nugetPackageRepositoryConfigurationJson.FromJson<PackageRepositoryConfiguration>();
+                    var repoConfig = nugetPackageRepositoryConfigurationJson.FromJson<PackageRepositoryConfiguration>();
 
-            if (File.Exists(nugetAnnouncementFilePath))
-            {
-                File.Delete(nugetAnnouncementFilePath);
-            }
+                    if (File.Exists(nugetAnnouncementFilePath))
+                    {
+                        File.Delete(nugetAnnouncementFilePath);
+                    }
 
-            using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
-            {
-                var deploymentManager = new DeploymentManager(
-                    infrastructureTracker,
-                    computingManager,
-                    packageManager,
-                    certificateRetriever,
-                    defaultDeploymentConfiguration,
-                    setupFactorySettings,
-                    deploymentAdjustmentStrategiesApplicator,
-                    computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
-                    Console.WriteLine,
-                    line =>
-                        {
-                            /* no-op */
-                        },
-                    unzipDirPath,
-                    environmentCertificateName,
-                    announcementFilePath,
-                    debugAnnouncementFilePath,
-                    telemetryFilePath);
-                var overrideConfig = overrideDeploymentConfigJson.FromJson<DeploymentConfiguration>();
+                    using (var packageManager = PackageRetrieverFactory.BuildPackageRetriever(repoConfig, unzipDirPath, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
+                    {
+                        var deploymentManager = new DeploymentManager(
+                                                    infrastructureTracker,
+                                                    computingManager,
+                                                    packageManager,
+                                                    certificateRetriever,
+                                                    defaultDeploymentConfiguration,
+                                                    setupFactorySettings,
+                                                    deploymentAdjustmentStrategiesApplicator,
+                                                    computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
+                                                    Console.WriteLine,
+                                                    line =>
+                                                        {
+                                                            /* no-op */
+                                                        },
+                                                    unzipDirPath,
+                                                    environmentCertificateName,
+                                                    announcementFilePath,
+                                                    debugAnnouncementFilePath,
+                                                    telemetryFilePath);
+                        var overrideConfig = overrideDeploymentConfigJson.FromJson<DeploymentConfiguration>();
 
-                deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+                        deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
+                    }
+                }
             }
         }
 
+        /// <summary>
+        /// Upload a certificate to the arcology from a file along with additional information about it as well as encrypting information.
+        /// </summary>
+        /// <param name="certificateWriterJson">Certificate writer configuration JSON.</param>
+        /// <param name="name">Name of the certificate to load.</param>
+        /// <param name="pfxFilePath">File path to the certificate to load (in PFX file format).</param>
+        /// <param name="clearTextPassword">Clear text password of the certificate to load.</param>
+        /// <param name="certificateSigningRequestPemEncodedFilePath">File path to Certificate Signing Request (PEM encoded).</param>
+        /// <param name="encryptingCertificateThumbprint">Thumbprint of the encrypting certificate.</param>
+        /// <param name="encryptingCertificateIsValid">Value indicating whether or not the encrypting certificate is valid.</param>
+        /// <param name="encryptingCertificateStoreName"><see cref="StoreName"/> to find the encrypting certificate.</param>
+        /// <param name="encryptingCertificateStoreLocation"><see cref="StoreLocation"/> to find the encrypting certificate.</param>
+        /// <param name="startDebugger">A value indicating whether or not to launch the debugger.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "certificateWriterJson", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "encryptingCertificateStoreLocation", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "encryptingCertificateStoreName", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "encryptingCertificateIsValid", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "encryptingCertificateThumbprint", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "cleanPassword", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "pfxFilePath", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "3", Justification = "Is validated with Must.")]
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
-#pragma warning disable 1591
-        public static void UploadCertficate(
+        public static void UploadCertificate(
                 [Aliases("")] [Description("Certificate writer configuration JSON.")] string certificateWriterJson,
                 [Aliases("")] [Description("Name of the certificate to load.")] string name,
                 [Aliases("")] [Description("File path to the certificate to load (in PFX file format).")] string pfxFilePath,
@@ -207,10 +269,9 @@ namespace Naos.Deployment.Console
                 [Aliases("")] [DefaultValue(null)] [Description("File path to Certificate Signing Request (PEM encoded).")] string certificateSigningRequestPemEncodedFilePath,
                 [Aliases("")] [Description("Thumbprint of the encrypting certificate.")] string encryptingCertificateThumbprint,
                 [Aliases("")] [Description("Value indicating whether or not the encrypting certificate is valid.")] bool encryptingCertificateIsValid,
-                [Aliases("")] [DefaultValue(null)] [Description("Store name to find the encrypting certificate is valid.")] string encryptingCertificateStoreName,
-                [Aliases("")] [DefaultValue(null)] [Description("Store location to find the encrypting certificate is valid.")] string encryptingCertificateStoreLocation,
+                [Aliases("")] [DefaultValue(null)] [Description("Store name to find the encrypting certificate.")] string encryptingCertificateStoreName,
+                [Aliases("")] [DefaultValue(null)] [Description("Store location to find the encrypting certificate.")] string encryptingCertificateStoreLocation,
                 [Aliases("")] [Description("Start the debugger.")] [DefaultValue(false)] bool startDebugger)
-#pragma warning restore 1591
         {
             if (startDebugger)
             {
@@ -273,7 +334,7 @@ namespace Naos.Deployment.Console
 
             using (var async = AsyncHelper.Wait)
             {
-                async.Run(writer.PersistCertficateAsync(cert));
+                async.Run(writer.PersistCertificateAsync(cert));
             }
         }
 
@@ -288,32 +349,40 @@ namespace Naos.Deployment.Console
             }
         }
 
+        /// <summary>
+        /// Help method to call from CLAP.
+        /// </summary>
+        /// <param name="helpText">Generated help text to display.</param>
         [Empty]
         [Help(Aliases = "h,?,-h,-help")]
         [Verb(IsDefault = true)]
-#pragma warning disable 1591
-        public static void Help(string help)
-#pragma warning restore 1591
+        public static void Help(string helpText)
         {
+            new { helpText }.Must().NotBeNull().OrThrowFirstFailure();
+
             Console.WriteLine("   Usage");
             Console.Write("   -----");
 
             // strip out the usage info about help, it's confusing
-            help = help.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Skip(3).ToNewLineDelimited();
-            Console.WriteLine(help);
+            helpText = helpText.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Skip(3).ToNewLineDelimited();
+            Console.WriteLine(helpText);
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Error method to call from CLAP.
+        /// </summary>
+        /// <param name="context">Context provided with details.</param>
         [Error]
-#pragma warning disable 1591
         public static void Error(ExceptionContext context)
-#pragma warning restore 1591
         {
+            new { context }.Must().NotBeNull().OrThrowFirstFailure();
+
             // change color to red
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
 
-            // parser exception or 
+            // parser exception or
             if (context.Exception is CommandLineParserException)
             {
                 Console.WriteLine("I don't understand.  Run the exe with the 'help' command for usage.");
@@ -370,6 +439,7 @@ namespace Naos.Deployment.Console
             return new TimeSpan(days, hours, minutes, 0);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "xxxx", Justification = "Not real text.")]
         private static void WriteAsciiArt()
         {
             Console.WriteLine(@"<:::::::::::::::::::::::::::::::::::::::::}]xxxx()o             ");

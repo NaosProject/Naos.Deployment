@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingInfrastructureNamerTest.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class ComputingInfrastructureNamerTest
+    public static class ComputingInfrastructureNamerTest
     {
         [Fact]
         public static void GetInstanceName_ValidInputs_ValidName()
@@ -36,14 +36,14 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Constructor_InvalidSubDomainName_ThrowsArgumentException()
+        public static void Constructor_InvalidSubdomainName_ThrowsArgumentException()
         {
             var manualInvalidNamesToTest = new[]
                                          {
                                              null,
                                              string.Empty,
-                                             "the.computer", 
-                                             "-thecomputer", 
+                                             "the.computer",
+                                             "-thecomputer",
                                              "thecomputer-",
                                              "symbols!",
                                              "symbols@",
@@ -67,7 +67,8 @@ namespace Naos.Deployment.Core.Test
             {
                 try
                 {
-                    var neverGotten = new ComputingInfrastructureNamer(
+                    // ReSharper disable once ObjectCreationAsStatement - expected to throw
+                    new ComputingInfrastructureNamer(
                         invalidName,
                         "demo",
                         "use-east-1a");

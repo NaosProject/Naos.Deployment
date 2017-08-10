@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyMessageBusHandler.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the channels to monitor on the message bus system.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Leaving for now.")]
         public ICollection<IChannel> ChannelsToMonitor { get; set; }
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace Naos.Deployment.Domain
             var ret = new InitializationStrategyMessageBusHandler
                           {
                               WorkerCount = this.WorkerCount,
-                              ChannelsToMonitor = this.ChannelsToMonitor.OfType<SimpleChannel>().Select(_ => (IChannel)new SimpleChannel(_.Name)).ToList()
+                              ChannelsToMonitor = this.ChannelsToMonitor.OfType<SimpleChannel>().Select(_ => (IChannel)new SimpleChannel(_.Name)).ToList(),
                           };
             return ret;
         }

@@ -1,11 +1,12 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IManageComputingInfrastructure.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Domain
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -14,7 +15,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Interface for performing native computing allocation and interaction operations.
     /// </summary>
-    public interface IManageComputingInfrastructure
+    public interface IManageComputingInfrastructure : IDisposable
     {
         /// <summary>
         /// Terminates an instance.
@@ -24,6 +25,7 @@ namespace Naos.Deployment.Domain
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="releasePublicIpIfApplicable">Optionally release the public IP address if the instance has one (DEFAULT is false).</param>
         /// <returns>Task for async/await</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name I want.")]
         Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
 
         /// <summary>
@@ -98,6 +100,7 @@ namespace Naos.Deployment.Domain
         /// <param name="domain">Domain to operate on.</param>
         /// <param name="ipAddresses">IP Addresses to bind to the DNS entry specified.</param>
         /// <returns>Task for async/await</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ip", Justification = "Name I want.")]
         Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses);
 
         /// <summary>

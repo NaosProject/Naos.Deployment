@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.SelfHost.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ namespace Naos.Deployment.Core
                             {
                                 machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
                                 return new dynamic[0];
-                            }
+                            },
                     });
 
             var configureCertParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), applicationId, selfHostDnsEntries };
@@ -59,7 +59,7 @@ namespace Naos.Deployment.Core
                             machineManager =>
                             machineManager.RunScript(
                                 this.settings.DeploymentScriptBlocks.ConfigureSslCertificateForHosting.ScriptText,
-                                configureCertParams)
+                                configureCertParams),
                     });
 
             var configureUserParams = new object[] { scheduledTaskAccount, selfHostDnsEntries };
@@ -69,7 +69,7 @@ namespace Naos.Deployment.Core
                         Description = $"Configure user {scheduledTaskAccount} for Self Hosting",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams)
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams),
                     });
 
             var openPortParams = new[] { "443", "Allow TCP 443 IN for Self Hosting" };
@@ -79,7 +79,7 @@ namespace Naos.Deployment.Core
                         Description = $"Open port 443 for Self Hosting",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams)
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams),
                     });
 
             // task steps to keep the console exe alive

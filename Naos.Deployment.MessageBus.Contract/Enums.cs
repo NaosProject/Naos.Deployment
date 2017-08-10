@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Enums.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +19,6 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <summary>
         /// Lookup instance IDs using the name in the tag on the provider for the instance.
         /// </summary>
-        ProviderTag
+        ProviderTag,
     }
 }

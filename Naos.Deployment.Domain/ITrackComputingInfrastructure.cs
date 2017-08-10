@@ -1,11 +1,12 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ITrackComputingInfrastructure.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Domain
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace Naos.Deployment.Domain
     ///     of not having to re-discover from AWS API each time and
     ///     also keep additional information not stored there.
     /// </summary>
-    public interface ITrackComputingInfrastructure
+    public interface ITrackComputingInfrastructure : IDisposable
     {
         /// <summary>
         /// Gets instance descriptions of instances that have specified packages deployed to it.
@@ -41,7 +42,10 @@ namespace Naos.Deployment.Domain
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <returns>Object holding information necessary to create an instance.</returns>
-        Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(string environment, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages);
+        Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
+            string environment,
+            DeploymentConfiguration deploymentConfiguration,
+            ICollection<PackageDescription> intendedPackages);
 
         /// <summary>
         /// Adds the instance to the tracking system.
@@ -97,6 +101,111 @@ namespace Naos.Deployment.Domain
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="privateIpAddress">The specified private IP address to use to find the instance.</param>
         /// <returns>Task for async.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name I want.")]
         Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress);
+    }
+
+    /// <summary>
+    /// Null object implementation for testing.
+    /// </summary>
+    public class NullInfrastructureTracker : ITrackComputingInfrastructure
+    {
+        private readonly Task emptyTask = Task.Run(
+            () =>
+                {
+                });
+
+        /// <inheritdoc />
+        public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
+        {
+            return Task.FromResult<ICollection<InstanceDescription>>(new List<InstanceDescription>());
+        }
+
+        /// <inheritdoc />
+        public Task ProcessInstanceTerminationAsync(string environment, string systemId)
+        {
+            return this.emptyTask;
+        }
+
+        /// <inheritdoc />
+        public Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
+            string environment,
+            DeploymentConfiguration deploymentConfiguration,
+            ICollection<PackageDescription> intendedPackages)
+        {
+            return Task.FromResult(new InstanceCreationDetails());
+        }
+
+        /// <inheritdoc />
+        public Task ProcessInstanceCreationAsync(InstanceDescription instanceDescription)
+        {
+            return this.emptyTask;
+        }
+
+        /// <inheritdoc />
+        public Task ProcessDeployedPackageAsync(string environment, string systemId, PackageDescription package)
+        {
+            return this.emptyTask;
+        }
+
+        /// <inheritdoc />
+        public Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
+        {
+            return Task.FromResult<InstanceDescription>(null);
+        }
+
+        /// <inheritdoc />
+        public Task<string> GetInstanceIdByNameAsync(string environment, string name)
+        {
+            return Task.FromResult<string>(null);
+        }
+
+        /// <inheritdoc />
+        public Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId)
+        {
+            return Task.FromResult<string>(null);
+        }
+
+        /// <inheritdoc />
+        public Task<string> GetDomainZoneIdAsync(string environment, string domain)
+        {
+            return Task.FromResult<string>(null);
+        }
+
+        /// <inheritdoc />
+        public Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress)
+        {
+            return this.emptyTask;
+        }
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        /// <param name="disposing">Value indicating whether or not it is disposing.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    // Dispose code goes here
+                    /* no-op */
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        public void Dispose()
+        {
+            // Don't change this code
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

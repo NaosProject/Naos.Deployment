@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingContainerDescription.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -29,11 +29,13 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the CIDR block of the container.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cidr", Justification = "Name is correct.")]
         public string Cidr { get; set; }
 
         /// <summary>
         /// Gets or sets the where to get the first assignable IP address in the container.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ips", Justification = "Name is correct.")]
         public int StartIpsAfter { get; set; }
 
         /// <summary>

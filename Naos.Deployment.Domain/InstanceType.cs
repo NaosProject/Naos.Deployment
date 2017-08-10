@@ -1,15 +1,19 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InstanceType.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Domain
 {
+    using System;
+
+    using OBeautifulCode.Math;
+
     /// <summary>
     /// Model object to describe the type/caliber of machine to provision.
     /// </summary>
-    public class InstanceType
+    public class InstanceType : IEquatable<InstanceType>
     {
         /// <summary>
         /// Gets or sets the minimum number of virtual cores necessary.
@@ -19,6 +23,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the minimum amount of RAM in gigabytes.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Name I want.")]
         public double? RamInGb { get; set; }
 
         /// <summary>
@@ -35,5 +40,43 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the Windows SKU to use.
         /// </summary>
         public WindowsSku WindowsSku { get; set; }
+
+        /// <summary>
+        /// Equal operator.
+        /// </summary>
+        /// <param name="first">Left item.</param>
+        /// <param name="second">Right item.</param>
+        /// <returns>Value indicating if equal.</returns>
+        public static bool operator ==(InstanceType first, InstanceType second)
+        {
+            if (ReferenceEquals(first, second))
+            {
+                return true;
+            }
+
+            if (ReferenceEquals(first, null) || ReferenceEquals(second, null))
+            {
+                return false;
+            }
+
+            return (first.VirtualCores == second.VirtualCores) && (first.RamInGb == second.RamInGb) && (first.SpecificImageSystemId == second.SpecificImageSystemId) && (first.SpecificInstanceTypeSystemId == second.SpecificInstanceTypeSystemId) && (first.WindowsSku == second.WindowsSku);
+        }
+
+        /// <summary>
+        /// Not equal operator.
+        /// </summary>
+        /// <param name="first">Left item.</param>
+        /// <param name="second">Right item.</param>
+        /// <returns>Value indicating if not equal.</returns>
+        public static bool operator !=(InstanceType first, InstanceType second) => !(first == second);
+
+        /// <inheritdoc />
+        public bool Equals(InstanceType other) => this == other;
+
+        /// <inheritdoc />
+        public override bool Equals(object obj) => this == (obj as InstanceType);
+
+        /// <inheritdoc />
+        public override int GetHashCode() => HashCodeHelper.Initialize().Hash(this.VirtualCores).Hash(this.RamInGb).Hash(this.SpecificImageSystemId).Hash(this.SpecificInstanceTypeSystemId).Hash(this.WindowsSku).Value;
     }
 }

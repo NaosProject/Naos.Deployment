@@ -46,7 +46,6 @@ namespace Naos.Recipes.Configuration.Setup
         /// </summary>
         public static void SetupSerialization()
         {
-            JsonConvert.DefaultSettings = () => JsonConfiguration.DefaultSerializerSettings;
             Settings.Deserialize = (type, serialized) => DefaultJsonSerializer.DeserializeObject(serialized, type);
         }
     }

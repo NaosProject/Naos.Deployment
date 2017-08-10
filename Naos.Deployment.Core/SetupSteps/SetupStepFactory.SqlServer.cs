@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.SqlServer.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -8,24 +8,25 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
-    using static System.FormattableString;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-
     using Naos.Database.Contract;
     using Naos.Database.Migrator;
     using Naos.Database.Tools;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
-
     using Spritely.Recipes;
+    using static System.FormattableString;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFrom", Justification = "This pattern works better for correctly loading dependencies.")]
         private List<SetupStep> GetSqlServerSpecificSteps(InitializationStrategySqlServer sqlServerStrategy, Package package)
         {
             if (sqlServerStrategy.Create != null && sqlServerStrategy.Restore != null)
@@ -41,46 +42,46 @@ namespace Naos.Deployment.Core
             var createBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createBackupDirParams = new[] { backupDirectory, sqlServiceAccount };
             databaseSteps.Add(
-                new SetupStep 
+                new SetupStep
                     {
                         Description = "Create " + backupDirectory + " and grant rights to SQL service account.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams)
+                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
                     });
             var backupProcessAccount = this.settings.DatabaseServerSettings.BackupProcessServiceAccount;
             var addBackupProcessAclsToBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var addBackupProcessAclsToBackupDirParams = new[] { backupDirectory, backupProcessAccount };
             databaseSteps.Add(
-                new SetupStep 
+                new SetupStep
                     {
                         Description = "Add rights to " + backupDirectory + " for backup process account.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams)
+                            machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams),
                     });
 
             var dataDirectory = sqlServerStrategy.DataDirectory ?? this.settings.DatabaseServerSettings.DefaultDataDirectory;
             var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createDatabaseDirParams = new[] { dataDirectory, sqlServiceAccount };
             databaseSteps.Add(
-                new SetupStep 
+                new SetupStep
                 {
                     Description = "Create " + dataDirectory + " and grant rights to SQL service account.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams)
+                        machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams),
                 });
 
             var enableSaSetPasswordScript = this.settings.DeploymentScriptBlocks.EnableSaAccountAndSetPassword;
             var enableSaSetPasswordParams = new[] { sqlServerStrategy.AdministratorPassword };
             databaseSteps.Add(
-                new SetupStep 
+                new SetupStep
                 {
                     Description = "Turn on Mixed Mode Auth, enable SA account, and set password.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams)
+                        machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams),
                 });
 
             var updateDefaultInstancePathsScript = this.settings.DeploymentScriptBlocks.SetDefaultDirectories;
@@ -92,7 +93,7 @@ namespace Naos.Deployment.Core
                     Description = "Update default instance paths on database.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams)
+                        machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams),
                 });
 
             var restartSqlServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
@@ -103,7 +104,7 @@ namespace Naos.Deployment.Core
                     Description = "Restart SQL server for account change(s) to take effect.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams)
+                        machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams),
                 });
 
             var connectionString = "Server=localhost; user id=sa; password=" + sqlServerStrategy.AdministratorPassword;
@@ -111,8 +112,8 @@ namespace Naos.Deployment.Core
                 sqlServerStrategy.Name,
                 dataDirectory,
                 sqlServerStrategy.RecoveryMode,
-                sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileNameSettings,
-                sqlServerStrategy.Create == null ? null : sqlServerStrategy.Create.DatabaseFileSizeSettings);
+                sqlServerStrategy.Create?.DatabaseFileNameSettings,
+                sqlServerStrategy.Create?.DatabaseFileSizeSettings);
 
             databaseSteps.Add(
                 new SetupStep
@@ -123,7 +124,7 @@ namespace Naos.Deployment.Core
                                 var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
                                 DatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
                                 return new dynamic[0];
-                            }
+                            },
                     });
 
             if (sqlServerStrategy.Restore != null)
@@ -139,12 +140,13 @@ namespace Naos.Deployment.Core
                     sqlServerStrategy.Name,
                     dataDirectory,
                     sqlServerStrategy.RecoveryMode,
-                sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileNameSettings,
-                sqlServerStrategy.Restore == null ? null : sqlServerStrategy.Restore.DatabaseFileSizeSettings);
+                    sqlServerStrategy.Restore?.DatabaseFileNameSettings,
+                    sqlServerStrategy.Restore?.DatabaseFileSizeSettings);
+
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description = $"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}",
+                            Description = Invariant($"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}"),
                             SetupFunc = machineManager =>
                                 {
                                     var restoreFilePath = Path.Combine(sqlServerStrategy.BackupDirectory, awsRestore.FileName);
@@ -152,9 +154,8 @@ namespace Naos.Deployment.Core
                                     var remoteDownloadBackupScriptBlock = this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
                                     var remoteDownloadBackupScriptParams = new[]
                                                                                {
-                                                                                   awsRestore.BucketName, awsRestore.FileName, restoreFilePath,
-                                                                                   awsRestore.Region, awsRestore.DownloadAccessKey,
-                                                                                   awsRestore.DownloadSecretKey
+                                                                                   awsRestore.BucketName, awsRestore.FileName, restoreFilePath, awsRestore.Region,
+                                                                                   awsRestore.DownloadAccessKey, awsRestore.DownloadSecretKey,
                                                                                };
 
                                     machineManager.RunScript(remoteDownloadBackupScriptBlock, remoteDownloadBackupScriptParams);
@@ -172,11 +173,11 @@ namespace Naos.Deployment.Core
                                                                  RecoveryOption = RecoveryOption.NoRecovery,
                                                                  ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
                                                                  RestoreFrom = restoreFileUri,
-                                                                 RestrictedUserOption = RestrictedUserOption.Normal
+                                                                 RestrictedUserOption = RestrictedUserOption.Normal,
                                                              };
                                     DatabaseManager.RestoreFull(realRemoteConnectionString, sqlServerStrategy.Name, restoreDetails);
                                     return new dynamic[0];
-                                }
+                                },
                         });
             }
 
@@ -203,7 +204,7 @@ namespace Naos.Deployment.Core
                                     var allFilePaths = Directory.GetFiles(workingPath, "*", SearchOption.AllDirectories);
                                     var migrationAssemblyFilePath =
                                         allFilePaths.Where(_ => Path.GetFileNameWithoutExtension(_) == package.PackageDescription.Id)
-                                            .SingleOrDefault(_ => _.EndsWith(".dll") || _.EndsWith(".exe"));
+                                            .SingleOrDefault(_ => _.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || _.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase));
 
                                     new { migrationAssemblyFilePath }.Must()
                                         .NotBeNull()
@@ -223,7 +224,7 @@ namespace Naos.Deployment.Core
                                         workingPath);
 
                                     return new dynamic[0];
-                                }
+                                },
                         });
             }
 
@@ -238,7 +239,7 @@ namespace Naos.Deployment.Core
                                                     DataFileLogicalName = databaseName + "Dat",
                                                     DataFileNameOnDisk = databaseName + ".mdf",
                                                     LogFileLogicalName = databaseName + "Log",
-                                                    LogFileNameOnDisk = databaseName + ".log"
+                                                    LogFileNameOnDisk = databaseName + ".log",
                                                 };
 
             var localDatabaseFileSizeSettings = databaseFileSizeSettings
@@ -264,7 +265,7 @@ namespace Naos.Deployment.Core
                 LogFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.LogFileNameOnDisk),
                 LogFileCurrentSizeInKb = localDatabaseFileSizeSettings.LogFileCurrentSizeInKb,
                 LogFileMaxSizeInKb = localDatabaseFileSizeSettings.LogFileMaxSizeInKb,
-                LogFileGrowthSizeInKb = localDatabaseFileSizeSettings.LogFileGrowthSizeInKb
+                LogFileGrowthSizeInKb = localDatabaseFileSizeSettings.LogFileGrowthSizeInKb,
             };
 
             return databaseConfiguration;

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.InstanceLevel.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -38,7 +38,7 @@ namespace Naos.Deployment.Core
                                          machineManager =>
                                          machineManager.RunScript(
                                              this.settings.DeploymentScriptBlocks.SetupWinRmScriptBlock
-                                             .ScriptText)
+                                             .ScriptText),
                                  };
 
             ret.Add(setupWinRm);
@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core
                                            machineManager =>
                                            machineManager.RunScript(
                                                this.settings.DeploymentScriptBlocks
-                                               .SetupWindowsUpdatesScriptBlock.ScriptText)
+                                               .SetupWindowsUpdatesScriptBlock.ScriptText),
                                    };
 
             ret.Add(setupUpdates);
@@ -62,7 +62,7 @@ namespace Naos.Deployment.Core
                                         machineManager =>
                                         machineManager.RunScript(
                                             this.settings.DeploymentScriptBlocks.SetupWindowsTimeScriptBlock
-                                            .ScriptText)
+                                            .ScriptText),
                                 };
 
             ret.Add(setupTime);
@@ -74,7 +74,7 @@ namespace Naos.Deployment.Core
                                           machineManager =>
                                           machineManager.RunScript(
                                               this.settings.DeploymentScriptBlocks
-                                              .EnableScriptExecutionScriptBlock.ScriptText)
+                                              .EnableScriptExecutionScriptBlock.ScriptText),
                                   };
 
             ret.Add(execScripts);
@@ -90,19 +90,19 @@ namespace Naos.Deployment.Core
                                                                                                       new
                                                                                                           {
                                                                                                               Name = this.settings.EnvironmentEnvironmentVariableName,
-                                                                                                              Value = environment
+                                                                                                              Value = environment,
                                                                                                           },
                                                                                                       new
                                                                                                           {
                                                                                                               Name = windowsSkuEnvironmentVariable,
-                                                                                                              Value = windowsSku.ToString()
-                                                                                                          }
+                                                                                                              Value = windowsSku.ToString(),
+                                                                                                          },
                                                                                                   };
                                                           return
                                                               machineManager.RunScript(
                                                                   this.settings.DeploymentScriptBlocks.AddMachineLevelEnvironmentVariables.ScriptText,
                                                                   new[] { environmentVariablesToAdd });
-                                                      }
+                                                      },
                                               };
 
             ret.Add(addEnvironmentVariables);
@@ -117,7 +117,7 @@ namespace Naos.Deployment.Core
                                                       machineManager.RunScript(
                                                           this.settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,
                                                           new[] { environmentVariablesToAddToWallpaper });
-                                              }
+                                              },
                                       };
 
             ret.Add(wallpaperUpdate);
@@ -129,14 +129,14 @@ namespace Naos.Deployment.Core
                                                                Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                                                                Name = "Hidden",
                                                                Value = "1",
-                                                               Type = "DWord"
+                                                               Type = "DWord",
                                                            },
                                                        new
                                                            {
                                                                Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                                                                Name = "ShowSuperHidden",
                                                                Value = "1",
-                                                               Type = "DWord"
+                                                               Type = "DWord",
                                                            },
                                                        new
                                                            {
@@ -144,8 +144,8 @@ namespace Naos.Deployment.Core
                                                                Path = "Registry::HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced",
                                                                Name = "HideFileExt",
                                                                Value = "0",
-                                                               Type = "DWord"
-                                                           }
+                                                               Type = "DWord",
+                                                           },
                                                    };
 
             var explorerShowHidden = new SetupStep
@@ -158,7 +158,7 @@ namespace Naos.Deployment.Core
                                                          machineManager.RunScript(
                                                              this.settings.DeploymentScriptBlocks.UpdateWindowsRegistryEntries.ScriptText,
                                                              fileExplorerParams);
-                                                 }
+                                                 },
                                          };
 
             ret.Add(explorerShowHidden);
@@ -194,7 +194,7 @@ namespace Naos.Deployment.Core
                                          return machineManager.RunScript(
                                              this.settings.DeploymentScriptBlocks.RenameComputerScriptBlock.ScriptText,
                                              renameParams);
-                                     }
+                                     },
                              };
 
             ret.Add(rename);
@@ -212,7 +212,7 @@ namespace Naos.Deployment.Core
                                                      Description = "Install Chocolatey Client",
                                                      SetupFunc =
                                                          machineManager =>
-                                                         machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText)
+                                                         machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText),
                                                  };
 
                 installChocoSteps.Add(installChocoClientStep);
@@ -229,7 +229,7 @@ namespace Naos.Deployment.Core
                                                                        machineManager.RunScript(
                                                                            this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
                                                                            installChocoPackageParams);
-                                                               }
+                                                               },
                                                        };
 
                     installChocoSteps.Add(installChocoPackagesStep);

@@ -1,13 +1,14 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="MessageBusHandlerHarnessConfiguration.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Domain
+namespace Naos.Deployment.Core
 {
     using System;
 
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
 
     /// <summary>

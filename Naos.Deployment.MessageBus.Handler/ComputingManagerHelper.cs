@@ -1,10 +1,10 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingManagerHelper.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.MessageBus.Contract
+namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
     using System.Collections.Generic;
@@ -14,8 +14,10 @@ namespace Naos.Deployment.MessageBus.Contract
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Handler;
+    using Naos.Deployment.MessageBus.Contract;
     using Naos.Deployment.Tracking;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Helper class to share methods across handlers.
@@ -28,17 +30,20 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingInfrastructureManagerSettings">Settings for the computing infrastructure manager.</param>
         /// <returns>New computing manager.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Factory method is not suppossed to dispose...")]
         public static IManageComputingInfrastructure CreateComputingManager(DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
+            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
+
             var credentialsToUse = new CredentialContainer
             {
                 AccessKeyId = settings.AccessKey,
                 SecretAccessKey = settings.SecretKey,
-                CredentialType = CredentialType.Keys
+                CredentialType = CredentialType.Keys,
             };
 
             var computingManager =
-                new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, new NullInfrastructureTracker())
+                new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings)
                     .InitializeCredentials(credentialsToUse);
 
             return computingManager;
@@ -53,9 +58,7 @@ namespace Naos.Deployment.MessageBus.Contract
         private static async Task<string> GetSystemIdFromNameFromArcologyAsync(string name, DeploymentMessageHandlerSettings settings)
         {
             var tracker = InfrastructureTrackerFactory.Create(settings.InfrastructureTrackerConfiguration);
-            
             var ret = await tracker.GetInstanceIdByNameAsync(settings.Environment, name);
-
             return ret;
         }
 

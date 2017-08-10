@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="PackagedDeploymentConfigurationExtensionMethods.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -10,6 +10,8 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Domain;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Additional behavior to add the initialization strategies.
@@ -26,6 +28,8 @@ namespace Naos.Deployment.Core
             this ICollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)
         {
+            new { packagedConfigs }.Must().NotBeNull().OrThrowFirstFailure();
+
             if (packagedConfigs.Count == 0)
             {
                 return
@@ -34,8 +38,8 @@ namespace Naos.Deployment.Core
                             new PackagedDeploymentConfiguration
                                 {
                                     PackageWithBundleIdentifier = null,
-                                    DeploymentConfiguration = defaultDeploymentConfig
-                                }
+                                    DeploymentConfiguration = defaultDeploymentConfig,
+                                },
                         }
                         .ToList();
             }
@@ -49,7 +53,7 @@ namespace Naos.Deployment.Core
                                 PackageWithBundleIdentifier = _.PackageWithBundleIdentifier,
                                 DeploymentConfiguration =
                                     _.DeploymentConfiguration.ApplyDefaults(
-                                        defaultDeploymentConfig)
+                                        defaultDeploymentConfig),
                             }).ToList();
             }
         }
@@ -61,7 +65,8 @@ namespace Naos.Deployment.Core
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Collection of initialization strategies matching the type specified.</returns>
         public static ICollection<T> GetInitializationStrategiesOf<T>(
-            this ICollection<PackagedDeploymentConfiguration> baseCollection) where T : InitializationStrategyBase
+            this ICollection<PackagedDeploymentConfiguration> baseCollection)
+            where T : InitializationStrategyBase
         {
             var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
 
@@ -75,7 +80,8 @@ namespace Naos.Deployment.Core
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Collection of initialization strategies matching the type specified.</returns>
         public static ICollection<T> GetInitializationStrategiesOf<T>(
-            this ICollection<IHaveInitializationStrategies> baseCollection) where T : InitializationStrategyBase
+            this ICollection<IHaveInitializationStrategies> baseCollection)
+            where T : InitializationStrategyBase
         {
             var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
 
@@ -88,8 +94,10 @@ namespace Naos.Deployment.Core
         /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Filtered collection of where the initialization strategies match the type specified.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Passing through and needs constraining.")]
         public static ICollection<PackagedDeploymentConfiguration> WhereContainsInitializationStrategyOf<T>(
-            this ICollection<PackagedDeploymentConfiguration> baseCollection) where T : InitializationStrategyBase
+            this ICollection<PackagedDeploymentConfiguration> baseCollection)
+            where T : InitializationStrategyBase
         {
             var ret = baseCollection.Where(_ => _.GetInitializationStrategiesOf<T>().Count > 0).ToList();
 

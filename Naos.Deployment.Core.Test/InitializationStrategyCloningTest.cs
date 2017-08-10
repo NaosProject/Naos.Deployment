@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyCloningTest.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class InitializationStrategyCloningTest
+    public static class InitializationStrategyCloningTest
     {
         [Fact]
         public static void Clone_CertificateToInstall_Works()
@@ -40,8 +40,8 @@ namespace Naos.Deployment.Core.Test
                                                    "account",
                                                FullPath
                                                    =
-                                                   @"D:\Dir"
-                                           }
+                                                   @"D:\Dir",
+                                           },
                                };
             var cloned = original.Clone() as InitializationStrategyDirectoryToCreate;
             Assert.NotNull(cloned);
@@ -59,7 +59,7 @@ namespace Naos.Deployment.Core.Test
                                    SelfHostExeName = "my.exe",
                                    SelfHostSupportedDnsEntries = new[] { "myDns" },
                                    SslCertificateName = "certName",
-                                   ScheduledTaskAccount = "Monkey"
+                                   ScheduledTaskAccount = "Monkey",
                                };
 
             var cloned = original.Clone() as InitializationStrategySelfHost;
@@ -81,12 +81,12 @@ namespace Naos.Deployment.Core.Test
                                        new AutoStartProvider
                                            {
                                                Name = "Provider",
-                                               Type = "Type"
+                                               Type = "Type",
                                            },
                                    PrimaryDns = "myDns",
                                    SslCertificateName = "certName",
                                    AppPoolAccount = "user",
-                                   EnableHttp = true
+                                   EnableHttp = true,
                                };
             var cloned = original.Clone() as InitializationStrategyIis;
             Assert.NotNull(cloned);
@@ -123,7 +123,7 @@ namespace Naos.Deployment.Core.Test
                                    DocumentDatabaseName = "name",
                                    DataDirectory = @"D:\Data",
                                    LogDirectory = @"D:\Log",
-                                   NoJournaling = true
+                                   NoJournaling = true,
                                };
             var cloned = original.Clone() as InitializationStrategyMongo;
             Assert.NotNull(cloned);
@@ -155,7 +155,7 @@ namespace Naos.Deployment.Core.Test
                                    Description = "Description",
                                    ExeName = "My Exe",
                                    Arguments = "Args",
-                                   Schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) }
+                                   Schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) },
                                };
 
             var cloned = original.Clone() as InitializationStrategyScheduledTask;
@@ -196,7 +196,7 @@ namespace Naos.Deployment.Core.Test
                                                                "data",
                                                            DataFileLogicalName
                                                                =
-                                                               "dataname"
+                                                               "dataname",
                                                        },
                                                DatabaseFileSizeSettings =
                                                    new DatabaseFileSizeSettings
@@ -218,9 +218,9 @@ namespace Naos.Deployment.Core.Test
                                                                5,
                                                            DataFileCurrentSizeInKb
                                                                =
-                                                               6
-                                                       }
-                                           }
+                                                               6,
+                                                       },
+                                           },
                                };
             var cloned = original.Clone() as InitializationStrategySqlServer;
             Assert.NotNull(cloned);

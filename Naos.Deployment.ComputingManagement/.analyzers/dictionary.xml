@@ -1,0 +1,87 @@
+﻿<!-- For usage of this file, see: https://msdn.microsoft.com/en-us/library/bb514188.aspx -->
+<Dictionary>
+  <Words>
+    <Unrecognized>
+      <Word></Word>
+    </Unrecognized>
+    <Recognized>
+      <Word>Accpac</Word>
+      <Word>aws</Word>
+      <Word>additivize</Word>
+      <Word>additivized</Word>
+      <Word>additivization</Word>
+      <Word>anonymized</Word>
+      <Word>AppVeyor</Word>
+      <Word>arcology</Word>
+      <Word>Aspose</Word>
+      <Word>Bson</Word>
+      <Word>bool</Word>
+      <Word>Chocolatey</Word>
+      <Word>config</Word>
+      <Word>configs</Word>
+      <Word>Coop</Word>
+      <Word>deployer</Word>
+      <Word>Dist</Word>
+      <Word>Encryptor</Word>
+      <Word>FY</Word>
+      <Word>Gb</Word>
+      <Word>Hangfire</Word>
+      <Word>ip</Word>
+      <Word>json</Word>
+      <Word>Kb</Word>
+      <Word>Loggly</Word>
+      <Word>Mfa</Word>
+      <Word>namer</Word>
+      <Word>Naos</Word>
+      <Word>NuGet</Word>
+      <Word>nullable</Word>
+      <Word>OBeautifulCode</Word>
+      <Word>overriden</Word>
+      <Word>pathed</Word>
+      <Word>pem</Word>
+      <Word>pdf</Word>
+      <Word>pfx</Word>
+      <Word>pluralization</Word>
+      <Word>sku</Word>
+      <Word>skus</Word>
+      <Word>targeter</Word>
+      <Word>targeters</Word>
+      <Word>tearsheet</Word>
+      <Word>tearsheets</Word>
+      <Word>upsert</Word>
+      <Word>whitespace</Word>
+      <Word>WinRm</Word>
+      <Word>Zendesk</Word>
+    </Recognized>
+    <Deprecated>
+      <Term PreferredAlternate=""></Term>
+    </Deprecated>
+    <Compound>
+      <Term CompoundAlternate="CellPhone">cellphone</Term>
+      <Term CompoundAlternate="Gb">gb</Term>
+      <Term CompoundAlternate="Ip">ip</Term>
+      <Term CompoundAlternate="Kb">kb</Term>
+      <Term CompoundAlternate="NuGet">nuget</Term>
+      <Term CompoundAlternate="nuget">nuget</Term>
+      <Term CompoundAlternate="OBeautifulCode">obeautifulcode</Term>
+      <Term CompoundAlternate="RollUp">rollup</Term>
+      <Term CompoundAlternate="Sa">sa</Term>
+      <Term CompoundAlternate="TurnOff">turnoff</Term>
+      <Term CompoundAlternate="UserName">username</Term>
+      <Term CompoundAlternate="Username">username</Term>
+      <Term CompoundAlternate="username">username</Term>
+      <Term CompoundAlternate="WebServer">webserver</Term>
+      <Term CompoundAlternate="WinRm">winrm</Term>
+      <Term CompoundAlternate="YearEnd">yearend</Term>
+    </Compound>
+    <DiscreteExceptions>
+      <Term></Term>
+    </DiscreteExceptions>
+  </Words>
+  <Acronyms>
+    <CasingExceptions>
+      <Acronym>Co</Acronym>
+      <Acronym>Etl</Acronym>
+    </CasingExceptions>
+  </Acronyms>
+</Dictionary>

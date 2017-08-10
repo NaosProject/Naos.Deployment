@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DirectoryToCreateDetails.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ namespace Naos.Deployment.Domain
             var ret = new DirectoryToCreateDetails
                           {
                               FullControlAccount = this.FullControlAccount,
-                              FullPath = this.FullPath
+                              FullPath = this.FullPath,
                           };
             return ret;
         }

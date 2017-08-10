@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategySelfHost.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -44,7 +44,7 @@ namespace Naos.Deployment.Domain
                               SslCertificateName = this.SslCertificateName,
                               SelfHostSupportedDnsEntries =
                                   this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),
-                              ScheduledTaskAccount = this.ScheduledTaskAccount
+                              ScheduledTaskAccount = this.ScheduledTaskAccount,
                           };
 
             return ret;

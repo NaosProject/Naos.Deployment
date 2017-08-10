@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingInfrastructureManagerSettings.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -17,41 +17,49 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets a map of drive letters to AWS volume descriptors.
         /// </summary>
-        public Dictionary<string, string> DriveLetterVolumeDescriptorMap { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
+        public IDictionary<string, string> DriveLetterVolumeDescriptorMap { get; set; }
 
         /// <summary>
         /// Gets or sets the map of the volume type to the system specific values.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public IDictionary<VolumeType, string> VolumeTypeValueMap { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypes { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypesForSqlWeb { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypesForSqlStandard { get; set; }
 
         /// <summary>
         /// Gets or sets the user data to use when creating an instance (list allows for keeping multiple lines in JSON format).
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<string> InstanceCreationUserDataLines { get; set; }
 
         /// <summary>
         /// Gets or sets a list of package ID's that should be disregarded when looking to replace packages with instance terminations.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<string> PackageIdsToIgnoreDuringTerminationSearch { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the key to use when tagging an instance with its name.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "NameTag", Justification = "Name I want.")]
         public string NameTagKey { get; set; }
 
         /// <summary>
@@ -93,6 +101,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the amount of RAM on the instance type.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Name I want.")]
         public double RamInGb { get; set; }
 
         /// <summary>

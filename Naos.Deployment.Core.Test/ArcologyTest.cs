@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ArcologyTest.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class ArcologyTest
+    public static class ArcologyTest
     {
         [Fact]
         public static void GetInstancesByDeployedPackages_Match_ReturnsInstance()
@@ -30,8 +30,8 @@ namespace Naos.Deployment.Core.Test
                                                          new ComputingContainerDescription
                                                              {
                                                                  InstanceAccessibility = InstanceAccessibility.Private,
-                                                                 Cidr = "10.0.0.0/24"
-                                                             }
+                                                                 Cidr = "10.0.0.0/24",
+                                                             },
                                                      };
             var arcologyInfo = new ArcologyInfo
                                    {
@@ -41,8 +41,8 @@ namespace Naos.Deployment.Core.Test
                                        WindowsSkuSearchPatternMap =
                                            new Dictionary<WindowsSku, string>
                                                {
-                                                   { WindowsSku.Base, "matchy" }
-                                               }
+                                                   { WindowsSku.Base, "matchy" },
+                                               },
                                    };
 
             var arcology = new Arcology(environment, arcologyInfo, null);
@@ -53,9 +53,8 @@ namespace Naos.Deployment.Core.Test
                                                   InstanceType =
                                                       new InstanceType
                                                           {
-                                                              WindowsSku =
-                                                                  WindowsSku.Base
-                                                          }
+                                                              WindowsSku = WindowsSku.Base,
+                                                          },
                                               };
 
             var newInstance = arcology.CreateNewDeployedInstance(

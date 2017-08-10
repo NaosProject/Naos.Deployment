@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeploymentConfigurationExtensionMethodsTest.Flatten.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public partial class DeploymentConfigurationExtensionMethodsTest
+    public static partial class DeploymentConfigurationExtensionMethodsTest
     {
         [Fact]
         public static void Flatten_DifferentSpecificInstanceType_Throws()
@@ -51,8 +51,8 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Flatten_SameSpecificImage_Uses()
         {
-            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server" } };
-            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server" } };
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", WindowsSku = WindowsSku.SpecificImageSupplied } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", WindowsSku = WindowsSku.SpecificImageSupplied } };
 
             var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
             Assert.Equal(deploymentConfigTwo.InstanceType.SpecificInstanceTypeSystemId, config.InstanceType.SpecificInstanceTypeSystemId);
@@ -109,9 +109,8 @@ namespace Naos.Deployment.Core.Test
                             DeploymentStrategy =
                                 new DeploymentStrategy
                                     {
-                                        IncludeInstanceInitializationScript
-                                            = true
-                                    }
+                                        IncludeInstanceInitializationScript = true,
+                                    },
                         };
 
             var b = new DeploymentConfiguration()
@@ -119,9 +118,8 @@ namespace Naos.Deployment.Core.Test
                             DeploymentStrategy =
                                 new DeploymentStrategy
                                     {
-                                        IncludeInstanceInitializationScript
-                                            = false
-                                    }
+                                        IncludeInstanceInitializationScript = false,
+                                    },
                         };
 
             Action testCode = () => new[] { a, b }.Flatten();
@@ -130,17 +128,30 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_SpecifiedAmiWithSpecificAmiSku_Throws()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            InstanceType = new InstanceType { SpecificImageSystemId = "ami-something", WindowsSku = WindowsSku.DoesNotMatter },
+                        };
+
+            Action testCode = () => new[] { a }.Flatten();
+            var ex = Assert.Throws<ArgumentException>(testCode);
+            Assert.Equal("The flattened instance type has a SpecificImageSystemId: 'ami-something' but does not have the corresponding WindowsSku: 'SpecificImageSupplied', instead it is: 'DoesNotMatter'.", ex.Message);
+        }
+
+        [Fact]
         public static void Flatten_ConflictingDeploymentStrategyRunSetup_Throws()
         {
             var a = new DeploymentConfiguration()
                         {
-                            DeploymentStrategy = new DeploymentStrategy { RunSetupSteps = true }
+                            DeploymentStrategy = new DeploymentStrategy { RunSetupSteps = true },
                         };
 
             var b = new DeploymentConfiguration()
                         {
                             DeploymentStrategy =
-                                new DeploymentStrategy { RunSetupSteps = false }
+                                new DeploymentStrategy { RunSetupSteps = false },
                         };
 
             Action testCode = () => new[] { a, b }.Flatten();
@@ -157,9 +168,8 @@ namespace Naos.Deployment.Core.Test
                                 new DeploymentStrategy
                                     {
                                         RunSetupSteps = true,
-                                        IncludeInstanceInitializationScript =
-                                            true
-                                    }
+                                        IncludeInstanceInitializationScript = true,
+                                    },
                         };
 
             var b = new DeploymentConfiguration()
@@ -168,9 +178,8 @@ namespace Naos.Deployment.Core.Test
                                 new DeploymentStrategy
                                     {
                                         RunSetupSteps = true,
-                                        IncludeInstanceInitializationScript =
-                                            true
-                                    }
+                                        IncludeInstanceInitializationScript = true,
+                                    },
                         };
 
             var output = new[] { a, b }.Flatten();
@@ -186,8 +195,8 @@ namespace Naos.Deployment.Core.Test
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
-                                        TurnOffInstance = true
-                                    }
+                                        TurnOffInstance = true,
+                                    },
                         };
 
             var b = new DeploymentConfiguration()
@@ -195,8 +204,8 @@ namespace Naos.Deployment.Core.Test
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
-                                        TurnOffInstance = true
-                                    }
+                                        TurnOffInstance = true,
+                                    },
                         };
 
             var output = new[] { a, b }.Flatten();
@@ -212,8 +221,8 @@ namespace Naos.Deployment.Core.Test
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
-                                        TurnOffInstance = true
-                                    }
+                                        TurnOffInstance = true,
+                                    },
                         };
 
             var b = new DeploymentConfiguration()
@@ -221,8 +230,8 @@ namespace Naos.Deployment.Core.Test
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
-                                        TurnOffInstance = false
-                                    }
+                                        TurnOffInstance = false,
+                                    },
                         };
 
             Action testCode = () => new[] { a, b }.Flatten();
@@ -231,15 +240,15 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Flatten_PostDeploymentStrategy_MissingPostDeployment_IsntConflictingTakesSetValue()
+        public static void Flatten_PostDeploymentStrategy_MissingPostDeployment_IsNotConflictingTakesSetValue()
         {
             var a = new DeploymentConfiguration()
                         {
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
-                                        TurnOffInstance = true
-                                    }
+                                        TurnOffInstance = true,
+                                    },
                         };
 
             var b = new DeploymentConfiguration() { PostDeploymentStrategy = null };
@@ -253,14 +262,12 @@ namespace Naos.Deployment.Core.Test
         {
             var first = new DeploymentConfiguration()
                             {
-                                Volumes =
-                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } }
+                                Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } },
                             };
 
             var second = new DeploymentConfiguration()
                              {
-                                 Volumes =
-                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50 } }
+                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 50 } },
                              };
 
             var flattenedConfig = new[] { first, second }.Flatten();
@@ -274,14 +281,12 @@ namespace Naos.Deployment.Core.Test
         {
             var first = new DeploymentConfiguration()
                             {
-                                Volumes =
-                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } }
+                                Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } },
                             };
 
             var second = new DeploymentConfiguration()
                              {
-                                 Volumes =
-                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.HighPerformance } }
+                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.HighPerformance } },
                              };
 
             var flattenedConfig = new[] { first, second }.Flatten();
@@ -292,18 +297,16 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Flatten_TwoVolumesSameDriveLetter_DoesntMatterChangedToStandard()
+        public static void Flatten_TwoVolumesSameDriveLetter_DoesNotMatterChangedToStandard()
         {
             var first = new DeploymentConfiguration()
                             {
-                                Volumes =
-                                    new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } }
+                                Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } },
                             };
 
             var second = new DeploymentConfiguration()
                              {
-                                 Volumes =
-                                     new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.Standard } }
+                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 50, Type = VolumeType.Standard } },
                              };
 
             var flattenedConfig = new[] { first, second }.Flatten();
@@ -322,8 +325,7 @@ namespace Naos.Deployment.Core.Test
                 var typed = (VolumeType)option;
                 var config = new DeploymentConfiguration()
                 {
-                    Volumes =
-                        new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = typed } }
+                    Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = typed } },
                 };
 
                 configReducer.Add(config);
@@ -353,7 +355,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Flatten_TwoConfigsConflictingAccesiblity_Throws()
+        public static void Flatten_TwoConfigsConflictingAccessibility_Throws()
         {
             var deploymentConfigs = new[]
                                         {
@@ -363,7 +365,7 @@ namespace Naos.Deployment.Core.Test
                                                         new InstanceType
                                                             {
                                                                 VirtualCores = 2,
-                                                                RamInGb = 4
+                                                                RamInGb = 4,
                                                             },
                                                     InstanceAccessibility = InstanceAccessibility.Public,
                                                 },
@@ -373,7 +375,7 @@ namespace Naos.Deployment.Core.Test
                                                         new InstanceType
                                                             {
                                                                 VirtualCores = 2,
-                                                                RamInGb = 4
+                                                                RamInGb = 4,
                                                             },
                                                     InstanceAccessibility = InstanceAccessibility.Private,
                                                 },
@@ -419,16 +421,16 @@ namespace Naos.Deployment.Core.Test
                                                         new[]
                                                             {
                                                                 new PackageDescriptionWithOverrides() { Id = "Monkeys" },
-                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
-                                                            }
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" },
+                                                            },
                                                 },
                                             new DeploymentConfiguration()
                                                 {
                                                     ChocolateyPackages =
                                                         new[]
                                                             {
-                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" }
-                                                            }
+                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" },
+                                                            },
                                                 },
                                         };
 

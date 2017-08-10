@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingInfrastructureManagerForAws.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -21,6 +21,8 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using Spritely.Recipes;
+
     using CheckState = Naos.Deployment.Domain.CheckState;
     using InstanceState = Naos.Deployment.Domain.InstanceState;
     using InstanceStatus = Naos.Deployment.Domain.InstanceStatus;
@@ -35,6 +37,8 @@ namespace Naos.Deployment.ComputingManagement
         private const string InstanceTypeKeyForSystemSpecificDictionary = "instanceType";
 
         private readonly ComputingInfrastructureManagerSettings settings;
+
+        private readonly bool disposeTracker;
         private readonly ITrackComputingInfrastructure tracker;
 
         private CredentialContainer credentials;
@@ -43,9 +47,21 @@ namespace Naos.Deployment.ComputingManagement
         /// Initializes a new instance of the <see cref="ComputingInfrastructureManagerForAws"/> class.
         /// </summary>
         /// <param name="settings">Settings for things like instance type maps, etc.</param>
+        public ComputingInfrastructureManagerForAws(ComputingInfrastructureManagerSettings settings)
+        {
+            this.disposeTracker = true;
+            this.settings = settings;
+            this.tracker = new NullInfrastructureTracker();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComputingInfrastructureManagerForAws"/> class.
+        /// </summary>
+        /// <param name="settings">Settings for things like instance type maps, etc.</param>
         /// <param name="tracker">Tracking the resources manager.</param>
         public ComputingInfrastructureManagerForAws(ComputingInfrastructureManagerSettings settings, ITrackComputingInfrastructure tracker)
         {
+            this.disposeTracker = false;
             this.settings = settings;
             this.tracker = tracker;
         }
@@ -60,6 +76,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <param name="virtualMfaDeviceId">The identifier of the software based MFA token provider to use.</param>
         /// <param name="mfaValue">The one time value of the software based MFA token provider.</param>
         /// <returns>The class.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         public IManageComputingInfrastructure InitializeCredentials(
             string location,
             TimeSpan tokenLifespan,
@@ -89,6 +106,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
         /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
         /// <returns>New credentials for use in performing operations against the computing platform provider.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         public static CredentialContainer GetNewCredentials(
             string location,
             TimeSpan tokenLifespan,
@@ -133,7 +151,7 @@ namespace Naos.Deployment.ComputingManagement
                                     {
                                         Id = instanceDescription.SystemSpecificDetails[ElasticIpIdKeyForSystemSpecificDictionary],
                                         PublicIpAddress = instanceDescription.PublicIpAddress,
-                                        Region = systemLocation
+                                        Region = systemLocation,
                                     };
                 await elasticIp.DisassociateFromInstanceAsync(this.credentials);
                 if (releasePublicIpIfApplicable)
@@ -235,7 +253,7 @@ namespace Naos.Deployment.ComputingManagement
                                              {
                                                  Id = systemId,
                                                  Region = systemLocation,
-                                                 InstanceType = newAwsInstanceType
+                                                 InstanceType = newAwsInstanceType,
                                              };
 
             await instanceToChangeTypeof.UpdateInstanceTypeAsync(this.credentials);
@@ -279,7 +297,7 @@ namespace Naos.Deployment.ComputingManagement
                 environment,
                 instanceDetails.ComputingContainerDescription.ContainerLocation);
 
-            Func<string, string> getDeviceNameFromDriveLetter = delegate(string driveLetter)
+            Func<string, string> getDeviceNameFromDriveLetter = driveLetter =>
                 {
                     string mapResult;
                     var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out mapResult);
@@ -291,7 +309,7 @@ namespace Naos.Deployment.ComputingManagement
                     return mapResult;
                 };
 
-            Func<VolumeType, string> getVolumeTypeValueFromEnum = delegate(VolumeType volumeType)
+            Func<VolumeType, string> getVolumeTypeValueFromEnum = volumeType =>
                 {
                     string mapResult;
                     var foundResult = this.settings.VolumeTypeValueMap.TryGetValue(volumeType, out mapResult);
@@ -313,7 +331,7 @@ namespace Naos.Deployment.ComputingManagement
                             SizeInGb = _.SizeInGb,
                             DeviceName = getDeviceNameFromDriveLetter(_.DriveLetter),
                             VolumeType = getVolumeTypeValueFromEnum(_.Type),
-                            VirtualName = _.DriveLetter
+                            VirtualName = _.DriveLetter,
                         }).ToList();
 
             var awsInstanceType = this.GetAwsInstanceType(deploymentConfiguration.InstanceType);
@@ -353,7 +371,7 @@ namespace Naos.Deployment.ComputingManagement
                                            ContainingSubnet = new Subnet()
                                                                   {
                                                                       Id = instanceDetails.ComputingContainerDescription.ContainerId,
-                                                                      AvailabilityZone = instanceDetails.ComputingContainerDescription.ContainerLocation, 
+                                                                      AvailabilityZone = instanceDetails.ComputingContainerDescription.ContainerLocation,
                                                                   },
                                            Key = new KeyPair() { KeyName = instanceDetails.KeyName },
                                            PrivateIpAddress = instanceDetails.PrivateIpAddress,
@@ -379,7 +397,7 @@ namespace Naos.Deployment.ComputingManagement
                                    Data =
                                        includeInstanceInitializationScript
                                            ? this.settings.GetInstanceCreationUserData()
-                                           : string.Empty
+                                           : string.Empty,
                                };
 
             var createdInstance = await instanceToCreate.CreateAsync(userData, this.credentials);
@@ -393,7 +411,7 @@ namespace Naos.Deployment.ComputingManagement
                                                 {
                                                     InstanceTypeKeyForSystemSpecificDictionary,
                                                     awsInstanceType
-                                                }
+                                                },
                                             };
 
             if (createdInstance.ElasticIp != null)
@@ -408,7 +426,7 @@ namespace Naos.Deployment.ComputingManagement
                     {
                         Id = _.Id,
                         Version = _.Version,
-                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
+                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
                     });
 
             await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, this.credentials);
@@ -424,10 +442,7 @@ namespace Naos.Deployment.ComputingManagement
                 ComputerName = name,
                 Environment = environment,
                 Location = createdInstance.Region,
-                PublicIpAddress =
-                    createdInstance.ElasticIp == null
-                        ? null
-                        : createdInstance.ElasticIp.PublicIpAddress,
+                PublicIpAddress = createdInstance.ElasticIp?.PublicIpAddress,
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
                 DeployedPackages = deployedPackages,
                 SystemSpecificDetails = systemSpecificDetails,
@@ -467,7 +482,7 @@ namespace Naos.Deployment.ComputingManagement
                                              {
                                                  InstanceState = (InstanceState)Enum.Parse(typeof(InstanceState), _.InstanceStatus.InstanceState.ToString(), true),
                                                  SystemChecks = new Dictionary<string, CheckState>(),
-                                                 InstanceChecks = new Dictionary<string, CheckState>()
+                                                 InstanceChecks = new Dictionary<string, CheckState>(),
                                              };
 
                             return new InstanceDetailsFromComputingPlatform
@@ -477,7 +492,7 @@ namespace Naos.Deployment.ComputingManagement
                                            Name = name,
                                            Tags = tags,
                                            InstanceStatus = status,
-                                           PrivateIpAddress = _.PrivateIpAddress
+                                           PrivateIpAddress = _.PrivateIpAddress,
                                        };
                         }).ToList();
 
@@ -489,8 +504,12 @@ namespace Naos.Deployment.ComputingManagement
         /// </summary>
         /// <param name="instanceType">Instance type to use as basis.</param>
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VirtualCores", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RamInGb", Justification = "Name I want.")]
         public string GetAwsInstanceType(InstanceType instanceType)
         {
+            new { instanceType }.Must().NotBeNull().OrThrowFirstFailure();
+
             // if we don't have a specific instance type then look one up, otherwise use the specific one...
             if (!string.IsNullOrEmpty(instanceType.SpecificInstanceTypeSystemId))
             {
@@ -506,7 +525,7 @@ namespace Naos.Deployment.ComputingManagement
                         return type.AwsInstanceTypeDescriptor;
                     }
                 }
-            } 
+            }
             else if (instanceType.WindowsSku == WindowsSku.SqlStandard)
             {
                 foreach (var type in this.settings.AwsInstanceTypesForSqlStandard)
@@ -529,8 +548,8 @@ namespace Naos.Deployment.ComputingManagement
             }
 
             throw new DeploymentException(
-                "Could not find an AWS instance type that could support the specified needs; VirtualCores: "
-                + instanceType.VirtualCores + ", RamInGb: " + instanceType.RamInGb);
+                      "Could not find an AWS instance type that could support the specified needs; " + nameof(instanceType.VirtualCores) + ": "
+                      + instanceType.VirtualCores + ", " + nameof(instanceType.RamInGb) + ": " + instanceType.RamInGb);
         }
 
         /// <inheritdoc />
@@ -540,7 +559,7 @@ namespace Naos.Deployment.ComputingManagement
                                                {
                                                    Id = instanceDescription.Id,
                                                    Region = instanceDescription.Location,
-                                                   Key = new KeyPair() { PrivateKey = privateKey }
+                                                   Key = new KeyPair() { PrivateKey = privateKey },
                                                };
 
             string password;
@@ -572,11 +591,45 @@ namespace Naos.Deployment.ComputingManagement
             }
 
             // need root domain to lookup zone id
-            var rootDomain = host.Substring(index + 1); 
+            var rootDomain = host.Substring(index + 1);
 
             var hostingId = await this.tracker.GetDomainZoneIdAsync(environment, rootDomain);
             var dnsManager = new Route53Manager(this.credentials);
             await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain, ipAddresses);
+        }
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        /// <param name="disposing">Value indicating whether or not it is disposing.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "tracker", Justification = "It is disposed when appropriate (not passed in).")]
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    // Dispose code goes here
+                    if (this.disposeTracker)
+                    {
+                        this.tracker?.Dispose();
+                    }
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        public void Dispose()
+        {
+            // Don't change this code
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InfrastructureTrackerFactory.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -13,6 +13,8 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory for creating infrastructure trackers.
     /// </summary>
@@ -23,6 +25,7 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         /// <param name="infrastructureTrackerConfigurationBase">Configuration to use when creating an infrastructure tracker.</param>
         /// <returns>An implementation of the <see cref="ITrackComputingInfrastructure"/>.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily", Justification = "Prefer this layout.")]
         public static ITrackComputingInfrastructure Create(InfrastructureTrackerConfigurationBase infrastructureTrackerConfigurationBase)
         {
             ITrackComputingInfrastructure ret;
@@ -43,7 +46,7 @@ namespace Naos.Deployment.Tracking
             }
             else
             {
-                throw new NotSupportedException($"Configuration is not valid: {infrastructureTrackerConfigurationBase.ToJson()}");
+                throw new NotSupportedException(Invariant($"Configuration is not valid: {infrastructureTrackerConfigurationBase.ToJson()}"));
             }
 
             return ret;

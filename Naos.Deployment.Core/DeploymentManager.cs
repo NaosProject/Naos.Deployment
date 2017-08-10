@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeploymentManager.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -24,7 +24,10 @@ namespace Naos.Deployment.Core
 
     using Spritely.Recipes;
 
+    using static System.FormattableString;
+
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Not refactoring right now.")]
     public class DeploymentManager : IManageDeployments
     {
         /// <summary>
@@ -36,6 +39,10 @@ namespace Naos.Deployment.Core
         /// Lock object to only allow one WinRM call to happen at a time because System.Management.Automation seems to *sometimes* not support this.
         /// </summary>
         private readonly object syncMachineManager = new object();
+
+        private readonly object syncAnnounmcment = new object();
+        private readonly object syncDebugAnnounmcment = new object();
+        private readonly object syncTelemetry = new object();
 
         private readonly ITrackComputingInfrastructure tracker;
 
@@ -98,12 +105,12 @@ namespace Naos.Deployment.Core
             SetupStepFactorySettings setupStepFactorySettings,
             DeploymentAdjustmentStrategiesApplicator deploymentAdjustmentStrategiesApplicator,
             ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
-            Action<string> announcer, 
-            Action<string> debugAnnouncer, 
+            Action<string> announcer,
+            Action<string> debugAnnouncer,
             string workingDirectory,
             string environmentCertificateName = null,
-            string announcementFile = null, 
-            string debugAnnouncementFile = null, 
+            string announcementFile = null,
+            string debugAnnouncementFile = null,
             string telemetryFile = null)
         {
             this.tracker = tracker;
@@ -358,11 +365,7 @@ namespace Naos.Deployment.Core
             {
                 const bool WaitUntilOff = true;
                 this.LogAnnouncement("Post deployment strategy: TurnOffInstance is true - shutting down instance.", instanceNumber);
-                await this.computingManager.TurnOffInstanceAsync(
-                    createdInstanceDescription.Id,
-                    createdInstanceDescription.Location,
-                    // ReSharper disable once RedundantArgumentDefaultValue - keeping for clarity of what's happening...
-                    WaitUntilOff);
+                await this.computingManager.TurnOffInstanceAsync(createdInstanceDescription.Id, createdInstanceDescription.Location, WaitUntilOff);
             }
         }
 
@@ -410,7 +413,7 @@ namespace Naos.Deployment.Core
 
         private void UpsertDnsEntry(int instanceNumber, string environment, string dns, string ipAddress, string instanceLocation)
         {
-            this.LogAnnouncement($" - Pointing {dns} at {ipAddress}.", instanceNumber);
+            this.LogAnnouncement(Invariant($" - Pointing {dns} at {ipAddress}."), instanceNumber);
 
             lock (this.syncDnsManager)
             {
@@ -510,8 +513,8 @@ namespace Naos.Deployment.Core
 
                         if (!bundleAllDependencies && bundleAllDependenciesReCheck)
                         {
-                            // since we previously didn't bundle the packages dependencies 
-                            //        AND found in the extraced config that we need to 
+                            // since we previously didn't bundle the packages dependencies
+                            //        AND found in the extraced config that we need to
                             //       THEN we need to re-download with dependencies bundled...
                             package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, true);
                         }
@@ -574,18 +577,18 @@ namespace Naos.Deployment.Core
                         if (throwOnFailedSetupStep)
                         {
                             throw new DeploymentException(
-                                $"Instance {instanceNumber} - Failed to run setup step {setupStep.Description} after {maxTries} attempts",
+                                Invariant($"Instance {instanceNumber} - Failed to run setup step {setupStep.Description} after {maxTries} attempts"),
                                 ex);
                         }
                         else
                         {
-                            var exceededMaxTriesMessage = $"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}";
+                            var exceededMaxTriesMessage = Invariant($"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}");
                             this.LogAnnouncement(exceededMaxTriesMessage, instanceNumber);
                         }
                     }
                     else
                     {
-                        var failedRetryingMessage = $"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying";
+                        var failedRetryingMessage = Invariant($"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying");
                         this.LogAnnouncement(failedRetryingMessage, instanceNumber);
                         this.LogDebugAnnouncement(setupStep.Description, instanceNumber, new[] { ex });
                         Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
@@ -594,6 +597,7 @@ namespace Naos.Deployment.Core
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Want to catch a general exception.")]
         private void RebootInstance(int instanceNumber, MachineManager machineManager)
         {
             var sleepTimeInSeconds = 1d;
@@ -627,6 +631,7 @@ namespace Naos.Deployment.Core
             this.WaitUntilMachineIsAccessible(machineManager);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "notNeededResults", Justification = "Keeping to show there is a result, we just don't need it here.")]
         private void WaitUntilMachineIsAccessible(MachineManager machineManager)
         {
             const int MaxExceptionCount = 10000;
@@ -820,7 +825,7 @@ namespace Naos.Deployment.Core
 
             var json = JsonConvert.SerializeObject(objectToFlush);
 
-            lock (this.telemetryFile)
+            lock (this.syncTelemetry)
             {
                 File.WriteAllText(this.telemetryFile, json);
             }
@@ -846,7 +851,7 @@ namespace Naos.Deployment.Core
                             {
                                 DateTime = DateTime.UtcNow,
                                 InstanceNumber = instanceNumber,
-                                Output = new[] { instanceNumberAdjustedStep }.Union(stringOutput).ToArray()
+                                Output = new[] { instanceNumberAdjustedStep }.Concat(stringOutput).ToArray(),
                             };
             this.debugAnnouncements.Add(entry);
             this.FlushDebugs();
@@ -883,7 +888,7 @@ namespace Naos.Deployment.Core
 
             var json = JsonConvert.SerializeObject(objectToFlush);
 
-            lock (this.debugAnnouncementFile)
+            lock (this.syncDebugAnnounmcment)
             {
                 File.WriteAllText(this.debugAnnouncementFile, json);
             }
@@ -905,13 +910,13 @@ namespace Naos.Deployment.Core
 
             var json = JsonConvert.SerializeObject(objectToFlush);
 
-            lock (this.announcementFile)
+            lock (this.syncAnnounmcment)
             {
                 File.WriteAllText(this.announcementFile, json);
             }
         }
 
-        private class TelemetryEntry 
+        private class TelemetryEntry
         {
             public int? InstanceNumber { get; set; }
 
@@ -923,21 +928,23 @@ namespace Naos.Deployment.Core
             public DateTime? Stop { get; set; }
         }
 
-        private class AnnouncementEntry 
+        private class AnnouncementEntry
         {
             public int? InstanceNumber { get; set; }
 
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Keep for serialization.")]
             public string Step { get; set; }
 
             public DateTime? DateTime { get; set; }
         }
 
-        private class DebugAnnouncementEntry 
+        private class DebugAnnouncementEntry
         {
             public int? InstanceNumber { get; set; }
 
             // ReSharper disable once UnusedAutoPropertyAccessor.Local - want this for serialization...
+            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "Keep for serialization.")]
             public string[] Output { get; set; }
 
             public DateTime? DateTime { get; set; }

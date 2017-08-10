@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.Iis.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -43,12 +43,8 @@ namespace Naos.Deployment.Core
 
             var appPoolAccount = this.GetAccountToUse(iisStrategy);
 
-            var autoStartProviderName = iisStrategy.AutoStartProvider == null
-                                            ? null
-                                            : iisStrategy.AutoStartProvider.Name;
-            var autoStartProviderType = iisStrategy.AutoStartProvider == null
-                                            ? null
-                                            : iisStrategy.AutoStartProvider.Type;
+            var autoStartProviderName = iisStrategy.AutoStartProvider?.Name;
+            var autoStartProviderType = iisStrategy.AutoStartProvider?.Type;
 
             var enableHttp = iisStrategy.EnableHttp;
 
@@ -64,9 +60,9 @@ namespace Naos.Deployment.Core
 
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, certificateTargetPath,
-                                               certDetails.PfxPasswordInClearText.ToSecureString(), appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
-                                               autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
+                                               webRootPath, primaryDns, certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(),
+                                               appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
+                                               AddHostHeaders, enableHttp,
                                            };
 
             webSteps.Add(
@@ -77,7 +73,7 @@ namespace Naos.Deployment.Core
                             {
                                 machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
                                 return new dynamic[0];
-                            }
+                            },
                     });
 
             webSteps.Add(
@@ -86,7 +82,7 @@ namespace Naos.Deployment.Core
                     Description = "Install IIS and configure website/webservice.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters)
+                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters),
                 });
 
             return webSteps;

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     internal partial class SetupStepFactory
     {
         private readonly IGetCertificates certificateRetriever;
@@ -60,79 +61,37 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets the administrator account name.
         /// </summary>
-        public string AdministratorAccount
-        {
-            get
-            {
-                return this.settings.AdministratorAccount;
-            }
-        }
+        public string AdministratorAccount => this.settings.AdministratorAccount;
 
         /// <summary>
         /// Gets the root deployment path.
         /// </summary>
-        public string RootDeploymentPath
-        {
-            get
-            {
-                return this.settings.RootDeploymentPath;
-            }
-        }
+        public string RootDeploymentPath => this.settings.RootDeploymentPath;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes
-        {
-            get
-            {
-                return this.settings.InitializationStrategyTypesThatNeedPackageBytes;
-            }
-        }
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes => this.settings.InitializationStrategyTypesThatNeedPackageBytes;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate
-        {
-            get
-            {
-                return this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
-            }
-        }
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate => this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
 
         /// <summary>
         /// Gets the max number of times to execute a setup step before throwing.
         /// </summary>
-        public int MaxSetupStepAttempts
-        {
-            get
-            {
-                return this.settings.MaxSetupStepAttempts;
-            }
-        }
+        public int MaxSetupStepAttempts => this.settings.MaxSetupStepAttempts;
 
         /// <summary>
         /// Gets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
         /// </summary>
-        public bool ThrowOnFailedSetupStep
-        {
-            get
-            {
-                return this.settings.ThrowOnFailedSetupStep;
-            }
-        }
+        public bool ThrowOnFailedSetupStep => this.settings.ThrowOnFailedSetupStep;
 
         /// <summary>
         /// Gets the list of directories we've found people add to packages and contain assemblies that fail to load correctly in reflection and are not be necessary for normal function.
         /// </summary>
-        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune
-        {
-            get
-            {
-                return this.settings.RootPackageDirectoriesToPrune;
-            }
-        }
+        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune => this.settings.RootPackageDirectoriesToPrune;
 
         /// <summary>
         /// Get the appropriate setup steps for the packaged config.
@@ -305,7 +264,7 @@ namespace Naos.Deployment.Core
                                                          }
 
                                                          return new dynamic[0];
-                                                     }
+                                                     },
                                              };
 
             return deployUnzippedFileStep;

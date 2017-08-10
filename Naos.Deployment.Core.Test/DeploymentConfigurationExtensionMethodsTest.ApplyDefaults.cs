@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public partial class DeploymentConfigurationExtensionMethodsTest
+    public static partial class DeploymentConfigurationExtensionMethodsTest
     {
         [Fact]
         public static void ApplyDefaults_InstanceCount_ZeroOverrideBecomesOne()
@@ -57,12 +57,12 @@ namespace Naos.Deployment.Core.Test
                                                         {
                                                             DriveLetter = "C",
                                                             SizeInGb = 50,
-                                                            Type = VolumeType.HighPerformance
-                                                        }
+                                                            Type = VolumeType.HighPerformance,
+                                                        },
                                                 },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true }
+                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
@@ -108,7 +108,7 @@ namespace Naos.Deployment.Core.Test
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
             {
-                Volumes = new[] { new Volume() }
+                Volumes = new[] { new Volume() },
             };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
@@ -121,7 +121,7 @@ namespace Naos.Deployment.Core.Test
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
                                     {
-                                        Volumes = new[] { new Volume { Type = VolumeType.DoesNotMatter } }
+                                        Volumes = new[] { new Volume { Type = VolumeType.DoesNotMatter } },
                                     };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);

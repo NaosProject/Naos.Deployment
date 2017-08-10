@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IHaveItsConfigOverrides.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets a collection of Its.Configuration overrides.
         /// </summary>
-        ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; } 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
+        ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
     }
 }

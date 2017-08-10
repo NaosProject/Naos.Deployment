@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="MessageBusHarnessAdder.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,10 @@ namespace Naos.Deployment.Core
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
+
+    using Spritely.Recipes;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Class to implement <see cref="AdjustDeploymentBase"/> to add message bus harness package when needed.
@@ -63,8 +67,11 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, string rootDeploymentPath)
         {
+            new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
+
             PackagedDeploymentConfiguration ret = null;
 
             // get all message bus handler initializations to know if we need a handler.
@@ -83,15 +90,15 @@ namespace Naos.Deployment.Core
 
                 var packageFolderName = packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString();
 
-                // extract appropriate files from 
+                // extract appropriate files from
                 var itsConfigFilesFromPackage = new Dictionary<string, string>();
                 var precedenceChain = new[] { environment }.ToList();
                 precedenceChain.AddRange(itsConfigPrecedenceAfterEnvironment);
                 foreach (var precedenceElement in precedenceChain)
                 {
                     var itsConfigFolderPattern = packageWithMessageBusInitializations.PackageWithBundleIdentifier.AreDependenciesBundled
-                                                     ? $"{packageFolderName}/Configuration/.config/{precedenceElement}/"
-                                                     : $".config/{precedenceElement}/";
+                                                     ? Invariant($"{packageFolderName}/Configuration/.config/{precedenceElement}/")
+                                                     : Invariant($".config/{precedenceElement}/");
 
                     var itsConfigFilesFromPackageForPrecedenceElement =
                         packageHelper.GetMultipleFileContentsFromPackageAsStrings(
@@ -124,7 +131,7 @@ namespace Naos.Deployment.Core
 
         private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(string environment, string instanceName, int instanceNumber, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string rootDeploymentPath)
         {
-            // TODO:    Maybe this should be exclusively done with that provided package and 
+            // TODO:    Maybe this should be exclusively done with that provided package and
             // TODO:        only update the private channel to monitor and directory of packages...
 
             // Create a new list to use for the overrides of the handler harness deployment
@@ -176,15 +183,15 @@ namespace Naos.Deployment.Core
                                                        TypeMatchStrategy = TypeMatchStrategy.NamespaceAndName,
                                                        MessageDispatcherWaitThreadSleepTime = TimeSpan.FromSeconds(.5),
                                                        RetryCount = 0,
-                                                       HarnessProcessTimeToLive = this.MessageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive
-                                                   }
+                                                       HarnessProcessTimeToLive = this.MessageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive,
+                                                   },
                                            };
 
             var messageBusHandlerSettings = new MessageBusHarnessSettings
                                                 {
                                                     ConnectionConfiguration = this.MessageBusHandlerHarnessConfiguration.PersistenceConnectionConfiguration,
                                                     RoleSettings = executorRoleSettings,
-                                                    LogProcessorSettings = this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings
+                                                    LogProcessorSettings = this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings,
                                                 };
 
             // add the override that will activate the harness in executor mode.
@@ -193,7 +200,7 @@ namespace Naos.Deployment.Core
                 new ItsConfigOverride
                     {
                         FileNameWithoutExtension = "MessageBusHarnessSettings",
-                        FileContentsJson = messageBusHandlerSettingsJson
+                        FileContentsJson = messageBusHandlerSettingsJson,
                     });
 
             var messageBusHandlerHarnessInitializationStrategies = this.MessageBusHandlerHarnessConfiguration.Package.InitializationStrategies.Select(_ => (InitializationStrategyBase)_.Clone()).ToList();

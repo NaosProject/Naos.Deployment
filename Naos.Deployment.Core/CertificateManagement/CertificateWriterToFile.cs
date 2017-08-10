@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CertificateWriterToFile.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -32,14 +32,14 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public async Task PersistCertficateAsync(CertificateDescriptionWithClearPfxPayload certificateToLoad, CertificateLocator encryptingCertificateLocator)
+        public async Task PersistCertificateAsync(CertificateDescriptionWithClearPfxPayload certificate, CertificateLocator encryptingCertificateLocator)
         {
-            var newCert = certificateToLoad.ToEncryptedVersion(encryptingCertificateLocator);
-            await this.PersistCertficateAsync(newCert);
+            var newCert = certificate.ToEncryptedVersion(encryptingCertificateLocator);
+            await this.PersistCertificateAsync(newCert);
         }
 
         /// <inheritdoc />
-        public async Task PersistCertficateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
+        public async Task PersistCertificateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
         {
             lock (this.fileSync)
             {

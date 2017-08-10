@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeploymentConfigurationExtensionMethods.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,9 +9,12 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+
+    using Spritely.Recipes;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Methods added to instance configuration objects.
@@ -23,6 +26,7 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="deploymentConfigs">Deployment configurations to operate against.</param>
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         public static DeploymentConfiguration Flatten(this ICollection<DeploymentConfiguration> deploymentConfigs)
         {
             // Makes sure we don't have competing IncludeInstanceInitializationScript values
@@ -89,13 +93,6 @@ namespace Naos.Deployment.Core
                                          ? InstanceAccessibility.Private
                                          : firstOrDefaultPubliclyAccessibility.InstanceAccessibility;
 
-            if (deploymentConfigs.Count == 1)
-            {
-                var singleValueToReturn = deploymentConfigs.Single();
-                singleValueToReturn.InstanceAccessibility = accessibilityToUse;
-                return singleValueToReturn;
-            }
-
             var allVolumes = deploymentConfigs.SelectMany(_ => _.Volumes ?? new List<Volume>()).ToList();
             var distinctDriveLetters = allVolumes.Select(_ => _.DriveLetter).Distinct().ToList();
             var volumes = new List<Volume>();
@@ -145,12 +142,18 @@ namespace Naos.Deployment.Core
                               Volumes = volumes,
                               ChocolateyPackages = chocolateyPackagesToUse,
                               DeploymentStrategy = deploymentStrategy,
-                              PostDeploymentStrategy = postDeploymentStrategy
+                              PostDeploymentStrategy = postDeploymentStrategy,
                           };
+
+            if (!string.IsNullOrWhiteSpace(ret.InstanceType.SpecificImageSystemId) && ret.InstanceType.WindowsSku != WindowsSku.SpecificImageSupplied)
+            {
+                throw new ArgumentException(Invariant($"The flattened instance type has a SpecificImageSystemId: '{ret.InstanceType.SpecificImageSystemId}' but does not have the corresponding WindowsSku: '{nameof(WindowsSku.SpecificImageSupplied)}', instead it is: '{ret.InstanceType.WindowsSku}'."));
+            }
 
             return ret;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VolumeType", Justification = "Name I want.")]
         private static VolumeType Flatten(this ICollection<VolumeType> types)
         {
             if (types.Contains(VolumeType.HighPerformance))
@@ -171,7 +174,7 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException("Unsupported VolumeType in collection: " + string.Join(",", types));
+                throw new NotSupportedException("Unsupported " + nameof(VolumeType) + " in collection: " + string.Join(",", types));
             }
         }
 
@@ -189,6 +192,8 @@ namespace Naos.Deployment.Core
             {
                 return deploymentConfigInitial;
             }
+
+            new { deploymentConfigInitial }.Must().NotBeNull().OrThrowFirstFailure();
 
             var instanceAccessibility = deploymentConfigInitial.InstanceAccessibility;
             var overrideAccessibility = deploymentConfigOverride.InstanceAccessibility;
@@ -226,7 +231,7 @@ namespace Naos.Deployment.Core
                                   ?? deploymentConfigInitial.DeploymentStrategy,
                               PostDeploymentStrategy =
                                   deploymentConfigOverride.PostDeploymentStrategy
-                                  ?? deploymentConfigInitial.PostDeploymentStrategy
+                                  ?? deploymentConfigInitial.PostDeploymentStrategy,
                           };
 
             if (ret.InstanceType == null)
@@ -245,6 +250,7 @@ namespace Naos.Deployment.Core
         /// <param name="deploymentConfigInitial">Base deployment config to work with.</param>
         /// <param name="defaultDeploymentConfig">Defaults to use in case of a null value.</param>
         /// <returns>Copy of provided config with defaults applied.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         public static DeploymentConfiguration ApplyDefaults(
             this DeploymentConfiguration deploymentConfigInitial,
             DeploymentConfiguration defaultDeploymentConfig)
@@ -323,7 +329,7 @@ namespace Naos.Deployment.Core
                                   (deploymentConfigInitial == null
                                        ? null
                                        : deploymentConfigInitial.PostDeploymentStrategy)
-                                  ?? defaultDeploymentConfig.PostDeploymentStrategy
+                                  ?? defaultDeploymentConfig.PostDeploymentStrategy,
                           };
 
             if (ret.InstanceType != null)

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="PackageHelper.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -8,7 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
-    using static System.FormattableString;
+    using System.Globalization;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -18,6 +18,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Packaging.Domain;
 
+    using Spritely.Recipes;
     using Spritely.Redo;
 
     /// <summary>
@@ -48,10 +49,13 @@ namespace Naos.Deployment.Core
         /// <param name="packageDescription">Description of the package to download.</param>
         /// <param name="bundleAllDependencies">Whether or not to include dependencies in the bundle.</param>
         /// <returns>Package with indicator of bundling.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public PackageWithBundleIdentifier GetPackage(PackageDescription packageDescription, bool bundleAllDependencies)
         {
+            new { packageDescription }.Must().NotBeNull().OrThrowFirstFailure();
+
             const string DirectoryDateTimeToStringFormat = "yyyy-MM-dd--HH-mm-ss--ffff";
-            var localWorkingDirectory = Path.Combine(this.workingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat));
+            var localWorkingDirectory = Path.Combine(this.workingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat, CultureInfo.CurrentCulture));
 
             byte[] fileBytes;
             if (bundleAllDependencies)
@@ -99,7 +103,7 @@ namespace Naos.Deployment.Core
                 var packageDownloadPaths = this.packageManager.DownloadPackages(new[] { packageDescription }, localWorkingDirectory);
                 if (packageDownloadPaths.Count <= 0)
                 {
-                    throw new InvalidOperationException(Invariant($"Failed to get a package path for package description: {packageDescription.GetIdDotVersionString()} from PackageManager.DownloadPackages"));
+                    throw new InvalidOperationException(FormattableString.Invariant($"Failed to get a package path for package description: {packageDescription.GetIdDotVersionString()} from PackageManager.DownloadPackages"));
                 }
 
                 var packageFilePath = packageDownloadPaths.Single();
@@ -109,7 +113,7 @@ namespace Naos.Deployment.Core
             // clean up temp files
             Using.LinearBackOff(TimeSpan.FromSeconds(5))
                 .WithMaxRetries(3)
-                .WithReporter(_ => Log.Write(new LogEntry(Invariant($"Retrying delete package working directory {localWorkingDirectory} due to error."), _)))
+                .WithReporter(_ => Log.Write(new LogEntry(FormattableString.Invariant($"Retrying delete package working directory {localWorkingDirectory} due to error."), _)))
                 .Run(() => Directory.Delete(localWorkingDirectory, true))
                 .Now();
 
@@ -117,7 +121,7 @@ namespace Naos.Deployment.Core
             {
                 PackageDescription = packageDescription,
                 PackageFileBytes = fileBytes,
-                PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow
+                PackageFileBytesRetrievalDateTimeUtc = DateTime.UtcNow,
             };
 
             var ret = new PackageWithBundleIdentifier { Package = package, AreDependenciesBundled = bundleAllDependencies };
@@ -130,8 +134,10 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="frameworkDirectories">List of paths for the supported frameworks.</param>
         /// <returns>List of paths deemed extraneous to be removed.</returns>
-        public static List<string> FindExtraneousFrameworksToDelete(string[] frameworkDirectories)
+        public static IReadOnlyCollection<string> FindExtraneousFrameworksToDelete(string[] frameworkDirectories)
         {
+            new { frameworkDirectories }.Must().NotBeNull().OrThrowFirstFailure();
+
             var directoriesToDelete = new List<string>();
             var frameworkFolderToKeep = frameworkDirectories.Length == 1
                                             ? frameworkDirectories.Single()
@@ -140,8 +146,8 @@ namespace Naos.Deployment.Core
                                                 {
                                                     var directoryName = Path.GetFileName(directoryPath);
                                                     var includeInWhere = directoryName != null
-                                                                         && directoryName.StartsWith("net", StringComparison.InvariantCultureIgnoreCase)
-                                                                         && !directoryName.StartsWith("netstandard", StringComparison.InvariantCultureIgnoreCase);
+                                                                         && directoryName.StartsWith("net", StringComparison.OrdinalIgnoreCase)
+                                                                         && !directoryName.StartsWith("netstandard", StringComparison.OrdinalIgnoreCase);
                                                     return includeInWhere;
                                                 }).OrderByDescending(_ => _).FirstOrDefault();
 
@@ -171,6 +177,8 @@ namespace Naos.Deployment.Core
         /// <returns>Version specified in the NUSPEC config.</returns>
         public string GetActualVersionFromPackage(Package package)
         {
+            new { package }.Must().NotBeNull().OrThrowFirstFailure();
+
             if (string.Equals(
                 package.PackageDescription.Id,
                 PackageDescription.NullPackageId,
@@ -179,14 +187,14 @@ namespace Naos.Deployment.Core
                 return "[DOES NOT HAVE A VERSION]";
             }
 
-            var nuSpecSearchPattern = package.PackageDescription.Id + ".nuspec";
-            var nuSpecFileContents =
-                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuSpecSearchPattern)
+            var nuspecSearchPattern = package.PackageDescription.Id + ".nuspec";
+            var nuspecFileContents =
+                this.packageManager.GetMultipleFileContentsFromPackageAsStrings(package, nuspecSearchPattern)
                     .Select(_ => _.Value)
                     .SingleOrDefault();
-            var actualVersion = nuSpecFileContents == null
+            var actualVersion = nuspecFileContents == null
                                     ? "[FAILED TO EXTRACT FROM PACKAGE]"
-                                    : this.packageManager.GetVersionFromNuSpecFile(nuSpecFileContents);
+                                    : this.packageManager.GetVersionFromNuSpecFile(nuspecFileContents);
             return actualVersion;
         }
 

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="NullComputingManager.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -77,6 +77,36 @@ namespace Naos.Deployment.ComputingManagement
         public async Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
+        }
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        /// <param name="disposing">Value indicating whether or not it is disposing.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    // Dispose code goes here
+                    /* no-op */
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        public void Dispose()
+        {
+            // Don't change this code
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
