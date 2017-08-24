@@ -173,14 +173,13 @@ namespace Naos.Deployment.Core
                 {
                     var usersToGrantAccessToKey = allInitializationStrategies.Select(this.GetAccountToUse).Where(_ => _ != null).Distinct().ToArray();
 
-                    var environmentCertSteps =
-                        await
-                        this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
-                            this.RootDeploymentPath,
-                            this.settings.HarnessSettings.HarnessAccount,
-                            this.settings.WebServerSettings.IisAccount,
-                            usersToGrantAccessToKey,
-                            this.environmentCertificateName);
+                    var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
+                                                   this.RootDeploymentPath,
+                                                   this.settings.HarnessSettings.HarnessAccount,
+                                                   this.settings.WebServerSettings.IisAccount,
+                                                   usersToGrantAccessToKey,
+                                                   this.environmentCertificateName,
+                                                   false);
                     ret.AddRange(environmentCertSteps);
                 }
             }

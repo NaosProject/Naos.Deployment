@@ -24,16 +24,12 @@ namespace Naos.Deployment.Core
         {
             var usersToGrantPrivateKeyAccess = new[] { certToInstallStrategy.AccountToGrantPrivateKeyAccess };
             var certificateName = certToInstallStrategy.CertificateToInstall;
+            var installExportable = certToInstallStrategy.InstallExportable;
 
-            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName);
+            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName, installExportable);
         }
 
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
-            string tempPathToStoreFileWhileInstalling,
-            string harnessAccount,
-            string iisAccount,
-            ICollection<string> usersToGrantPrivateKeyAccess,
-            string certificateName)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string tempPathToStoreFileWhileInstalling, string harnessAccount, string iisAccount, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
         {
             var certSteps = new List<SetupStep>();
 
@@ -59,7 +55,7 @@ namespace Naos.Deployment.Core
                             },
                     });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), tokenAppliedUsers };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), installExportable, tokenAppliedUsers };
 
             certSteps.Add(
                 new SetupStep

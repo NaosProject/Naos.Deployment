@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     using Naos.Cron;
@@ -38,19 +39,7 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException("Could not find certificate by name: " + sslCertificateName);
             }
 
-            var certificateTargetPath = Path.Combine(consoleRootPath, certDetails.GenerateFileName());
-            selfHostSteps.Add(
-                new SetupStep
-                    {
-                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
-                        SetupFunc = machineManager =>
-                            {
-                                machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
-                                return new dynamic[0];
-                            },
-                    });
-
-            var configureCertParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), applicationId, selfHostDnsEntries };
+            var configureCertParams = new object[] { StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.Thumbprint, applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {

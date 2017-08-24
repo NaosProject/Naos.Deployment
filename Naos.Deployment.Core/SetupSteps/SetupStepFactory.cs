@@ -10,12 +10,15 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     using Its.Log.Instrumentation;
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -105,6 +108,8 @@ namespace Naos.Deployment.Core
         {
             ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
+            ThrowIfCertificatesNotProperlyConfigured(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyCertificateToInstall>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategySelfHost>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>());
+
             var ret = new List<SetupStep>();
 
             var distinctInitializationStrategyTypes = packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
@@ -136,7 +141,6 @@ namespace Naos.Deployment.Core
                 var webSteps = await this.GetIisSpecificSetupStepsAsync(
                     (InitializationStrategyIis)strategy,
                     packagedConfig.ItsConfigOverrides,
-                    packageDirectoryPath,
                     webRootPath,
                     environment,
                     adminPassword,
@@ -273,6 +277,41 @@ namespace Naos.Deployment.Core
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
             return Path.Combine(this.RootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
+        }
+
+        private static void ThrowIfCertificatesNotProperlyConfigured(
+            ICollection<InitializationStrategyCertificateToInstall> certificateToInstallStrategies,
+            ICollection<InitializationStrategySelfHost> selfHostStrategies,
+            ICollection<InitializationStrategyIis> iisStrategies)
+        {
+            Action<string, string> verifyCertificate = (certName, description) =>
+                {
+                    var certToInstall = certificateToInstallStrategies.SingleOrDefault(_ => _.CertificateToInstall == certName);
+                    if (certToInstall == null)
+                    {
+                        throw new DeploymentException(Invariant($"Failed to initializations strategy to install certificate: {certName}.  {description}"));
+                    }
+
+                    if ((certToInstall.StoreLocation ?? StoreLocation.LocalMachine) != StoreLocation.LocalMachine)
+                    {
+                        throw new DeploymentException(Invariant($"Certificate Store Location must be {StoreLocation.LocalMachine} instead of {certToInstall.StoreLocation} for cert: {certName}.  {description}"));
+                    }
+
+                    if ((certToInstall.StoreName ?? StoreName.My) != StoreName.My)
+                    {
+                        throw new DeploymentException(Invariant($"Certificate Store Name must be {StoreName.My} instead of {certToInstall.StoreName} for cert: {certName}.  {description}"));
+                    }
+                };
+
+            foreach (var selfHost in selfHostStrategies)
+            {
+                verifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeName}"));
+            }
+
+            foreach (var iis in iisStrategies)
+            {
+                verifyCertificate(iis.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
+            }
         }
     }
 }
