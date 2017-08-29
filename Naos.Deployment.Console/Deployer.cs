@@ -260,7 +260,7 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "cleanPassword", Justification = "Name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "pfxFilePath", Justification = "Name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "3", Justification = "Is validated with Must.")]
-        [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
+        [Verb(Aliases = "upload", Description = "Deploys a new instance with specified packages.")]
         public static void UploadCertificate(
                 [Aliases("")] [Description("Certificate writer configuration JSON.")] string certificateWriterJson,
                 [Aliases("")] [Description("Name of the certificate to load.")] string name,

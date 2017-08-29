@@ -73,5 +73,16 @@ namespace Naos.Deployment.Domain
         {
             return this.FriendlyName + ".pfx";
         }
+
+        /// <summary>
+        /// Gets the thumbprint cleaned up for use Powershell paths.
+        /// </summary>
+        /// <returns>Cleanup up thumbpring for path use.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Powershell", Justification = "Spelled correctly.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pathable", Justification = "Spelled correctly.")]
+        public string GetPowershellPathableThumbprint()
+        {
+            return this.Thumbprint.Replace(" ", string.Empty);
+        }
     }
 }

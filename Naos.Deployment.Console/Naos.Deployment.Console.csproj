@@ -149,9 +149,15 @@
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\release.ruleset" />
-    <None Include=".config\Common\ComputingInfrastructureManagerSettings.json" />
-    <None Include=".config\Common\DefaultDeploymentConfiguration.json" />
-    <None Include=".config\Common\SetupStepFactorySettings.json" />
+    <Content Include=".config\Common\ComputingInfrastructureManagerSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include=".config\Common\DefaultDeploymentConfiguration.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include=".config\Common\SetupStepFactorySettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
     <Compile Include=".Naos.Recipes\TupleInitializers\Initializers.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />

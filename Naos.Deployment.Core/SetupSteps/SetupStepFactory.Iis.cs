@@ -58,7 +58,7 @@ namespace Naos.Deployment.Core
 
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.Thumbprint,
+                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.GetPowershellPathableThumbprint(),
                                                appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
                                                AddHostHeaders, enableHttp,
                                            };

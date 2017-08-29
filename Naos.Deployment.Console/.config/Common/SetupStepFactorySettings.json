@@ -374,7 +374,7 @@
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword [boolean] $InstallExportable, [Array] $UsersToGrantPrivateKeyAccess = $null)",
+                "param([string] $CertPath, [SecureString] $CertPassword, [boolean] $InstallExportable, [Array] $UsersToGrantPrivateKeyAccess = $null)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
                 "   if ($InstallExportable) {",

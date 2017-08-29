@@ -27,9 +27,9 @@ namespace Naos.Deployment.Core
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<ICollection<SetupStep>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
+        public async Task<ICollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
         {
-            var ret = new List<SetupStep>();
+            var steps = new List<SetupStep>();
 
             var setupWinRm = new SetupStep
                                  {
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core
                                              .ScriptText),
                                  };
 
-            ret.Add(setupWinRm);
+            steps.Add(setupWinRm);
 
             var setupUpdates = new SetupStep
                                    {
@@ -53,7 +53,7 @@ namespace Naos.Deployment.Core
                                                .SetupWindowsUpdatesScriptBlock.ScriptText),
                                    };
 
-            ret.Add(setupUpdates);
+            steps.Add(setupUpdates);
 
             var setupTime = new SetupStep
                                 {
@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core
                                             .ScriptText),
                                 };
 
-            ret.Add(setupTime);
+            steps.Add(setupTime);
 
             var execScripts = new SetupStep
                                   {
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core
                                               .EnableScriptExecutionScriptBlock.ScriptText),
                                   };
 
-            ret.Add(execScripts);
+            steps.Add(execScripts);
 
             var windowsSkuEnvironmentVariable = "WindowsSku";
             var addEnvironmentVariables = new SetupStep
@@ -105,7 +105,7 @@ namespace Naos.Deployment.Core
                                                       },
                                               };
 
-            ret.Add(addEnvironmentVariables);
+            steps.Add(addEnvironmentVariables);
 
             var wallpaperUpdate = new SetupStep
                                       {
@@ -120,7 +120,7 @@ namespace Naos.Deployment.Core
                                               },
                                       };
 
-            ret.Add(wallpaperUpdate);
+            steps.Add(wallpaperUpdate);
 
             var registryKeysToUpdateExplorer = new[]
                                                    {
@@ -161,10 +161,10 @@ namespace Naos.Deployment.Core
                                                  },
                                          };
 
-            ret.Add(explorerShowHidden);
+            steps.Add(explorerShowHidden);
 
             var installChocoSteps = this.GetChocolateySetupSteps(chocolateyPackages);
-            ret.AddRange(installChocoSteps);
+            steps.AddRange(installChocoSteps);
 
             if (!string.IsNullOrEmpty(this.environmentCertificateName))
             {
@@ -180,7 +180,7 @@ namespace Naos.Deployment.Core
                                                    usersToGrantAccessToKey,
                                                    this.environmentCertificateName,
                                                    false);
-                    ret.AddRange(environmentCertSteps);
+                    steps.AddRange(environmentCertSteps);
                 }
             }
 
@@ -196,9 +196,9 @@ namespace Naos.Deployment.Core
                                      },
                              };
 
-            ret.Add(rename);
+            steps.Add(rename);
 
-            return ret;
+            return new[] { new SetupStepBatch { ExecutionOrder = 0, Steps = steps } };
         }
 
         private ICollection<SetupStep> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)

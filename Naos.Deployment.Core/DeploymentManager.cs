@@ -346,10 +346,10 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
-                    var setupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
+                    var setupStepBatches = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
-                    await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
+                    await this.RunSetupStepsAsync(machineManager, setupStepBatches, instanceNumber);
 
                     // Mark the instance as having the successfully deployed packages
                     await this.tracker.ProcessDeployedPackageAsync(
@@ -459,12 +459,13 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task RunSetupStepsAsync(MachineManager machineManager, ICollection<SetupStep> setupSteps, int instanceNumber)
+        private async Task RunSetupStepsAsync(MachineManager machineManager, ICollection<SetupStepBatch> setupStepBatches, int instanceNumber)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
-            foreach (var setupStep in setupSteps)
+            var orderedSteps = setupStepBatches.Where(_ => _ != null).OrderBy(_ => _.ExecutionOrder).SelectMany(_ => _?.Steps).Where(_ => _ != null).ToList();
+            foreach (var setupStep in orderedSteps)
             {
                 Func<Task> retryingSetupAction = () =>
                     {

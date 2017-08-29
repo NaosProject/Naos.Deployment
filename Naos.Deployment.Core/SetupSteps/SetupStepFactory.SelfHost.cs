@@ -39,7 +39,7 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException("Could not find certificate by name: " + sslCertificateName);
             }
 
-            var configureCertParams = new object[] { StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.Thumbprint, applicationId, selfHostDnsEntries };
+            var configureCertParams = new object[] { StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.GetPowershellPathableThumbprint(), applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
