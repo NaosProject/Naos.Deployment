@@ -26,8 +26,8 @@ namespace Naos.Deployment.Persistence
         public CertificateDescriptionWithEncryptedPfxPayload Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets the last updated date time in UTC.
+        /// Gets or sets the last modified date time in UTC.
         /// </summary>
-        public DateTime LastUpdatedUtc { get; set; }
+        public DateTime RecordLastModifiedUtc { get; set; }
     }
 }

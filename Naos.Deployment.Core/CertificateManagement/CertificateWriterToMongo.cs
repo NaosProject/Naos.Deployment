@@ -47,7 +47,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <inheritdoc />
         public async Task PersistCertificateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
         {
-            var container = new CertificateContainer { Id = certificate.FriendlyName, Certificate = certificate, LastUpdatedUtc = DateTime.UtcNow };
+            var container = new CertificateContainer { Id = certificate.FriendlyName, Certificate = certificate, RecordLastModifiedUtc = DateTime.UtcNow };
 
             await this.certificateContainerCommands.AddOrUpdateOneAsync(container);
         }
