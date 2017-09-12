@@ -43,6 +43,7 @@ namespace Naos.Deployment.Core
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Configuration precedence chain to apply after the environment.</param>
         /// <param name="rootDeploymentPath">Root deployment path</param>
         /// <returns>Packages to inject.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public IReadOnlyCollection<InjectedPackage> IdentifyAdditionalPackages(string environment, string instanceName, int instanceNumber, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, string rootDeploymentPath)
         {
             var packagesToAdd =

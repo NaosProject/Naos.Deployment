@@ -79,17 +79,14 @@
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="MongoDB.Bson, Version=2.4.0.70, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MongoDB.Bson.2.4.0\lib\net45\MongoDB.Bson.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MongoDB.Bson, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Bson.2.4.4\lib\net45\MongoDB.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver, Version=2.4.0.70, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MongoDB.Driver.2.4.0\lib\net45\MongoDB.Driver.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MongoDB.Driver, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.2.4.4\lib\net45\MongoDB.Driver.dll</HintPath>
     </Reference>
-    <Reference Include="MongoDB.Driver.Core, Version=2.4.0.70, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MongoDB.Driver.Core.2.4.0\lib\net45\MongoDB.Driver.Core.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="MongoDB.Driver.Core, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.Core.2.4.4\lib\net45\MongoDB.Driver.Core.dll</HintPath>
     </Reference>
     <Reference Include="Naos.AWS.Contract, Version=1.0.49.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.AWS.Contract.1.0.49\lib\net461\Naos.AWS.Contract.dll</HintPath>
@@ -119,9 +116,8 @@
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.8\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.231.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.231\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.0.233.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.233\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.32\lib\net45\Naos.Packaging.Domain.dll</HintPath>
@@ -143,13 +139,11 @@
       <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.3\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Spritely.ReadModel, Version=0.6.1.41, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Spritely.ReadModel.0.6.1\lib\net461\Spritely.ReadModel.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Spritely.ReadModel, Version=0.6.1.45, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.0.6.4\lib\net461\Spritely.ReadModel.dll</HintPath>
     </Reference>
-    <Reference Include="Spritely.ReadModel.Mongo, Version=0.6.1.41, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.6.1\lib\net461\Spritely.ReadModel.Mongo.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Spritely.ReadModel.Mongo, Version=0.6.1.45, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Spritely.ReadModel.Mongo.0.6.4\lib\net461\Spritely.ReadModel.Mongo.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections" />
@@ -182,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
+    <Compile Include=".Naos.Recipes\Configuration.Setup\ConfigRequiredTest.cs" />
     <Compile Include=".Naos.Recipes\Naos.WinRM.cs" />
     <Compile Include=".Naos.Recipes\TupleInitializers\Initializers.cs" />
     <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\CertHelper.cs" />
@@ -281,12 +276,12 @@
     <Content Include=".analyzers\dictionary.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\Naos.Build.Analyzers.1.47.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.47.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets')" />
+  <Import Project="..\packages\Naos.Build.Analyzers.1.51.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.51.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Naos.Build.Analyzers.1.47.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Naos.Build.Analyzers.1.47.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets'))" />
+    <Error Condition="!Exists('..\packages\Naos.Build.Analyzers.1.51.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Naos.Build.Analyzers.1.51.0-dealwithstylecopbeta\build\Naos.Build.Analyzers.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

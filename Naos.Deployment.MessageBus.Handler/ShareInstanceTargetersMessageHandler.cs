@@ -17,6 +17,7 @@ namespace Naos.Deployment.MessageBus.Handler
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeters", Justification = "Spelling/name is correct.")]
     public class ShareInstanceTargetersMessageHandler : IHandleMessages<ShareInstanceTargeterMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />

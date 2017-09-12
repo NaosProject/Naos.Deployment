@@ -15,6 +15,7 @@ namespace Naos.Deployment.ComputingManagement
     /// <summary>
     /// Composes easy to track names for computing resources.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Namer", Justification = "Spelling/name is correct.")]
     public class ComputingInfrastructureNamer
     {
         private readonly string baseName;

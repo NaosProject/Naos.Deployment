@@ -15,6 +15,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Class to encrypt and decrypt text.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Encryptor", Justification = "Spelling/name is correct.")]
     public static class Encryptor
     {
         /// <summary>

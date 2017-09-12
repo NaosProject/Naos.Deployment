@@ -18,6 +18,7 @@ namespace Naos.Deployment.Core.Test
     public static partial class DeploymentConfigurationExtensionMethodsTest
     {
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Overriden", Justification = "Spelling/name is correct.")]
         public static void ApplyOverrides_InstanceCount_DefaultIsOverriden()
         {
             var baseConfig = new DeploymentConfiguration();

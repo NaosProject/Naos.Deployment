@@ -29,18 +29,21 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypes { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypesForSqlWeb { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public ICollection<AwsInstanceType> AwsInstanceTypesForSqlStandard { get; set; }
 
@@ -59,7 +62,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the name of the key to use when tagging an instance with its name.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "NameTag", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "NameTag", Justification = "Spelling/name is correct.")]
         public string NameTagKey { get; set; }
 
         /// <summary>
@@ -70,6 +73,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the name of the key to use when tagging an instance with the type of Windows OS deployed.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         public string WindowsSkuTagKey { get; set; }
 
         /// <summary>
@@ -91,6 +95,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Settings class with an AWS instance type and its core/RAM details.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
     public class AwsInstanceType
     {
         /// <summary>
@@ -101,12 +106,14 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the amount of RAM on the instance type.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Spelling/name is correct.")]
         public double RamInGb { get; set; }
 
         /// <summary>
         /// Gets or sets the AWS instance type descriptor.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         public string AwsInstanceTypeDescriptor { get; set; }
     }
 }

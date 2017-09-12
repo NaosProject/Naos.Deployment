@@ -29,6 +29,7 @@ namespace Naos.Deployment.Domain
         /// <param name="encryptedFileBase64">Bytes of the PFX file in Base64 format and encrypted.</param>
         /// <param name="encryptedPfxPassword">Encrypted password of the PFX file.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         public CertificateDescriptionWithEncryptedPfxPayload(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, CertificateLocator encryptingCertificateLocator, string encryptedFileBase64, string encryptedPfxPassword, string certificateSigningRequestPemEncoded = null)
             : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {

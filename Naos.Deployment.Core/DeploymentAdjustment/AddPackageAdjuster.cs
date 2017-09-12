@@ -113,6 +113,7 @@ namespace Naos.Deployment.Core
         /// <param name="initializationStrategiesToMatch"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.</param>
         /// <param name="typeMatchStrategy"><see cref="TypeMatchStrategy"/> to use with <see cref="TypeDescription"/>'s.</param>
         /// <param name="criteriaMatchStrategy"><see cref="CriteriaMatchStrategy"/> to use when matching.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "skus", Justification = "Spelling/name is correct.")]
         public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<TypeDescription> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
         {
             new { name }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
@@ -132,6 +133,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets the <see cref="WindowsSku"/>'s to match on.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Skus", Justification = "Spelling/name is correct.")]
         public IReadOnlyCollection<WindowsSku> SkusToMatch { get; private set; }
 
         /// <summary>
@@ -155,6 +157,7 @@ namespace Naos.Deployment.Core
         /// <param name="windowsSku"><see cref="WindowsSku"/> of the deployment.</param>
         /// <param name="initializationStrategies"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> used in the current deployment.</param>
         /// <returns>A value indicating whether or not the criteria is a match.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse", Justification = "Don't care about it.")]
         public bool Matches(WindowsSku windowsSku, IReadOnlyCollection<TypeDescription> initializationStrategies)
         {

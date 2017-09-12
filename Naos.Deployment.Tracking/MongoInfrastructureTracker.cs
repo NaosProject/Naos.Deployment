@@ -43,6 +43,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="arcologyInfoQueries">Query interface to get arcology information models.</param>
         /// <param name="instanceQueries">Query interface to get instances.</param>
         /// <param name="instanceCommands">Command interface to add/update/remove instances.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public MongoInfrastructureTracker(
             IQueries<ArcologyInfoContainer> arcologyInfoQueries,
             IQueries<InstanceContainer> instanceQueries,

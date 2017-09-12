@@ -45,7 +45,7 @@ namespace Naos.Deployment.Domain
         /// <param name="harnessAccount">Harness account to use for harness token.</param>
         /// <param name="iisAccount">IIS account to use for harness token.</param>
         /// <returns>Provided string with any found substitutions</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Spelling/name is correct.")]
         public static string GetSubstitutedStringForAccounts(string stringToApplyTokenSubstitutions, string harnessAccount, string iisAccount)
         {
             var ret = stringToApplyTokenSubstitutions?.Replace(HarnessAccountToken, harnessAccount).Replace(IisAccountToken, iisAccount);
@@ -61,7 +61,7 @@ namespace Naos.Deployment.Domain
         /// <param name="instanceName">Name of the created instance.</param>
         /// <param name="instanceNumber">The number of the instance (used when multiple instances are being created).</param>
         /// <returns>Provided string with any found substitutions</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Spelling/name is correct.")]
         public static string GetSubstitutedStringForDns(string stringToApplyTokenSubstitutions, string environment, string instanceName, int instanceNumber)
         {
             var ret = stringToApplyTokenSubstitutions?.Replace("{instanceName}", instanceName)
@@ -79,7 +79,7 @@ namespace Naos.Deployment.Domain
         /// <param name="instanceName">Name of the created instance.</param>
         /// <param name="instanceNumber">The number of the instance (used when multiple instances are being created).</param>
         /// <returns>Provided string with any found substitutions</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Spelling/name is correct.")]
         public static string GetSubstitutedStringForChannelName(string stringToApplyTokenSubstitutions, string environment, string instanceName, int instanceNumber)
         {
             var ret = stringToApplyTokenSubstitutions?.Replace("{instanceName}", instanceName)

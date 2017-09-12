@@ -11,8 +11,6 @@ namespace Naos.Recipes.Configuration.Setup
 {
     using Its.Configuration;
 
-    using Newtonsoft.Json;
-
     using Spritely.Recipes;
 
     /// <summary>
@@ -21,7 +19,7 @@ namespace Naos.Recipes.Configuration.Setup
     [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Naos.Recipes", "See package version number")]
-    internal static partial class Config
+    internal static class Config
     {
         /// <summary>
         /// Common precedence used after the environment specific precedence.

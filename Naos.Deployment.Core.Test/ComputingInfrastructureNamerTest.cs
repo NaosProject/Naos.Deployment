@@ -14,6 +14,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Namer", Justification = "Spelling/name is correct.")]
     public static class ComputingInfrastructureNamerTest
     {
         [Fact]

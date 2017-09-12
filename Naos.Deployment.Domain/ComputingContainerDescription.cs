@@ -29,13 +29,13 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the CIDR block of the container.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cidr", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cidr", Justification = "Spelling/name is correct.")]
         public string Cidr { get; set; }
 
         /// <summary>
         /// Gets or sets the where to get the first assignable IP address in the container.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ips", Justification = "Name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ips", Justification = "Spelling/name is correct.")]
         public int StartIpsAfter { get; set; }
 
         /// <summary>

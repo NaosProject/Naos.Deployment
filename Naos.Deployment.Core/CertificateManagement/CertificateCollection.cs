@@ -13,7 +13,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// <summary>
     /// Class to be used to hold certificates for an environment.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix", Justification = "Name I want.")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1711:IdentifiersShouldNotHaveIncorrectSuffix", Justification = "Spelling/name is correct.")]
     public class CertificateCollection
     {
         /// <summary>

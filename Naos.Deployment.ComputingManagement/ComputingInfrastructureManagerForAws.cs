@@ -30,6 +30,7 @@ namespace Naos.Deployment.ComputingManagement
     using VolumeType = Naos.Deployment.Domain.VolumeType;
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
     public class ComputingInfrastructureManagerForAws : IManageComputingInfrastructure
     {
         private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
@@ -76,6 +77,8 @@ namespace Naos.Deployment.ComputingManagement
         /// <param name="virtualMfaDeviceId">The identifier of the software based MFA token provider to use.</param>
         /// <param name="mfaValue">The one time value of the software based MFA token provider.</param>
         /// <returns>The class.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Mfa", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "mfa", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         public IManageComputingInfrastructure InitializeCredentials(
             string location,
@@ -106,6 +109,8 @@ namespace Naos.Deployment.ComputingManagement
         /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
         /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
         /// <returns>New credentials for use in performing operations against the computing platform provider.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Mfa", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "mfa", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         public static CredentialContainer GetNewCredentials(
             string location,
@@ -504,8 +509,9 @@ namespace Naos.Deployment.ComputingManagement
         /// </summary>
         /// <param name="instanceType">Instance type to use as basis.</param>
         /// <returns>AWS specific instance type that best matches the provided instance type.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VirtualCores", Justification = "Name I want.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RamInGb", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VirtualCores", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RamInGb", Justification = "Spelling/name is correct.")]
         public string GetAwsInstanceType(InstanceType instanceType)
         {
             new { instanceType }.Must().NotBeNull().OrThrowFirstFailure();

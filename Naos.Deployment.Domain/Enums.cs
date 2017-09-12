@@ -72,6 +72,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Enumeration of the different SKU's of windows that are available.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
     public enum WindowsSku
     {
         /// <summary>

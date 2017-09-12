@@ -26,6 +26,7 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="deploymentConfigs">Deployment configurations to operate against.</param>
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         public static DeploymentConfiguration Flatten(this ICollection<DeploymentConfiguration> deploymentConfigs)
         {
@@ -153,7 +154,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VolumeType", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VolumeType", Justification = "Spelling/name is correct.")]
         private static VolumeType Flatten(this ICollection<VolumeType> types)
         {
             if (types.Contains(VolumeType.HighPerformance))

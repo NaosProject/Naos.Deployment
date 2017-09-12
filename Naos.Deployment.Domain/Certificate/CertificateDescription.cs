@@ -27,6 +27,7 @@ namespace Naos.Deployment.Domain
         /// <param name="validityWindowInUtc">Date range that the certificate is valid.</param>
         /// <param name="certificateAttributes">Attributes of the certificate.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         protected CertificateDescription(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
         {
             new { friendlyName, thumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
@@ -63,6 +64,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets the optional PEM Encoded certificate signing request (default will be NULL).
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         public string CertificateSigningRequestPemEncoded { get; private set; }
 
         /// <summary>

@@ -25,7 +25,9 @@ namespace Naos.Deployment.Domain
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="releasePublicIpIfApplicable">Optionally release the public IP address if the instance has one (DEFAULT is false).</param>
         /// <returns>Task for async/await</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         Task TerminateInstanceAsync(string environment, string systemId, string systemLocation, bool releasePublicIpIfApplicable = false);
 
         /// <summary>
@@ -36,6 +38,7 @@ namespace Naos.Deployment.Domain
         /// <param name="force">Force the stop.</param>
         /// <param name="waitUntilOff">Wait until the machine is off.</param>
         /// <returns>Task for async/await</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "TurnOff", Justification = "Spelling/name is correct.")]
         Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true);
 
         /// <summary>
@@ -100,8 +103,12 @@ namespace Naos.Deployment.Domain
         /// <param name="domain">Domain to operate on.</param>
         /// <param name="ipAddresses">IP Addresses to bind to the DNS entry specified.</param>
         /// <returns>Task for async/await</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ip", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Upsert", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
+#pragma warning disable SA1305 // Field names should not use Hungarian notation
         Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses);
+#pragma warning restore SA1305 // Field names should not use Hungarian notation
 
         /// <summary>
         /// Gets the administrator password for the specified instance.

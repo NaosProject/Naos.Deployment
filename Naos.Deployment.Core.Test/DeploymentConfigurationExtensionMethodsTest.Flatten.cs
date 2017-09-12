@@ -128,6 +128,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         public static void Flatten_SpecifiedAmiWithSpecificAmiSku_Throws()
         {
             var a = new DeploymentConfiguration()
@@ -213,6 +214,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(true, output.PostDeploymentStrategy.TurnOffInstance);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "TurnOff", Justification = "Spelling/name is correct.")]
         [Fact]
         public static void Flatten_PostDeploymentStrategy_ConflictingTurnOff_Throws()
         {
@@ -258,6 +260,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public static void Flatten_TwoConfigsSameDriveLetter_OneVolumeSizeIsLargest()
         {
             var first = new DeploymentConfiguration()
@@ -355,6 +358,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public static void Flatten_TwoConfigsConflictingAccessibility_Throws()
         {
             var deploymentConfigs = new[]
@@ -386,6 +390,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Skus", Justification = "Spelling/name is correct.")]
         public static void Flatten_DifferentSkus_LargestWins()
         {
             Action<WindowsSku, WindowsSku> testSkuCombo = (smallerSku, largerSku) =>
@@ -411,6 +416,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = "Spelling/name is correct.")]
         public static void Flatten_MultipleChocolateyPackages_MergedDistinctly()
         {
             var deploymentConfigs = new[]

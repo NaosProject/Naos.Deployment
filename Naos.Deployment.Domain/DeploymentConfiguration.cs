@@ -42,6 +42,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the Chocolatey packages to install during the deployment.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = "Spelling/name is correct.")]
         public IReadOnlyCollection<PackageDescription> ChocolateyPackages { get; set; }
 
         /// <summary>

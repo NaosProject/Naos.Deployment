@@ -19,7 +19,7 @@
       our methods are most often doing work.  In practice, this rule almost always produces false positives.  
     -->
     <Rule Id="CA1024" Action="None" />
-	
+
     <!--
       ** Default parameters should not be used **
       Default parameters are too useful to disallow.  According to the documentation "...the CLS
@@ -46,7 +46,6 @@
     -->
     <Rule Id="CA1034" Action="None" />
 
-
     <!--
       ** Do not pass literals as localized parameters **
       More often than not, the literals we are passing around are used in back-end systems and are not
@@ -59,7 +58,16 @@
       ** Assemblies should have valid strong names **
       We do not ship our assemblies to customers and thus not worth the effort to sign our assemblies
     -->
-    <Rule Id="CA2210" Action="None" />    
+    <Rule Id="CA2210" Action="None" />
+
+    <!--
+      ** Attribute string literals should parse correctly **
+      This prevents us from saving a pre-release nuget version in it's exact form (e.g. 1.0.269-some-fixes)
+      into the AssemblyInfo.cs file, in the AssemblyInformationalVersion attribute.  We do save a 
+      System.Version parseable version number into other attributes such as AssemblyVersion and 
+      AssemblyFileVersion (e.g. 1.0.269).
+    -->
+    <Rule Id="CA2243" Action="None" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     
@@ -116,10 +124,13 @@
       We do not like hungarian notation.
     -->
     <Rule Id="SA1305" Action="Warning" />
-	
+
     <!--
       ** File may only contain a single type **
-      This gets in the way of time when you want things like a base class and a null object implementation in the same file.
+      In practice we typically only put a single type in a file, but often enough it's handy to group types
+      together to improve comprehension of the code.  For example, when we use Spritely.ReadModel it's
+      better to put a Query and it's QueryHandler in the same file rather than split them up because they are
+      highly related.
     -->
     <Rule Id="SA1402" Action="None" />
 

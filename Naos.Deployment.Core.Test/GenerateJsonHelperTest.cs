@@ -104,6 +104,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Hangfire", Justification = "Spelling/name is correct.")]
         public static void CreateHangfireServerDeploymentJson()
         {
             var hangfireDns = "hangfire.development.com";

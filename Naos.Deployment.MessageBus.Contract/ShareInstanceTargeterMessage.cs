@@ -20,6 +20,7 @@ namespace Naos.Deployment.MessageBus.Contract
         /// <summary>
         /// Gets or sets the instance targeter to share with other messages in the sequence.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeters", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Shares need to be arrays.")]
         public InstanceTargeterBase[] InstanceTargetersToShare { get; set; }
     }

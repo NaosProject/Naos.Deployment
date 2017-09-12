@@ -24,6 +24,7 @@ namespace Naos.Deployment.Core
         /// <param name="packagedDeploymentConfigsWithDefaultsAndOverrides">All package configurations with defaults and overrides applied.</param>
         /// <param name="configToCreateWith">Config to create instance with.</param>
         /// <returns>A value indicating whether or not this adjuster is applicable.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public abstract bool IsMatch(
             ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith);
@@ -40,6 +41,7 @@ namespace Naos.Deployment.Core
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Configuration precedence chain to apply after the environment.</param>
         /// <param name="rootDeploymentPath">Root deployment path</param>
         /// <returns>Set of packages to inject if applicable.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public abstract IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(
             string environment,
             string instanceName,

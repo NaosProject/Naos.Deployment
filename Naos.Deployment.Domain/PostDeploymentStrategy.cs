@@ -18,6 +18,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets a value indicating whether or not to shutdown the instance after deployment (otherwise it will be left running).
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "TurnOff", Justification = "Spelling/name is correct.")]
         public bool TurnOffInstance { get; set; }
 
         /// <summary>

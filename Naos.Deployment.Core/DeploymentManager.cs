@@ -411,6 +411,7 @@ namespace Naos.Deployment.Core
             }
         }
 
+#pragma warning disable SA1305 // Field names should not use Hungarian notation
         private void UpsertDnsEntry(int instanceNumber, string environment, string dns, string ipAddress, string instanceLocation)
         {
             this.LogAnnouncement(Invariant($" - Pointing {dns} at {ipAddress}."), instanceNumber);
@@ -420,6 +421,7 @@ namespace Naos.Deployment.Core
                 this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress }).Wait();
             }
         }
+#pragma warning restore SA1305 // Field names should not use Hungarian notation
 
         private async Task WaitUntilStatusChecksSucceedAsync(int instanceNumber, InstanceDescription createdInstanceDescription)
         {

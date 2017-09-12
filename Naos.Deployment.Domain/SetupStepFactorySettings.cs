@@ -44,6 +44,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the server settings of the web server.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "WebServer", Justification = "Spelling/name is correct.")]
         public WebServerSettings WebServerSettings { get; set; }
 
         /// <summary>
@@ -101,6 +102,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Settings class to provide information about the web server.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "WebServer", Justification = "Spelling/name is correct.")]
     public class WebServerSettings
     {
         /// <summary>
@@ -204,8 +206,8 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to setup WinRM.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Rm", Justification = "Name I want.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Rm", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Rm", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Rm", Justification = "Spelling/name is correct.")]
         public ScriptBlockDescription SetupWinRmScriptBlock { get; set; }
 
         /// <summary>
@@ -236,8 +238,8 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to enable the SA account and change the password.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Name I want.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Spelling/name is correct.")]
         public ScriptBlockDescription EnableSaAccountAndSetPassword { get; set; }
 
         /// <summary>
@@ -283,11 +285,13 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to install Chocolatey so that the packages may be installed.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = "Spelling/name is correct.")]
         public ScriptBlockDescription InstallChocolatey { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to install Chocolatey packages.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = "Spelling/name is correct.")]
         public ScriptBlockDescription InstallChocolateyPackages { get; set; }
 
         /// <summary>

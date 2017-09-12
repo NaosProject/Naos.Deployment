@@ -54,14 +54,35 @@
     <Rule Id="CA1303" Action="None" />
 
     <!--
+      ** Specify CultureInfo **
+      related: CA1305
+      Test projects don't have locale-specific concerns (as it is, the vast majority of our release projects
+      also don't have locale-specific concerns).  Having to specify an IFormatProvider makes unit tests more
+      burdensome to write.
+    -->
+    <Rule Id="CA1304" Action="None" />
+
+    <!--
+      ** Specify IFormatProvider **
+      see notes for CA1304
+    -->
+    <Rule Id="CA1305" Action="None" />
+
+    <!--
       ** Avoid excessive complexity **
-      related: CA1506
+      related: CA1505, CA1506
       Often enough, performing a test requires lots of types to setup the test or lots of assertions to
       ensure that the result meet expectations and refactoring actually makes the test more difficult to
       read or reason-thru.  In practice, this rule rarely drives refactoring of the code.
     -->
     <Rule Id="CA1502" Action="None" />
     
+    <!--
+      ** Avoid unmaintainable code **
+      see notes for CA1502
+    -->
+    <Rule Id="CA1505" Action="None" />
+
     <!--
       ** Avoid excessive class coupling **
       see notes for CA1502
@@ -154,6 +175,15 @@
       We do not ship our assemblies to customers and thus not worth the effort to sign our assemblies.
     -->
     <Rule Id="CA2210" Action="None" />
+
+    <!--
+      ** Attribute string literals should parse correctly **
+      This prevents us from saving a pre-release nuget version in it's exact form (e.g. 1.0.269-some-fixes)
+      into the AssemblyInfo.cs file, in the AssemblyInformationalVersion attribute.  We do save a 
+      System.Version parseable version number into other attributes such as AssemblyVersion and 
+      AssemblyFileVersion (e.g. 1.0.269).
+    -->
+    <Rule Id="CA2243" Action="None" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
         
@@ -232,7 +262,8 @@
 
     <!--
       ** File may only contain a single type **
-      This gets in the way of time when you want things like a base class and a null object implementation in the same file.
+      It's reasonable to relax this rule in test projects where we are more likely to create container types.
+      This helps with file bloat and readability/maintainability of tests.
     -->
     <Rule Id="SA1402" Action="None" />
 

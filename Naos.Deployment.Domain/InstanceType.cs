@@ -23,7 +23,8 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the minimum amount of RAM in gigabytes.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Gb", Justification = "Spelling/name is correct.")]
         public double? RamInGb { get; set; }
 
         /// <summary>
@@ -39,6 +40,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the Windows SKU to use.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         public WindowsSku WindowsSku { get; set; }
 
         /// <summary>

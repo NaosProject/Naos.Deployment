@@ -24,6 +24,7 @@ namespace Naos.Deployment.Core
         /// <param name="packagedConfigs">List of configurations to check.</param>
         /// <param name="defaultDeploymentConfig">Default configuration to use for missing properties.</param>
         /// <returns>List of configurations with defaults applied.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public static ICollection<PackagedDeploymentConfiguration> ApplyDefaults(
             this ICollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)

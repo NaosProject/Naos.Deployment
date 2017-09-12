@@ -32,6 +32,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the map of Windows SKU's to image search patterns.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Needs to be a dictionary for mongo to serialize correctly...")]
         public Dictionary<WindowsSku, string> WindowsSkuSearchPatternMap { get; set; }
     }
