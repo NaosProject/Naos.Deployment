@@ -297,7 +297,7 @@ namespace Naos.Deployment.Core
                     var certToInstall = certificateToInstallStrategies.SingleOrDefault(_ => _.CertificateToInstall == certName);
                     if (certToInstall == null)
                     {
-                        throw new DeploymentException(Invariant($"Failed to initializations strategy to install certificate: {certName}.  {description}"));
+                        throw new DeploymentException(Invariant($"Failed to find an initialization strategy to install the required certificate: {certName}.  {description}"));
                     }
 
                     if ((certToInstall.StoreLocation ?? StoreLocation.LocalMachine) != StoreLocation.LocalMachine)
