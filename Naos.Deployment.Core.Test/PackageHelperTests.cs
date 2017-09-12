@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="PackageHelperTests.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -25,7 +25,9 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class PackageHelperTests
+    using static System.FormattableString;
+
+    public static class PackageHelperTests
     {
         [Fact]
         public static void FindExtraneousFrameworksToDelete__MultipleDirectories__ThinnedTo45()
@@ -53,7 +55,7 @@ namespace Naos.Deployment.Core.Test
         public static void DownloadPackage()
         {
             var packageId = "Naos.FileJanitor.MessageBus.Handler";
-            var outputPath = $@"D:\Deployments\Temp\{packageId}.zip";
+            var outputPath = Invariant($@"D:\Deployments\Temp\{packageId}.zip");
 
             var tempPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString().ToUpperInvariant());
             Directory.CreateDirectory(tempPath);
@@ -63,7 +65,7 @@ namespace Naos.Deployment.Core.Test
                                      Source = "https://www.nuget.org/api/v2/",
                                      SourceName = "NuGet",
                                      ClearTextPassword = string.Empty,
-                                     Username = "user"
+                                     Username = "user",
                                  };
 
             var packageManager = new PackageRetriever(tempPath, repoConfig);

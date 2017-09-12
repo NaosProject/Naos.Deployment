@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyMongo.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ namespace Naos.Deployment.Domain
                               AdministratorPassword = this.AdministratorPassword,
                               DataDirectory = this.DataDirectory,
                               LogDirectory = this.LogDirectory,
-                              NoJournaling = this.NoJournaling
+                              NoJournaling = this.NoJournaling,
                           };
             return ret;
         }

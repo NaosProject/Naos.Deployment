@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Arcology.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -8,10 +8,13 @@ namespace Naos.Deployment.Tracking
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+
+    using Spritely.Recipes;
 
     /// <summary>
     /// Container object for storing a single environments entire state.
@@ -28,6 +31,8 @@ namespace Naos.Deployment.Tracking
         /// <param name="deployedInstances">Deployed instances in the arcology.</param>
         public Arcology(string environment, ArcologyInfo arcologyInfo, ICollection<DeployedInstance> deployedInstances)
         {
+            new { arcologyInfo }.Must().NotBeNull().OrThrowFirstFailure();
+
             this.Environment = environment;
             this.ComputingContainers = arcologyInfo.ComputingContainers;
             this.RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap;
@@ -39,13 +44,7 @@ namespace Naos.Deployment.Tracking
         /// <summary>
         /// Gets the wrapped instances.
         /// </summary>
-        public IReadOnlyCollection<DeployedInstance> Instances
-        {
-            get
-            {
-                return this.instances;
-            }
-        }
+        public IReadOnlyCollection<DeployedInstance> Instances => this.instances;
 
         /// <summary>
         /// Updates the internal instance list to remove an instance.
@@ -53,10 +52,12 @@ namespace Naos.Deployment.Tracking
         /// <param name="instanceToRemove">Instance to remove from collection.</param>
         public void MutateInstancesRemove(DeployedInstance instanceToRemove)
         {
+            new { instanceToRemove }.Must().NotBeNull().OrThrowFirstFailure();
+
             var removed = this.instances.Remove(instanceToRemove);
             if (!removed)
             {
-                throw new ApplicationException("Failed to removed instance from arcology; ID: " + instanceToRemove.InstanceDescription.Id);
+                throw new DeploymentException("Failed to removed instance from arcology; ID: " + instanceToRemove.InstanceDescription.Id);
             }
         }
 
@@ -166,6 +167,8 @@ namespace Naos.Deployment.Tracking
         /// <returns>Object holding information necessary to track and create an instance.</returns>
         public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
         {
+            new { deploymentConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
+
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
             var container = this.GetComputingContainer(deploymentConfiguration);
@@ -184,7 +187,7 @@ namespace Naos.Deployment.Tracking
 
                 imageDetails = new ImageDetails()
                                    {
-                                       ImageSystemId = deploymentConfiguration.InstanceType.SpecificImageSystemId
+                                       ImageSystemId = deploymentConfiguration.InstanceType.SpecificImageSystemId,
                                    };
             }
             else
@@ -221,7 +224,7 @@ namespace Naos.Deployment.Tracking
                     {
                         Id = _.Id,
                         Version = _.Version,
-                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed
+                        DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
                     });
 
             var newTracked = new DeployedInstance()
@@ -248,6 +251,8 @@ namespace Naos.Deployment.Tracking
         /// <param name="package">Package that was successfully deployed.</param>
         public static void UpdatePackageVerificationInInstanceDeploymentList(DeployedInstance instanceToUpdatePackagesOn, PackageDescription package)
         {
+            new { instanceToUpdatePackagesOn }.Must().NotBeNull().OrThrowFirstFailure();
+
             PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
             var existing =
                 instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value, package)).ToList();
@@ -265,7 +270,7 @@ namespace Naos.Deployment.Tracking
                                     Version = package.Version,
                                     DeploymentStatus =
                                         PackageDeploymentStatus
-                                        .DeployedSuccessfully
+                                        .DeployedSuccessfully,
                                 };
 
                 instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Add(package.Id, toAdd);
@@ -288,20 +293,20 @@ namespace Naos.Deployment.Tracking
         {
             return this.ComputingContainers.Single(_ => _.InstanceAccessibility == deploymentConfig.InstanceAccessibility);
         }
-    
+
         private string FindIpAddress(DeploymentConfiguration deploymentConfig)
         {
             var container = this.GetComputingContainer(deploymentConfig);
             for (int idx = container.StartIpsAfter + 1; idx < 256; idx++)
             {
-                var sampleIp = container.Cidr.Replace("0/24", idx.ToString());
+                var sampleIp = container.Cidr.Replace("0/24", idx.ToString(CultureInfo.CurrentCulture));
                 if (this.Instances.All(_ => _.InstanceCreationDetails.PrivateIpAddress != sampleIp))
                 {
                     return sampleIp;
                 }
             }
 
-            throw new DeploymentException("Can't find an IPAddress that isn't taken");
+            throw new DeploymentException("Can't find an IP Address that isn't taken");
         }
     }
 }

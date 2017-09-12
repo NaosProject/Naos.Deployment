@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="AddPackageAdjuster.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -67,6 +67,8 @@ namespace Naos.Deployment.Core
             string[] itsConfigPrecedenceAfterEnvironment,
             string rootDeploymentPath)
         {
+            new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
+
             var ret = new List<InjectedPackage>();
             var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
             var reason = string.Join(",", matches.Select(_ => _.Name));
@@ -79,7 +81,7 @@ namespace Naos.Deployment.Core
                                  PackageWithBundleIdentifier = package,
                                  DeploymentConfiguration = configToCreateWith,
                                  InitializationStrategies = packageToInject.InitializationStrategies,
-                                 ItsConfigOverrides = packageToInject.ItsConfigOverrides
+                                 ItsConfigOverrides = packageToInject.ItsConfigOverrides,
                              };
 
                 ret.Add(new InjectedPackage(reason, packagedConfig));
@@ -193,6 +195,6 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Must match all criteria.
         /// </summary>
-        MatchAll
+        MatchAll,
     }
 }

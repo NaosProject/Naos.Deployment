@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactorySettings.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -204,6 +204,8 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to setup WinRM.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Rm", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Rm", Justification = "Name I want.")]
         public ScriptBlockDescription SetupWinRmScriptBlock { get; set; }
 
         /// <summary>
@@ -234,6 +236,8 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to enable the SA account and change the password.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Name I want.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Sa", Justification = "Name I want.")]
         public ScriptBlockDescription EnableSaAccountAndSetPassword { get; set; }
 
         /// <summary>
@@ -315,22 +319,18 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets the full script as a string.
         /// </summary>
-        public string ScriptText
-        {
-            get
-            {
-                return string.Join(Environment.NewLine, this.ScriptTextLines);
-            }
-        }
+        public string ScriptText => string.Join(Environment.NewLine, this.ScriptTextLines);
 
         /// <summary>
         /// Gets or sets the an array of the lines of a script (this allows it to have multiple lines in a JSON file).
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Keeping an array for now.")]
         public string[] ScriptTextLines { get; set; }
 
         /// <summary>
         /// Gets or sets the parameter names of the script block (in order).
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Keeping an array for now.")]
         public string[] ParameterNames { get; set; }
     }
 }

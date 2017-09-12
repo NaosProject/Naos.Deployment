@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Program.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ namespace Naos.Deployment.Console
     /// <summary>
     /// Harness to run deployments if not wrapping in your own service.
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// Main entry point.

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.Iis.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,18 +9,17 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-
-    using Spritely.Recipes;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var primaryDns = funcToCreateNewDnsWithTokensReplaced(iisStrategy.PrimaryDns);
 
@@ -36,19 +35,14 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException("Could not find certificate by name: " + iisStrategy.SslCertificateName);
             }
 
-            var certificateTargetPath = Path.Combine(packageDirectoryPath, certDetails.GenerateFileName());
             var appPoolStartMode = iisStrategy.AppPoolStartMode == ApplicationPoolStartMode.None
                                        ? ApplicationPoolStartMode.OnDemand
                                        : iisStrategy.AppPoolStartMode;
 
             var appPoolAccount = this.GetAccountToUse(iisStrategy);
 
-            var autoStartProviderName = iisStrategy.AutoStartProvider == null
-                                            ? null
-                                            : iisStrategy.AutoStartProvider.Name;
-            var autoStartProviderType = iisStrategy.AutoStartProvider == null
-                                            ? null
-                                            : iisStrategy.AutoStartProvider.Type;
+            var autoStartProviderName = iisStrategy.AutoStartProvider?.Name;
+            var autoStartProviderType = iisStrategy.AutoStartProvider?.Type;
 
             var enableHttp = iisStrategy.EnableHttp;
 
@@ -64,21 +58,10 @@ namespace Naos.Deployment.Core
 
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, certificateTargetPath,
-                                               certDetails.PfxPasswordInClearText.ToSecureString(), appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName,
-                                               autoStartProviderType, EnableSni, AddHostHeaders, enableHttp
+                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.GetPowershellPathableThumbprint(),
+                                               appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
+                                               AddHostHeaders, enableHttp,
                                            };
-
-            webSteps.Add(
-                new SetupStep
-                    {
-                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
-                        SetupFunc = machineManager =>
-                            {
-                                machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
-                                return new dynamic[0];
-                            }
-                    });
 
             webSteps.Add(
                 new SetupStep
@@ -86,7 +69,7 @@ namespace Naos.Deployment.Core
                     Description = "Install IIS and configure website/webservice.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters)
+                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters),
                 });
 
             return webSteps;

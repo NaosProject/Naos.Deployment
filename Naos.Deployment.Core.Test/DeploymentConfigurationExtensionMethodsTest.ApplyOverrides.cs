@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public partial class DeploymentConfigurationExtensionMethodsTest
+    public static partial class DeploymentConfigurationExtensionMethodsTest
     {
         [Fact]
         public static void ApplyOverrides_InstanceCount_DefaultIsOverriden()
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core.Test
                 Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
                 ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
                 DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true }
+                PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
             };
 
             var overrideConfig = new DeploymentConfiguration();
@@ -79,7 +79,7 @@ namespace Naos.Deployment.Core.Test
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true }
+                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
                                     };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
@@ -111,7 +111,7 @@ namespace Naos.Deployment.Core.Test
                                      Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100, Type = VolumeType.LowPerformance }, new Volume() { DriveLetter = "Q", SizeInGb = 1, Type = VolumeType.LowPerformance } },
                                      ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
                                      DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                     PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true }
+                                     PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
                                  };
 
             var overrideConfig = new DeploymentConfiguration
@@ -126,7 +126,7 @@ namespace Naos.Deployment.Core.Test
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30, Type = VolumeType.HighPerformance } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = false, RunSetupSteps = false },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false }
+                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false },
                                     };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);

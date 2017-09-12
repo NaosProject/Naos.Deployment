@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
     using Its.Log.Instrumentation;
@@ -17,9 +18,12 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     internal partial class SetupStepFactory
     {
         private readonly IGetCertificates certificateRetriever;
@@ -60,79 +64,37 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets the administrator account name.
         /// </summary>
-        public string AdministratorAccount
-        {
-            get
-            {
-                return this.settings.AdministratorAccount;
-            }
-        }
+        public string AdministratorAccount => this.settings.AdministratorAccount;
 
         /// <summary>
         /// Gets the root deployment path.
         /// </summary>
-        public string RootDeploymentPath
-        {
-            get
-            {
-                return this.settings.RootDeploymentPath;
-            }
-        }
+        public string RootDeploymentPath => this.settings.RootDeploymentPath;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes
-        {
-            get
-            {
-                return this.settings.InitializationStrategyTypesThatNeedPackageBytes;
-            }
-        }
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes => this.settings.InitializationStrategyTypesThatNeedPackageBytes;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate
-        {
-            get
-            {
-                return this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
-            }
-        }
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate => this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
 
         /// <summary>
         /// Gets the max number of times to execute a setup step before throwing.
         /// </summary>
-        public int MaxSetupStepAttempts
-        {
-            get
-            {
-                return this.settings.MaxSetupStepAttempts;
-            }
-        }
+        public int MaxSetupStepAttempts => this.settings.MaxSetupStepAttempts;
 
         /// <summary>
         /// Gets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
         /// </summary>
-        public bool ThrowOnFailedSetupStep
-        {
-            get
-            {
-                return this.settings.ThrowOnFailedSetupStep;
-            }
-        }
+        public bool ThrowOnFailedSetupStep => this.settings.ThrowOnFailedSetupStep;
 
         /// <summary>
         /// Gets the list of directories we've found people add to packages and contain assemblies that fail to load correctly in reflection and are not be necessary for normal function.
         /// </summary>
-        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune
-        {
-            get
-            {
-                return this.settings.RootPackageDirectoriesToPrune;
-            }
-        }
+        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune => this.settings.RootPackageDirectoriesToPrune;
 
         /// <summary>
         /// Get the appropriate setup steps for the packaged config.
@@ -142,11 +104,13 @@ namespace Naos.Deployment.Core
         /// <param name="adminPassword">Administrator password for the machine in case an application needs to be run as that user (which is discouraged!).</param>
         /// <param name="funcToCreateNewDnsWithTokensReplaced">Function to apply any token replacements to a DNS entry.</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public async Task<ICollection<SetupStep>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        public async Task<ICollection<SetupStepBatch>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
-            var ret = new List<SetupStep>();
+            ThrowIfCertificatesNotProperlyConfigured(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyCertificateToInstall>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategySelfHost>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>());
+
+            var ret = new List<SetupStepBatch>();
 
             var distinctInitializationStrategyTypes = packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
 
@@ -154,45 +118,56 @@ namespace Naos.Deployment.Core
             if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedPackageBytes.Contains(_)))
             {
                 var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
-                ret.Add(deployUnzippedFileStep);
+                var batch = new SetupStepBatch { ExecutionOrder = 1, Steps = new[] { deployUnzippedFileStep } };
+                ret.Add(batch);
             }
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
                 var initSteps = await this.GetStrategySpecificSetupStepsAsync(initializationStrategy, packagedConfig, environment, adminPassword, funcToCreateNewDnsWithTokensReplaced);
-                ret.AddRange(initSteps);
+                ret.Add(initSteps);
             }
 
             return ret;
         }
 
-        private async Task<ICollection<SetupStep>> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<SetupStepBatch> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            var ret = new List<SetupStep>();
+            SetupStepBatch ret = null;
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
 
-            if (strategy.GetType() == typeof(InitializationStrategyIis))
+            if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
             {
-                var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
-                var webSteps = await this.GetIisSpecificSetupStepsAsync(
-                    (InitializationStrategyIis)strategy,
-                    packagedConfig.ItsConfigOverrides,
-                    packageDirectoryPath,
-                    webRootPath,
-                    environment,
-                    adminPassword,
-                    funcToCreateNewDnsWithTokensReplaced);
-                ret.AddRange(webSteps);
+                var dirSteps = this.GetDirectoryToCreateSpecificSteps(
+                    (InitializationStrategyDirectoryToCreate)strategy,
+                    this.settings.HarnessSettings.HarnessAccount,
+                    this.settings.WebServerSettings.IisAccount);
+
+                ret = new SetupStepBatch { ExecutionOrder = 2, Steps = dirSteps };
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
+            {
+                var certSteps =
+                    await
+                        this.GetCertificateToInstallSpecificStepsAsync(
+                            (InitializationStrategyCertificateToInstall)strategy,
+                            packageDirectoryPath,
+                            this.settings.HarnessSettings.HarnessAccount,
+                            this.settings.WebServerSettings.IisAccount);
+
+                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = certSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
             {
                 var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.PackageWithBundleIdentifier.Package);
-                ret.AddRange(databaseSteps);
+
+                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = databaseSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMongo))
             {
-                var databaseSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
-                ret.AddRange(databaseSteps);
+                var mongoSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
+
+                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = mongoSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
@@ -201,25 +176,6 @@ namespace Naos.Deployment.Core
             else if (strategy.GetType() == typeof(InitializationStrategyDnsEntry))
             {
                 /* No additional steps necessary as the DeploymentManager performs this operation at the end */
-            }
-            else if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
-            {
-                var dirSteps = this.GetDirectoryToCreateSpecificSteps(
-                    (InitializationStrategyDirectoryToCreate)strategy,
-                    this.settings.HarnessSettings.HarnessAccount,
-                    this.settings.WebServerSettings.IisAccount);
-                ret.AddRange(dirSteps);
-            }
-            else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
-            {
-                var certSteps =
-                    await
-                    this.GetCertificateToInstallSpecificStepsAsync(
-                        (InitializationStrategyCertificateToInstall)strategy,
-                        packageDirectoryPath,
-                        this.settings.HarnessSettings.HarnessAccount,
-                        this.settings.WebServerSettings.IisAccount);
-                ret.AddRange(certSteps);
             }
             else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
             {
@@ -231,7 +187,8 @@ namespace Naos.Deployment.Core
                         consoleRootPath,
                         environment,
                         adminPassword);
-                ret.AddRange(scheduledTaskSteps);
+
+                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = scheduledTaskSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
             {
@@ -245,7 +202,21 @@ namespace Naos.Deployment.Core
                         environment,
                         adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
-                ret.AddRange(selfHostSteps);
+
+                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = selfHostSteps };
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyIis))
+            {
+                var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
+                var webSteps = await this.GetIisSpecificSetupStepsAsync(
+                                   (InitializationStrategyIis)strategy,
+                                   packagedConfig.ItsConfigOverrides,
+                                   webRootPath,
+                                   environment,
+                                   adminPassword,
+                                   funcToCreateNewDnsWithTokensReplaced);
+
+                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = webSteps };
             }
             else
             {
@@ -305,7 +276,7 @@ namespace Naos.Deployment.Core
                                                          }
 
                                                          return new dynamic[0];
-                                                     }
+                                                     },
                                              };
 
             return deployUnzippedFileStep;
@@ -314,6 +285,41 @@ namespace Naos.Deployment.Core
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
             return Path.Combine(this.RootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
+        }
+
+        private static void ThrowIfCertificatesNotProperlyConfigured(
+            ICollection<InitializationStrategyCertificateToInstall> certificateToInstallStrategies,
+            ICollection<InitializationStrategySelfHost> selfHostStrategies,
+            ICollection<InitializationStrategyIis> iisStrategies)
+        {
+            Action<string, string> verifyCertificate = (certName, description) =>
+                {
+                    var certToInstall = certificateToInstallStrategies.SingleOrDefault(_ => _.CertificateToInstall == certName);
+                    if (certToInstall == null)
+                    {
+                        throw new DeploymentException(Invariant($"Failed to find an initialization strategy to install the required certificate: {certName}.  {description}"));
+                    }
+
+                    if ((certToInstall.StoreLocation ?? StoreLocation.LocalMachine) != StoreLocation.LocalMachine)
+                    {
+                        throw new DeploymentException(Invariant($"Certificate Store Location must be {StoreLocation.LocalMachine} instead of {certToInstall.StoreLocation} for cert: {certName}.  {description}"));
+                    }
+
+                    if ((certToInstall.StoreName ?? StoreName.My) != StoreName.My)
+                    {
+                        throw new DeploymentException(Invariant($"Certificate Store Name must be {StoreName.My} instead of {certToInstall.StoreName} for cert: {certName}.  {description}"));
+                    }
+                };
+
+            foreach (var selfHost in selfHostStrategies)
+            {
+                verifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeName}"));
+            }
+
+            foreach (var iis in iisStrategies)
+            {
+                verifyCertificate(iis.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
+            }
         }
     }
 }

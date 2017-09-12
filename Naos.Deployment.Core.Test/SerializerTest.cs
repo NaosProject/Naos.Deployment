@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SerializerTest.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class SerializerTest
+    public static class SerializerTest
     {
         [Fact]
         public static void Deserialize_PrivateDnsEntry_Valid()
@@ -110,8 +110,8 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{ 
-""id"": ""Naos.Something"", 
-""initializationStrategies"": 
+""id"": ""Naos.Something"",
+""initializationStrategies"":
     [{""name"": ""DatabaseName"",      ""restore"": {""runChecksum"":true    }}]
 }]";
             var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();
@@ -131,8 +131,8 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{ 
-""id"": ""Naos.Something"", 
-""initializationStrategies"": 
+""id"": ""Naos.Something"",
+""initializationStrategies"":
     [{""name"": ""DatabaseName"", ""administratorPassword"":""hello"",      ""migration"": {""version"":17}}]
 }]";
             var deserialized = input.FromJson<ICollection<PackageDescriptionWithOverrides>>();

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="MongoInfrastructureTracker.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -17,6 +17,9 @@ namespace Naos.Deployment.Tracking
     using Naos.Packaging.Domain;
 
     using Spritely.ReadModel;
+    using Spritely.Recipes;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Tracking system/certificate manager that will use a root folder and will have a folder per environment with a config file and store a file per machine.
@@ -40,7 +43,10 @@ namespace Naos.Deployment.Tracking
         /// <param name="arcologyInfoQueries">Query interface to get arcology information models.</param>
         /// <param name="instanceQueries">Query interface to get instances.</param>
         /// <param name="instanceCommands">Command interface to add/update/remove instances.</param>
-        public MongoInfrastructureTracker(IQueries<ArcologyInfoContainer> arcologyInfoQueries, IQueries<InstanceContainer> instanceQueries, ICommands<string, InstanceContainer> instanceCommands)
+        public MongoInfrastructureTracker(
+            IQueries<ArcologyInfoContainer> arcologyInfoQueries,
+            IQueries<InstanceContainer> instanceQueries,
+            ICommands<string, InstanceContainer> instanceCommands)
         {
             this.arcologyInfoQueries = arcologyInfoQueries;
             this.instanceQueries = instanceQueries;
@@ -65,8 +71,7 @@ namespace Naos.Deployment.Tracking
             try
             {
                 var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
-                var matchingInstance =
-                    arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
+                var matchingInstance = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
 
                 // write
                 if (matchingInstance != null)
@@ -121,15 +126,11 @@ namespace Naos.Deployment.Tracking
             {
                 var arcology = await this.GetArcologyByEnvironmentNameAsync(instanceDescription.Environment);
 
-                var toUpdate =
-                    arcology.Instances.SingleOrDefault(
-                        _ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
+                var toUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceCreationDetails.PrivateIpAddress == instanceDescription.PrivateIpAddress);
 
                 if (toUpdate == null)
                 {
-                    throw new DeploymentException(
-                        "Expected to find a tracked instance (pre-creation) with private IP: "
-                        + instanceDescription.PrivateIpAddress);
+                    throw new DeploymentException("Expected to find a tracked instance (pre-creation) with private IP: " + instanceDescription.PrivateIpAddress);
                 }
 
                 // write
@@ -156,8 +157,7 @@ namespace Naos.Deployment.Tracking
                 var instanceToUpdate = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.Id == systemId);
                 if (instanceToUpdate == null)
                 {
-                    throw new DeploymentException(
-                        "Expected to find a tracked instance (post-creation) with system ID: " + systemId);
+                    throw new DeploymentException("Expected to find a tracked instance (post-creation) with system ID: " + systemId);
                 }
 
                 // write
@@ -211,14 +211,13 @@ namespace Naos.Deployment.Tracking
                 var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
                 var matchingInstance =
                     arcology.Instances.SingleOrDefault(
-                        _ =>
-                        _.InstanceDescription.PrivateIpAddress == privateIpAddress
-                        && string.IsNullOrEmpty(_.InstanceDescription.Id));
+                        _ => _.InstanceDescription.PrivateIpAddress == privateIpAddress && string.IsNullOrEmpty(_.InstanceDescription.Id));
 
                 // write
                 if (matchingInstance == null)
                 {
-                    throw new ArgumentException("Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
+                    throw new ArgumentException(
+                              "Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
                 }
 
                 arcology.MutateInstancesRemove(matchingInstance);
@@ -242,20 +241,14 @@ namespace Naos.Deployment.Tracking
             environment = environment ?? "[NULL VALUE PASSED]";
             environment = string.IsNullOrEmpty(environment) ? "[EMPTY STRING PASSED]" : environment;
 
-            var arcologyInfoContainer =
-                await
-                this.arcologyInfoQueries.GetOneAsync(
-                    _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
+            var arcologyInfoContainer = await this.arcologyInfoQueries.GetOneAsync(_ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
 
             if (arcologyInfoContainer == null)
             {
                 throw new ArgumentException("Could not find an arcology definition for environment: " + environment);
             }
 
-            var instancesContainers =
-                await
-                this.instanceQueries.GetManyAsync(
-                    _ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
+            var instancesContainers = await this.instanceQueries.GetManyAsync(_ => _.Environment.ToUpperInvariant() == environment.ToUpperInvariant());
 
             var instances = instancesContainers.Select(_ => _.Instance).ToList();
 
@@ -271,19 +264,52 @@ namespace Naos.Deployment.Tracking
         /// <returns>Prepared instance container.</returns>
         public static InstanceContainer CreateInstanceContainerFromInstance(DeployedInstance deployedInstance)
         {
+            new { deployedInstance }.Must().NotBeNull().OrThrowFirstFailure();
+
             var environment = deployedInstance.InstanceDescription.Environment;
 
-            var id = $"{environment}--{deployedInstance.InstanceDescription.PrivateIpAddress}";
+            var id = Invariant($"{environment}--{deployedInstance.InstanceDescription.PrivateIpAddress}");
 
             var ret = new InstanceContainer
                           {
                               Id = id,
                               Name = deployedInstance.InstanceDescription.Name,
                               Environment = environment,
-                              Instance = deployedInstance
+                              Instance = deployedInstance,
                           };
 
             return ret;
+        }
+
+        private bool disposedValue = false; // To detect redundant calls
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        /// <param name="disposing">Value indicating whether or not it is disposing.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2213:DisposableFieldsShouldBeDisposed", MessageId = "arcologySemaphore", Justification = "It is disposed.")]
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposedValue)
+            {
+                if (disposing)
+                {
+                    // Dispose code goes here
+                    this.arcologySemaphore?.Dispose();
+                }
+
+                this.disposedValue = true;
+            }
+        }
+
+        /// <summary>
+        /// Dispose method.
+        /// </summary>
+        public void Dispose()
+        {
+            // Don't change this code
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

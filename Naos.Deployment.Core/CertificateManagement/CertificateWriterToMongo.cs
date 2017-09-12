@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CertificateWriterToMongo.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -38,16 +38,16 @@ namespace Naos.Deployment.Core.CertificateManagement
         }
 
         /// <inheritdoc />
-        public async Task PersistCertficateAsync(CertificateDescriptionWithClearPfxPayload certificateToLoad, CertificateLocator encryptingCertificateLocator)
+        public async Task PersistCertificateAsync(CertificateDescriptionWithClearPfxPayload certificate, CertificateLocator encryptingCertificateLocator)
         {
-            var newCert = certificateToLoad.ToEncryptedVersion(encryptingCertificateLocator);
-            await this.PersistCertficateAsync(newCert);
+            var newCert = certificate.ToEncryptedVersion(encryptingCertificateLocator);
+            await this.PersistCertificateAsync(newCert);
         }
 
         /// <inheritdoc />
-        public async Task PersistCertficateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
+        public async Task PersistCertificateAsync(CertificateDescriptionWithEncryptedPfxPayload certificate)
         {
-            var container = new CertificateContainer { Id = certificate.FriendlyName, Certificate = certificate, LastUpdatedUtc = DateTime.UtcNow };
+            var container = new CertificateContainer { Id = certificate.FriendlyName, Certificate = certificate, RecordLastModifiedUtc = DateTime.UtcNow };
 
             await this.certificateContainerCommands.AddOrUpdateOneAsync(container);
         }

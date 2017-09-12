@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CertificateLocator.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -14,8 +14,14 @@ namespace Naos.Deployment.Domain
     /// </summary>
     public class CertificateLocator
     {
+        /// <summary>
+        /// Default dertificate <see cref="StoreName"/>.
+        /// </summary>
         public const StoreName DefaultCertificateStoreName = StoreName.My;
 
+        /// <summary>
+        /// Default certificate <see cref="StoreLocation"/>.
+        /// </summary>
         public const StoreLocation DefaultCertificateStoreLocation = StoreLocation.LocalMachine;
 
         /// <summary>

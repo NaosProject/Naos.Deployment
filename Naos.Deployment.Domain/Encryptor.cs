@@ -1,17 +1,16 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Encryptor.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Domain
 {
     using System;
-    using static System.FormattableString;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
-
     using Its.Configuration;
+    using static System.FormattableString;
 
     /// <summary>
     /// Class to encrypt and decrypt text.

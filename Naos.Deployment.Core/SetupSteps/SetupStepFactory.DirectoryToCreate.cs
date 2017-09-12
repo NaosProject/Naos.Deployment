@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.DirectoryToCreate.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ namespace Naos.Deployment.Core
                     machineManager.RunScript(
                         this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
                         .ScriptText,
-                        dirParams)
+                        dirParams),
             };
 
             return new[] { ret }.ToList();

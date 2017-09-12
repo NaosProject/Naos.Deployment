@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="GenerateJsonHelperTest.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ namespace Naos.Deployment.Core.Test
     using MessageBusCredentials = Naos.MessageBus.Domain.Credentials;
     using SpritelyCredentials = Spritely.ReadModel.Credentials;
 
-    public class GenerateJsonHelperTest
+    public static class GenerateJsonHelperTest
     {
         [Fact]
         public static void CreateDeploymentHandlerDeploymentJson()
@@ -59,10 +59,10 @@ namespace Naos.Deployment.Core.Test
                         Credentials = new SpritelyCredentials
                         {
                             User = deploymentDatabaseUser,
-                            Password = deploymentDatabasePassword.ToSecureString()
-                        }
-                    }
-                }
+                            Password = deploymentDatabasePassword.ToSecureString(),
+                        },
+                    },
+                },
             };
 
             var deploymentMessageHandlerSettings = new DeploymentMessageHandlerSettings
@@ -73,7 +73,7 @@ namespace Naos.Deployment.Core.Test
                 SystemLocation = region,
                 ContainerSystemLocation = availabilityZone,
                 InfrastructureTrackerConfiguration = infrastructureTrackerConfig,
-                InstanceNameLookupSource = InstanceNameLookupSource.Arcology
+                InstanceNameLookupSource = InstanceNameLookupSource.Arcology,
             };
 
             var deploymentHandler = new PackageDescriptionWithOverrides
@@ -84,27 +84,18 @@ namespace Naos.Deployment.Core.Test
                                                     {
                                                         new InitializationStrategyMessageBusHandler
                                                             {
-                                                                ChannelsToMonitor =
-                                                                    new[]
-                                                                        {
-                                                                            new SimpleChannel(
-                                                                                channelNameOne),
-                                                                            new SimpleChannel(
-                                                                                channelNameTwo)
-                                                                        }
-                                                            }
+                                                                ChannelsToMonitor = new[] { new SimpleChannel(channelNameOne), new SimpleChannel(channelNameTwo), },
+                                                            },
                                                     },
                                             ItsConfigOverrides =
                                                 new[]
                                                     {
                                                         new ItsConfigOverride
                                                             {
-                                                                FileNameWithoutExtension =
-                                                                    "DeploymentMessageHandlerSettings",
-                                                                FileContentsJson =
-                                                                    deploymentMessageHandlerSettings.ToJson()
-                                                            }
-                                                    }
+                                                                FileNameWithoutExtension = "DeploymentMessageHandlerSettings",
+                                                                FileContentsJson = deploymentMessageHandlerSettings.ToJson(),
+                                                            },
+                                                    },
                                         };
 
             packages.Add(deploymentHandler);
@@ -133,23 +124,25 @@ namespace Naos.Deployment.Core.Test
                                                                          Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "Hangfire",
-                                                                         Credentials = new MessageBusCredentials
-                                                                         {
-                                                                             User = databaseServerUser,
-                                                                             Password = databaseServerPassword.ToSecureString()
-                                                                         }
-                                                                 },
+                                                                         Credentials =
+                                                                             new MessageBusCredentials
+                                                                                 {
+                                                                                     User = databaseServerUser,
+                                                                                     Password = databaseServerPassword.ToSecureString(),
+                                                                                 },
+                                                                     },
                                                              EventPersistenceConnectionConfiguration =
                                                                  new EventPersistenceConnectionConfiguration
                                                                      {
                                                                          Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "ParcelTrackingEvents",
-                                                                         Credentials = new MessageBusCredentials
-                                                                         {
+                                                                         Credentials =
+                                                                             new MessageBusCredentials
+                                                                                 {
                                                                                      User = databaseServerUser,
-                                                                                     Password = databaseServerPassword.ToSecureString()
-                                                                                 }
+                                                                                     Password = databaseServerPassword.ToSecureString(),
+                                                                                 },
                                                                      },
                                                              ReadModelPersistenceConnectionConfiguration =
                                                                  new ReadModelPersistenceConnectionConfiguration
@@ -157,26 +150,21 @@ namespace Naos.Deployment.Core.Test
                                                                          Port = 1433,
                                                                          Server = databaseServer,
                                                                          Database = "ParcelTrackingReadModel",
-                                                                         Credentials = new MessageBusCredentials
-                                                                         {
-                                                                             User = databaseServerUser,
-                                                                             Password = databaseServerPassword.ToSecureString()
-                                                                         }
-                                                                 }
-            };
+                                                                         Credentials =
+                                                                             new MessageBusCredentials
+                                                                                 {
+                                                                                     User = databaseServerUser,
+                                                                                     Password = databaseServerPassword.ToSecureString(),
+                                                                                 },
+                                                                     },
+                                                         };
 
             var hangfireDb = new PackageDescriptionWithOverrides
                                  {
                                      Id = hangfireDatabasePackageId,
                                      InitializationStrategies =
                                          new InitializationStrategyBase[]
-                                             {
-                                                 new InitializationStrategySqlServer
-                                                     {
-                                                         Name = "Hangfire",
-                                                         AdministratorPassword = databaseServerPassword
-                                                     }
-                                             }
+                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, }, },
                                  };
 
             var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };
@@ -200,9 +188,9 @@ namespace Naos.Deployment.Core.Test
                                                                           Name =
                                                                               "ApplicationPreload",
                                                                           Type =
-                                                                              "Naos.MessageBus.Hangfire.Harness.ApplicationPreload, Naos.MessageBus.Hangfire.Harness"
-                                                                      }
-                                                          }
+                                                                              "Naos.MessageBus.Hangfire.Harness.ApplicationPreload, Naos.MessageBus.Hangfire.Harness",
+                                                                      },
+                                                          },
                                                   },
                                           ItsConfigOverrides =
                                               new[]
@@ -220,7 +208,7 @@ namespace Naos.Deployment.Core.Test
                                                                                       {
                                                                                           LogFilePath
                                                                                               =
-                                                                                              logFilePath
+                                                                                              logFilePath,
                                                                                       },
                                                                               ConnectionConfiguration
                                                                                   =
@@ -233,7 +221,7 @@ namespace Naos.Deployment.Core.Test
                                                                                               {
                                                                                                   RunDashboard
                                                                                                       =
-                                                                                                      true
+                                                                                                      true,
                                                                                               },
                                                                                           new MessageBusHarnessRoleSettingsExecutor
                                                                                               {
@@ -246,7 +234,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                       new[]
                                                                                                           {
                                                                                                               new SimpleChannel("default"),
-                                                                                                              new SimpleChannel("hangsrvr")
+                                                                                                              new SimpleChannel("hangsrvr"),
                                                                                                           },
                                                                                                   HandlerAssemblyPath
                                                                                                       =
@@ -256,12 +244,12 @@ namespace Naos.Deployment.Core.Test
                                                                                                       1,
                                                                                                   PollingTimeSpan
                                                                                                       =
-                                                                                                      TimeSpan.FromMinutes(1)
-                                                                                              }
-                                                                                      }
-                                                                          }.ToJson()
-                                                          }
-                                                  }
+                                                                                                      TimeSpan.FromMinutes(1),
+                                                                                              },
+                                                                                      },
+                                                                          }.ToJson(),
+                                                          },
+                                                  },
                                       };
 
             packages.Add(hangfireHarness);

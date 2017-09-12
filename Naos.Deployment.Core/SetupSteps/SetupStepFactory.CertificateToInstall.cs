@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.CertificateToInstall.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -24,16 +24,12 @@ namespace Naos.Deployment.Core
         {
             var usersToGrantPrivateKeyAccess = new[] { certToInstallStrategy.AccountToGrantPrivateKeyAccess };
             var certificateName = certToInstallStrategy.CertificateToInstall;
+            var installExportable = certToInstallStrategy.InstallExportable;
 
-            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName);
+            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName, installExportable);
         }
 
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
-            string tempPathToStoreFileWhileInstalling,
-            string harnessAccount,
-            string iisAccount,
-            ICollection<string> usersToGrantPrivateKeyAccess,
-            string certificateName)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string tempPathToStoreFileWhileInstalling, string harnessAccount, string iisAccount, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
         {
             var certSteps = new List<SetupStep>();
 
@@ -56,10 +52,10 @@ namespace Naos.Deployment.Core
                             {
                                 machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
                                 return new dynamic[0];
-                            }
+                            },
                     });
 
-            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), tokenAppliedUsers };
+            var installCertificateParams = new object[] { certificateTargetPath, certDetails.PfxPasswordInClearText.ToSecureString(), installExportable, tokenAppliedUsers };
 
             certSteps.Add(
                 new SetupStep
@@ -67,7 +63,7 @@ namespace Naos.Deployment.Core
                         Description = $"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}]",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams)
+                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),
                     });
 
             return certSteps;

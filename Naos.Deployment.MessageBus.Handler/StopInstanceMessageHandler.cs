@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="StopInstanceMessageHandler.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -22,9 +22,6 @@ namespace Naos.Deployment.MessageBus.Handler
     /// </summary>
     public class StopInstanceMessageHandler : IHandleMessages<StopInstanceMessage>, IShareInstanceTargeters
     {
-        /// <inheritdoc />
-        public string Description { get; set; }
-
         /// <inheritdoc />
         public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
@@ -50,7 +47,7 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Cannot have a null message.");
             }
 
-            if (message.InstanceTargeters == null || message.InstanceTargeters.Length  == 0)
+            if (message.InstanceTargeters == null || message.InstanceTargeters.Length == 0)
             {
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
@@ -69,14 +66,19 @@ namespace Naos.Deployment.MessageBus.Handler
 
         private static async Task ParallelOperationAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, bool waitUntilOff)
         {
-            var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
+            using (var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings))
+            {
+                var systemId =
+                    await
+                        ComputingManagerHelper.GetSystemIdFromTargeterAsync(
+                            instanceTargeter,
+                            computingInfrastructureManagerSettings,
+                            settings,
+                            computingManager);
 
-            var systemId =
-                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, computingManager);
-
-            Log.Write(
-                () => new { Info = "Stopping Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
-            await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);
+                Log.Write(() => new { Info = "Stopping Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
+                await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);
+            }
         }
     }
 }

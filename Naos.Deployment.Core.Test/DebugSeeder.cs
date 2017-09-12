@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DebugSeeder.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core.Test
 
     using Credentials = Spritely.ReadModel.Credentials;
 
-    public class DebugSeeder
+    public static class DebugSeeder
     {
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
         public static void Debug_CreateArcologyInDatabase()
@@ -60,9 +60,9 @@ namespace Naos.Deployment.Core.Test
                     Credentials = new Credentials
                     {
                         User = databaseUser,
-                        Password = databasePassword
-                    }
-                }
+                        Password = databasePassword,
+                    },
+                },
             };
 
             BsonClassMapManager.RegisterClassMaps();
@@ -72,7 +72,7 @@ namespace Naos.Deployment.Core.Test
                                             {
                                                 Id = databaseId,
                                                 Environment = environment,
-                                                ArcologyInfo = arcologyInfo
+                                                ArcologyInfo = arcologyInfo,
                                             };
 
             arcologyInfoCommands.AddOrUpdateOneAsync(arcologyInfoContainer).Wait();
@@ -120,7 +120,7 @@ namespace Naos.Deployment.Core.Test
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
                                                  File.ReadAllBytes(@"D:\Temp\DevelopmentCert.pfx"),
                                                  "password",
-                                                 "CSR-PEM")
+                                                 "CSR-PEM"),
                                          };
 
             // Building and writing code...
@@ -133,9 +133,9 @@ namespace Naos.Deployment.Core.Test
                     Credentials = new Credentials
                     {
                         User = databaseUser,
-                        Password = databasePassword
-                    }
-                }
+                        Password = databasePassword,
+                    },
+                },
             };
 
             var certificates = BuildCertificates(certificatesToLoad, new CertificateLocator("323423423", false));
@@ -143,7 +143,7 @@ namespace Naos.Deployment.Core.Test
             var writer = CertificateManagementFactory.CreateWriter(new CertificateManagementConfigurationDatabase { Database = database });
             foreach (var certificate in certificates)
             {
-                await writer.PersistCertficateAsync(certificate);
+                await writer.PersistCertificateAsync(certificate);
             }
         }
 
@@ -166,7 +166,7 @@ namespace Naos.Deployment.Core.Test
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
                                                  File.ReadAllBytes(@"D:\Temp\DevelopmentCert.pfx"),
                                                  "password",
-                                                 "CSR-PEM")
+                                                 "CSR-PEM"),
                                          };
 
             // Building and writing code...

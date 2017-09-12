@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.ItsConfig.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -10,8 +10,8 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using System.Text;
-
     using Naos.Deployment.Domain;
+    using static System.FormattableString;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
@@ -34,12 +34,12 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Update Its.Config precedence: " + string.Join("|", precedenceChain),
-                        SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams)
+                        SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams),
                     });
 
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
-                var itsFileSubPath = $".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json";
+                var itsFileSubPath = Invariant($".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json");
 
                 var itsFilePath = Path.Combine(applicationRootPath, itsFileSubPath);
                 var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
@@ -52,7 +52,7 @@ namespace Naos.Deployment.Core
                                 {
                                     machineManager.SendFile(itsFilePath, itsFileBytes, false, true);
                                     return new dynamic[0];
-                                }
+                                },
                         });
             }
 

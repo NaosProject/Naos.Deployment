@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyDnsEntry.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ namespace Naos.Deployment.Domain
             var ret = new InitializationStrategyDnsEntry
                           {
                               PublicDnsEntry = this.PublicDnsEntry,
-                              PrivateDnsEntry = this.PrivateDnsEntry
+                              PrivateDnsEntry = this.PrivateDnsEntry,
                           };
             return ret;
         }

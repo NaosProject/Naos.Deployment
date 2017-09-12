@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyIis.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ namespace Naos.Deployment.Domain
                               AppPoolStartMode = this.AppPoolStartMode,
                               SslCertificateName = this.SslCertificateName,
                               PrimaryDns = this.PrimaryDns,
-                              EnableHttp = this.EnableHttp
+                              EnableHttp = this.EnableHttp,
                           };
             return ret;
         }

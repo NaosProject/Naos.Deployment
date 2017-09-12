@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DatabaseRestoreBase.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ namespace Naos.Deployment.Domain
                               Region = this.Region,
                               DownloadAccessKey = this.DownloadAccessKey,
                               DownloadSecretKey = this.DownloadSecretKey,
-                              RunChecksum = this.RunChecksum
+                              RunChecksum = this.RunChecksum,
                           };
             return ret;
         }

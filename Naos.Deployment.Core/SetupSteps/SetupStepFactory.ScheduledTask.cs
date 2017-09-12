@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStepFactory.ScheduledTask.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -42,9 +42,9 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Enable history for scheduled tasks",
-                        SetupFunc = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText)
+                        SetupFunc = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
-            
+
             var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, consoleRootPath, environment, exeConfigFullPath);
             scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
@@ -100,7 +100,7 @@ namespace Naos.Deployment.Core
                                                   machineManager =>
                                                   machineManager.RunScript(
                                                       this.settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,
-                                                      setupScheduledTaskParams)
+                                                      setupScheduledTaskParams),
                                           };
 
             scheduledTaskSetupSteps.Add(createScheduledTask);

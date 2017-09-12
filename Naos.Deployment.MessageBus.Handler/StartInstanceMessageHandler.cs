@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="StartInstanceMessageHandler.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -22,9 +22,6 @@ namespace Naos.Deployment.MessageBus.Handler
     /// </summary>
     public class StartInstanceMessageHandler : IHandleMessages<StartInstanceMessage>, IShareInstanceTargeters
     {
-        /// <inheritdoc />
-        public string Description { get; set; }
-
         /// <inheritdoc />
         public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
@@ -69,14 +66,19 @@ namespace Naos.Deployment.MessageBus.Handler
 
         private static async Task ParallelOperationAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, bool waitUntilOn)
         {
-            var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings);
+            using (var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings))
+            {
+                var systemId =
+                    await
+                        ComputingManagerHelper.GetSystemIdFromTargeterAsync(
+                            instanceTargeter,
+                            computingInfrastructureManagerSettings,
+                            settings,
+                            computingManager);
 
-            var systemId =
-                await ComputingManagerHelper.GetSystemIdFromTargeterAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, computingManager);
-
-            Log.Write(
-                () => new { Info = "Starting Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
-            await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
+                Log.Write(() => new { Info = "Starting Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
+                await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
+            }
         }
     }
 }

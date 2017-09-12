@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="Enums.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Package was deployed successfully.
         /// </summary>
-        DeployedSuccessfully
+        DeployedSuccessfully,
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// High performance volume type.
         /// </summary>
-        HighPerformance
+        HighPerformance,
     }
 
     /// <summary>
@@ -205,6 +205,6 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Passed state.
         /// </summary>
-        Passed
+        Passed,
     }
 }

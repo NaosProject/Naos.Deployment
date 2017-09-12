@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="BsonClassMapManager.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -30,6 +30,7 @@ namespace Naos.Deployment.Persistence
         /// <summary>
         /// Class to manage class maps necessary for the CoScore Storage Model.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public static void RegisterClassMaps()
         {
             if (!registered)
@@ -105,7 +106,7 @@ namespace Naos.Deployment.Persistence
                                         .SetSerializer(
                                             new EnumSerializer<InstanceAccessibility>(MongoDB.Bson.BsonType.String));
                                 });
-                        
+
                         BsonClassMap.RegisterClassMap<CertificateDescription>(
                             cm =>
                                 {
@@ -128,7 +129,7 @@ namespace Naos.Deployment.Persistence
 
                         BsonClassMap.RegisterClassMap<CertificateContainer>();
 
-                       registered = true;
+                        registered = true;
                     }
                 }
             }

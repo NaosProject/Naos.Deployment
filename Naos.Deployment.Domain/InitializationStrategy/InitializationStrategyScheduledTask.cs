@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InitializationStrategyScheduledTask.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the name of the task.
         /// </summary>
         public string Name { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the description of the task.
         /// </summary>
@@ -53,7 +53,7 @@ namespace Naos.Deployment.Domain
                               Description = this.Description,
                               ExeName = this.ExeName,
                               Arguments = this.Arguments,
-                              Schedule = schedule
+                              Schedule = schedule,
                           };
             return ret;
         }

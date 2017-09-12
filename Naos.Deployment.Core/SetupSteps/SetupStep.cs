@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="SetupStep.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,5 +31,21 @@ namespace Naos.Deployment.Core
         {
             return this.Description;
         }
+    }
+
+    /// <summary>
+    /// Model object to store a batch of steps.
+    /// </summary>
+    internal class SetupStepBatch
+    {
+        /// <summary>
+        /// Gets or sets the order to execute the step.
+        /// </summary>
+        public int ExecutionOrder { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ordered list of steps to run.
+        /// </summary>
+        public ICollection<SetupStep> Steps { get; set; }
     }
 }

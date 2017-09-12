@@ -1,11 +1,13 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="TokenSubstitutions.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.Domain
 {
+    using System.Globalization;
+
     /// <summary>
     /// Class to consolidate the tokens that are available to be substituted.
     /// </summary>
@@ -43,16 +45,10 @@ namespace Naos.Deployment.Domain
         /// <param name="harnessAccount">Harness account to use for harness token.</param>
         /// <param name="iisAccount">IIS account to use for harness token.</param>
         /// <returns>Provided string with any found substitutions</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
         public static string GetSubstitutedStringForAccounts(string stringToApplyTokenSubstitutions, string harnessAccount, string iisAccount)
         {
-            if (stringToApplyTokenSubstitutions == null)
-            {
-                return null;
-            }
-
-            var ret = stringToApplyTokenSubstitutions
-                .Replace(HarnessAccountToken, harnessAccount)
-                .Replace(IisAccountToken, iisAccount);
+            var ret = stringToApplyTokenSubstitutions?.Replace(HarnessAccountToken, harnessAccount).Replace(IisAccountToken, iisAccount);
 
             return ret;
         }
@@ -65,17 +61,13 @@ namespace Naos.Deployment.Domain
         /// <param name="instanceName">Name of the created instance.</param>
         /// <param name="instanceNumber">The number of the instance (used when multiple instances are being created).</param>
         /// <returns>Provided string with any found substitutions</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
         public static string GetSubstitutedStringForDns(string stringToApplyTokenSubstitutions, string environment, string instanceName, int instanceNumber)
         {
-            if (stringToApplyTokenSubstitutions == null)
-            {
-                return null;
-            }
-
-            var ret = stringToApplyTokenSubstitutions
-                .Replace("{instanceName}", instanceName)
+            var ret = stringToApplyTokenSubstitutions?.Replace("{instanceName}", instanceName)
                 .Replace("{environment}", environment)
-                .Replace("{instanceNumber}", instanceNumber.ToString());
+                .Replace("{instanceNumber}", instanceNumber.ToString(CultureInfo.CurrentCulture));
+
             return ret;
         }
 
@@ -87,17 +79,13 @@ namespace Naos.Deployment.Domain
         /// <param name="instanceName">Name of the created instance.</param>
         /// <param name="instanceNumber">The number of the instance (used when multiple instances are being created).</param>
         /// <returns>Provided string with any found substitutions</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Name I want.")]
         public static string GetSubstitutedStringForChannelName(string stringToApplyTokenSubstitutions, string environment, string instanceName, int instanceNumber)
         {
-            if (stringToApplyTokenSubstitutions == null)
-            {
-                return null;
-            }
-
-            var ret = stringToApplyTokenSubstitutions
-                .Replace("{instanceName}", instanceName)
+            var ret = stringToApplyTokenSubstitutions?.Replace("{instanceName}", instanceName)
                 .Replace("{environment}", environment)
-                .Replace("{instanceNumber}", instanceNumber.ToString());
+                .Replace("{instanceNumber}", instanceNumber.ToString(CultureInfo.CurrentCulture));
+
             return ret;
         }
     }

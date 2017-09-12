@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="InstanceCreationDetails.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -27,8 +27,9 @@ namespace Naos.Deployment.Domain
         public string Location { get; set; }
 
         /// <summary>
-        /// Gets or sets the 
+        /// Gets or sets the private IP address.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name I want.")]
         public string PrivateIpAddress { get; set; }
 
         /// <summary>

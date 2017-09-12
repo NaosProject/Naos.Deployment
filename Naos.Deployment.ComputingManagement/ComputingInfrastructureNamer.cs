@@ -1,14 +1,16 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ComputingInfrastructureNamer.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
 namespace Naos.Deployment.ComputingManagement
 {
     using System;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
+    using static System.FormattableString;
 
     /// <summary>
     /// Composes easy to track names for computing resources.
@@ -41,7 +43,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>Name to apply to instance.</returns>
         public string GetInstanceName()
         {
-            var name = $"instance-{this.environment}-{this.baseName}@{this.containerLocation}";
+            var name = Invariant($"instance-{this.environment}-{this.baseName}@{this.containerLocation}");
             return name;
         }
 
@@ -52,7 +54,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>Name to apply to volume.</returns>
         public string GetVolumeName(string driveLetter)
         {
-            var name = $"ebs-{this.environment}-{this.baseName}-{driveLetter}@{this.containerLocation}";
+            var name = Invariant($"ebs-{this.environment}-{this.baseName}-{driveLetter}@{this.containerLocation}");
             return name;
         }
 
@@ -63,7 +65,7 @@ namespace Naos.Deployment.ComputingManagement
                 throw new ArgumentException("Cannot have a 'null' or empty name.");
             }
 
-            if (name.StartsWith("-") || name.EndsWith("-"))
+            if (name.StartsWith("-", StringComparison.CurrentCultureIgnoreCase) || name.EndsWith("-", StringComparison.CurrentCultureIgnoreCase))
             {
                 throw new ArgumentException("Cannot start or end the name in a dash (-) because it's an invalid URL subdomain.");
             }

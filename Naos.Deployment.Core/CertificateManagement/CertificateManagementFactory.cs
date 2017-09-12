@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
 // <copyright file="CertificateManagementFactory.cs" company="Naos">
-//   Copyright 2015 Naos
+//    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -17,6 +17,8 @@ namespace Naos.Deployment.Core
     using OBeautifulCode.DateTime;
     using OBeautifulCode.Security;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory for creating certificate retrievers.
     /// </summary>
@@ -27,6 +29,7 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="certificateManagementConfigurationBase">Configuration to use when creating a certificate retriever.</param>
         /// <returns>An implementation of the <see cref="IGetCertificates"/>.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily", Justification = "I prefer this layout.")]
         public static IGetCertificates CreateReader(CertificateManagementConfigurationBase certificateManagementConfigurationBase)
         {
             IGetCertificates ret;
@@ -44,7 +47,7 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException($"Configuration is not valid: {certificateManagementConfigurationBase.ToJson()}");
+                throw new NotSupportedException(Invariant($"Configuration is not valid: {certificateManagementConfigurationBase.ToJson()}"));
             }
 
             return ret;
@@ -55,6 +58,7 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="certificateManagementConfigurationBase">Configuration to use when creating a certificate writer.</param>
         /// <returns>An implementation of the <see cref="IPersistCertificates"/>.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1800:DoNotCastUnnecessarily", Justification = "I prefer this layout.")]
         public static IPersistCertificates CreateWriter(CertificateManagementConfigurationBase certificateManagementConfigurationBase)
         {
             IPersistCertificates ret;
@@ -72,7 +76,7 @@ namespace Naos.Deployment.Core
             }
             else
             {
-                throw new NotSupportedException($"Configuration is not valid: {certificateManagementConfigurationBase.ToJson()}");
+                throw new NotSupportedException(Invariant($"Configuration is not valid: {certificateManagementConfigurationBase.ToJson()}"));
             }
 
             return ret;
@@ -86,6 +90,7 @@ namespace Naos.Deployment.Core
         /// <param name="pfxPasswordInClearText">Password of the certificate's PFX file in clear text.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
         /// <returns>New <see cref="CertificateDescriptionWithClearPfxPayload"/> with additional info extracted dynamically from file.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = "Name I want.")]
         public static CertificateDescriptionWithClearPfxPayload BuildCertificateDescriptionWithClearPfxPayload(string friendlyName, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
         {
             var endUserCert = CertHelper.ExtractCertChainFromPfx(pfxBytes, pfxPasswordInClearText).GetEndUserCertFromCertChain();
