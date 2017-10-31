@@ -59,6 +59,8 @@ namespace Naos.Deployment.Domain
                               ExeFilePathRelativeToPackageRoot = this.ExeFilePathRelativeToPackageRoot,
                               Arguments = this.Arguments,
                               Schedule = schedule,
+                              ScheduledTaskAccount = this.ScheduledTaskAccount,
+                              RunElevated = this.RunElevated,
                           };
             return ret;
         }

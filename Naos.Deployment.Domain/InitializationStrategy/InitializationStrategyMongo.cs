@@ -37,9 +37,9 @@ namespace Naos.Deployment.Domain
         public bool NoJournaling { get; set; }
 
         /// <summary>
-        /// Gets or sets the channel name to monitor for back channel commands.
+        /// Gets or sets the channel name to monitor management commands.
         /// </summary>
-        public string MessageBusBackChannelName { get; set; }
+        public string ManagementChannelName { get; set; }
 
         /// <inheritdoc />
         public override object Clone()
@@ -51,7 +51,7 @@ namespace Naos.Deployment.Domain
                               DataDirectory = this.DataDirectory,
                               LogDirectory = this.LogDirectory,
                               NoJournaling = this.NoJournaling,
-                              MessageBusBackChannelName = this.MessageBusBackChannelName,
+                              ManagementChannelName = this.ManagementChannelName,
                           };
             return ret;
         }

@@ -167,7 +167,7 @@
     <None Include=".analyzers\test.ruleset" />
     <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
     <None Include=".config\Common\SetupStepFactorySettings.json" />
-    <None Include="app.config" />
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -52,9 +52,9 @@ namespace Naos.Deployment.Domain
         public string RecoveryMode { get; set; }
 
         /// <summary>
-        /// Gets or sets the channel name to monitor for back channel commands.
+        /// Gets or sets the channel name to monitor management commands.
         /// </summary>
-        public string MessageBusBackChannelName { get; set; }
+        public string ManagementChannelName { get; set; }
 
         /// <inheritdoc />
         public override object Clone()
@@ -68,7 +68,7 @@ namespace Naos.Deployment.Domain
                               Create = (Create)this.Create.Clone(),
                               Restore = (DatabaseRestoreBase)this.Restore.Clone(),
                               Migration = (DatabaseMigrationBase)this.Migration.Clone(),
-                              MessageBusBackChannelName = this.MessageBusBackChannelName,
+                              ManagementChannelName = this.ManagementChannelName,
                           };
             return ret;
         }

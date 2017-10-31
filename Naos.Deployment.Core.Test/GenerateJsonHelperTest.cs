@@ -207,7 +207,7 @@ namespace Naos.Deployment.Core.Test
                                      Id = hangfireDatabasePackageId,
                                      InitializationStrategies =
                                          new InitializationStrategyBase[]
-                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, MessageBusBackChannelName = "Hangfire" }, },
+                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, ManagementChannelName = "hangfire" }, },
                                  };
 
             var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };

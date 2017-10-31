@@ -17,8 +17,13 @@ namespace Naos.Deployment.Core.Test
 
     using Xunit;
 
-    public class SerializerTest : ConfigRequiredTest
+    public static class SerializerTest
     {
+        static SerializerTest()
+        {
+            Config.ConfigureSerialization();
+        }
+
         [Fact]
         public static void Deserialize_PrivateDnsEntry_Valid()
         {
@@ -46,7 +51,7 @@ namespace Naos.Deployment.Core.Test
             var input = @"
 [{
 	""id"": ""Naos.Something"",
-	""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeName"":""MyConsole.exe"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args""}]
+	""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeFilePathRelativeToPackageRoot"":""MyConsole.exe"", ""runElevated"":""true"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args"", ""scheduledTaskAccount"":""administrator""}]
 }]";
             var deserialized = (ICollection<PackageDescriptionWithOverrides>)Settings.Deserialize(typeof(ICollection<PackageDescriptionWithOverrides>), input);
 
