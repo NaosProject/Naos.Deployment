@@ -14,19 +14,20 @@ namespace Naos.Deployment.MessageBus.Handler
     using Its.Log.Instrumentation;
 
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Scheduler;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
-    public class StartInstanceMessageHandler : IHandleMessages<StartInstanceMessage>, IShareInstanceTargeters
+    public class StartInstanceMessageHandler : MessageHandlerBase<StartInstanceMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
-        /// <inheritdoc />
-        public async Task HandleAsync(StartInstanceMessage message)
+        /// <inheritdoc cref="MessageHandlerBase{T}" />
+        public override async Task HandleAsync(StartInstanceMessage message)
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
@@ -76,7 +77,7 @@ namespace Naos.Deployment.MessageBus.Handler
                             settings,
                             computingManager);
 
-                Log.Write(() => new { Info = "Starting Instance", InstanceTargeterJson = instanceTargeter.ToJson(), SystemId = systemId });
+                Log.Write(() => new { Info = "Starting Instance", InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter), SystemId = systemId });
                 await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
             }
         }

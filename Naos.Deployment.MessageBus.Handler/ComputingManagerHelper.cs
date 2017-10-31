@@ -14,7 +14,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
 
     using Spritely.Recipes;

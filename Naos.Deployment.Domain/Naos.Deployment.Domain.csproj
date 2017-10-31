@@ -45,32 +45,33 @@
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Naos.Compression.Domain, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Compression.Domain.1.0.5\lib\net461\Naos.Compression.Domain.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.Cron, Version=1.0.15.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.8\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.233.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.233\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.25.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.25-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.32\lib\net45\Naos.Packaging.Domain.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.34.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.34\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.42\lib\net461\Naos.Serialization.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
-    <Reference Include="OBeautifulCode.DateTime, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.3\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="OBeautifulCode.DateTime, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.4\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.3\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.8\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -82,25 +83,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Math\HashCodeHelper.cs" />
-    <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
-    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\DefaultJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\MinimalJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\Rules.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\ValidatedNotNullAttribute.cs" />
-    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Math\HashCodeHelper.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\MakeRule.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\MustExtensions.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\RuleExtensions.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\Rules.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include="ArcologyInfo.cs" />
     <Compile Include="Certificate\CertificateDescriptionWithClearPfxPayload.cs" />
     <Compile Include="Certificate\CertificateDescriptionWithEncryptedPfxPayload.cs" />
     <Compile Include="Certificate\IPersistCertificates.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
+    <Compile Include="IManageConfigFiles.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />
     <Compile Include="Certificate\CertificateDescription.cs" />
     <Compile Include="Certificate\CertificateLocator.cs" />
@@ -126,6 +120,7 @@
     <Compile Include="InitializationStrategy\InitializationStrategyBase.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyCertificateToInstall.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyDirectoryToCreate.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyCreateEventLog.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyDnsEntry.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyIis.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMessageBusHandler.cs" />

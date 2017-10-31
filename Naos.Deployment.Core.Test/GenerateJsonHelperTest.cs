@@ -10,11 +10,14 @@ namespace Naos.Deployment.Core.Test
     using System.Collections.Generic;
 
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Contract;
     using Naos.Deployment.MessageBus.Handler;
+    using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
+    using Naos.Recipes.Configuration.Setup;
+    using Naos.Serialization.Factory;
 
     using OBeautifulCode.TypeRepresentation;
 
@@ -40,13 +43,25 @@ namespace Naos.Deployment.Core.Test
             var startStopAccessKey = "KAIIIDIIIDIDID";
             var startStopSecretKey = "a;sldkjfalksjdfklasjdflkasdfjkjsdfs";
             var environment = "Development";
+            var customEventLog = "Application"; // can be something sepcific like your company name.
 
             // ----------- CHANGE ABOVE THIS LINE TO YOUR STUFF --------------
             var packages = new List<PackageDescriptionWithOverrides>();
 
-            var deploymentHandlerPackageId = "Naos.Deployment.MessageBus.Handler";
+            var deploymentHandlerPackageId = "Naos.Deployment.MessageBus.Hangfire.Console";
             var channelNameOne = "aws";
             var channelNameTwo = "cloud";
+            var logFilePath = @"D:\Deployments\Naos.Deployment\packagedWebsite\DeploymentHandler.txt";
+            var eventLogSource = "DeploymentHandler";
+            var logConfigurations = new LogConfigurationBase[]
+                                        {
+                                            new LogConfigurationEventLog(LogContexts.AllErrors, eventLogSource, customEventLog),
+                                            new LogConfigurationFile(LogContexts.All, logFilePath),
+                                        };
+
+            var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
+
+            var serializer = SerializerFactory.Instance.BuildSerializer(configFileSerializationDescription);
             var infrastructureTrackerConfig = new InfrastructureTrackerConfigurationDatabase
             {
                 Database = new DeploymentDatabase
@@ -86,20 +101,26 @@ namespace Naos.Deployment.Core.Test
                                                             {
                                                                 ChannelsToMonitor = new[] { new SimpleChannel(channelNameOne), new SimpleChannel(channelNameTwo), },
                                                             },
+                                                        new InitializationStrategyCreateEventLog { Source = eventLogSource, LogName = customEventLog },
                                                     },
                                             ItsConfigOverrides =
                                                 new[]
                                                     {
                                                         new ItsConfigOverride
                                                             {
+                                                                FileNameWithoutExtension = nameof(LogProcessorSettings),
+                                                                FileContentsJson = serializer.SerializeToString(new LogProcessorSettings(logConfigurations)),
+                                                            },
+                                                        new ItsConfigOverride
+                                                            {
                                                                 FileNameWithoutExtension = "DeploymentMessageHandlerSettings",
-                                                                FileContentsJson = deploymentMessageHandlerSettings.ToJson(),
+                                                                FileContentsJson = serializer.SerializeToString(deploymentMessageHandlerSettings),
                                                             },
                                                     },
                                         };
 
             packages.Add(deploymentHandler);
-            var output = packages.ToJson();
+            var output = serializer.SerializeToString(packages);
             Assert.NotNull(output);
         }
 
@@ -108,15 +129,36 @@ namespace Naos.Deployment.Core.Test
         public static void CreateHangfireServerDeploymentJson()
         {
             var hangfireDns = "hangfire.development.com";
-            var sslCertName = "RootSslCertName";
+            var sslCertName = "SslCertName";
+            var databaseServerUser = "sa";
             var databaseServerPassword = "thisPasswordShouldBeGood...";
+            var customEventLog = "Application"; // can be something sepcific like your company name.
 
             // ----------- CHANGE ABOVE THIS LINE TO YOUR STUFF --------------
             var hangfireDatabasePackageId = "Naos.MessageBus.Hangfire.Database";
             var hangfireHarnessPackageId = "Naos.MessageBus.Hangfire.Harness";
             var logFilePath = @"D:\Deployments\Naos.MessageBus.Hangfire.Harness\packagedWebsite\HangfireHarnessLog.txt";
-            var databaseServerUser = "sa";
+            var eventLogSource = "HangfireHarness";
+            var logConfigurations = new LogConfigurationBase[]
+                                        {
+                                            new LogConfigurationEventLog(LogContexts.AllErrors, eventLogSource, customEventLog),
+                                            new LogConfigurationFile(LogContexts.All, logFilePath),
+                                        };
+
+            var launchConfiguration = new LaunchConfiguration(
+                TimeSpan.Zero,
+                TypeMatchStrategy.NamespaceAndName,
+                TypeMatchStrategy.NamespaceAndName,
+                0,
+                TimeSpan.FromMinutes(1),
+                1,
+                new[] { new SimpleChannel("default"), new SimpleChannel("hangsrvr"), });
+
             var databaseServer = "localhost";
+            var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
+
+            var serializer = SerializerFactory.Instance.BuildSerializer(configFileSerializationDescription);
+
             var persistenceConnectionConfiguration = new MessageBusConnectionConfiguration
                                                          {
                                                              CourierPersistenceConnectionConfiguration =
@@ -165,7 +207,7 @@ namespace Naos.Deployment.Core.Test
                                      Id = hangfireDatabasePackageId,
                                      InitializationStrategies =
                                          new InitializationStrategyBase[]
-                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, }, },
+                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, MessageBusBackChannelName = "Hangfire" }, },
                                  };
 
             var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };
@@ -177,6 +219,7 @@ namespace Naos.Deployment.Core.Test
                                               new InitializationStrategyBase[]
                                                   {
                                                       new InitializationStrategyDnsEntry { PrivateDnsEntry = hangfireDns },
+                                                      new InitializationStrategyCreateEventLog { Source = eventLogSource, LogName = customEventLog },
                                                       new InitializationStrategyIis
                                                           {
                                                               AppPoolStartMode =
@@ -198,63 +241,29 @@ namespace Naos.Deployment.Core.Test
                                                   {
                                                       new ItsConfigOverride
                                                           {
-                                                              FileNameWithoutExtension =
-                                                                  "MessageBusHarnessSettings",
-                                                              FileContentsJson =
-                                                                      new MessageBusHarnessSettings
-                                                                          {
-                                                                              LogProcessorSettings
-                                                                                  =
-                                                                                  new LogProcessorSettings
-                                                                                      {
-                                                                                          LogFilePath
-                                                                                              =
-                                                                                              logFilePath,
-                                                                                      },
-                                                                              ConnectionConfiguration
-                                                                                  =
-                                                                                  persistenceConnectionConfiguration,
-                                                                              RoleSettings
-                                                                                  =
-                                                                                  new MessageBusHarnessRoleSettingsBase[]
-                                                                                      {
-                                                                                          new MessageBusHarnessRoleSettingsHost
-                                                                                              {
-                                                                                                  RunDashboard
-                                                                                                      =
-                                                                                                      true,
-                                                                                              },
-                                                                                          new MessageBusHarnessRoleSettingsExecutor
-                                                                                              {
-                                                                                                  TypeMatchStrategy
-                                                                                                      =
-                                                                                                      TypeMatchStrategy
-                                                                                                      .NamespaceAndName,
-                                                                                                  ChannelsToMonitor
-                                                                                                      =
-                                                                                                      new[]
-                                                                                                          {
-                                                                                                              new SimpleChannel("default"),
-                                                                                                              new SimpleChannel("hangsrvr"),
-                                                                                                          },
-                                                                                                  HandlerAssemblyPath
-                                                                                                      =
-                                                                                                      @"D:\Deployments",
-                                                                                                  WorkerCount
-                                                                                                      =
-                                                                                                      1,
-                                                                                                  PollingTimeSpan
-                                                                                                      =
-                                                                                                      TimeSpan.FromMinutes(1),
-                                                                                              },
-                                                                                      },
-                                                                          }.ToJson(),
+                                                              FileNameWithoutExtension = nameof(HandlerFactoryConfiguration),
+                                                              FileContentsJson = serializer.SerializeToString(new HandlerFactoryConfiguration(TypeMatchStrategy.NamespaceAndName)),
+                                                          },
+                                                      new ItsConfigOverride
+                                                          {
+                                                              FileNameWithoutExtension = nameof(LogProcessorSettings),
+                                                              FileContentsJson = serializer.SerializeToString(new LogProcessorSettings(logConfigurations)),
+                                                          },
+                                                      new ItsConfigOverride
+                                                          {
+                                                              FileNameWithoutExtension = nameof(MessageBusConnectionConfiguration),
+                                                              FileContentsJson = serializer.SerializeToString(persistenceConnectionConfiguration),
+                                                          },
+                                                      new ItsConfigOverride
+                                                          {
+                                                              FileNameWithoutExtension = nameof(LaunchConfiguration),
+                                                              FileContentsJson = serializer.SerializeToString(launchConfiguration),
                                                           },
                                                   },
                                       };
 
             packages.Add(hangfireHarness);
-            var output = packages.ToJson();
+            var output = serializer.SerializeToString(packages);
             Assert.NotNull(output);
         }
     }

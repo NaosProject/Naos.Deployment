@@ -11,8 +11,10 @@ namespace Naos.Deployment.Core.CertificateManagement
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using Naos.Serialization.Bson;
 
     using Spritely.ReadModel;
+    using Spritely.Recipes;
 
     /// <summary>
     /// Implementation using Mongo of <see cref="IPersistCertificates"/>.
@@ -27,14 +29,11 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <param name="certificateContainerCommands">Query interface for retrieving the certificates.</param>
         public CertificateWriterToMongo(ICommands<string, CertificateContainer> certificateContainerCommands)
         {
-            if (certificateContainerCommands == null)
-            {
-                throw new ArgumentNullException(nameof(certificateContainerCommands));
-            }
+            new { certificateContainerCommands }.Must().NotBeNull().OrThrowFirstFailure();
 
             this.certificateContainerCommands = certificateContainerCommands;
 
-            BsonClassMapManager.RegisterClassMaps();
+            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
         }
 
         /// <inheritdoc />

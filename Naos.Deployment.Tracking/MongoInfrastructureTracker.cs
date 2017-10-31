@@ -15,6 +15,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Packaging.Domain;
+    using Naos.Serialization.Bson;
 
     using Spritely.ReadModel;
     using Spritely.Recipes;
@@ -53,7 +54,7 @@ namespace Naos.Deployment.Tracking
             this.instanceQueries = instanceQueries;
             this.instanceCommands = instanceCommands;
 
-            BsonClassMapManager.RegisterClassMaps();
+            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
         }
 
         /// <inheritdoc />

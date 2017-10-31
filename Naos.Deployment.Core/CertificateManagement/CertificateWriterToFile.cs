@@ -11,13 +11,16 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.Domain;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     /// <summary>
     /// Implementation using a text file of <see cref="IPersistCertificates"/>.
     /// </summary>
     public class CertificateWriterToFile : IPersistCertificates
     {
+        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer();
+
         private readonly object fileSync = new object();
 
         private readonly string filePath;
@@ -44,7 +47,7 @@ namespace Naos.Deployment.Core.CertificateManagement
             lock (this.fileSync)
             {
                 var fileContentsRead = File.ReadAllText(this.filePath);
-                var certificateCollection = fileContentsRead.FromJson<CertificateCollection>();
+                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContentsRead);
 
                 var idxToDelete = certificateCollection.Certificates.FindIndex(_ => string.Equals(_.FriendlyName, certificate.FriendlyName, StringComparison.CurrentCultureIgnoreCase));
                 if (idxToDelete != -1)
@@ -54,7 +57,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
                 certificateCollection.Certificates.Add(certificate);
 
-                var fileContentsWrite = certificateCollection.ToJson();
+                var fileContentsWrite = Serializer.SerializeToString(certificateCollection);
                 File.WriteAllText(this.filePath, fileContentsWrite);
             }
 

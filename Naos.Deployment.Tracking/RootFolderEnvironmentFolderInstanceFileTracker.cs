@@ -13,8 +13,9 @@ namespace Naos.Deployment.Tracking
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     /// <summary>
     /// Tracking system/certificate manager that will use a root folder and will have a folder per environment with a config file and store a file per machine.
@@ -23,6 +24,9 @@ namespace Naos.Deployment.Tracking
     {
         private const string InstancePrefix = "Instance--";
         private const string IpInfix = "ip--";
+
+        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer();
+
         private readonly Task emptyTask = Task.Run(
             () =>
                 {
@@ -246,10 +250,10 @@ namespace Naos.Deployment.Tracking
             }
 
             var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
-            var instances = instanceFiles.Select(_ => File.ReadAllText(_).FromJson<DeployedInstance>()).ToList();
+            var instances = instanceFiles.Select(_ => Serializer.Deserialize<DeployedInstance>(File.ReadAllText(_))).ToList();
             var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
             var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
-            var arcologyInfo = arcologyInfoText.FromJson<ArcologyInfo>();
+            var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
 
             var ret = new Arcology(environment, arcologyInfo, instances);
             return ret;
@@ -261,7 +265,7 @@ namespace Naos.Deployment.Tracking
 
             foreach (var instanceWrapper in arcology.Instances)
             {
-                var instanceFileContents = instanceWrapper.ToJson();
+                var instanceFileContents = Serializer.SerializeToString(instanceWrapper);
 
                 var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, instanceWrapper);
                 if (string.IsNullOrEmpty(instanceWrapper.InstanceDescription.Name))

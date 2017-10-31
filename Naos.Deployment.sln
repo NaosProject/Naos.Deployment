@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Core", "Naos.Deployment.Core\Naos.Deployment.Core.csproj", "{6F1833BF-253D-4C2D-B429-CCEC58ECEED0}"
 EndProject
@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Core.Test",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Console", "Naos.Deployment.Console\Naos.Deployment.Console.csproj", "{A01F101E-FAA5-4EEE-AAF2-989F64010BF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.Contract", "Naos.Deployment.MessageBus.Contract\Naos.Deployment.MessageBus.Contract.csproj", "{CD7FC4F3-DB5D-4C9A-A8F6-61BEC59AA838}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.Scheduler", "Naos.Deployment.MessageBus.Scheduler\Naos.Deployment.MessageBus.Scheduler.csproj", "{CD7FC4F3-DB5D-4C9A-A8F6-61BEC59AA838}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.Handler", "Naos.Deployment.MessageBus.Handler\Naos.Deployment.MessageBus.Handler.csproj", "{1B2E8B90-FF0B-40D2-A4B6-0D6D9F60FFBF}"
 EndProject
@@ -66,5 +66,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFBBB6AC-81E8-416F-A624-B7720B929615}
 	EndGlobalSection
 EndGlobal

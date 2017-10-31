@@ -11,8 +11,10 @@ namespace Naos.Deployment.Core.CertificateManagement
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using Naos.Serialization.Bson;
 
     using Spritely.ReadModel;
+    using Spritely.Recipes;
 
     /// <summary>
     /// Implementation using Mongo of <see cref="IGetCertificates"/>.
@@ -27,20 +29,17 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <param name="certificateContainerQueries">Query interface for retrieving the certificates.</param>
         public CertificateRetrieverFromMongo(IQueries<CertificateContainer> certificateContainerQueries)
         {
-            if (certificateContainerQueries == null)
-            {
-                throw new ArgumentNullException(nameof(certificateContainerQueries));
-            }
+            new { certificateContainerQueries }.Must().NotBeNull().OrThrowFirstFailure();
 
             this.certificateContainerQueries = certificateContainerQueries;
 
-            BsonClassMapManager.RegisterClassMaps();
+            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
         }
 
         /// <inheritdoc />
         public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            CertificateContainer certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => _.Id.ToLowerInvariant() == name.ToLowerInvariant());
+            var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => string.Equals(_.Id, name, StringComparison.InvariantCultureIgnoreCase));
 
             var certificateDetails = certificateContainer?.Certificate;
 

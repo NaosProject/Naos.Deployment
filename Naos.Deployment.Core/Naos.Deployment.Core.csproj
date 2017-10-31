@@ -39,6 +39,9 @@
     <CodeAnalysisRuleSet />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AsynchronousBridge.1.2.2\lib\Net45\AsyncBridge.dll</HintPath>
+    </Reference>
     <Reference Include="AWSSDK.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.Core.3.3.4.1\lib\net45\AWSSDK.Core.dll</HintPath>
       <Private>True</Private>
@@ -61,7 +64,6 @@
     </Reference>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
       <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="FluentMigrator, Version=1.6.2.0, Culture=neutral, PublicKeyToken=aacfc7de5acabf05, processorArchitecture=MSIL">
       <HintPath>..\packages\FluentMigrator.1.6.2\lib\40\FluentMigrator.dll</HintPath>
@@ -77,6 +79,105 @@
     </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.ConnectionInfo.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.ConnectionInfoExtended, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.ConnectionInfoExtended.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Dmf, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Dmf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Dmf.Adapters, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Dmf.Adapters.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.DmfSqlClrWrapper, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.DmfSqlClrWrapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.Collector, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.Collector.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.CollectorEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.CollectorEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.Sdk.Sfc, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.Sdk.Sfc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.Utility, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.Utility.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.UtilityEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.UtilityEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.XEvent, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.XEvent.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.XEventDbScoped, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.XEventDbScoped.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.XEventDbScopedEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.XEventDbScopedEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Management.XEventEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Management.XEventEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.PolicyEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.PolicyEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.RegSvrEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.RegSvrEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.ServiceBrokerEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.ServiceBrokerEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Smo, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Smo.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.SmoExtended, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.SmoExtended.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.SqlEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.SqlEnum.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.SqlWmiManagement, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.SqlWmiManagement.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.SString, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.SString.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.TransactSql.ScriptDom, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.TransactSql.ScriptDom.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.Types.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.WmiEnum, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.WmiEnum.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MongoDB.Bson, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
@@ -96,48 +197,57 @@
       <HintPath>..\packages\Naos.AWS.Core.1.0.49\lib\net461\Naos.AWS.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Naos.Compression.Domain, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Compression.Domain.1.0.5\lib\net461\Naos.Compression.Domain.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.Cron, Version=1.0.15.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Contract, Version=1.0.151.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Contract.1.0.151\lib\net461\Naos.Database.Contract.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Database.Contract, Version=1.1.155.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Contract.1.1.155-newcaandscriptinglog\lib\net461\Naos.Database.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Migrator, Version=1.0.151.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Migrator.1.0.151\lib\net461\Naos.Database.Migrator.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Database.Migrator, Version=1.1.157.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Migrator.1.1.157-newcaandscriptinglog\lib\net461\Naos.Database.Migrator.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.0.151.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Tools.1.0.151\lib\net461\Naos.Database.Tools.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Database.Tools, Version=1.1.155.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Tools.1.1.155-newcaandscriptinglog\lib\net461\Naos.Database.Tools.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.0.8\lib\net45\Naos.Diagnostics.Domain.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.0.233.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.0.233\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.8\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.32\lib\net45\Naos.Packaging.Domain.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.25.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.25-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.32.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.32\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.34.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.34\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.34.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.34\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Bson, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Bson.1.0.42\lib\net461\Naos.Serialization.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.42\lib\net461\Naos.Serialization.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Factory, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Factory.1.0.42\lib\net461\Naos.Serialization.Factory.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Json, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Json.1.0.42\lib\net461\Naos.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
     </Reference>
-    <Reference Include="OBeautifulCode.DateTime, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.3\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="OBeautifulCode.DateTime, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.4\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.3\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.8\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
     </Reference>
     <Reference Include="Spritely.ReadModel, Version=0.6.1.45, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Spritely.ReadModel.0.6.4\lib\net461\Spritely.ReadModel.dll</HintPath>
@@ -175,34 +285,27 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include=".Naos.Recipes\Configuration.Setup\Config.cs" />
-    <Compile Include=".Naos.Recipes\Configuration.Setup\ConfigRequiredTest.cs" />
-    <Compile Include=".Naos.Recipes\Naos.WinRM.cs" />
-    <Compile Include=".Naos.Recipes\TupleInitializers\Initializers.cs" />
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\CertHelper.cs" />
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\PemHelper.cs" />
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\SignatureAlgorithm.cs" />
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\X509FieldKind.cs" />
-    <Compile Include=".OBeautifulCode.Recipes\OBeautifulCode.Security\X509SubjectAttributeKind.cs" />
-    <Compile Include=".Spritely.Recipes\CamelStrictConstructorContractResolver\CamelStrictConstructorContractResolver.cs" />
-    <Compile Include=".Spritely.Recipes\InheritedTypeJsonConverter\InheritedTypeJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\CompactJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\DefaultJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\JsonConfiguration.cs" />
-    <Compile Include=".Spritely.Recipes\JsonConfiguration\MinimalJsonSerializer.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\MakeRule.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\MustExtensions.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\RuleExtensions.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\Rules.cs" />
-    <Compile Include=".Spritely.Recipes\MustValidation\ValidatedNotNullAttribute.cs" />
+    <Compile Include=".recipes\Naos.TupleInitializers\Initializers.cs" />
+    <Compile Include=".recipes\Naos.WinRM\Naos.WinRM.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\CertHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\PemHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\SignatureAlgorithm.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\X509FieldKind.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\X509SubjectAttributeKind.cs" />
+    <Compile Include=".recipes\OBeautifulCode.String\StringExtensions.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\MakeRule.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\MustExtensions.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\RuleExtensions.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\Rules.cs" />
+    <Compile Include=".recipes\Spritely.MustValidation\ValidatedNotNullAttribute.cs" />
+    <Compile Include=".recipes\Spritely.SecureString\SecureString.cs" />
     <Compile Include=".Spritely.Recipes\Redo\BackOffStrategy.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableAction.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableActionAsync.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableFunction.cs" />
     <Compile Include=".Spritely.Recipes\Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".Spritely.Recipes\Redo\Using.cs" />
-    <Compile Include=".Spritely.Recipes\SecureStringJsonConverter\SecureStringJsonConverter.cs" />
-    <Compile Include=".Spritely.Recipes\SecureString\SecureString.cs" />
     <Compile Include="CertificateManagement\CertificateCollection.cs" />
     <Compile Include="CertificateManagement\CertificateManagementConfigurationBase.cs" />
     <Compile Include="CertificateManagement\CertificateWriterToFile.cs" />
@@ -226,9 +329,9 @@
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
     <Compile Include="PackageDescriptionIdOnlyEqualityComparer.cs" />
-    <Compile Include="PackageRetrieverFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetupSteps\SetupStep.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.EventLog.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.CertificateToInstall.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.DirectoryToCreate.cs" />

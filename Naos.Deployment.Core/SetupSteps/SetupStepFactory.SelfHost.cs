@@ -8,7 +8,6 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
@@ -23,7 +22,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
             var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
@@ -31,6 +30,7 @@ namespace Naos.Deployment.Core
             var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
             var selfHostExeName = selfHostStrategy.SelfHostExeName;
             var applicationId = Guid.NewGuid().ToString().ToUpper();
+            var runElevated = selfHostStrategy.RunElevated;
 
             // specific steps to support self hosting
             var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(sslCertificateName);
@@ -78,12 +78,13 @@ namespace Naos.Deployment.Core
             var description = $"Task to ensure that the self host {exeName} is always running.";
             var scheduledTaskStesps = this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
                 itsConfigOverrides,
-                consoleRootPath,
+                packageDirectoryPath,
                 environment,
                 exeName,
                 schedule,
                 scheduledTaskAccount,
                 adminPassword,
+                runElevated,
                 name,
                 description,
                 null);

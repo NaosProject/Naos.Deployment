@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core
         public bool ShouldBundleDependenciesOfPackage { get; private set; }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
-        public override bool IsMatch(ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
+        public override bool IsMatch(IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
             var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
             return matches.Any();
@@ -61,6 +61,7 @@ namespace Naos.Deployment.Core
             string environment,
             string instanceName,
             int instanceNumber,
+            IManageConfigFiles configFileManager,
             ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,

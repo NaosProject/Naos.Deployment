@@ -9,13 +9,14 @@ namespace Naos.Deployment.Core
     using System;
     using System.Linq;
 
+    using MongoDB.Bson;
+
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
-    using Naos.MessageBus.Domain;
+    using Naos.Deployment.Tracking;
 
-    using OBeautifulCode.DateTime;
-    using OBeautifulCode.Security;
+    using OBeautifulCode.Security.Recipes;
 
     using static System.FormattableString;
 
@@ -34,14 +35,12 @@ namespace Naos.Deployment.Core
         {
             IGetCertificates ret;
 
-            if (certificateManagementConfigurationBase is CertificateManagementConfigurationFile)
+            if (certificateManagementConfigurationBase is CertificateManagementConfigurationFile configAsFile)
             {
-                var configAsFile = (CertificateManagementConfigurationFile)certificateManagementConfigurationBase;
                 ret = new CertificateRetrieverFromFile(configAsFile.FilePath);
             }
-            else if (certificateManagementConfigurationBase is CertificateManagementConfigurationDatabase)
+            else if (certificateManagementConfigurationBase is CertificateManagementConfigurationDatabase configAsDb)
             {
-                var configAsDb = (CertificateManagementConfigurationDatabase)certificateManagementConfigurationBase;
                 var certificateContainerQueries = configAsDb.Database.GetQueriesInterface<CertificateContainer>();
                 ret = new CertificateRetrieverFromMongo(certificateContainerQueries);
             }
@@ -63,20 +62,18 @@ namespace Naos.Deployment.Core
         {
             IPersistCertificates ret;
 
-            if (certificateManagementConfigurationBase is CertificateManagementConfigurationFile)
+            if (certificateManagementConfigurationBase is CertificateManagementConfigurationFile configAsFile)
             {
-                var configAsFile = (CertificateManagementConfigurationFile)certificateManagementConfigurationBase;
                 ret = new CertificateWriterToFile(configAsFile.FilePath);
             }
-            else if (certificateManagementConfigurationBase is CertificateManagementConfigurationDatabase)
+            else if (certificateManagementConfigurationBase is CertificateManagementConfigurationDatabase configAsDb)
             {
-                var configAsDb = (CertificateManagementConfigurationDatabase)certificateManagementConfigurationBase;
                 var certificateContainerQueries = configAsDb.Database.GetCommandsInterface<string, CertificateContainer>();
                 ret = new CertificateWriterToMongo(certificateContainerQueries);
             }
             else
             {
-                throw new NotSupportedException(Invariant($"Configuration is not valid: {certificateManagementConfigurationBase.ToJson()}"));
+                throw new NotSupportedException(Invariant($"Configuration is not valid: {LoggingHelper.SerializeToString(certificateManagementConfigurationBase)}"));
             }
 
             return ret;

@@ -12,7 +12,7 @@ namespace Naos.Deployment.Domain
 
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Math;
+    using OBeautifulCode.Math.Recipes;
 
     /// <summary>
     /// Model object with necessary details to deploy software to a machine.

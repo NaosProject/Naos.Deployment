@@ -26,7 +26,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the name of the executable to run.
         /// </summary>
-        public string ExeName { get; set; }
+        public string ExeFilePathRelativeToPackageRoot { get; set; }
 
         /// <summary>
         /// Gets or sets the arguments to pass to the executable.
@@ -43,6 +43,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public string ScheduledTaskAccount { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to run the executable with "Highest Priviledges" / "Elevated Mode".
+        /// </summary>
+        public bool RunElevated { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
@@ -51,7 +56,7 @@ namespace Naos.Deployment.Domain
                           {
                               Name = this.Name,
                               Description = this.Description,
-                              ExeName = this.ExeName,
+                              ExeFilePathRelativeToPackageRoot = this.ExeFilePathRelativeToPackageRoot,
                               Arguments = this.Arguments,
                               Schedule = schedule,
                           };

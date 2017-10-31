@@ -26,6 +26,11 @@ namespace Naos.Deployment.Core
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     internal partial class SetupStepFactory
     {
+        /// <summary>
+        /// The child directory name to use for Its.Configuration files; (i.e. '.config').
+        /// </summary>
+        public const string ConfigDirectory = ".config";
+
         private readonly IGetCertificates certificateRetriever;
 
         private readonly SetupStepFactorySettings settings;
@@ -145,6 +150,11 @@ namespace Naos.Deployment.Core
 
                 ret = new SetupStepBatch { ExecutionOrder = 2, Steps = dirSteps };
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyCreateEventLog))
+            {
+                var eventLogSteps = this.GetCreateEventLogSpecificSteps((InitializationStrategyCreateEventLog)strategy);
+                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = eventLogSteps };
+            }
             else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
             {
                 var certSteps =
@@ -155,19 +165,19 @@ namespace Naos.Deployment.Core
                             this.settings.HarnessSettings.HarnessAccount,
                             this.settings.WebServerSettings.IisAccount);
 
-                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = certSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = certSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
             {
                 var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.PackageWithBundleIdentifier.Package);
 
-                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = databaseSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = databaseSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMongo))
             {
                 var mongoSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
 
-                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = mongoSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = mongoSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
@@ -179,31 +189,29 @@ namespace Naos.Deployment.Core
             }
             else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
             {
-                var consoleRootPath = Path.Combine(packageDirectoryPath, "packagedConsoleApp"); // this needs to match how the package was built in the build system...
                 var scheduledTaskSteps =
                     this.GetScheduledTaskSpecificSteps(
                         (InitializationStrategyScheduledTask)strategy,
                         packagedConfig.ItsConfigOverrides,
-                        consoleRootPath,
+                        packageDirectoryPath,
                         environment,
                         adminPassword);
 
-                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = scheduledTaskSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = scheduledTaskSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
             {
-                var consoleRootPath = Path.Combine(packageDirectoryPath, "packagedConsoleApp"); // this needs to match how the package was built in the build system...
                 var selfHostSteps =
                     await
                     this.GetSelfHostSpecificSteps(
                         (InitializationStrategySelfHost)strategy,
                         packagedConfig.ItsConfigOverrides,
-                        consoleRootPath,
+                        packageDirectoryPath,
                         environment,
                         adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = selfHostSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = selfHostSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
@@ -216,7 +224,7 @@ namespace Naos.Deployment.Core
                                    adminPassword,
                                    funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = webSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = webSteps };
             }
             else
             {

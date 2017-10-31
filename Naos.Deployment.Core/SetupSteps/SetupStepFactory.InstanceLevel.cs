@@ -37,7 +37,7 @@ namespace Naos.Deployment.Core
                                      SetupFunc =
                                          machineManager =>
                                          machineManager.RunScript(
-                                             this.settings.DeploymentScriptBlocks.SetupWinRmScriptBlock
+                                             this.settings.DeploymentScriptBlocks.SetupWinRmScript
                                              .ScriptText),
                                  };
 
@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core
                                            machineManager =>
                                            machineManager.RunScript(
                                                this.settings.DeploymentScriptBlocks
-                                               .SetupWindowsUpdatesScriptBlock.ScriptText),
+                                               .SetupWindowsUpdatesScript.ScriptText),
                                    };
 
             steps.Add(setupUpdates);
@@ -61,8 +61,7 @@ namespace Naos.Deployment.Core
                                     SetupFunc =
                                         machineManager =>
                                         machineManager.RunScript(
-                                            this.settings.DeploymentScriptBlocks.SetupWindowsTimeScriptBlock
-                                            .ScriptText),
+                                            this.settings.DeploymentScriptBlocks.SetupWindowsTimeScript.ScriptText),
                                 };
 
             steps.Add(setupTime);
@@ -74,7 +73,7 @@ namespace Naos.Deployment.Core
                                           machineManager =>
                                           machineManager.RunScript(
                                               this.settings.DeploymentScriptBlocks
-                                              .EnableScriptExecutionScriptBlock.ScriptText),
+                                              .EnableScriptExecutionScript.ScriptText),
                                   };
 
             steps.Add(execScripts);
@@ -191,7 +190,7 @@ namespace Naos.Deployment.Core
                                      {
                                          var renameParams = new[] { computerName };
                                          return machineManager.RunScript(
-                                             this.settings.DeploymentScriptBlocks.RenameComputerScriptBlock.ScriptText,
+                                             this.settings.DeploymentScriptBlocks.RenameComputerScript.ScriptText,
                                              renameParams);
                                      },
                              };

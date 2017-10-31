@@ -21,22 +21,23 @@ namespace Naos.Deployment.Core
         private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {
             var schedule = scheduledTaskStrategy.Schedule;
-            var exeName = scheduledTaskStrategy.ExeName;
+            var exeFilePathRelativeToPackageRoot = scheduledTaskStrategy.ExeFilePathRelativeToPackageRoot;
             var name = scheduledTaskStrategy.Name;
             var description = scheduledTaskStrategy.Description;
             var arguments = scheduledTaskStrategy.Arguments;
             var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
+            var runElevated = scheduledTaskStrategy.RunElevated;
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeName, schedule, scheduledTaskAccount, adminPassword, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string exeName, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, string name, string description, string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
-            var exeFullPath = Path.Combine(consoleRootPath, exeName);
-            var exeConfigFullPath = exeFullPath + ".config";
+            var exeFullPath = Path.Combine(packageDirectoryPath, exeFilePathRelativeToPackageRoot);
+            var exeConfigFullPath = Path.Combine(Path.GetDirectoryName(exeFullPath) ?? string.Empty, ConfigDirectory);
 
             scheduledTaskSetupSteps.Add(
                 new SetupStep
@@ -45,7 +46,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, consoleRootPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, packageDirectoryPath, environment, exeConfigFullPath);
             scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
             // in case we're serializing an expression schedule run the loop into a new object...
@@ -90,11 +91,11 @@ namespace Naos.Deployment.Core
                                             ? null
                                             : scheduledTaskAccount.ToUpperInvariant() == this.AdministratorAccount.ToUpperInvariant() ? adminPassword : null;
 
-            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
+            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, runElevated, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
                                           {
                                               Description =
-                                                  "Creating scheduled task to run: " + exeName + " " + (arguments ?? "<no arguments>") + " with schedule: "
+                                                  "Creating scheduled task to run: " + exeFilePathRelativeToPackageRoot + " " + (arguments ?? "<no arguments>") + " with schedule: "
                                                   + cronExpression,
                                               SetupFunc =
                                                   machineManager =>

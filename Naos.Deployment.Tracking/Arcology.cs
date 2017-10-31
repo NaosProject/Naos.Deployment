@@ -38,7 +38,7 @@ namespace Naos.Deployment.Tracking
             this.RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap;
             this.Location = arcologyInfo.Location;
             this.WindowsSkuSearchPatternMap = arcologyInfo.WindowsSkuSearchPatternMap;
-            this.instances = deployedInstances == null ? new List<DeployedInstance>() : deployedInstances.ToList();
+            this.instances = deployedInstances?.ToList() ?? new List<DeployedInstance>();
         }
 
         /// <summary>
@@ -100,8 +100,7 @@ namespace Naos.Deployment.Tracking
         /// <returns>Hosting ID or null if not found.</returns>
         public string GetDomainZoneId(string domain)
         {
-            string ret;
-            var found = this.RootDomainHostingIdMap.TryGetValue(domain, out ret);
+            var found = this.RootDomainHostingIdMap.TryGetValue(domain, out string ret);
             return found ? ret : null;
         }
 
@@ -141,7 +140,7 @@ namespace Naos.Deployment.Tracking
         {
             var wrapped = this.Instances.FirstOrDefault(_ => _.InstanceDescription.Id == systemId);
 
-            return wrapped == null ? null : wrapped.InstanceDescription;
+            return wrapped?.InstanceDescription;
         }
 
         /// <summary>
@@ -156,7 +155,7 @@ namespace Naos.Deployment.Tracking
                 this.Instances.FirstOrDefault(
                     _ => string.Equals(_.InstanceDescription.ComputerName, name, StringComparison.CurrentCultureIgnoreCase));
 
-            return wrapped == null ? null : wrapped.InstanceDescription.Id;
+            return wrapped?.InstanceDescription.Id;
         }
 
         /// <summary>
@@ -279,8 +278,7 @@ namespace Naos.Deployment.Tracking
 
         private string FindImageSearchPattern(DeploymentConfiguration deploymentConfig)
         {
-            string searchPattern;
-            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.InstanceType.WindowsSku, out searchPattern);
+            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.InstanceType.WindowsSku, out string searchPattern);
             if (!success)
             {
                 throw new DeploymentException("Unsupported Windows SKU: " + deploymentConfig.InstanceType.WindowsSku);

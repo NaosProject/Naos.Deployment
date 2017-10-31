@@ -68,8 +68,8 @@ namespace Naos.Deployment.Core.Test
                                      Username = "user",
                                  };
 
-            var packageManager = new PackageRetriever(tempPath, repoConfig);
-            Config.SetupForUnitTest("Common");
+            var packageManager = new PackageRetriever(tempPath, new[] { repoConfig });
+            Config.ResetConfigureSerializationAndSetValues("Common");
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
             var packageHelper = new PackageHelper(packageManager, setupFactorySettings.RootPackageDirectoriesToPrune, tempPath);
 

@@ -12,11 +12,14 @@ namespace Naos.Deployment.Core.Test
     using System.Linq;
     using System.Threading.Tasks;
 
+    using MongoDB.Bson;
+
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
+    using Naos.Serialization.Bson;
 
     using OBeautifulCode.DateTime;
 
@@ -65,7 +68,7 @@ namespace Naos.Deployment.Core.Test
                 },
             };
 
-            BsonClassMapManager.RegisterClassMaps();
+            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
 
             var arcologyInfoCommands = database.GetCommandsInterface<string, ArcologyInfoContainer>();
             var arcologyInfoContainer = new ArcologyInfoContainer

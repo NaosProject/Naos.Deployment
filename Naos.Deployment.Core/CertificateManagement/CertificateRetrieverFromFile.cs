@@ -12,13 +12,16 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.Domain;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     /// <summary>
     /// Implementation using a text file of IGetCertificates.
     /// </summary>
     public class CertificateRetrieverFromFile : IGetCertificates
     {
+        private static readonly IStringDeserialize Serializer = new NaosJsonSerializer();
+
         private readonly object fileSync = new object();
 
         private readonly string filePath;
@@ -39,7 +42,7 @@ namespace Naos.Deployment.Core.CertificateManagement
             lock (this.fileSync)
             {
                 var fileContents = File.ReadAllText(this.filePath);
-                var certificateCollection = fileContents.FromJson<CertificateCollection>();
+                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContents);
                 var certificateDetails = certificateCollection.Certificates.SingleOrDefault(_ => string.Equals(_.FriendlyName, name, StringComparison.CurrentCultureIgnoreCase));
 
                 certDetails = certificateDetails?.ToDecryptedVersion();

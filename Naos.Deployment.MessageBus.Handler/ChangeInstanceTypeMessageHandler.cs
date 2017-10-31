@@ -14,19 +14,20 @@ namespace Naos.Deployment.MessageBus.Handler
     using Its.Log.Instrumentation;
 
     using Naos.Deployment.Domain;
-    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Scheduler;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
-    public class ChangeInstanceTypeMessageHandler : IHandleMessages<ChangeInstanceTypeMessage>, IShareInstanceTargeters
+    public class ChangeInstanceTypeMessageHandler : MessageHandlerBase<ChangeInstanceTypeMessage>, IShareInstanceTargeters
     {
         /// <inheritdoc />
         public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
-        /// <inheritdoc />
-        public async Task HandleAsync(ChangeInstanceTypeMessage message)
+        /// <inheritdoc cref="MessageHandlerBase{T}" />
+        public override async Task HandleAsync(ChangeInstanceTypeMessage message)
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
@@ -86,8 +87,8 @@ namespace Naos.Deployment.MessageBus.Handler
                         new
                             {
                                 Info = "Changing Instance Type",
-                                InstanceTargeterJson = instanceTargeter.ToJson(),
-                                NewInstanceType = newInstanceType.ToJson(),
+                                InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter),
+                                NewInstanceType = LoggingHelper.SerializeToString(newInstanceType),
                                 SystemId = systemId,
                             });
 

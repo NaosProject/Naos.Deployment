@@ -6,7 +6,7 @@
 
 namespace Naos.Deployment.MessageBus.Handler
 {
-    using Naos.Deployment.MessageBus.Contract;
+    using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
 
     /// <summary>

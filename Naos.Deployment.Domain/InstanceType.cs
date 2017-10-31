@@ -8,7 +8,7 @@ namespace Naos.Deployment.Domain
 {
     using System;
 
-    using OBeautifulCode.Math;
+    using OBeautifulCode.Math.Recipes;
 
     /// <summary>
     /// Model object to describe the type/caliber of machine to provision.

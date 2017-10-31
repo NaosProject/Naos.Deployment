@@ -8,6 +8,7 @@ namespace Naos.Deployment.Domain
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
     using Naos.Packaging.Domain;
 
@@ -186,29 +187,29 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the script block to enable script execution.
         /// </summary>
-        public ScriptBlockDescription EnableScriptExecutionScriptBlock { get; set; }
+        public ScriptBlockDescription EnableScriptExecutionScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to setup windows time to be syncing.
         /// </summary>
-        public ScriptBlockDescription SetupWindowsTimeScriptBlock { get; set; }
+        public ScriptBlockDescription SetupWindowsTimeScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to setup windows updates to run at night.
         /// </summary>
-        public ScriptBlockDescription SetupWindowsUpdatesScriptBlock { get; set; }
+        public ScriptBlockDescription SetupWindowsUpdatesScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to rename the computer.
         /// </summary>
-        public ScriptBlockDescription RenameComputerScriptBlock { get; set; }
+        public ScriptBlockDescription RenameComputerScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to setup WinRM.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Rm", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Rm", Justification = "Spelling/name is correct.")]
-        public ScriptBlockDescription SetupWinRmScriptBlock { get; set; }
+        public ScriptBlockDescription SetupWinRmScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to download an S3 object to a path.
@@ -234,6 +235,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the script block to create a new directory and grant full control to the specified user.
         /// </summary>
         public ScriptBlockDescription CreateDirectoryWithFullControl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to create a new <see cref="EventLog" />.
+        /// </summary>
+        public ScriptBlockDescription CreateEventLog { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to enable the SA account and change the password.

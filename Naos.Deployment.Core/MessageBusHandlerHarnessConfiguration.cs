@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
 
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     /// <summary>

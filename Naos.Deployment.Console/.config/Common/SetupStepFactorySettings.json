@@ -38,7 +38,7 @@
     },
     "deploymentScriptBlocks": {
         "enableScheduledTaskHistory": {
-            "parameterNames": [ ],
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # crazy black magic - apparently the only way to do this...",
@@ -57,15 +57,15 @@
                 "param([Array] $EntryUpdates)",
                 "# -----Documentation of the 'PropertyType' that can be provided and how it maps to the native types----",
                 "# MSDN article for Microsoft.Win32.RegistryValueKind shows the full map",
-                "# PowerShell type	Registry type",
-                "# Binary	REG_BINARY",
-                "# DWord	REG_DWORD",
-                "# ExpandString	REG_EXPAND_SZ",
-                "# MultiString	REG_MULTI_SZ",
-                "# None	–",
-                "# QWord	REG_QWORD",
-                "# String	REG_SZ",
-                "# Unknown	–",
+                "# PowerShell type   Registry type",
+                "# Binary   REG_BINARY",
+                "# DWord   REG_DWORD",
+                "# ExpandString   REG_EXPAND_SZ",
+                "# MultiString   REG_MULTI_SZ",
+                "# None   –",
+                "# QWord   REG_QWORD",
+                "# String   REG_SZ",
+                "# Unknown   –",
                 "# ----------------------------------------------------------------------------------------------------",
                 "   $EntryUpdates | %{",
                 "       Write-Output \"Setting '$($_.Path) - $($_.Name)' to '$($_.Value) - $($_.Type)'\"",
@@ -75,10 +75,10 @@
             ]
         },
         "setupScheduledTask": {
-            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "RunElevated", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [bool] $RunElevated, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
                 "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
                 "   $trigger = $null",
                 "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
@@ -107,11 +107,25 @@
                 "   }",
                 "   if ([String]::IsNullOrEmpty($ScheduledTaskPassword))",
                 "   {",
-                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "      if ($RunElevated)",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "      }",
+                "      else",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -User $ScheduledTaskAccount",
+                "      }",
                 "   }",
                 "   else",
                 "   {",
-                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      if ($RunElevated)",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      }",
+                "      else",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      }",
                 "   }",
                 "}"
             ]
@@ -275,13 +289,13 @@
                 "   Write-Output $firewallCheck",
                 "   $isOn = $(($firewallCheck[3] -eq 'State                                 ON') -and ($firewallCheck[7] -eq 'State                                 ON') -and ($firewallCheck[11] -eq 'State                                 ON'))",
                 "   if (-not $isOn) {",
-                "   	throw 'Firewall did not restart as expected, it is currently OFF'",
+                "      throw 'Firewall did not restart as expected, it is currently OFF'",
                 "   }",
                 "}"
             ]
         },
         "installChocolatey": {
-            "parameterNames": [ ],
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "param()",
@@ -767,8 +781,8 @@
                 "}"
             ]
         },
-        "enableScriptExecutionScriptBlock": {
-            "parameterNames": [ ],
+        "enableScriptExecutionScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # SETTING TO UNRESTRICTED TO ALLOW FOR SCRIPTS TO BE CALLED VIA MACHINE MANAGER (WINRM)",
@@ -776,8 +790,20 @@
                 "}"
             ]
         },
-        "setupWindowsTimeScriptBlock": {
-            "parameterNames": [ ],
+        "createEventLog": {
+            "parameterNames": [ "LogName", "Sources" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $LogName, [Array] $Sources)",
+                "   # Creates an EventLog with specified name and acceptable sources.",
+                "   $sources | %{",
+                "      New-EventLog -Source $_ -LogName $LogName",
+                "   }",
+                "}"
+            ]
+        },
+        "setupWindowsTimeScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)",
@@ -786,8 +812,8 @@
                 "}"
             ]
         },
-        "setupWindowsUpdatesScriptBlock": {
-            "parameterNames": [ ],
+        "setupWindowsUpdatesScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY",
@@ -797,8 +823,8 @@
                 "}"
             ]
         },
-        "setupWinRmScriptBlock": {
-            "parameterNames": [ ],
+        "setupWinRmScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # NEEDED TO ALLOW THE MACHINE TO MAKE WINRM CALLS ITSELF",
@@ -811,7 +837,7 @@
                 "}"
             ]
         },
-        "renameComputerScriptBlock": {
+        "renameComputerScript": {
             "parameterNames": [ "ComputerName" ],
             "scriptTextLines": [
                 "{",

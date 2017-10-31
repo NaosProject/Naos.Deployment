@@ -6,7 +6,6 @@
 
 namespace Naos.Deployment.Domain
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -34,6 +33,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the account to configure the scheduled task that runs the executable.
         /// </summary>
         public string ScheduledTaskAccount { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to run the executable with "Highest Priviledges" / "Elevated Mode".
+        /// </summary>
+        public bool RunElevated { get; set; }
 
         /// <inheritdoc />
         public override object Clone()

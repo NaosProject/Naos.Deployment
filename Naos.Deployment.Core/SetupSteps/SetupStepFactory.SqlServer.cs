@@ -218,10 +218,7 @@ namespace Naos.Deployment.Core
                                         realRemoteConnectionString,
                                         sqlServerStrategy.Name,
                                         fluentMigration.Version,
-                                        this.debugAnnouncer,
-                                        default(TimeSpan),
-                                        null,
-                                        workingPath);
+                                        this.debugAnnouncer);
 
                                     return new dynamic[0];
                                 },

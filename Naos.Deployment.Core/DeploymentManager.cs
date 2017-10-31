@@ -15,12 +15,10 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
-    using Naos.Recipes.Configuration.Setup;
     using Naos.Recipes.WinRM;
-
-    using Newtonsoft.Json;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     using Spritely.Recipes;
 
@@ -30,6 +28,8 @@ namespace Naos.Deployment.Core
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Not refactoring right now.")]
     public class DeploymentManager : IManageDeployments
     {
+        private static readonly IStringSerialize AnnouncementSerializer = new NaosJsonSerializer();
+
         /// <summary>
         /// Lock object to only allow one DNS update at a time because AWSSDK does not seem to support this otherwise.
         /// </summary>
@@ -78,6 +78,8 @@ namespace Naos.Deployment.Core
 
         private readonly PackageHelper packageHelper;
 
+        private readonly IManageConfigFiles configFileManager;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -92,6 +94,7 @@ namespace Naos.Deployment.Core
         /// <param name="announcer">Callback to get status messages through process.</param>
         /// <param name="debugAnnouncer">Callback to get more detailed information through process.</param>
         /// <param name="workingDirectory">Directory to perform temp disk operations.</param>
+        /// <param name="configFileManager">Config file manager necessary to be able to provide <see cref="Its.Configuration" /> overrides correctly.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
         /// <param name="debugAnnouncementFile">Optional file path to record a JSON file of debug announcements.</param>
@@ -108,6 +111,7 @@ namespace Naos.Deployment.Core
             Action<string> announcer,
             Action<string> debugAnnouncer,
             string workingDirectory,
+            IManageConfigFiles configFileManager,
             string environmentCertificateName = null,
             string announcementFile = null,
             string debugAnnouncementFile = null,
@@ -124,7 +128,11 @@ namespace Naos.Deployment.Core
             this.telemetryFile = telemetryFile;
             this.announcementFile = announcementFile;
             this.debugAnnouncementFile = debugAnnouncementFile;
-            this.itsConfigPrecedenceAfterEnvironment = new[] { Config.CommonPrecedence };
+            this.configFileManager = configFileManager;
+
+            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
+
+            this.itsConfigPrecedenceAfterEnvironment = configFileManager.ItsConfigPrecedenceAfterEnvironment;
 
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
@@ -179,7 +187,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = $".config/{environment}/DeploymentConfigurationWithStrategies.json";
+            var deploymentFileSearchPattern = $"{SetupStepFactory.ConfigDirectory}/{environment}/DeploymentConfigurationWithStrategies.json";
 
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
@@ -325,6 +333,7 @@ namespace Naos.Deployment.Core
                     environment,
                     instanceName,
                     instanceNumber,
+                    this.configFileManager,
                     packagedDeploymentConfigsWithDefaultsAndOverrides,
                     configToCreateWith,
                     this.packageHelper,
@@ -489,18 +498,16 @@ namespace Naos.Deployment.Core
             ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string deploymentFileSearchPattern)
         {
-            Func<IHaveInitializationStrategies, bool> figureOutIfNeedToBundleDependencies =
-                hasStrategies =>
-                hasStrategies != null
-                && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
-                    || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any());
+            bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) => hasStrategies != null
+                                                                                                     && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
+                                                                                                         || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any());
 
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
                     {
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
-                        var bundleAllDependencies = figureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
+                        var bundleAllDependencies = FigureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
                         var package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
                         var actualVersion = this.packageHelper.GetActualVersionFromPackage(package.Package);
 
@@ -508,11 +515,13 @@ namespace Naos.Deployment.Core
                             this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
                                 package.Package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
-                        var deploymentConfig =
-                            (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty).FromJson<DeploymentConfigurationWithStrategies>(); // strip the BOM as it makes Newtonsoft bomb...
+
+                        // strip the BOM (Byte Order Mark) since the characters are stored in a string now and encoding should be fine; presence of this will fail many serializers...
+                        var deploymentConfigJsonWithoutBom = (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty);
+                        var deploymentConfig = this.configFileManager.DeserializeConfigFileText<DeploymentConfigurationWithStrategies>(deploymentConfigJsonWithoutBom);
 
                         // re-check the extracted config to make sure it doesn't change the decision about bundling...
-                        var bundleAllDependenciesReCheck = figureOutIfNeedToBundleDependencies(deploymentConfig);
+                        var bundleAllDependenciesReCheck = FigureOutIfNeedToBundleDependencies(deploymentConfig);
 
                         if (!bundleAllDependencies && bundleAllDependenciesReCheck)
                         {
@@ -826,11 +835,11 @@ namespace Naos.Deployment.Core
                     .SelectMany(_ => _)
                     .ToList();
 
-            var json = JsonConvert.SerializeObject(objectToFlush);
+            var objectToFlushSerializedString = AnnouncementSerializer.SerializeToString(objectToFlush);
 
             lock (this.syncTelemetry)
             {
-                File.WriteAllText(this.telemetryFile, json);
+                File.WriteAllText(this.telemetryFile, objectToFlushSerializedString);
             }
         }
 
@@ -889,11 +898,11 @@ namespace Naos.Deployment.Core
                     .SelectMany(_ => _)
                     .ToList();
 
-            var json = JsonConvert.SerializeObject(objectToFlush);
+            var objectToFlushSerializedString = AnnouncementSerializer.SerializeToString(objectToFlush);
 
             lock (this.syncDebugAnnounmcment)
             {
-                File.WriteAllText(this.debugAnnouncementFile, json);
+                File.WriteAllText(this.debugAnnouncementFile, objectToFlushSerializedString);
             }
         }
 
@@ -911,11 +920,11 @@ namespace Naos.Deployment.Core
                     .SelectMany(_ => _)
                     .ToList();
 
-            var json = JsonConvert.SerializeObject(objectToFlush);
+            var objectToFlushSerializedString = AnnouncementSerializer.SerializeToString(objectToFlush);
 
             lock (this.syncAnnounmcment)
             {
-                File.WriteAllText(this.announcementFile, json);
+                File.WriteAllText(this.announcementFile, objectToFlushSerializedString);
             }
         }
 

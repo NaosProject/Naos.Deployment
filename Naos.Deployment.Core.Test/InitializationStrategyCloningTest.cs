@@ -153,7 +153,7 @@ namespace Naos.Deployment.Core.Test
                                {
                                    Name = "Name",
                                    Description = "Description",
-                                   ExeName = "My Exe",
+                                   ExeFilePathRelativeToPackageRoot = "My Exe",
                                    Arguments = "Args",
                                    Schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) },
                                };
@@ -163,7 +163,7 @@ namespace Naos.Deployment.Core.Test
             Assert.NotSame(original, cloned);
             Assert.Equal(original.Name, cloned.Name);
             Assert.Equal(original.Description, cloned.Description);
-            Assert.Equal(original.ExeName, cloned.ExeName);
+            Assert.Equal(original.ExeFilePathRelativeToPackageRoot, cloned.ExeFilePathRelativeToPackageRoot);
             Assert.Equal(original.Arguments, cloned.Arguments);
             Assert.Equal(ScheduleCronExpressionConverter.ToCronExpression(original.Schedule), ScheduleCronExpressionConverter.ToCronExpression(cloned.Schedule));
         }
