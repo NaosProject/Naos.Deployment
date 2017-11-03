@@ -63,7 +63,7 @@ namespace Naos.Deployment.Core
                         Description = $"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}]",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),
                     });
 
             return certSteps;

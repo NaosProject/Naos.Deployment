@@ -66,9 +66,11 @@ namespace Naos.Deployment.Core
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
             string[] itsConfigPrecedenceAfterEnvironment,
-            string rootDeploymentPath)
+            SetupStepFactorySettings setupStepFactorySettings)
         {
+            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
             new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
+            new { setupStepFactorySettings }.Must().NotBeNull().OrThrowFirstFailure();
 
             var ret = new List<InjectedPackage>();
             var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);

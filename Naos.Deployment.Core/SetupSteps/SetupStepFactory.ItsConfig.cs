@@ -19,13 +19,13 @@ namespace Naos.Deployment.Core
     internal partial class SetupStepFactory
     {
         private List<SetupStep> GetItsConfigSteps(
-            ICollection<ItsConfigOverride> itsConfigOverrides,
+            IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides,
             string applicationRootPath,
             string environment,
             string configFilePath)
         {
             var itsConfigSteps = new List<SetupStep>();
-            var updateExeConfigScriptBlock = this.settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
+            var updateExeConfigScriptBlock = this.Settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
             var precedenceChain = new[] { environment }.ToList();
             precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
             var updateExeConfigScriptParams = new object[] { configFilePath, precedenceChain.ToArray() };

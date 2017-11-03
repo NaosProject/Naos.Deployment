@@ -19,7 +19,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var primaryDns = funcToCreateNewDnsWithTokensReplaced(iisStrategy.PrimaryDns);
 
@@ -69,7 +69,7 @@ namespace Naos.Deployment.Core
                     Description = "Install IIS and configure website/webservice.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters),
+                        machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters),
                 });
 
             return webSteps;
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core
 
         private string GetAccountToUse(InitializationStrategyIis iisStrategy)
         {
-            var appPoolAccount = string.IsNullOrEmpty(iisStrategy.AppPoolAccount) ? this.settings.WebServerSettings.IisAccount : iisStrategy.AppPoolAccount;
+            var appPoolAccount = string.IsNullOrEmpty(iisStrategy.AppPoolAccount) ? this.Settings.WebServerSettings.IisAccount : iisStrategy.AppPoolAccount;
             return appPoolAccount;
         }
     }

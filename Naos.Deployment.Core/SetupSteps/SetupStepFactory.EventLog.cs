@@ -37,7 +37,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Creating EventLog '{logName}' for Source '{sources}'"),
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams),
                     });
 
             return eventLogSteps;

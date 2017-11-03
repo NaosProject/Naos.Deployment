@@ -6,7 +6,6 @@
 
 namespace Naos.Deployment.Core
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -42,10 +41,10 @@ namespace Naos.Deployment.Core
         /// <param name="configToCreateWith">Config to create instance with.</param>
         /// <param name="packageHelper">Package helper.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Configuration precedence chain to apply after the environment.</param>
-        /// <param name="rootDeploymentPath">Root deployment path</param>
+        /// <param name="setupStepFactorySettings">Setup step factory settings.</param>
         /// <returns>Packages to inject.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
-        public IReadOnlyCollection<InjectedPackage> IdentifyAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, string rootDeploymentPath)
+        public IReadOnlyCollection<InjectedPackage> IdentifyAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
         {
             var packagesToAdd =
                 this.DeploymentAdjusters.Where(
@@ -65,7 +64,7 @@ namespace Naos.Deployment.Core
                                 configToCreateWith,
                                 packageHelper,
                                 itsConfigPrecedenceAfterEnvironment,
-                                rootDeploymentPath))
+                                setupStepFactorySettings))
                     .ToList();
 
             return packagesToAdd;

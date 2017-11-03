@@ -15,6 +15,7 @@
         "serviceName": "MongoDB",
         "defaultDataDirectory": "D:\\MongoData",
         "defaultLogDirectory": "D:\\MongoLog",
+        "defaultBackupDirectory": "D:\\MongoBackup",
         "mongoServerPackage": { "id": "mongodb", "version": "3.2.7" },
         "mongoClientPackage": { "id": "robomongo", "version": "" }
     },
@@ -23,7 +24,8 @@
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
         "backupProcessServiceAccount": "NT AUTHORITY\\NETWORKSERVICE",
         "defaultBackupDirectory": "D:\\SqlBackup\\",
-        "defaultDataDirectory": "D:\\SqlData\\"
+        "defaultDataDirectory": "D:\\SqlData\\",
+        "defaultTimeout": "00:01:00"
     },
     "webServerSettings": {
         "iisAccount": "NT AUTHORITY\\NETWORKSERVICE"

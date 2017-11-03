@@ -15,6 +15,6 @@ namespace Naos.Deployment.Domain
     {
         /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<InitializationStrategyBase> InitializationStrategies { get; set; }
+        public IReadOnlyCollection<InitializationStrategyBase> InitializationStrategies { get; set; }
     }
 }

@@ -239,7 +239,7 @@ namespace Naos.Deployment.Core.Test
 	""InitializationStrategies"": [{
 		""selfHostSupportedDnsEntries"": [ ""reports.something.com""],
 		""sslCertificateName"": ""MyCert"",
-		""selfHostExeName"": ""My.exe"",
+		""selfHostExeFilePathRelativeToPackageRoot"": ""My.exe"",
 		""scheduledTaskAccount"": ""Monkey"",
 	}],
 }
@@ -249,7 +249,7 @@ namespace Naos.Deployment.Core.Test
 
             Assert.Equal(typeof(InitializationStrategySelfHost), deserialized.InitializationStrategies.Single().GetType());
             Assert.Equal("reports.something.com", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostSupportedDnsEntries.Single());
-            Assert.Equal("My.exe", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostExeName);
+            Assert.Equal("My.exe", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SelfHostExeFilePathRelativeToPackageRoot);
             Assert.Equal("MyCert", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().SslCertificateName);
             Assert.Equal("Monkey", deserialized.InitializationStrategies.Cast<InitializationStrategySelfHost>().Single().ScheduledTaskAccount);
         }

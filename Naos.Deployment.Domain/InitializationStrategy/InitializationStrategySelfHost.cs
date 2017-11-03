@@ -15,9 +15,9 @@ namespace Naos.Deployment.Domain
     public class InitializationStrategySelfHost : InitializationStrategyBase
     {
         /// <summary>
-        /// Gets or sets the name of the executable that is hosting.
+        /// Gets or sets the path of the executable in the package that is hosting.
         /// </summary>
-        public string SelfHostExeName { get; set; }
+        public string SelfHostExeFilePathRelativeToPackageRoot { get; set; }
 
         /// <summary>
         /// Gets or sets the DNS entries to support access of the self hosted deployment.
@@ -44,7 +44,7 @@ namespace Naos.Deployment.Domain
         {
             var ret = new InitializationStrategySelfHost
                           {
-                              SelfHostExeName = this.SelfHostExeName,
+                              SelfHostExeFilePathRelativeToPackageRoot = this.SelfHostExeFilePathRelativeToPackageRoot,
                               SslCertificateName = this.SslCertificateName,
                               SelfHostSupportedDnsEntries =
                                   this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),

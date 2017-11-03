@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Domain
 {
+    using static System.FormattableString;
+
     /// <summary>
     /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
     /// </summary>
@@ -15,6 +17,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the name of the database.
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the instance if desired to override; DEFAULT will be used if not specified but can specify "SQLEXPRESS", etc.
+        /// </summary>
+        public string InstanceName { get; set; }
 
         /// <summary>
         /// Gets or sets restore information to apply prior to a migration, null will skip.
@@ -70,6 +77,17 @@ namespace Naos.Deployment.Domain
                               Migration = (DatabaseMigrationBase)this.Migration.Clone(),
                               ManagementChannelName = this.ManagementChannelName,
                           };
+            return ret;
+        }
+
+        /// <summary>
+        /// Builds a localhost connection string from the configuration.
+        /// </summary>
+        /// <returns>Localhost connection string.</returns>
+        public string CreateLocalhostConnectionString()
+        {
+            var instanceName = string.IsNullOrWhiteSpace(this.InstanceName) ? string.Empty : Invariant($"\\{this.InstanceName}");
+            var ret = Invariant($"Server=localhost{instanceName}; user id=sa; password={this.AdministratorPassword}");
             return ret;
         }
     }

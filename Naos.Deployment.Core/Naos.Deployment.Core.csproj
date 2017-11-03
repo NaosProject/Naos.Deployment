@@ -79,7 +79,6 @@
     </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
-      <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.SqlServer.ConnectionInfo, Version=12.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.External.MS-SQL-SDK.12.0.2000.9\lib\40\Microsoft.SqlServer.ConnectionInfo.dll</HintPath>
@@ -204,17 +203,26 @@
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Contract, Version=1.1.155.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Contract.1.1.155-newcaandscriptinglog\lib\net461\Naos.Database.Contract.dll</HintPath>
+    <Reference Include="Naos.Database.Domain, Version=1.1.157.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Domain.1.1.157-newcaandscriptinglog\lib\net461\Naos.Database.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Database.MessageBus.Scheduler, Version=1.1.157.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.MessageBus.Scheduler.1.1.157-newcaandscriptinglog\lib\net461\Naos.Database.MessageBus.Scheduler.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Database.Migrator, Version=1.1.157.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Database.Migrator.1.1.157-newcaandscriptinglog\lib\net461\Naos.Database.Migrator.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Tools, Version=1.1.155.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Tools.1.1.155-newcaandscriptinglog\lib\net461\Naos.Database.Tools.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer, Version=1.1.157.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.1.1.157-newcaandscriptinglog\lib\net461\Naos.Database.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.1.113.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.1.113-overhaulstructurenew\lib\net461\Naos.FileJanitor.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.FileJanitor.MessageBus.Scheduler, Version=1.1.113.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.MessageBus.Scheduler.1.1.113-overhaulstructurenew\lib\net461\Naos.FileJanitor.MessageBus.Scheduler.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Logging.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.8\lib\net461\Naos.Logging.Domain.dll</HintPath>
@@ -320,6 +328,7 @@
     <Compile Include="DeploymentAdjustment\InjectedPackage.cs" />
     <Compile Include="DeploymentAdjustment\AddPackageAdjuster.cs" />
     <Compile Include="DeploymentAdjustment\MessageBusHarnessAdder.cs" />
+    <Compile Include="DeploymentAdjustment\SqlServerManagementAdder.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
     <Compile Include="PackageHelper.cs" />

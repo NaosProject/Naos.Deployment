@@ -141,6 +141,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the default directory to backup databases to.
         /// </summary>
         public string DefaultBackupDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default timeout to use.
+        /// </summary>
+        public TimeSpan DefaultTimeout { get; set; }
     }
 
     /// <summary>
@@ -167,6 +172,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the default directory to save log files.
         /// </summary>
         public string DefaultLogDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to backup collections to.
+        /// </summary>
+        public string DefaultBackupDirectory { get; set; }
 
         /// <summary>
         /// Gets or sets the chocolatey package for Mongo Server.

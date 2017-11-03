@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
+        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {
             var schedule = scheduledTaskStrategy.Schedule;
             var exeFilePathRelativeToPackageRoot = scheduledTaskStrategy.ExeFilePathRelativeToPackageRoot;
@@ -32,7 +32,7 @@ namespace Naos.Deployment.Core
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
@@ -43,7 +43,7 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Enable history for scheduled tasks",
-                        SetupFunc = machineManager => machineManager.RunScript(this.settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
+                        SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
 
             var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, packageDirectoryPath, environment, exeConfigFullPath);
@@ -100,7 +100,7 @@ namespace Naos.Deployment.Core
                                               SetupFunc =
                                                   machineManager =>
                                                   machineManager.RunScript(
-                                                      this.settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,
+                                                      this.Settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,
                                                       setupScheduledTaskParams),
                                           };
 
@@ -112,7 +112,7 @@ namespace Naos.Deployment.Core
         private string GetAccountToUse(InitializationStrategyScheduledTask scheduledTaskStrategy)
         {
             var scheduledTaskAccount = string.IsNullOrEmpty(scheduledTaskStrategy.ScheduledTaskAccount)
-                                           ? this.settings.HarnessSettings.HarnessAccount
+                                           ? this.Settings.HarnessSettings.HarnessAccount
                                            : scheduledTaskStrategy.ScheduledTaskAccount;
             return scheduledTaskAccount;
         }

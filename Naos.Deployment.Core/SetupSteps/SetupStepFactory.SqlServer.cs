@@ -11,12 +11,15 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using Naos.Database.Contract;
+
+    using Naos.Database.Domain;
     using Naos.Database.Migrator;
-    using Naos.Database.Tools;
+    using Naos.Database.SqlServer;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+
     using Spritely.Recipes;
+
     using static System.FormattableString;
 
     /// <summary>
@@ -36,10 +39,10 @@ namespace Naos.Deployment.Core
             }
 
             var databaseSteps = new List<SetupStep>();
-            var sqlServiceAccount = this.settings.DatabaseServerSettings.SqlServiceAccount;
+            var sqlServiceAccount = this.Settings.DatabaseServerSettings.SqlServiceAccount;
 
-            var backupDirectory = sqlServerStrategy.BackupDirectory ?? this.settings.DatabaseServerSettings.DefaultBackupDirectory;
-            var createBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var backupDirectory = sqlServerStrategy.BackupDirectory ?? this.Settings.DatabaseServerSettings.DefaultBackupDirectory;
+            var createBackupDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createBackupDirParams = new[] { backupDirectory, sqlServiceAccount };
             databaseSteps.Add(
                 new SetupStep
@@ -49,8 +52,8 @@ namespace Naos.Deployment.Core
                             machineManager =>
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
                     });
-            var backupProcessAccount = this.settings.DatabaseServerSettings.BackupProcessServiceAccount;
-            var addBackupProcessAclsToBackupDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var backupProcessAccount = this.Settings.DatabaseServerSettings.BackupProcessServiceAccount;
+            var addBackupProcessAclsToBackupDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var addBackupProcessAclsToBackupDirParams = new[] { backupDirectory, backupProcessAccount };
             databaseSteps.Add(
                 new SetupStep
@@ -61,8 +64,8 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams),
                     });
 
-            var dataDirectory = sqlServerStrategy.DataDirectory ?? this.settings.DatabaseServerSettings.DefaultDataDirectory;
-            var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var dataDirectory = sqlServerStrategy.DataDirectory ?? this.Settings.DatabaseServerSettings.DefaultDataDirectory;
+            var createDatabaseDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createDatabaseDirParams = new[] { dataDirectory, sqlServiceAccount };
             databaseSteps.Add(
                 new SetupStep
@@ -73,7 +76,7 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams),
                 });
 
-            var enableSaSetPasswordScript = this.settings.DeploymentScriptBlocks.EnableSaAccountAndSetPassword;
+            var enableSaSetPasswordScript = this.Settings.DeploymentScriptBlocks.EnableSaAccountAndSetPassword;
             var enableSaSetPasswordParams = new[] { sqlServerStrategy.AdministratorPassword };
             databaseSteps.Add(
                 new SetupStep
@@ -84,7 +87,7 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams),
                 });
 
-            var updateDefaultInstancePathsScript = this.settings.DeploymentScriptBlocks.SetDefaultDirectories;
+            var updateDefaultInstancePathsScript = this.Settings.DeploymentScriptBlocks.SetDefaultDirectories;
             var updateDefaultInstancePathsParams = new[] { dataDirectory, dataDirectory, backupDirectory };
 
             databaseSteps.Add(
@@ -96,8 +99,8 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams),
                 });
 
-            var restartSqlServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
-            var restartSqlServerParams = new[] { this.settings.DatabaseServerSettings.SqlServiceName };
+            var restartSqlServerScript = this.Settings.DeploymentScriptBlocks.RestartWindowsService;
+            var restartSqlServerParams = new[] { this.Settings.DatabaseServerSettings.SqlServiceName };
             databaseSteps.Add(
                 new SetupStep
                 {
@@ -107,7 +110,7 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams),
                 });
 
-            var connectionString = "Server=localhost; user id=sa; password=" + sqlServerStrategy.AdministratorPassword;
+            var connectionString = sqlServerStrategy.CreateLocalhostConnectionString();
             var databaseConfigurationForCreation = this.BuildDatabaseConfiguration(
                 sqlServerStrategy.Name,
                 dataDirectory,
@@ -118,7 +121,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create database: " + sqlServerStrategy.Name,
+                        Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"}"),
                         SetupFunc = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
@@ -132,8 +135,7 @@ namespace Naos.Deployment.Core
                 var awsRestore = sqlServerStrategy.Restore as DatabaseRestoreFromS3;
                 if (awsRestore == null)
                 {
-                    throw new NotSupportedException(
-                        "Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
+                    throw new NotSupportedException("Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
                 }
 
                 var databaseConfigurationForRestore = this.BuildDatabaseConfiguration(
@@ -151,7 +153,7 @@ namespace Naos.Deployment.Core
                                 {
                                     var restoreFilePath = Path.Combine(sqlServerStrategy.BackupDirectory, awsRestore.FileName);
 
-                                    var remoteDownloadBackupScriptBlock = this.settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
+                                    var remoteDownloadBackupScriptBlock = this.Settings.DeploymentScriptBlocks.DownloadS3Object.ScriptText;
                                     var remoteDownloadBackupScriptParams = new[]
                                                                                {
                                                                                    awsRestore.BucketName, awsRestore.FileName, restoreFilePath, awsRestore.Region,
@@ -240,7 +242,7 @@ namespace Naos.Deployment.Core
                                                 };
 
             var localDatabaseFileSizeSettings = databaseFileSizeSettings
-                                                ?? this.settings.DefaultDatabaseFileSizeSettings;
+                                                ?? this.Settings.DefaultDatabaseFileSizeSettings;
 
             var recoveryModeEnum = RecoveryMode.Unspecified;
             if (!string.IsNullOrEmpty(recoveryMode))

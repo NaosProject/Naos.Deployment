@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------------------------------------------------
+﻿// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="MessageBusHarnessAdder.cs" company="Naos">
 //    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
@@ -68,9 +68,11 @@ namespace Naos.Deployment.Core
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, string rootDeploymentPath)
+        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
         {
+            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
             new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
+            new { setupStepFactorySettings }.Must().NotBeNull().OrThrowFirstFailure();
 
             PackagedDeploymentConfiguration ret = null;
 
@@ -88,17 +90,13 @@ namespace Naos.Deployment.Core
             {
                 itsConfigOverridesForHandlers.AddRange(packageWithMessageBusInitializations.ItsConfigOverrides ?? new List<ItsConfigOverride>());
 
-                var packageFolderName = packageWithMessageBusInitializations.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString();
-
                 // extract appropriate files from
                 var itsConfigFilesFromPackage = new Dictionary<string, string>();
                 var precedenceChain = new[] { environment }.ToList();
                 precedenceChain.AddRange(itsConfigPrecedenceAfterEnvironment);
                 foreach (var precedenceElement in precedenceChain)
                 {
-                    var itsConfigFolderPattern = packageWithMessageBusInitializations.PackageWithBundleIdentifier.AreDependenciesBundled
-                                                     ? Invariant($"{packageFolderName}/Configuration/{SetupStepFactory.ConfigDirectory}/{precedenceElement}/")
-                                                     : Invariant($"{SetupStepFactory.ConfigDirectory}/{precedenceElement}/");
+                    var itsConfigFolderPattern = Invariant($"{SetupStepFactory.ConfigDirectory}/{precedenceElement}/");
 
                     var itsConfigFilesFromPackageForPrecedenceElement =
                         packageHelper.GetMultipleFileContentsFromPackageAsStrings(
@@ -124,10 +122,10 @@ namespace Naos.Deployment.Core
                     itsConfigOverridesForHandlers,
                     configToCreateWith,
                     packageHelper,
-                    rootDeploymentPath);
+                    setupStepFactorySettings.RootDeploymentPath);
             }
 
-            return new[] { new InjectedPackage(ReasonString, ret) };
+            return ret == null ? new InjectedPackage[0] : new[] { new InjectedPackage(ReasonString, ret) };
         }
 
         private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string rootDeploymentPath)

@@ -287,7 +287,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
             await this.WaitUntilStatusChecksSucceedAsync(instanceNumber, createdInstanceDescription);
 
-            Func<string, string> funcToCreateNewDnsWithTokensReplaced = tokenizedDns => TokenSubstitutions.GetSubstitutedStringForDns(tokenizedDns, environment, numberedInstanceName, instanceNumber);
+            string FuncToCreateNewDnsWithTokensReplaced(string tokenizedDns) => TokenSubstitutions.GetSubstitutedStringForDns(tokenizedDns, environment, numberedInstanceName, instanceNumber);
 
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
@@ -338,7 +338,7 @@ namespace Naos.Deployment.Core
                     configToCreateWith,
                     this.packageHelper,
                     this.itsConfigPrecedenceAfterEnvironment,
-                    this.setupStepFactory.RootDeploymentPath);
+                    this.setupStepFactory.Settings);
 
                 // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
                 var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
@@ -355,7 +355,7 @@ namespace Naos.Deployment.Core
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
-                    var setupStepBatches = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, funcToCreateNewDnsWithTokensReplaced);
+                    var setupStepBatches = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, FuncToCreateNewDnsWithTokensReplaced);
                     this.LogAnnouncement("Running setup actions for package: " + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
 
                     await this.RunSetupStepsAsync(machineManager, setupStepBatches, instanceNumber);
@@ -367,7 +367,7 @@ namespace Naos.Deployment.Core
                         packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription);
                 }
 
-                this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, funcToCreateNewDnsWithTokensReplaced);
+                this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, FuncToCreateNewDnsWithTokensReplaced);
             }
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
@@ -470,7 +470,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task RunSetupStepsAsync(MachineManager machineManager, ICollection<SetupStepBatch> setupStepBatches, int instanceNumber)
+        private async Task RunSetupStepsAsync(MachineManager machineManager, IReadOnlyCollection<SetupStepBatch> setupStepBatches, int instanceNumber)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
@@ -478,19 +478,12 @@ namespace Naos.Deployment.Core
             var orderedSteps = setupStepBatches.Where(_ => _ != null).OrderBy(_ => _.ExecutionOrder).SelectMany(_ => _?.Steps).Where(_ => _ != null).ToList();
             foreach (var setupStep in orderedSteps)
             {
-                Func<Task> retryingSetupAction = () =>
-                    {
-                        return Task.Run(
-                            () =>
-                            this.RunSetupStepWithRetry(
-                                machineManager,
-                                instanceNumber,
-                                setupStep,
-                                maxTries,
-                                throwOnFailedSetupStep));
-                    };
+                Task RetryingSetupAction()
+                {
+                    return Task.Run(() => this.RunSetupStepWithRetry(machineManager, instanceNumber, setupStep, maxTries, throwOnFailedSetupStep));
+                }
 
-                await this.RunActionWithTelemetryAsync("Setup step - " + setupStep.Description, retryingSetupAction, instanceNumber);
+                await this.RunActionWithTelemetryAsync("Setup step - " + setupStep.Description, RetryingSetupAction, instanceNumber);
             }
         }
 
@@ -548,12 +541,10 @@ namespace Naos.Deployment.Core
                                           {
                                               PackageWithBundleIdentifier = package,
                                               DeploymentConfiguration = deploymentConfig,
-                                              InitializationStrategies =
-                                                  initializationStrategies,
-                                              ItsConfigOverrides =
-                                                  packageDescriptionWithOverrides
-                                                  .ItsConfigOverrides,
+                                              InitializationStrategies = initializationStrategies,
+                                              ItsConfigOverrides = packageDescriptionWithOverrides.ItsConfigOverrides,
                                           };
+
                         return newItem;
                     }).ToList();
 

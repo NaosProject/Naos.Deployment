@@ -15,20 +15,18 @@ namespace Naos.Deployment.Core
     using Naos.Cron;
     using Naos.Deployment.Domain;
 
-    using Spritely.Recipes;
-
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, ICollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
             var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
             var sslCertificateName = selfHostStrategy.SslCertificateName;
             var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
-            var selfHostExeName = selfHostStrategy.SelfHostExeName;
+            var selfHostExeFilePathRelativeToPackageRoot = selfHostStrategy.SelfHostExeFilePathRelativeToPackageRoot;
             var applicationId = Guid.NewGuid().ToString().ToUpper();
             var runElevated = selfHostStrategy.RunElevated;
 
@@ -47,7 +45,7 @@ namespace Naos.Deployment.Core
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(
-                                this.settings.DeploymentScriptBlocks.ConfigureSslCertificateForHosting.ScriptText,
+                                this.Settings.DeploymentScriptBlocks.ConfigureSslCertificateForHosting.ScriptText,
                                 configureCertParams),
                     });
 
@@ -58,7 +56,7 @@ namespace Naos.Deployment.Core
                         Description = $"Configure user {scheduledTaskAccount} for Self Hosting",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams),
                     });
 
             var openPortParams = new[] { "443", "Allow TCP 443 IN for Self Hosting" };
@@ -68,19 +66,19 @@ namespace Naos.Deployment.Core
                         Description = $"Open port 443 for Self Hosting",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams),
                     });
 
             // task steps to keep the console exe alive
             var schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) };
-            var exeName = selfHostExeName;
-            var name = "SelfHostKeepAliveFor" + exeName;
-            var description = $"Task to ensure that the self host {exeName} is always running.";
+            var exeFilePathRelativeToPackageRoot = selfHostExeFilePathRelativeToPackageRoot;
+            var name = "SelfHostKeepAliveFor" + exeFilePathRelativeToPackageRoot;
+            var description = $"Task to ensure that the self host {exeFilePathRelativeToPackageRoot} is always running.";
             var scheduledTaskStesps = this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
                 itsConfigOverrides,
                 packageDirectoryPath,
                 environment,
-                exeName,
+                exeFilePathRelativeToPackageRoot,
                 schedule,
                 scheduledTaskAccount,
                 adminPassword,
@@ -97,7 +95,7 @@ namespace Naos.Deployment.Core
         private string GetAccountToUse(InitializationStrategySelfHost selfHostStrategy)
         {
             var scheduledTaskAccount = string.IsNullOrEmpty(selfHostStrategy.ScheduledTaskAccount)
-                                           ? this.settings.HarnessSettings.HarnessAccount
+                                           ? this.Settings.HarnessSettings.HarnessAccount
                                            : selfHostStrategy.ScheduledTaskAccount;
             return scheduledTaskAccount;
         }

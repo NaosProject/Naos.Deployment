@@ -1,7 +1,7 @@
 ﻿{
-    "rootPackageDirectoriesToPrune": ["tools", "ref", "runtimes", "analyzers"],
-    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
-    "initializationStrategyTypesThatNeedEnvironmentCertificate": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
+    "rootPackageDirectoriesToPrune": [ "tools", "ref", "runtimes", "analyzers" ],
+    "initializationStrategyTypesThatNeedPackageBytes": [ "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
+    "initializationStrategyTypesThatNeedEnvironmentCertificate": [ "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
@@ -15,15 +15,23 @@
         "serviceName": "MongoDB",
         "defaultDataDirectory": "D:\\MongoData",
         "defaultLogDirectory": "D:\\MongoLog",
-        "mongoServerPackage": { "id": "mongodb", "version": "3.2.7" },
-        "mongoClientPackage": { "id": "robomongo", "version": "" }
+        "defaultBackupDirectory": "D:\\MongoBackup",
+        "mongoServerPackage": {
+            "id": "mongodb",
+            "version": "3.2.7"
+        },
+        "mongoClientPackage": {
+            "id": "robomongo",
+            "version": ""
+        }
     },
     "databaseServerSettings": {
         "sqlServiceName": "MSSQLSERVER",
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
         "backupProcessServiceAccount": "NT AUTHORITY\\NETWORKSERVICE",
         "defaultBackupDirectory": "D:\\SqlBackup\\",
-        "defaultDataDirectory": "D:\\SqlData\\"
+        "defaultDataDirectory": "D:\\SqlData\\",
+        "defaultTimeout": "00:01:00"
     },
     "webServerSettings": {
         "iisAccount": "NT AUTHORITY\\NETWORKSERVICE"
@@ -38,7 +46,7 @@
     },
     "deploymentScriptBlocks": {
         "enableScheduledTaskHistory": {
-            "parameterNames": [ ],
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # crazy black magic - apparently the only way to do this...",
@@ -57,15 +65,15 @@
                 "param([Array] $EntryUpdates)",
                 "# -----Documentation of the 'PropertyType' that can be provided and how it maps to the native types----",
                 "# MSDN article for Microsoft.Win32.RegistryValueKind shows the full map",
-                "# PowerShell type	Registry type",
-                "# Binary	REG_BINARY",
-                "# DWord	REG_DWORD",
-                "# ExpandString	REG_EXPAND_SZ",
-                "# MultiString	REG_MULTI_SZ",
-                "# None	–",
-                "# QWord	REG_QWORD",
-                "# String	REG_SZ",
-                "# Unknown	–",
+                "# PowerShell type   Registry type",
+                "# Binary   REG_BINARY",
+                "# DWord   REG_DWORD",
+                "# ExpandString   REG_EXPAND_SZ",
+                "# MultiString   REG_MULTI_SZ",
+                "# None   –",
+                "# QWord   REG_QWORD",
+                "# String   REG_SZ",
+                "# Unknown   –",
                 "# ----------------------------------------------------------------------------------------------------",
                 "   $EntryUpdates | %{",
                 "       Write-Output \"Setting '$($_.Path) - $($_.Name)' to '$($_.Value) - $($_.Type)'\"",
@@ -75,10 +83,10 @@
             ]
         },
         "setupScheduledTask": {
-            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "RunElevated", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [bool] $RunElevated, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
                 "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
                 "   $trigger = $null",
                 "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
@@ -107,11 +115,25 @@
                 "   }",
                 "   if ([String]::IsNullOrEmpty($ScheduledTaskPassword))",
                 "   {",
-                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "      if ($RunElevated)",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount",
+                "      }",
+                "      else",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -User $ScheduledTaskAccount",
+                "      }",
                 "   }",
                 "   else",
                 "   {",
-                "       Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      if ($RunElevated)",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -RunLevel 'Highest' -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      }",
+                "      else",
+                "      {",
+                "          Register-ScheduledTask -Action $action -Trigger $trigger -TaskName $Name -Description $Description -Settings $settings -User $ScheduledTaskAccount -Password $ScheduledTaskPassword",
+                "      }",
                 "   }",
                 "}"
             ]
@@ -221,25 +243,29 @@
             ]
         },
         "configureSslCertificateForHosting": {
-            "parameterNames": [ "CertPath", "CertPassword", "ApplicationId", "HttpsDnsEntries" ],
+            "parameterNames": [ "CertStoreLocation", "CertStoreName", "CertThumbprint", "ApplicationId", "HttpsDnsEntries" ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword, [System.Guid] $ApplicationId, [Array] $HttpsDnsEntries)",
-                "   if (-not (Test-Path $CertPath))",
-                "   {",
-                "      throw \"Cert missing at $CertPath\"",
+                "param([string] $CertStoreLocation, [string] $CertStoreName, [string] $CertThumbprint, [System.Guid] $ApplicationId, [Array] $HttpsDnsEntries)",
+                "   Write-Output \" CertStoreLocation: $CertStoreLocation\"",
+                "   Write-Output \"     CertStoreName: $CertStoreName\"",
+                "   Write-Output \"    CertThumbprint: $CertThumbprint\"",
+                "   Write-Output \"     ApplicationId: $ApplicationId\"",
+                "   Write-Output \"   HttpsDnsEntries: $([System.String]::Join(',', $HttpsDnsEntries))\"",
+                "   if ($CertStoreLocation -ne 'LocalMachine') {",
+                "      throw $('Can not configure certificates outside of LocalMachine for Self Hosting; specified: ' + $CertStoreLocation)",
                 "   }",
-                "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
-                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
-                "   $thumbprint = \"$($certResult.Thumbprint)\"",
-                "   Write-Output \"Thumbprint: $thumbprint\"",
+                "   $certFullPath = Join-Path (Join-Path (Join-Path 'cert:' $CertStoreLocation) $CertStoreName) $CertThumbprint",
+                "   $cert = Get-Item $certFullPath",
+                "   if ($cert -eq $null)",
+                "   {",
+                "      throw \"Cert missing at $certFullPath\"",
+                "   }",
                 "   $HttpsDnsEntries | %{",
                 "       $hostNamePort = \"$($_):443\"",
                 "       Write-Output \"HostNamePort: $hostNamePort\"",
-                "       netsh http add sslcert hostnameport=$hostNamePort appid=\"{$($ApplicationId)}\" certhash=$thumbprint certstorename=MY",
+                "       netsh http add sslcert hostnameport=$hostNamePort appid=\"{$($ApplicationId)}\" certhash=$CertThumbprint certstorename=$CertStoreName",
                 "   }",
-                "   # save for end in case it's retried...",
-                "   rm $CertPath -Force",
                 "}"
             ]
         },
@@ -271,13 +297,13 @@
                 "   Write-Output $firewallCheck",
                 "   $isOn = $(($firewallCheck[3] -eq 'State                                 ON') -and ($firewallCheck[7] -eq 'State                                 ON') -and ($firewallCheck[11] -eq 'State                                 ON'))",
                 "   if (-not $isOn) {",
-                "   	throw 'Firewall did not restart as expected, it is currently OFF'",
+                "      throw 'Firewall did not restart as expected, it is currently OFF'",
                 "   }",
                 "}"
             ]
         },
         "installChocolatey": {
-            "parameterNames": [ ],
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "param()",
@@ -365,14 +391,20 @@
             "parameterNames": [
                 "CertPath",
                 "CertPassword",
+                "InstallExportable",
                 "UsersToGrantPrivateKeyAccess"
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $CertPath, [SecureString] $CertPassword, [Array] $UsersToGrantPrivateKeyAccess = $null)",
+                "param([string] $CertPath, [SecureString] $CertPassword, [boolean] $InstallExportable, [Array] $UsersToGrantPrivateKeyAccess = $null)",
                 "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
                 "   Write-Output \"Installing cert at $certStoreLocation\"",
-                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "   if ($InstallExportable) {",
+                "      $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
+                "   }",
+                "   else {",
+                "      $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation",
+                "   }",
                 "",
                 "   if ($UsersToGrantPrivateKeyAccess -ne $null)",
                 "   {",
@@ -393,8 +425,9 @@
             "parameterNames": [
                 "WebRootPath",
                 "Domain",
-                "CertPath",
-                "CertPassword",
+                "CertStoreLocation",
+                "CertStoreName",
+                "CertThumbprint",
                 "AppPoolAccount",
                 "AppPoolPassword",
                 "AppPoolStartMode",
@@ -406,11 +439,13 @@
             ],
             "scriptTextLines": [
                 "{",
-                "param([string] $WebRootPath, [string] $Domain, [string] $CertPath, [SecureString] $CertPassword, [string] $AppPoolAccount, [string] $AppPoolPassword, [string] $AppPoolStartMode, [string] $AutoStartProviderName, [string] $AutoStartProviderType, [switch] $EnableSNI, [switch] $AddHostHeaders, [switch] $EnableHttp)",
+                "param([string] $WebRootPath, [string] $Domain, [string] $CertStoreLocation, [string] $CertStoreName, [string] $CertThumbprint, [string] $AppPoolAccount, [string] $AppPoolPassword, [string] $AppPoolStartMode, [string] $AutoStartProviderName, [string] $AutoStartProviderType, [switch] $EnableSNI, [switch] $AddHostHeaders, [switch] $EnableHttp)",
                 "   Write-Output \"Beginning Deployment of a Website:\"",
-                "   Write-Output \"    WebRootPath: $WebRootPath\"",
-                "   Write-Output \"         Domain: $Domain\"",
-                "   Write-Output \"       CertPath: $CertPath\"",
+                "   Write-Output \"       WebRootPath: $WebRootPath\"",
+                "   Write-Output \"            Domain: $Domain\"",
+                "   Write-Output \" CertStoreLocation: $CertStoreLocation\"",
+                "   Write-Output \"     CertStoreName: $CertStoreName\"",
+                "   Write-Output \"    CertThumbprint: $CertThumbprint\"",
                 "   Write-Output ''",
                 "   # Add IIS and suppporting features",
                 "   Add-WindowsFeature -IncludeManagementTools -Name Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Basic-Auth, Web-Digest-Auth, Web-Windows-Auth, Web-Net-Ext, Web-Net-Ext45, Web-Asp-Net, Web-Asp-Net45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Scripting-Tools, NET-Framework-45-ASPNET",
@@ -424,14 +459,6 @@
                 "   {",
                 "      throw \"Site missing at $WebRootPath\"",
                 "   }",
-                "   if (-not (Test-Path $CertPath))",
-                "   {",
-                "      throw \"Cert missing at $CertPath\"",
-                "   }",
-                "   $certStoreLocation = 'cert:\\LocalMachine\\My'",
-                "   Write-Output \"Installing cert at $certStoreLocation\"",
-                "   $certResult = Import-PfxCertificate -FilePath $CertPath -Password $CertPassword -CertStoreLocation $certStoreLocation -Exportable",
-                "   Write-Output \"Cert installed with Thumbprint: $($certResult.Thumbprint) - Deleting file at end\"",
                 "   # cutting to first 50 chars to avoid the 64 char limit...",
                 "   $limit = 50",
                 "   $trimmedDomain = ''",
@@ -513,7 +540,12 @@
                 "      Get-WebBinding |?{($_.protocol -eq $binding.protocol) -and ($_.bindingInformation -eq $binding.bindingInformation)} | Remove-WebBinding",
                 "   }",
                 "",
-                "   $cert = Get-Item $(Join-Path $certStoreLocation $certResult.Thumbprint)",
+                "   $certFullPath = Join-Path (Join-Path (Join-Path 'cert:' $CertStoreLocation) $CertStoreName) $CertThumbprint",
+                "   $cert = Get-Item $certFullPath",
+                "   if ($cert -eq $null)",
+                "   {",
+                "      throw \"Cert missing at $certFullPath\"",
+                "   }",
                 "   New-Item -Path \"IIS:\\SslBindings\\!443!$Domain\" -Value $cert -SSLFlags $sslFlags",
                 "   Write-Output 'Performing IIS RESET to make sure everything is up and running correctly'",
                 "   iisreset",
@@ -572,8 +604,6 @@
                 "   $xmlWriter.Flush()",
                 "   $xmlWriter.Close()",
                 "   Write-Output \"Finished successfully\"",
-                "   # save for end in case it's retried...",
-                "   rm $CertPath -Force",
                 "}"
             ]
         },
@@ -740,25 +770,27 @@
                 "{",
                 "param([Array] $EnvironmentVariables)",
                 "   $wpsettings = 'C:\\Program Files\\Amazon\\Ec2ConfigService\\Settings\\WallpaperSettings.xml'",
-                "   $xmlns      = 'http://tempuri.org/WallpaperSettings.xsd'",
-                "   $wpxml      = [xml]( Get-Content $wpsettings )",
-                "   $EnvironmentVariables | %{",
-                "       $variableName = $_",
-                "       $wpi = $wpxml.WallpaperSettings.AppendChild($wpxml.CreateElement( 'WallpaperInformation', $xmlns ) )",
-                "       $elements = @{}",
-                "       foreach ( $x in $( 'name', 'source', 'identifier' ) ) {",
-                "           $elements.$x = $wpi.AppendChild( $wpxml.CreateElement( $x, $xmlns ) )",
-                "       }",
-                "       $name = $elements.name.AppendChild($wpxml.CreateTextNode( $variableName ) )",
-                "       $source = $elements.source.AppendChild($wpxml.CreateTextNode( 'EnvironmentVariable' ) )",
-                "       $identifier = $elements.identifier.AppendChild($wpxml.CreateTextNode( $variableName ) )",
+                "   if (Test-Path $wpsettings) {",
+                "      $xmlns      = 'http://tempuri.org/WallpaperSettings.xsd'",
+                "      $wpxml      = [xml]( Get-Content $wpsettings )",
+                "      $EnvironmentVariables | %{",
+                "          $variableName = $_",
+                "          $wpi = $wpxml.WallpaperSettings.AppendChild($wpxml.CreateElement( 'WallpaperInformation', $xmlns ) )",
+                "          $elements = @{}",
+                "          foreach ( $x in $( 'name', 'source', 'identifier' ) ) {",
+                "              $elements.$x = $wpi.AppendChild( $wpxml.CreateElement( $x, $xmlns ) )",
+                "          }",
+                "          $name = $elements.name.AppendChild($wpxml.CreateTextNode( $variableName ) )",
+                "          $source = $elements.source.AppendChild($wpxml.CreateTextNode( 'EnvironmentVariable' ) )",
+                "          $identifier = $elements.identifier.AppendChild($wpxml.CreateTextNode( $variableName ) )",
+                "      }",
+                "      $wpxml.Save( $wpsettings )",
                 "   }",
-                "   $wpxml.Save( $wpsettings )",
                 "}"
             ]
         },
-        "enableScriptExecutionScriptBlock": {
-            "parameterNames": [ ],
+        "enableScriptExecutionScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # SETTING TO UNRESTRICTED TO ALLOW FOR SCRIPTS TO BE CALLED VIA MACHINE MANAGER (WINRM)",
@@ -766,8 +798,20 @@
                 "}"
             ]
         },
-        "setupWindowsTimeScriptBlock": {
-            "parameterNames": [ ],
+        "createEventLog": {
+            "parameterNames": [ "LogName", "Sources" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $LogName, [Array] $Sources)",
+                "   # Creates an EventLog with specified name and acceptable sources.",
+                "   $sources | %{",
+                "      New-EventLog -Source $_ -LogName $LogName",
+                "   }",
+                "}"
+            ]
+        },
+        "setupWindowsTimeScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # ADDING COMMANDS TO CONFIGURE TIME TO UPDATE AUTOMATICALLY (on by default but must restart the service)",
@@ -776,8 +820,8 @@
                 "}"
             ]
         },
-        "setupWindowsUpdatesScriptBlock": {
-            "parameterNames": [ ],
+        "setupWindowsUpdatesScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # ADDING COMMANDS TO CONFIGURE WINDOWS UPDATE TO RUN EVERYDAY AT 3AM AND INSTALL IMPORTANT UPDATES AUTOMATICALLY",
@@ -787,8 +831,8 @@
                 "}"
             ]
         },
-        "setupWinRmScriptBlock": {
-            "parameterNames": [ ],
+        "setupWinRmScript": {
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "   # NEEDED TO ALLOW THE MACHINE TO MAKE WINRM CALLS ITSELF",
@@ -801,7 +845,7 @@
                 "}"
             ]
         },
-        "renameComputerScriptBlock": {
+        "renameComputerScript": {
             "parameterNames": [ "ComputerName" ],
             "scriptTextLines": [
                 "{",

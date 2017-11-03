@@ -159,16 +159,22 @@
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" />
     <Compile Include="DebugSeeder.cs" />
     <Compile Include="GenerateJsonHelperTest.cs" />
+    <Compile Include="AdjustDeploymentTest.cs" />
     <Compile Include="SerializerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\test.ruleset" />
-    <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
-    <None Include=".config\Common\SetupStepFactorySettings.json" />
+    <None Include=".config\Common\CloudInfrastructureManagerSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include=".config\Common\SetupStepFactorySettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
+    <None Include="TestingPackageFiles\Naos.MessageBus.Hangfire.Console.1.0.233.nupkg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Naos.Deployment.ComputingManagement\Naos.Deployment.ComputingManagement.csproj">

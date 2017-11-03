@@ -28,11 +28,11 @@ namespace Naos.Deployment.Core
 
         /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<InitializationStrategyBase> InitializationStrategies { get; set; }
+        public IReadOnlyCollection<InitializationStrategyBase> InitializationStrategies { get; set; }
 
         /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
+        public IReadOnlyCollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
     }
 
     /// <summary>

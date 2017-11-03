@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<ICollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
         {
             var steps = new List<SetupStep>();
 
@@ -37,7 +37,7 @@ namespace Naos.Deployment.Core
                                      SetupFunc =
                                          machineManager =>
                                          machineManager.RunScript(
-                                             this.settings.DeploymentScriptBlocks.SetupWinRmScript
+                                             this.Settings.DeploymentScriptBlocks.SetupWinRmScript
                                              .ScriptText),
                                  };
 
@@ -49,7 +49,7 @@ namespace Naos.Deployment.Core
                                        SetupFunc =
                                            machineManager =>
                                            machineManager.RunScript(
-                                               this.settings.DeploymentScriptBlocks
+                                               this.Settings.DeploymentScriptBlocks
                                                .SetupWindowsUpdatesScript.ScriptText),
                                    };
 
@@ -61,7 +61,7 @@ namespace Naos.Deployment.Core
                                     SetupFunc =
                                         machineManager =>
                                         machineManager.RunScript(
-                                            this.settings.DeploymentScriptBlocks.SetupWindowsTimeScript.ScriptText),
+                                            this.Settings.DeploymentScriptBlocks.SetupWindowsTimeScript.ScriptText),
                                 };
 
             steps.Add(setupTime);
@@ -72,7 +72,7 @@ namespace Naos.Deployment.Core
                                       SetupFunc =
                                           machineManager =>
                                           machineManager.RunScript(
-                                              this.settings.DeploymentScriptBlocks
+                                              this.Settings.DeploymentScriptBlocks
                                               .EnableScriptExecutionScript.ScriptText),
                                   };
 
@@ -88,7 +88,7 @@ namespace Naos.Deployment.Core
                                                                                                   {
                                                                                                       new
                                                                                                           {
-                                                                                                              Name = this.settings.EnvironmentEnvironmentVariableName,
+                                                                                                              Name = this.Settings.EnvironmentEnvironmentVariableName,
                                                                                                               Value = environment,
                                                                                                           },
                                                                                                       new
@@ -99,7 +99,7 @@ namespace Naos.Deployment.Core
                                                                                                   };
                                                           return
                                                               machineManager.RunScript(
-                                                                  this.settings.DeploymentScriptBlocks.AddMachineLevelEnvironmentVariables.ScriptText,
+                                                                  this.Settings.DeploymentScriptBlocks.AddMachineLevelEnvironmentVariables.ScriptText,
                                                                   new[] { environmentVariablesToAdd });
                                                       },
                                               };
@@ -111,10 +111,10 @@ namespace Naos.Deployment.Core
                                           Description = "Customize Instance Wallpaper",
                                           SetupFunc = machineManager =>
                                               {
-                                                  var environmentVariablesToAddToWallpaper = new[] { this.settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable };
+                                                  var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable };
                                                   return
                                                       machineManager.RunScript(
-                                                          this.settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,
+                                                          this.Settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,
                                                           new[] { environmentVariablesToAddToWallpaper });
                                               },
                                       };
@@ -155,7 +155,7 @@ namespace Naos.Deployment.Core
                                                      var fileExplorerParams = new[] { registryKeysToUpdateExplorer };
                                                      return
                                                          machineManager.RunScript(
-                                                             this.settings.DeploymentScriptBlocks.UpdateWindowsRegistryEntries.ScriptText,
+                                                             this.Settings.DeploymentScriptBlocks.UpdateWindowsRegistryEntries.ScriptText,
                                                              fileExplorerParams);
                                                  },
                                          };
@@ -174,8 +174,8 @@ namespace Naos.Deployment.Core
 
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
                                                    this.RootDeploymentPath,
-                                                   this.settings.HarnessSettings.HarnessAccount,
-                                                   this.settings.WebServerSettings.IisAccount,
+                                                   this.Settings.HarnessSettings.HarnessAccount,
+                                                   this.Settings.WebServerSettings.IisAccount,
                                                    usersToGrantAccessToKey,
                                                    this.environmentCertificateName,
                                                    false);
@@ -190,7 +190,7 @@ namespace Naos.Deployment.Core
                                      {
                                          var renameParams = new[] { computerName };
                                          return machineManager.RunScript(
-                                             this.settings.DeploymentScriptBlocks.RenameComputerScript.ScriptText,
+                                             this.Settings.DeploymentScriptBlocks.RenameComputerScript.ScriptText,
                                              renameParams);
                                      },
                              };
@@ -210,7 +210,7 @@ namespace Naos.Deployment.Core
                                                      Description = "Install Chocolatey Client",
                                                      SetupFunc =
                                                          machineManager =>
-                                                         machineManager.RunScript(this.settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText),
+                                                         machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText),
                                                  };
 
                 installChocoSteps.Add(installChocoClientStep);
@@ -225,7 +225,7 @@ namespace Naos.Deployment.Core
                                                                    var installChocoPackageParams = new object[] { chocoPackage };
                                                                    return
                                                                        machineManager.RunScript(
-                                                                           this.settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
+                                                                           this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
                                                                            installChocoPackageParams);
                                                                },
                                                        };

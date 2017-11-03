@@ -33,8 +33,6 @@ namespace Naos.Deployment.Core
 
         private readonly IGetCertificates certificateRetriever;
 
-        private readonly SetupStepFactorySettings settings;
-
         private readonly IGetPackages packageManager;
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
@@ -58,7 +56,7 @@ namespace Naos.Deployment.Core
         public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory, Action<string> debugAnnouncer)
         {
             this.certificateRetriever = certificateRetriever;
-            this.settings = settings;
+            this.Settings = settings;
             this.packageManager = packageManager;
             this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
             this.environmentCertificateName = environmentCertificateName;
@@ -69,37 +67,42 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets the administrator account name.
         /// </summary>
-        public string AdministratorAccount => this.settings.AdministratorAccount;
+        public string AdministratorAccount => this.Settings.AdministratorAccount;
 
         /// <summary>
         /// Gets the root deployment path.
         /// </summary>
-        public string RootDeploymentPath => this.settings.RootDeploymentPath;
+        public string RootDeploymentPath => this.Settings.RootDeploymentPath;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes => this.settings.InitializationStrategyTypesThatNeedPackageBytes;
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedPackageBytes => this.Settings.InitializationStrategyTypesThatNeedPackageBytes;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
         /// </summary>
-        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate => this.settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
+        public IReadOnlyCollection<Type> InitializationStrategyTypesThatNeedEnvironmentCertificate => this.Settings.InitializationStrategyTypesThatNeedEnvironmentCertificate;
 
         /// <summary>
         /// Gets the max number of times to execute a setup step before throwing.
         /// </summary>
-        public int MaxSetupStepAttempts => this.settings.MaxSetupStepAttempts;
+        public int MaxSetupStepAttempts => this.Settings.MaxSetupStepAttempts;
 
         /// <summary>
         /// Gets a value indicating whether or not to throw if the max attempts are not successful on a setup step.
         /// </summary>
-        public bool ThrowOnFailedSetupStep => this.settings.ThrowOnFailedSetupStep;
+        public bool ThrowOnFailedSetupStep => this.Settings.ThrowOnFailedSetupStep;
 
         /// <summary>
         /// Gets the list of directories we've found people add to packages and contain assemblies that fail to load correctly in reflection and are not be necessary for normal function.
         /// </summary>
-        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune => this.settings.RootPackageDirectoriesToPrune;
+        public IReadOnlyCollection<string> RootPackageDirectoriesToPrune => this.Settings.RootPackageDirectoriesToPrune;
+
+        /// <summary>
+        /// Gets the underlying settings used to create the factory.
+        /// </summary>
+        public SetupStepFactorySettings Settings { get; private set; }
 
         /// <summary>
         /// Get the appropriate setup steps for the packaged config.
@@ -109,7 +112,7 @@ namespace Naos.Deployment.Core
         /// <param name="adminPassword">Administrator password for the machine in case an application needs to be run as that user (which is discouraged!).</param>
         /// <param name="funcToCreateNewDnsWithTokensReplaced">Function to apply any token replacements to a DNS entry.</param>
         /// <returns>Collection of setup steps that will leave the machine properly configured.</returns>
-        public async Task<ICollection<SetupStepBatch>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetSetupStepsAsync(PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
@@ -145,8 +148,8 @@ namespace Naos.Deployment.Core
             {
                 var dirSteps = this.GetDirectoryToCreateSpecificSteps(
                     (InitializationStrategyDirectoryToCreate)strategy,
-                    this.settings.HarnessSettings.HarnessAccount,
-                    this.settings.WebServerSettings.IisAccount);
+                    this.Settings.HarnessSettings.HarnessAccount,
+                    this.Settings.WebServerSettings.IisAccount);
 
                 ret = new SetupStepBatch { ExecutionOrder = 2, Steps = dirSteps };
             }
@@ -162,8 +165,8 @@ namespace Naos.Deployment.Core
                         this.GetCertificateToInstallSpecificStepsAsync(
                             (InitializationStrategyCertificateToInstall)strategy,
                             packageDirectoryPath,
-                            this.settings.HarnessSettings.HarnessAccount,
-                            this.settings.WebServerSettings.IisAccount);
+                            this.Settings.HarnessSettings.HarnessAccount,
+                            this.Settings.WebServerSettings.IisAccount);
 
                 ret = new SetupStepBatch { ExecutionOrder = 4, Steps = certSteps };
             }
@@ -258,7 +261,7 @@ namespace Naos.Deployment.Core
         {
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
             var packageFilePath = Path.Combine(packageDirectoryPath, "Package.zip");
-            var unzipScript = this.settings.DeploymentScriptBlocks.UnzipFile.ScriptText;
+            var unzipScript = this.Settings.DeploymentScriptBlocks.UnzipFile.ScriptText;
             var unzipParams = new[] { packageFilePath, packageDirectoryPath };
             var deployUnzippedFileStep = new SetupStep
                                              {
@@ -321,7 +324,7 @@ namespace Naos.Deployment.Core
 
             foreach (var selfHost in selfHostStrategies)
             {
-                verifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeName}"));
+                verifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeFilePathRelativeToPackageRoot}"));
             }
 
             foreach (var iis in iisStrategies)

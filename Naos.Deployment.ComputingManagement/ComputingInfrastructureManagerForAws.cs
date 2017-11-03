@@ -302,29 +302,27 @@ namespace Naos.Deployment.ComputingManagement
                 environment,
                 instanceDetails.ComputingContainerDescription.ContainerLocation);
 
-            Func<string, string> getDeviceNameFromDriveLetter = driveLetter =>
+            string GetDeviceNameFromDriveLetter(string driveLetter)
+            {
+                var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out string mapResult);
+                if (!foundResult)
                 {
-                    string mapResult;
-                    var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out mapResult);
-                    if (!foundResult)
-                    {
-                        throw new DeploymentException("Drive letter not supported: " + driveLetter);
-                    }
+                    throw new DeploymentException("Drive letter not supported: " + driveLetter);
+                }
 
-                    return mapResult;
-                };
+                return mapResult;
+            }
 
-            Func<VolumeType, string> getVolumeTypeValueFromEnum = volumeType =>
+            string GetVolumeTypeValueFromEnum(VolumeType volumeType)
+            {
+                var foundResult = this.settings.VolumeTypeValueMap.TryGetValue(volumeType, out string mapResult);
+                if (!foundResult)
                 {
-                    string mapResult;
-                    var foundResult = this.settings.VolumeTypeValueMap.TryGetValue(volumeType, out mapResult);
-                    if (!foundResult)
-                    {
-                        throw new DeploymentException("Volume type not supported: " + volumeType);
-                    }
+                    throw new DeploymentException("Volume type not supported: " + volumeType);
+                }
 
-                    return mapResult;
-                };
+                return mapResult;
+            }
 
             var mappedVolumes =
                 deploymentConfiguration.Volumes.Select(
@@ -334,8 +332,8 @@ namespace Naos.Deployment.ComputingManagement
                             Region = instanceDetails.Location,
                             Name = namer.GetVolumeName(_.DriveLetter),
                             SizeInGb = _.SizeInGb,
-                            DeviceName = getDeviceNameFromDriveLetter(_.DriveLetter),
-                            VolumeType = getVolumeTypeValueFromEnum(_.Type),
+                            DeviceName = GetDeviceNameFromDriveLetter(_.DriveLetter),
+                            VolumeType = GetVolumeTypeValueFromEnum(_.Type),
                             VirtualName = _.DriveLetter,
                         }).ToList();
 
@@ -475,9 +473,8 @@ namespace Naos.Deployment.ComputingManagement
                 instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated).Select(
                     _ =>
                         {
-                            string name;
                             var tags = _.Tags ?? new Dictionary<string, string>();
-                            var found = tags.TryGetValue(this.settings.NameTagKey, out name);
+                            var found = tags.TryGetValue(this.settings.NameTagKey, out string name);
                             if (!found)
                             {
                                 name = "UNNAMED-" + Guid.NewGuid().ToString().ToUpper();

@@ -20,10 +20,10 @@ namespace Naos.Deployment.Core
         private List<SetupStep> GetMongoSpecificSteps(InitializationStrategyMongo mongoStrategy)
         {
             var mongoSteps = new List<SetupStep>();
-            var mongoServiceAccount = this.settings.MongoServerSettings.ServiceAccount;
+            var mongoServiceAccount = this.Settings.MongoServerSettings.ServiceAccount;
 
-            var dataDirectory = mongoStrategy.DataDirectory ?? this.settings.MongoServerSettings.DefaultDataDirectory;
-            var createDatabaseDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var dataDirectory = mongoStrategy.DataDirectory ?? this.Settings.MongoServerSettings.DefaultDataDirectory;
+            var createDatabaseDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createDatabaseDirParams = new[] { dataDirectory, mongoServiceAccount };
             mongoSteps.Add(
                 new SetupStep
@@ -36,8 +36,8 @@ namespace Naos.Deployment.Core
                                 createDatabaseDirParams),
                     });
 
-            var logDirectory = mongoStrategy.LogDirectory ?? this.settings.MongoServerSettings.DefaultLogDirectory;
-            var createLogDirScript = this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var logDirectory = mongoStrategy.LogDirectory ?? this.Settings.MongoServerSettings.DefaultLogDirectory;
+            var createLogDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
             var createLogDirParams = new[] { logDirectory, mongoServiceAccount };
             mongoSteps.Add(
                 new SetupStep
@@ -48,12 +48,12 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams),
                     });
 
-            var installMongoScript = this.settings.DeploymentScriptBlocks.InstallChocolateyPackages;
+            var installMongoScript = this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages;
             var installMongoParams =
                 new[]
                     {
-                        this.settings.MongoServerSettings.MongoServerPackage,
-                        this.settings.MongoServerSettings.MongoClientPackage,
+                        this.Settings.MongoServerSettings.MongoServerPackage,
+                        this.Settings.MongoServerSettings.MongoClientPackage,
                     }.Select(_ => _ as object).ToArray();
 
             mongoSteps.Add(
@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(installMongoScript.ScriptText, installMongoParams),
                     });
 
-            var configureMongoScript = this.settings.DeploymentScriptBlocks.ConfigureMongo;
+            var configureMongoScript = this.Settings.DeploymentScriptBlocks.ConfigureMongo;
             var configureMongoParams = new object[] { mongoStrategy.DocumentDatabaseName, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory, mongoStrategy.NoJournaling };
             mongoSteps.Add(
                 new SetupStep
@@ -76,8 +76,8 @@ namespace Naos.Deployment.Core
                         machineManager.RunScript(configureMongoScript.ScriptText, configureMongoParams),
                 });
 
-            var restartMongoServerScript = this.settings.DeploymentScriptBlocks.RestartWindowsService;
-            var restartMongoServerParams = new[] { this.settings.MongoServerSettings.ServiceName };
+            var restartMongoServerScript = this.Settings.DeploymentScriptBlocks.RestartWindowsService;
+            var restartMongoServerParams = new[] { this.Settings.MongoServerSettings.ServiceName };
             mongoSteps.Add(
                 new SetupStep
                 {
@@ -94,7 +94,7 @@ namespace Naos.Deployment.Core
                     Description = $"Open port 27017 for Mongo",
                     SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
                 });
 
             var openPortParamsTwo = new[] { "27018", "Allow TCP 27018 IN for Mongo" };
@@ -104,7 +104,7 @@ namespace Naos.Deployment.Core
                     Description = $"Open port 27018 for Mongo",
                     SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),
                 });
 
             return mongoSteps;

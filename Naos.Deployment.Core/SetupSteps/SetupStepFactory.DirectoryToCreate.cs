@@ -29,7 +29,7 @@ namespace Naos.Deployment.Core
                 SetupFunc =
                     machineManager =>
                     machineManager.RunScript(
-                        this.settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
+                        this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
                         .ScriptText,
                         dirParams),
             };

@@ -42,7 +42,7 @@ namespace Naos.Deployment.Core
         /// <param name="configToCreateWith">Config to create instance with.</param>
         /// <param name="packageHelper">Package helper.</param>
         /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Configuration precedence chain to apply after the environment.</param>
-        /// <param name="rootDeploymentPath">Root deployment path</param>
+        /// <param name="setupStepFactorySettings">Setup step factory settings.</param>
         /// <returns>Set of packages to inject if applicable.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public abstract IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(
@@ -54,6 +54,6 @@ namespace Naos.Deployment.Core
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
             string[] itsConfigPrecedenceAfterEnvironment,
-            string rootDeploymentPath);
+            SetupStepFactorySettings setupStepFactorySettings);
     }
 }

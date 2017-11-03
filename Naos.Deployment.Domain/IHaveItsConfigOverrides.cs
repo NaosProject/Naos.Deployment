@@ -17,6 +17,6 @@ namespace Naos.Deployment.Domain
         /// Gets or sets a collection of Its.Configuration overrides.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        ICollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
+        IReadOnlyCollection<ItsConfigOverride> ItsConfigOverrides { get; set; }
     }
 }
