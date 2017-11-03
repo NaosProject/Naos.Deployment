@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core.Test
                             "..",
                             "..",
                             "TestingPackageFiles"),
-                        "Naos.MessageBus.Hangfire.Console.1.0.233.nupkg"));
+                        "Naos.MessageBus.Hangfire.Console.1.0.233.testnupkg"));
 
             MessageBusHandlerHarnessConfiguration = new MessageBusHandlerHarnessConfiguration
                                                         {

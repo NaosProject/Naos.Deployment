@@ -174,7 +174,7 @@
     </None>
     <None Include="App.config" />
     <None Include="packages.config" />
-    <None Include="TestingPackageFiles\Naos.MessageBus.Hangfire.Console.1.0.233.nupkg" />
+    <None Include="TestingPackageFiles\Naos.MessageBus.Hangfire.Console.1.0.233.testnupkg" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Naos.Deployment.ComputingManagement\Naos.Deployment.ComputingManagement.csproj">
