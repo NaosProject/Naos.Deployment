@@ -26,11 +26,6 @@ namespace Naos.Deployment.Core
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     internal partial class SetupStepFactory
     {
-        /// <summary>
-        /// The child directory name to use for Its.Configuration files; (i.e. '.config').
-        /// </summary>
-        public const string ConfigDirectory = ".config";
-
         private readonly IGetCertificates certificateRetriever;
 
         private readonly IGetPackages packageManager;
@@ -55,9 +50,9 @@ namespace Naos.Deployment.Core
         /// <param name="debugAnnouncer">Announcer for events.</param>
         public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory, Action<string> debugAnnouncer)
         {
-            this.certificateRetriever = certificateRetriever;
             this.Settings = settings;
             this.packageManager = packageManager;
+            this.certificateRetriever = certificateRetriever;
             this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
             this.environmentCertificateName = environmentCertificateName;
             this.workingDirectory = workingDirectory;
@@ -303,33 +298,33 @@ namespace Naos.Deployment.Core
             ICollection<InitializationStrategySelfHost> selfHostStrategies,
             ICollection<InitializationStrategyIis> iisStrategies)
         {
-            Action<string, string> verifyCertificate = (certName, description) =>
+            void VerifyCertificate(string certName, string description)
+            {
+                var certToInstall = certificateToInstallStrategies.SingleOrDefault(_ => _.CertificateToInstall == certName);
+                if (certToInstall == null)
                 {
-                    var certToInstall = certificateToInstallStrategies.SingleOrDefault(_ => _.CertificateToInstall == certName);
-                    if (certToInstall == null)
-                    {
-                        throw new DeploymentException(Invariant($"Failed to find an initialization strategy to install the required certificate: {certName}.  {description}"));
-                    }
+                    throw new DeploymentException(Invariant($"Failed to find an initialization strategy to install the required certificate: {certName}.  {description}"));
+                }
 
-                    if ((certToInstall.StoreLocation ?? StoreLocation.LocalMachine) != StoreLocation.LocalMachine)
-                    {
-                        throw new DeploymentException(Invariant($"Certificate Store Location must be {StoreLocation.LocalMachine} instead of {certToInstall.StoreLocation} for cert: {certName}.  {description}"));
-                    }
+                if ((certToInstall.StoreLocation ?? StoreLocation.LocalMachine) != StoreLocation.LocalMachine)
+                {
+                    throw new DeploymentException(Invariant($"Certificate Store Location must be {StoreLocation.LocalMachine} instead of {certToInstall.StoreLocation} for cert: {certName}.  {description}"));
+                }
 
-                    if ((certToInstall.StoreName ?? StoreName.My) != StoreName.My)
-                    {
-                        throw new DeploymentException(Invariant($"Certificate Store Name must be {StoreName.My} instead of {certToInstall.StoreName} for cert: {certName}.  {description}"));
-                    }
-                };
+                if ((certToInstall.StoreName ?? StoreName.My) != StoreName.My)
+                {
+                    throw new DeploymentException(Invariant($"Certificate Store Name must be {StoreName.My} instead of {certToInstall.StoreName} for cert: {certName}.  {description}"));
+                }
+            }
 
             foreach (var selfHost in selfHostStrategies)
             {
-                verifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeFilePathRelativeToPackageRoot}"));
+                VerifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeFilePathRelativeToPackageRoot}"));
             }
 
             foreach (var iis in iisStrategies)
             {
-                verifyCertificate(iis.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
+                VerifyCertificate(iis.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
             }
         }
     }

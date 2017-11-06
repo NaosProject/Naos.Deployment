@@ -37,7 +37,7 @@ namespace Naos.Deployment.Core
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
             var exeFullPath = Path.Combine(packageDirectoryPath, exeFilePathRelativeToPackageRoot);
-            var exeConfigFullPath = Path.Combine(Path.GetDirectoryName(exeFullPath) ?? string.Empty, ConfigDirectory);
+            var exeConfigFullPath = exeFullPath + ".config"; // App.Config should get named this.
 
             scheduledTaskSetupSteps.Add(
                 new SetupStep

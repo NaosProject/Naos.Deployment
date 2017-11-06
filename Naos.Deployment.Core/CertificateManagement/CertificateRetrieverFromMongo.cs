@@ -39,13 +39,29 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <inheritdoc />
         public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => string.Equals(_.Id, name, StringComparison.InvariantCultureIgnoreCase));
+            new { name }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
+            // ReSharper disable once SpecifyStringComparison - can't because the expression tree it converts to isn't supported by Mongo...
+            var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => _.Id.ToUpperInvariant() == name.ToUpperInvariant());
 
             var certificateDetails = certificateContainer?.Certificate;
 
             var certDetails = certificateDetails?.ToDecryptedVersion();
 
             return certDetails;
+        }
+
+        /// <summary>
+        /// Builds a new <see cref="CertificateRetrieverFromMongo" /> from the provided connection information.
+        /// </summary>
+        /// <param name="database">Database connection information.</param>
+        /// <returns>Built reader.</returns>
+        public static CertificateRetrieverFromMongo Build(DeploymentDatabase database)
+        {
+            new { database }.Must().NotBeNull().OrThrowFirstFailure();
+
+            var ret = new CertificateRetrieverFromMongo(database.GetQueriesInterface<CertificateContainer>());
+            return ret;
         }
     }
 }

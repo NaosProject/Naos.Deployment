@@ -20,6 +20,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
     using Naos.Serialization.Bson;
+    using Naos.Serialization.Domain;
 
     using OBeautifulCode.DateTime;
 
@@ -177,6 +178,33 @@ namespace Naos.Deployment.Core.Test
             var classToSave = new CertificateCollection { Certificates = certificates };
             var jsonText = classToSave.ToJson();
             File.WriteAllText(certificateRetrieverFilePath, jsonText);
+        }
+
+        [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
+        public static async Task Debug_ReadCertificate()
+        {
+            var server = "ServerOrIpOrDns";
+            var databaseName = "Database";
+            var databaseUser = "User";
+            var databasePassword = "Password";
+            var certName = "CertificateToQueryFor";
+
+            var database = new DeploymentDatabase
+                               {
+                                   ConnectionSettings = new MongoConnectionSettings
+                                                            {
+                                                                Server = server,
+                                                                Database = databaseName,
+                                                                Credentials = new Credentials
+                                                                                  {
+                                                                                      User = databaseUser,
+                                                                                      Password = databasePassword.ToSecureString(),
+                                                                                  },
+                                                            },
+                               };
+
+            var certReader = CertificateRetrieverFromMongo.Build(database);
+            var result = await certReader.GetCertificateByNameAsync(certName);
         }
 
         private static List<CertificateDescriptionWithEncryptedPfxPayload> BuildCertificates(IList<CertificateDescriptionWithClearPfxPayload> certificatesToLoad, CertificateLocator encryptingCertificateLocator)

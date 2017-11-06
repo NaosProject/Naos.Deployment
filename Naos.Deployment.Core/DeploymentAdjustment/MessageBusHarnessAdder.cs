@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
@@ -96,7 +97,7 @@ namespace Naos.Deployment.Core
                 precedenceChain.AddRange(itsConfigPrecedenceAfterEnvironment);
                 foreach (var precedenceElement in precedenceChain)
                 {
-                    var itsConfigFolderPattern = Invariant($"{SetupStepFactory.ConfigDirectory}/{precedenceElement}/");
+                    var itsConfigFolderPattern = Invariant($"{setupStepFactorySettings.ConfigDirectory}/{precedenceElement}/");
 
                     var itsConfigFilesFromPackageForPrecedenceElement =
                         packageHelper.GetMultipleFileContentsFromPackageAsStrings(
@@ -170,7 +171,7 @@ namespace Naos.Deployment.Core
             var workerCount = messageBusInitializations.Max(_ => _.WorkerCount);
             workerCount = workerCount == 0 ? 1 : workerCount;
 
-            var launchConfig = new LaunchConfiguration(
+            var launchConfig = new MessageBusLaunchConfiguration(
                 this.MessageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive,
                 TypeMatchStrategy.NamespaceAndName,
                 TypeMatchStrategy.NamespaceAndName,
@@ -186,22 +187,22 @@ namespace Naos.Deployment.Core
                     {
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "LaunchConfiguration",
+                                FileNameWithoutExtension = nameof(MessageBusLaunchConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(launchConfig),
                             },
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "HandlerFactoryConfiguration",
+                                FileNameWithoutExtension = nameof(HandlerFactoryConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(handlerFactoryConfig),
                             },
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "MessageBusConnectionConfiguration",
+                                FileNameWithoutExtension = nameof(MessageBusConnectionConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.PersistenceConnectionConfiguration),
                             },
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "LogProcessorSettings",
+                                FileNameWithoutExtension = nameof(LogProcessorSettings),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings),
                             },
                     });

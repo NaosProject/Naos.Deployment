@@ -278,6 +278,7 @@ namespace Naos.Deployment.Tracking
                               Name = deployedInstance.InstanceDescription.Name,
                               Environment = environment,
                               Instance = deployedInstance,
+                              RecordLastModifiedUtc = DateTime.UtcNow,
                           };
 
             return ret;

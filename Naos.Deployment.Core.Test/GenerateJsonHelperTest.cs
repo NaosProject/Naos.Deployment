@@ -113,7 +113,7 @@ namespace Naos.Deployment.Core.Test
                                                             },
                                                         new ItsConfigOverride
                                                             {
-                                                                FileNameWithoutExtension = "DeploymentMessageHandlerSettings",
+                                                                FileNameWithoutExtension = nameof(DeploymentMessageHandlerSettings),
                                                                 FileContentsJson = serializer.SerializeToString(deploymentMessageHandlerSettings),
                                                             },
                                                     },
@@ -145,7 +145,7 @@ namespace Naos.Deployment.Core.Test
                                             new LogConfigurationFile(LogContexts.All, logFilePath),
                                         };
 
-            var launchConfiguration = new LaunchConfiguration(
+            var launchConfiguration = new MessageBusLaunchConfiguration(
                 TimeSpan.Zero,
                 TypeMatchStrategy.NamespaceAndName,
                 TypeMatchStrategy.NamespaceAndName,
@@ -218,6 +218,7 @@ namespace Naos.Deployment.Core.Test
                                           InitializationStrategies =
                                               new InitializationStrategyBase[]
                                                   {
+                                                      new InitializationStrategyCertificateToInstall { CertificateToInstall = sslCertName },
                                                       new InitializationStrategyDnsEntry { PrivateDnsEntry = hangfireDns },
                                                       new InitializationStrategyCreateEventLog { Source = eventLogSource, LogName = customEventLog },
                                                       new InitializationStrategyIis
@@ -256,7 +257,7 @@ namespace Naos.Deployment.Core.Test
                                                           },
                                                       new ItsConfigOverride
                                                           {
-                                                              FileNameWithoutExtension = nameof(LaunchConfiguration),
+                                                              FileNameWithoutExtension = nameof(MessageBusLaunchConfiguration),
                                                               FileContentsJson = serializer.SerializeToString(launchConfiguration),
                                                           },
                                                   },

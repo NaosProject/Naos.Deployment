@@ -18,6 +18,11 @@ namespace Naos.Deployment.Domain
     public class SetupStepFactorySettings
     {
         /// <summary>
+        /// Gets or sets the child directory name to use for Its.Configuration files; (i.e. '.config').
+        /// </summary>
+        public string ConfigDirectory { get; set; }
+
+        /// <summary>
         /// Gets or sets the name of the environment variable to use when setting the 'Environment'.
         /// </summary>
         public string EnvironmentEnvironmentVariableName { get; set; }

@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Persistence
 {
+    using System;
+
     using Naos.Deployment.Domain;
 
     /// <summary>
@@ -32,5 +34,10 @@ namespace Naos.Deployment.Persistence
         /// Gets or sets the name of the instance.
         /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// Gets or sets the last modified date time in UTC.
+        /// </summary>
+        public DateTime RecordLastModifiedUtc { get; set; }
     }
 }

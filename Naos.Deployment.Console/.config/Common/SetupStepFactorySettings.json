@@ -1,10 +1,11 @@
 ﻿{
-    "rootPackageDirectoriesToPrune": ["tools", "ref", "runtimes", "analyzers"],
-    "initializationStrategyTypesThatNeedPackageBytes": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
-    "initializationStrategyTypesThatNeedEnvironmentCertificate": ["Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain","Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"],
+    "rootPackageDirectoriesToPrune": [ "tools", "ref", "runtimes", "analyzers" ],
+    "initializationStrategyTypesThatNeedPackageBytes": [ "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
+    "initializationStrategyTypesThatNeedEnvironmentCertificate": [ "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
+    "configDirectory": ".config",
     "environmentEnvironmentVariableName": "Environment",
     "administratorAccount": "Administrator",
     "harnessSettings": {
@@ -16,8 +17,14 @@
         "defaultDataDirectory": "D:\\MongoData",
         "defaultLogDirectory": "D:\\MongoLog",
         "defaultBackupDirectory": "D:\\MongoBackup",
-        "mongoServerPackage": { "id": "mongodb", "version": "3.2.7" },
-        "mongoClientPackage": { "id": "robomongo", "version": "" }
+        "mongoServerPackage": {
+            "id": "mongodb",
+            "version": "3.2.7"
+        },
+        "mongoClientPackage": {
+            "id": "robomongo",
+            "version": ""
+        }
     },
     "databaseServerSettings": {
         "sqlServiceName": "MSSQLSERVER",

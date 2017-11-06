@@ -10,7 +10,6 @@ namespace Naos.Deployment.Persistence
     using System.Collections.Generic;
 
     using Naos.Deployment.Domain;
-    using Naos.Packaging.Domain;
     using Naos.Serialization.Bson;
 
     /// <summary>
@@ -19,21 +18,57 @@ namespace Naos.Deployment.Persistence
     public class DeploymentBsonConfiguration : BsonConfigurationBase
     {
         /// <inheritdoc cref="BsonConfigurationBase" />
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Has a lot of type references by its nature.")]
         protected override IReadOnlyCollection<Type> TypesToAutoRegister => new[]
                                                                                 {
-                                                                                    typeof(ComputingContainerDescription),
+                                                                                    // Domain types
                                                                                     typeof(ArcologyInfo),
-                                                                                    typeof(PackageDescription),
-                                                                                    typeof(PackageDescriptionWithDeploymentStatus),
-                                                                                    typeof(InstanceDescription),
-                                                                                    typeof(InstanceType),
-                                                                                    typeof(Volume),
-                                                                                    typeof(DeploymentConfiguration),
+                                                                                    typeof(AutoStartProvider),
                                                                                     typeof(CertificateDescription),
-                                                                                    typeof(CertificateLocator),
                                                                                     typeof(CertificateDescriptionWithClearPfxPayload),
                                                                                     typeof(CertificateDescriptionWithEncryptedPfxPayload),
+                                                                                    typeof(CertificateLocator),
+                                                                                    typeof(ComputingContainerDescription),
+                                                                                    typeof(ComputingInfrastructureManagerSettings),
+                                                                                    typeof(Create),
+                                                                                    typeof(DatabaseMigrationBase),
+                                                                                    typeof(DatabaseRestoreBase),
+                                                                                    typeof(DeployedInstance),
+                                                                                    typeof(DeploymentConfiguration),
+                                                                                    typeof(DeploymentConfigurationWithStrategies),
+                                                                                    typeof(DeploymentException),
+                                                                                    typeof(DeploymentStrategy),
+                                                                                    typeof(DirectoryToCreateDetails),
+                                                                                    typeof(Encryptor),
+                                                                                    typeof(ImageDetails),
+                                                                                    typeof(InitializationStrategyBase),
+                                                                                    typeof(InitializationStrategyCertificateToInstall),
+                                                                                    typeof(InitializationStrategyCreateEventLog),
+                                                                                    typeof(InitializationStrategyDirectoryToCreate),
+                                                                                    typeof(InitializationStrategyDnsEntry),
+                                                                                    typeof(InitializationStrategyIis),
+                                                                                    typeof(InitializationStrategyMessageBusHandler),
+                                                                                    typeof(InitializationStrategyMongo),
+                                                                                    typeof(InitializationStrategyScheduledTask),
+                                                                                    typeof(InitializationStrategySelfHost),
+                                                                                    typeof(InitializationStrategySqlServer),
+                                                                                    typeof(InstanceCreationDetails),
+                                                                                    typeof(InstanceDescription),
+                                                                                    typeof(InstanceDetailsFromComputingPlatform),
+                                                                                    typeof(InstanceStatus),
+                                                                                    typeof(InstanceTargeterBase),
+                                                                                    typeof(InstanceType),
+                                                                                    typeof(ItsConfigOverride),
+                                                                                    typeof(PackageDescriptionWithDeploymentStatus),
+                                                                                    typeof(PackageDescriptionWithOverrides),
+                                                                                    typeof(PostDeploymentStrategy),
+                                                                                    typeof(SetupStepFactorySettings),
+                                                                                    typeof(Volume),
+
+                                                                                    // Persisitence types
+                                                                                    typeof(ArcologyInfoContainer),
                                                                                     typeof(CertificateContainer),
+                                                                                    typeof(InstanceContainer),
                                                                                 };
     }
 }

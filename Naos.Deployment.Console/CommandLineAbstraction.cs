@@ -9,13 +9,15 @@ namespace Naos.Deployment.Console
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Runtime.ExceptionServices;
     using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     using AsyncBridge;
     using CLAP;
     using Its.Configuration;
     using Its.Log.Instrumentation;
-
-    using MongoDB.Bson;
 
     using Naos.AWS.Contract;
     using Naos.Deployment.ComputingManagement;
@@ -57,12 +59,12 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
         [Verb(Aliases = "credentials", Description = "Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.")]
         public static void GetNewCredentialJson(
-            [Aliases("")] [Description("Computing platform provider location to make the call against.")] string location,
-            [Aliases("")] [Description("Life span of the credentials (in format dd:hh:mm).")] string tokenLifespan,
-            [Aliases("")] [Description("Username of the credentials.")] string username,
-            [Aliases("")] [Description("Password of the credentials.")] string password,
-            [Aliases("")] [Description("Virtual MFA device id of the credentials.")] string virtualMfaDeviceId,
-            [Aliases("")] [Description("Token from the MFA device to use when authenticating.")] string mfaValue,
+            [Aliases("")] [Required] [Description("Computing platform provider location to make the call against.")] string location,
+            [Aliases("")] [Required] [Description("Life span of the credentials (in format dd:hh:mm).")] string tokenLifespan,
+            [Aliases("")] [Required] [Description("Username of the credentials.")] string username,
+            [Aliases("")] [Required] [Description("Password of the credentials.")] string password,
+            [Aliases("")] [Required] [Description("Virtual MFA device id of the credentials.")] string virtualMfaDeviceId,
+            [Aliases("")] [Required] [Description("Token from the MFA device to use when authenticating.")] string mfaValue,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment)
         {
@@ -77,7 +79,9 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var rawRet = retObj.ToJson();
+            var configSerializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
+
+            var rawRet = configSerializer.SerializeToString(retObj);
 
             // prep to be returned in a way that can be piped to a variable and then passed back in...
             var withoutNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
@@ -88,10 +92,62 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
+        /// Gets the password of an instance from the provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "mfa", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Mfa", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
+        [Verb(Aliases = "password", Description = "Gets the password of an instance from the provided tracker.")]
+        public static void GetPassword(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Required] [Description("Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+        {
+            CommonSetup(debug, environment);
+
+            var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
+            var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
+            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
+
+            using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
+            {
+                using (var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker))
+                {
+                    computingManager.InitializeCredentials(credentials);
+
+                    //using (var asyncHelper = AsyncHelper.Wait)
+                    //{
+                        InstanceDescription instance = null;
+                        Replacement.Run(Task.Run(() => computingManager.GetInstanceDescriptionAsync(environment, instanceName)), ret => instance = ret);
+                        instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+
+                        string privateKey = null;
+                        Replacement.Run(Task.Run(() => infrastructureTracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id)), ret => privateKey = ret);
+                        privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+
+                        string password = null;
+                        Replacement.Run(Task.Run(() => computingManager.GetAdministratorPasswordForInstanceAsync(instance, privateKey)), ret => password = ret);
+                        password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+
+                        Console.Write(password);
+                    //}
+                }
+            }
+        }
+
+        /// <summary>
         /// Deploys a new instance with specified packages.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
-        /// <param name="nugetPackageRepositoryConfigurationJson">NuGet Repository/Gallery configuration.</param>
+        /// <param name="nugetPackageRepositoryConfigurationsJson">NuGet Repository/Gallery configurations.</param>
         /// <param name="certificateRetrieverJson">Certificate retriever configuration JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="overrideDeploymentConfigJson">Optional deployment configuration to use as an override in JSON.</param>
@@ -105,7 +161,7 @@ namespace Naos.Deployment.Console
         /// <param name="packagesToDeployJson">Optional packages descriptions (with overrides) to configure the instance with.</param>
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "telemetryFilePath", Justification = "Spelling/name is correct.")]
@@ -125,10 +181,10 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "nuget", Justification = "Not sure why it's complaining...")]
         [Verb(Aliases = "deploy", Description = "Deploys a new instance with specified packages.")]
         public static void Deploy(
-            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
-            [Aliases("")] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationJson,
-            [Aliases("")] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
-            [Aliases("")] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("NuGet Repository/Gallery configuration.")] string nugetPackageRepositoryConfigurationsJson,
+            [Aliases("")] [Required] [Description("Certificate retriever configuration JSON.")] string certificateRetrieverJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Optional deployment configuration to use as an override in JSON.")] [DefaultValue(null)] string overrideDeploymentConfigJson,
             [Aliases("")] [Description("Optional certificate name for an environment certificate saved in certificate manager being configured.")] [DefaultValue(null)] string environmentCertificateName,
             [Aliases("")] [Description("Optional announcement file path to write a JSON file of announcements (will overwrite if existing).")] [DefaultValue(null)] string announcementFilePath,
@@ -140,7 +196,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
             [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment)
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
         {
             CommonSetup(debug, environment);
 
@@ -150,7 +206,7 @@ namespace Naos.Deployment.Console
                         workingPath,
                         credentialsJson,
                         deploymentAdjustmentApplicatorJson,
-                        nugetPackageRepositoryConfigurationJson,
+                        nugetPackageRepositoryConfigurationsJson,
                         certificateRetrieverJson,
                         infrastructureTrackerJson,
                         overrideDeploymentConfigJson,
@@ -164,14 +220,12 @@ namespace Naos.Deployment.Console
                         telemetryFilePath,
                     });
 
-            Config.ConfigureSerialization(Console.WriteLine);
-
             var packagesToDeploy = (ICollection<PackageDescriptionWithOverrides>)Settings.Deserialize(typeof(ICollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
             var certificateRetrieverConfiguration = (CertificateManagementConfigurationBase)Settings.Deserialize(typeof(CertificateManagementConfigurationBase), certificateRetrieverJson);
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
             var deploymentAdjustmentStrategiesApplicator = (DeploymentAdjustmentStrategiesApplicator)Settings.Deserialize(typeof(DeploymentAdjustmentStrategiesApplicator), deploymentAdjustmentApplicatorJson);
             var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
-            var repoConfig = (PackageRepositoryConfiguration)Settings.Deserialize(typeof(PackageRepositoryConfiguration), nugetPackageRepositoryConfigurationJson);
+            var repoConfigs = (IReadOnlyCollection<PackageRepositoryConfiguration>)Settings.Deserialize(typeof(IReadOnlyCollection<PackageRepositoryConfiguration>), nugetPackageRepositoryConfigurationsJson);
             var overrideConfig = (DeploymentConfiguration)Settings.Deserialize(typeof(DeploymentConfiguration), overrideDeploymentConfigJson);
 
             var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
@@ -213,7 +267,7 @@ namespace Naos.Deployment.Console
 
                     var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
-                    using (var packageManager = new PackageRetriever(unzipDirPath, new[] { repoConfig }, null, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
+                    using (var packageManager = new PackageRetriever(unzipDirPath, repoConfigs, null, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
                     {
                         var deploymentManager = new DeploymentManager(
                                                     infrastructureTracker,
@@ -268,13 +322,13 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "3", Justification = "Is validated with Must.")]
         [Verb(Aliases = "upload", Description = "Deploys a new instance with specified packages.")]
         public static void UploadCertificate(
-            [Aliases("")] [Description("Certificate writer configuration JSON.")] string certificateWriterJson,
-            [Aliases("")] [Description("Name of the certificate to load.")] string name,
-            [Aliases("")] [Description("File path to the certificate to load (in PFX file format).")] string pfxFilePath,
-            [Aliases("")] [Description("Clear text password of the certificate to load.")] string clearTextPassword,
+            [Aliases("")] [Required] [Description("Certificate writer configuration JSON.")] string certificateWriterJson,
+            [Aliases("")] [Required] [Description("Name of the certificate to load.")] string name,
+            [Aliases("")] [Required] [Description("File path to the certificate to load (in PFX file format).")] string pfxFilePath,
+            [Aliases("")] [Required] [Description("Clear text password of the certificate to load.")] string clearTextPassword,
             [Aliases("")] [DefaultValue(null)] [Description("File path to Certificate Signing Request (PEM encoded).")] string certificateSigningRequestPemEncodedFilePath,
-            [Aliases("")] [Description("Thumbprint of the encrypting certificate.")] string encryptingCertificateThumbprint,
-            [Aliases("")] [Description("Value indicating whether or not the encrypting certificate is valid.")] bool encryptingCertificateIsValid,
+            [Aliases("")] [Required] [Description("Thumbprint of the encrypting certificate.")] string encryptingCertificateThumbprint,
+            [Aliases("")] [Required] [Description("Value indicating whether or not the encrypting certificate is valid.")] bool encryptingCertificateIsValid,
             [Aliases("")] [DefaultValue(null)] [Description("Store name to find the encrypting certificate.")] string encryptingCertificateStoreName,
             [Aliases("")] [DefaultValue(null)] [Description("Store location to find the encrypting certificate.")] string encryptingCertificateStoreLocation,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
@@ -382,6 +436,39 @@ namespace Naos.Deployment.Console
             }
 
             return new TimeSpan(days, hours, minutes, 0);
+        }
+    }
+
+    internal static class Replacement
+    {
+        public static void Run<T>(Task<T> task, Action<T> callBack)
+        {
+            if (task.Status == TaskStatus.Created)
+            {
+                task.Start();
+            }
+
+            // running this way because i want to interrogate afterwards to throw if faulted...
+            while (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
+            {
+                Thread.Sleep(TimeSpan.FromMilliseconds(10));
+            }
+
+            if (task.Status == TaskStatus.Faulted)
+            {
+                var exception = task.Exception ?? new AggregateException(Invariant($"No exception came back from task but status was Faulted."));
+                if (exception.GetType() == typeof(AggregateException) && exception.InnerExceptions.Count == 1 && exception.InnerException != null)
+                {
+                    // if this is just wrapping a single exception then no need to keep the wrapper...
+                    ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
+                }
+                else
+                {
+                    ExceptionDispatchInfo.Capture(exception).Throw();
+                }
+            }
+
+            callBack?.Invoke(task.Result);
         }
     }
 }

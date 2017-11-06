@@ -1,0 +1,8 @@
+﻿{
+    "configurations": [
+        {
+            "contextsToLogConsoleOut": "all",
+            "contextsToLogConsoleError": "none"
+        }
+    ]
+}

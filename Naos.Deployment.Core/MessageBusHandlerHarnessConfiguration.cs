@@ -54,14 +54,19 @@ namespace Naos.Deployment.Core
         public PackageDescriptionWithOverrides SqlServerManagementPackage { get; set; }
 
         /// <summary>
-        /// Gets or sets the time to allow the handler harness process to run before recycling.
+        /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public TimeSpan HandlerHarnessProcessTimeToLive { get; set; }
+        public LogProcessorSettings FileSystemManagementLogProcessorSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public LogProcessorSettings LogProcessorSettings { get; set; }
+        public LogProcessorSettings SqlServerManagementLogProcessorSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time to allow the handler harness process to run before recycling.
+        /// </summary>
+        public TimeSpan HandlerHarnessProcessTimeToLive { get; set; }
 
         /// <summary>
         /// Gets or sets connection configuration for the message bus handler harness to be configured with.

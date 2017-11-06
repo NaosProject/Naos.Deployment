@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
@@ -117,7 +118,7 @@ namespace Naos.Deployment.Core
                 precedenceChain.AddRange(itsConfigPrecedenceAfterEnvironment);
                 foreach (var precedenceElement in precedenceChain)
                 {
-                    var itsConfigFolderPattern = Invariant($"{SetupStepFactory.ConfigDirectory}/{precedenceElement}/");
+                    var itsConfigFolderPattern = Invariant($"{setupStepFactorySettings.ConfigDirectory}/{precedenceElement}/");
 
                     var itsConfigFilesFromPackageForPrecedenceElement =
                         packageHelper.GetMultipleFileContentsFromPackageAsStrings(
@@ -144,7 +145,8 @@ namespace Naos.Deployment.Core
                     configToCreateWith,
                     packageHelper,
                     this.SqlServerManagementConfiguration.FileSystemManagementPackage,
-                    FileJanitorChannelSuffix);
+                    FileJanitorChannelSuffix,
+                    this.SqlServerManagementConfiguration.FileSystemManagementLogProcessorSettings);
 
                 ret.Add(new InjectedPackage(ReasonStringFile, fileJanitor));
 
@@ -184,7 +186,8 @@ namespace Naos.Deployment.Core
                     configToCreateWith,
                     packageHelper,
                     this.SqlServerManagementConfiguration.SqlServerManagementPackage,
-                    SqlServerChannelSuffix);
+                    SqlServerChannelSuffix,
+                    this.SqlServerManagementConfiguration.SqlServerManagementLogProcessorSettings);
 
                 ret.Add(new InjectedPackage(ReasonStringDatabase, databaseHandler));
             }
@@ -192,7 +195,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private PackagedDeploymentConfiguration BuildHandlerPackage(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<InitializationStrategySqlServer> sqlServerInitializations, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, PackageDescriptionWithOverrides packageDescriptionToAdd, string channelSuffix)
+        private PackagedDeploymentConfiguration BuildHandlerPackage(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<InitializationStrategySqlServer> sqlServerInitializations, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, PackageDescriptionWithOverrides packageDescriptionToAdd, string channelSuffix, LogProcessorSettings logProcessorSettings)
         {
             // Create a new list to use for the overrides of the handler harness deployment
             var itsConfigOverridesToUse = new List<ItsConfigOverride>();
@@ -219,7 +222,7 @@ namespace Naos.Deployment.Core
                     .Cast<IChannel>()
                     .ToList();
 
-            var launchConfig = new LaunchConfiguration(
+            var launchConfig = new MessageBusLaunchConfiguration(
                 this.SqlServerManagementConfiguration.HandlerHarnessProcessTimeToLive,
                 TypeMatchStrategy.NamespaceAndName,
                 TypeMatchStrategy.NamespaceAndName,
@@ -233,18 +236,18 @@ namespace Naos.Deployment.Core
                     {
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "LaunchConfiguration",
+                                FileNameWithoutExtension = nameof(MessageBusLaunchConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(launchConfig),
                             },
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "MessageBusConnectionConfiguration",
+                                FileNameWithoutExtension = nameof(MessageBusConnectionConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(this.SqlServerManagementConfiguration.PersistenceConnectionConfiguration),
                             },
                         new ItsConfigOverride
                             {
-                                FileNameWithoutExtension = "LogProcessorSettings",
-                                FileContentsJson = configFileManager.SerializeConfigToFileText(this.SqlServerManagementConfiguration.LogProcessorSettings),
+                                FileNameWithoutExtension = nameof(LogProcessorSettings),
+                                FileContentsJson = configFileManager.SerializeConfigToFileText(logProcessorSettings),
                             },
                     });
 

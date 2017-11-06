@@ -80,7 +80,8 @@ namespace Naos.Deployment.Core.Test
 
             SqlServerManagementConfiguration = new SqlServerManagementConfiguration
                                                    {
-                                                       LogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
+                                                       FileSystemManagementLogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
+                                                       SqlServerManagementLogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
                                                        HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides

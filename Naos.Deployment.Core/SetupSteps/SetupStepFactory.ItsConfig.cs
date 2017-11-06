@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -37,11 +38,13 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams),
                     });
 
+            var configFileDirectoryPath = Path.GetDirectoryName(configFilePath) ?? throw new ArgumentException(Invariant($"Could not extract parent path from {nameof(configFilePath)} in {nameof(SetupStepFactory)}.{nameof(SetupStepFactory.GetItsConfigSteps)}, value: {configFilePath}."));
+
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
-                var itsFileSubPath = Invariant($".config/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json");
+                var itsFileSubPath = Invariant($"{this.Settings.ConfigDirectory}/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json");
 
-                var itsFilePath = Path.Combine(applicationRootPath, itsFileSubPath);
+                var itsFilePath = Path.Combine(configFileDirectoryPath, itsFileSubPath);
                 var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
 
                 itsConfigSteps.Add(

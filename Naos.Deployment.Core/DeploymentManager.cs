@@ -187,7 +187,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = $"{SetupStepFactory.ConfigDirectory}/{environment}/DeploymentConfigurationWithStrategies.json";
+            var deploymentFileSearchPattern = $"{this.setupStepFactory.Settings.ConfigDirectory}/{environment}/DeploymentConfigurationWithStrategies.json";
 
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
@@ -721,9 +721,7 @@ namespace Naos.Deployment.Core
             {
                 var deployedIdList = string.Join(",", deployedPackagesToCheck.Select(_ => _.Id));
                 var deployingIdList = string.Join(",", packagesToDeploy.Select(_ => _.Id));
-                throw new DeploymentException(
-                    "Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed => Running: "
-                    + deployedIdList + " Deploying: " + deployingIdList);
+                throw new DeploymentException(Invariant($"Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed => Running: {deployedIdList} Deploying: {deployingIdList}.  If these are expected from usage of {nameof(DeploymentAdjustmentStrategiesApplicator)} then update the exclusion list in {nameof(ComputingInfrastructureManagerSettings)}.{nameof(ComputingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch)}"));
             }
 
             // terminate instance(s) if necessary (if it exists)

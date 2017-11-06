@@ -76,14 +76,14 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.8\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.25.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.25-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.28.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.28-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.34.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.34\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.35.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.35\lib\net45\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.34.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.34\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.35.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.35\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Bson, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Bson.1.0.42\lib\net461\Naos.Serialization.Bson.dll</HintPath>
