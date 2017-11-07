@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CommandLineAbstraction.cs" company="Naos">
+// <copyright file="ConsoleAbstraction.cs" company="Naos">
 //    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -9,12 +9,9 @@ namespace Naos.Deployment.Console
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Runtime.ExceptionServices;
     using System.Security.Cryptography.X509Certificates;
-    using System.Threading;
     using System.Threading.Tasks;
 
-    using AsyncBridge;
     using CLAP;
     using Its.Configuration;
     using Its.Log.Instrumentation;
@@ -27,6 +24,7 @@ namespace Naos.Deployment.Console
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
     using Naos.Recipes.Configuration.Setup;
+    using Naos.Recipes.RunWithRetry;
     using Naos.Serialization.Factory;
 
     using Spritely.Recipes;
@@ -39,7 +37,7 @@ namespace Naos.Deployment.Console
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Deployer", Justification = "Spelling/name is correct.")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1053:StaticHolderTypesShouldNotHaveConstructors", Justification = "Used by CLAP.")]
-    public class CommandLineAbstraction : CommandLineAbstractionBase
+    public class ConsoleAbstraction : ConsoleAbstractionBase
     {
         private static readonly object NugetAnnouncementFileLock = new object();
 
@@ -123,22 +121,16 @@ namespace Naos.Deployment.Console
                 {
                     computingManager.InitializeCredentials(credentials);
 
-                    //using (var asyncHelper = AsyncHelper.Wait)
-                    //{
-                        InstanceDescription instance = null;
-                        Replacement.Run(Task.Run(() => computingManager.GetInstanceDescriptionAsync(environment, instanceName)), ret => instance = ret);
-                        instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                    var instance = Run.TaskUntilCompletion(computingManager.GetInstanceDescriptionAsync(environment, instanceName));
+                    instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                        string privateKey = null;
-                        Replacement.Run(Task.Run(() => infrastructureTracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id)), ret => privateKey = ret);
-                        privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                    var privateKey = Run.TaskUntilCompletion(infrastructureTracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
+                    privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                        string password = null;
-                        Replacement.Run(Task.Run(() => computingManager.GetAdministratorPasswordForInstanceAsync(instance, privateKey)), ret => password = ret);
-                        password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                    var password = Run.TaskUntilCompletion(computingManager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
+                    password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                        Console.Write(password);
-                    //}
+                    Console.Write(password);
                 }
             }
         }
@@ -386,10 +378,7 @@ namespace Naos.Deployment.Console
 
             var cert = certToLoad.ToEncryptedVersion(encryptingCertificateLocator);
 
-            using (var async = AsyncHelper.Wait)
-            {
-                async.Run(writer.PersistCertificateAsync(cert));
-            }
+            Run.TaskUntilCompletion(writer.PersistCertificateAsync(cert));
         }
 
         private static void NugetAnnouncementAction(string output, string nugetAnnouncementFilePath)
@@ -436,39 +425,6 @@ namespace Naos.Deployment.Console
             }
 
             return new TimeSpan(days, hours, minutes, 0);
-        }
-    }
-
-    internal static class Replacement
-    {
-        public static void Run<T>(Task<T> task, Action<T> callBack)
-        {
-            if (task.Status == TaskStatus.Created)
-            {
-                task.Start();
-            }
-
-            // running this way because i want to interrogate afterwards to throw if faulted...
-            while (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
-            {
-                Thread.Sleep(TimeSpan.FromMilliseconds(10));
-            }
-
-            if (task.Status == TaskStatus.Faulted)
-            {
-                var exception = task.Exception ?? new AggregateException(Invariant($"No exception came back from task but status was Faulted."));
-                if (exception.GetType() == typeof(AggregateException) && exception.InnerExceptions.Count == 1 && exception.InnerException != null)
-                {
-                    // if this is just wrapping a single exception then no need to keep the wrapper...
-                    ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
-                }
-                else
-                {
-                    ExceptionDispatchInfo.Capture(exception).Throw();
-                }
-            }
-
-            callBack?.Invoke(task.Result);
         }
     }
 }

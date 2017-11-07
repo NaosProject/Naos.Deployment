@@ -55,8 +55,8 @@ namespace Naos.Deployment.Core.Test
             var eventLogSource = "DeploymentHandler";
             var logConfigurations = new LogConfigurationBase[]
                                         {
-                                            new LogConfigurationEventLog(LogContexts.AllErrors, eventLogSource, customEventLog),
-                                            new LogConfigurationFile(LogContexts.All, logFilePath),
+                                            new EventLogConfiguration(LogContexts.AllErrors, eventLogSource, customEventLog),
+                                            new FileLogConfiguration(LogContexts.All, logFilePath),
                                         };
 
             var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
@@ -141,8 +141,8 @@ namespace Naos.Deployment.Core.Test
             var eventLogSource = "HangfireHarness";
             var logConfigurations = new LogConfigurationBase[]
                                         {
-                                            new LogConfigurationEventLog(LogContexts.AllErrors, eventLogSource, customEventLog),
-                                            new LogConfigurationFile(LogContexts.All, logFilePath),
+                                            new EventLogConfiguration(LogContexts.AllErrors, eventLogSource, customEventLog),
+                                            new FileLogConfiguration(LogContexts.All, logFilePath),
                                         };
 
             var launchConfiguration = new MessageBusLaunchConfiguration(

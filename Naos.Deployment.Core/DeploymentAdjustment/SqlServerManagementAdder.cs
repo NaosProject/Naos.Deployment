@@ -231,6 +231,8 @@ namespace Naos.Deployment.Core
                 1,
                 adjustedChannelsToMonitor);
 
+            var handlerFactoryConfig = new HandlerFactoryConfiguration(TypeMatchStrategy.NamespaceAndName);
+
             itsConfigOverridesToUse.AddRange(
                 new[]
                     {
@@ -238,6 +240,11 @@ namespace Naos.Deployment.Core
                             {
                                 FileNameWithoutExtension = nameof(MessageBusLaunchConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(launchConfig),
+                            },
+                        new ItsConfigOverride
+                            {
+                                FileNameWithoutExtension = nameof(HandlerFactoryConfiguration),
+                                FileContentsJson = configFileManager.SerializeConfigToFileText(handlerFactoryConfig),
                             },
                         new ItsConfigOverride
                             {

@@ -54,7 +54,7 @@ namespace Naos.Deployment.Core.Test
 
             MessageBusHandlerHarnessConfiguration = new MessageBusHandlerHarnessConfiguration
                                                         {
-                                                            LogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
+                                                            LogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
                                                             HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                             PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                             Package = new PackageDescriptionWithOverrides
@@ -80,8 +80,8 @@ namespace Naos.Deployment.Core.Test
 
             SqlServerManagementConfiguration = new SqlServerManagementConfiguration
                                                    {
-                                                       FileSystemManagementLogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
-                                                       SqlServerManagementLogProcessorSettings = new LogProcessorSettings(new[] { new LogConfigurationInMemory(LogContexts.All), }),
+                                                       FileSystemManagementLogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
+                                                       SqlServerManagementLogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
                                                        HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides

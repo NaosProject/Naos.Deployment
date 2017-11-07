@@ -33,5 +33,10 @@ namespace Naos.Deployment.Console
         /// Monitor for items (usually in a message bus/work queue or self-hosted API context).
         /// </summary>
         Listen,
+
+        /// <summary>
+        /// Send an item (usually in a message bus/work queue or wrapped API context).
+        /// </summary>
+        Send,
     }
 }

@@ -32,7 +32,7 @@ namespace Naos.Deployment.Console
                  * This is just a pass through to the CLAP implementation of the harness,    *
                  * it will parse the command line arguments and provide multiple entry       *
                  * points as configured.  It is easiest to derive from the abstract class    *
-                 * 'CommandLinAbstractionBase' as 'ExampleCommandLineAbstraction' does which *
+                 * 'ConsoleAbstractionBase' as 'ExampleConsoleAbstraction' does which        *
                  * provides an example of the minimum amount of work to get started.  It is  *
                  * installed as a recipe for easy reference and covers help, errors, etc.    *
                  *---------------------------------------------------------------------------*
@@ -43,7 +43,7 @@ namespace Naos.Deployment.Console
                  *---------------------------------------------------------------------------*
                  * Must update the code below to use your custom abstraction class.          *
                  *---------------------------------------------------------------------------*/
-                var exitCode = Parser.Run<CommandLineAbstraction>(args);
+                var exitCode = Parser.Run<ConsoleAbstraction>(args);
                 return exitCode;
             }
             catch (Exception ex)

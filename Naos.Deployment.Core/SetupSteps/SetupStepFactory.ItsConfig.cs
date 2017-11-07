@@ -19,6 +19,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "applicationRootPath", Justification = "Keeping in signature for availability.")]
         private List<SetupStep> GetItsConfigSteps(
             IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides,
             string applicationRootPath,

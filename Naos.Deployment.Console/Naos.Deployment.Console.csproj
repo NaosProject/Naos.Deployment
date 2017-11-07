@@ -41,10 +41,6 @@
     <CodeAnalysisRuleSet />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AsyncBridge, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\AsynchronousBridge.1.2.2\lib\Net45\AsyncBridge.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="AWSSDK.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.Core.3.3.4.1\lib\net45\AWSSDK.Core.dll</HintPath>
       <Private>True</Private>
@@ -103,29 +99,29 @@
     <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Domain.1.0.8\lib\net461\Naos.Logging.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.9\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.28.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.28-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.34.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.34-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.35.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.35\lib\net45\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.36.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.36\lib\net45\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.35.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.35\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.36.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.36\lib\net45\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Bson, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Bson.1.0.42\lib\net461\Naos.Serialization.Bson.dll</HintPath>
+    <Reference Include="Naos.Serialization.Bson, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Bson.1.0.43\lib\net461\Naos.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Domain, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Domain.1.0.42\lib\net461\Naos.Serialization.Domain.dll</HintPath>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.43\lib\net461\Naos.Serialization.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Factory, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Factory.1.0.42\lib\net461\Naos.Serialization.Factory.dll</HintPath>
+    <Reference Include="Naos.Serialization.Factory, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Factory.1.0.43\lib\net461\Naos.Serialization.Factory.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Json, Version=1.0.42.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Json.1.0.42\lib\net461\Naos.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Serialization.Json, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Json.1.0.43\lib\net461\Naos.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -156,7 +152,9 @@
   <ItemGroup>
     <Compile Include=".recipes\Naos.Configuration.Setup\Config.cs" />
     <Compile Include=".recipes\Naos.Configuration.Setup\ConfigRequiredTest.cs" />
-    <Compile Include=".recipes\Naos.Console.Bootstrapper\CommandLineAbstractionBase.cs" />
+    <Compile Include=".recipes\Naos.Console.Bootstrapper\ConsoleAbstractionBase.cs" />
+    <Compile Include=".recipes\Naos.Console.Domain\WellKnownConsoleVerb.cs" />
+    <Compile Include=".recipes\Naos.RunWithRetry\Run.cs" />
     <Compile Include=".recipes\Naos.TupleInitializers\Initializers.cs" />
     <Compile Include=".recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Enum\EnumExtensions.cs" />
@@ -171,30 +169,30 @@
     <Compile Include=".recipes\Spritely.MustValidation\RuleExtensions.cs" />
     <Compile Include=".recipes\Spritely.MustValidation\Rules.cs" />
     <Compile Include=".recipes\Spritely.MustValidation\ValidatedNotNullAttribute.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\BackOffStrategy.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\RetriableAction.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\RetriableActionAsync.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\RetriableFunction.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\RetriableFunctionAsync.cs" />
-    <Compile Include=".Spritely.Recipes\Redo\Using.cs" />
-    <Compile Include="CommandLineAbstraction.cs" />
+    <Compile Include=".recipes\Spritely.Redo\BackOffStrategy.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableAction.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableActionAsync.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableFunction.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
+    <Compile Include=".recipes\Spritely.Redo\Using.cs" />
+    <Compile Include="ConsoleAbstraction.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".analyzers\dictionary.xml" />
-    <Content Include=".config\Common\SetupStepFactorySettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\release.ruleset" />
+    <Content Include=".config\Common\LogProcessorSettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include=".config\Common\ComputingInfrastructureManagerSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include=".config\Common\DefaultDeploymentConfiguration.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include=".config\Common\LogProcessorSettings.json">
+    <Content Include=".config\Common\SetupStepFactorySettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="App.config" />
