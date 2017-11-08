@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.ComputingMa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Domain", "Naos.Deployment.Domain\Naos.Deployment.Domain.csproj", "{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.Hangfire.Console", "Naos.Deployment.MessageBus.Hangfire.Console\Naos.Deployment.MessageBus.Hangfire.Console.csproj", "{578CAE89-A135-4F29-9C5C-ED506A12A6AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

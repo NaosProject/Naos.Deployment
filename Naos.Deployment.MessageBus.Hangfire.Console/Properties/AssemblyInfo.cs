@@ -12,12 +12,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Naos.Deployment.Console")]
+[assembly: AssemblyTitle("Naos.Deployment.MessageBus.Hangfire.Console")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Naos.Deployment.Console")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
+[assembly: AssemblyProduct("Naos.Deployment.MessageBus.Hangfire.Console")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("dd298a95-84fa-48fb-926c-da9808fdb987")]
+[assembly: Guid("578cae89-a135-4f29-9c5c-ed506a12a6ae")]
 
 // Version information for an assembly consists of the following four values:
 //
