@@ -163,6 +163,7 @@
     <Compile Include=".recipes\Spritely.MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include="DefaultMessageBusConsoleAbstraction.cs" />
     <Compile Include="DefaultMessageBusProgram.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="HandlerFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
