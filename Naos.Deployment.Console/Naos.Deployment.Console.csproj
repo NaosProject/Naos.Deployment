@@ -173,7 +173,7 @@
     <Compile Include=".recipes\Spritely.Redo\RetriableFunction.cs" />
     <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".recipes\Spritely.Redo\Using.cs" />
-    <Compile Include="ExampleDeploymentConsoleAbstraction.cs" />
+    <Compile Include="ExampleDeploymentConsoleAbstraction.cs.pp" />
     <Compile Include="ExampleDeploymentProgram.cs.pp" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

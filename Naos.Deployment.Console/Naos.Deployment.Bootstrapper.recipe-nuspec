@@ -19,6 +19,6 @@
   </metadata>
   <files>
     <file src="ExampleDeploymentProgram.cs.pp" target="content\net45\ExampleDeploymentProgram.cs.pp" />
-    <file src="ExampleDeploymentConsoleAbstraction.cs" target="content\net45\ExampleDeploymentConsoleAbstraction.cs" />
+    <file src="ExampleDeploymentConsoleAbstraction.cs.pp" target="content\net45\ExampleDeploymentConsoleAbstraction.cs.pp" />
   </files>
 </package>

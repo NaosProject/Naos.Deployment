@@ -7,7 +7,11 @@
 // </auto-generated>
 // --------------------------------------------------------------------------------------------------------------------
 
+#if NaosDeploymentConsole
 namespace Naos.Deployment.Console
+#else
+namespace $rootnamespace$
+#endif
 {
     using System;
     using System.Collections.Generic;
@@ -75,8 +79,8 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment,
             [Aliases("")] [Description("Optional value indicating whether or not to escape quotes; DEFAULT is true.")] [DefaultValue(true)] bool escapeQuotes,
-            Action<string> announcer = null,
-            Action<string> resultAnnouncer = null)
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
             var localResultAnnouncer = resultAnnouncer ?? Console.Write;
@@ -122,8 +126,8 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
-            Action<string> announcer = null,
-			Action<string> resultAnnouncer = null)
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
             var localResultAnnouncer = resultAnnouncer ?? Console.Write;
@@ -165,8 +169,8 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
-            Action<string> announcer = null,
-            Action<string> resultAnnouncer = null)
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
             var localResultAnnouncer = resultAnnouncer ?? Console.Write;

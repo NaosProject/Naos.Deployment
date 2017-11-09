@@ -19,10 +19,6 @@ namespace $rootnamespace$
 
     using Its.Log.Instrumentation;
 
-#if !NaosDeploymentConsole
-    using Naos.Deployment.Console;
-#endif
-
     /// <summary>
     /// Exmaple of a main entry point of the application, just delete your 'Program.cs' is setup.
     /// </summary>
