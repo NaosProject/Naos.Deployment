@@ -160,7 +160,7 @@ namespace Naos.Deployment.Core
 
             var databaseNameToLocalhostConnectionDefinitionMap = databaseNameToAdminPasswordMap.ToDictionary(
                 k => k.Key,
-                v => new ConnectionDefinition { Server = "localhost", DatabaseName = v.Value, UserName = "sa", Password = v.Value, });
+                v => new ConnectionDefinition { Server = "localhost", DatabaseName = v.Key, UserName = "sa", Password = v.Value, });
 
             var databaseMessageHandlerSettings =
                 new DatabaseMessageHandlerSettings

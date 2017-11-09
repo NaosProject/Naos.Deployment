@@ -11,6 +11,7 @@
       <dependency id="Naos.Recipes.Configuration.Setup" version="[1.0.84,)" />
       <dependency id="Naos.Recipes.Console.Bootstrapper" version="[1.0.84,)" />
       <dependency id="Naos.Recipes.Deployment.CommonConfig" version="[1.0.84,)" />
+      <dependency id="Naos.Recipes.RunWithRetry" version="[1.0.84,)" />
       <dependency id="Naos.Serialization.Factory" version="[1.0.43,)" />
       <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="[1.0.16,)" />
       <dependency id="Spritely.Recipes.MustValidation" version="[0.6.3,)" />

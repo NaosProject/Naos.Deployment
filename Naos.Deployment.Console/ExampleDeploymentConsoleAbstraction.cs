@@ -58,7 +58,9 @@ namespace Naos.Deployment.Console
         /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="escapeQuotes">Optional value indicating whether or not to escape quotes; DEFAULT is true.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "mfa", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Mfa", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "username", Justification = "Not sure why it's complaining...")]
@@ -72,11 +74,14 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Token from the MFA device to use when authenticating.")] string mfaValue,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment,
-            Action<string> announcer = null)
+            [Aliases("")] [Description("Optional value indicating whether or not to escape quotes; DEFAULT is true.")] [DefaultValue(true)] bool escapeQuotes,
+            Action<string> announcer = null,
+            Action<string> resultAnnouncer = null)
         {
-            CommonSetup(debug, environment);
-
             var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
 
             var tokenLifespanTimeSpan = ParseTimeSpanFromDayHourMinuteColonDelimited(tokenLifespan);
             var retObj = ComputingInfrastructureManagerForAws.GetNewCredentials(
@@ -87,16 +92,16 @@ namespace Naos.Deployment.Console
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var configSerializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
+            var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
-            var rawRet = configSerializer.SerializeToString(retObj);
+            var rawRet = configFileManager.SerializeConfigToFileText(retObj);
 
             // prep to be returned in a way that can be piped to a variable and then passed back in...
             var withoutNewLines = rawRet.Replace(Environment.NewLine, string.Empty);
-            var escapedQuotes = withoutNewLines.Replace("\"", "\\\"");
+            var escapedQuotes = escapeQuotes ? withoutNewLines.Replace("\"", "\\\"") : withoutNewLines;
 
             var ret = escapedQuotes;
-            localAnnouncer(ret);
+            localResultAnnouncer(ret);
         }
 
         /// <summary>
@@ -108,6 +113,7 @@ namespace Naos.Deployment.Console
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "password", Description = "Gets the password of an instance from the provided tracker.")]
         public static void GetPassword(
@@ -116,11 +122,13 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
-            Action<string> announcer = null)
+            Action<string> announcer = null,
+			Action<string> resultAnnouncer = null)
         {
-            CommonSetup(debug, environment);
-
             var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
 
             void GetPassword(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -133,7 +141,7 @@ namespace Naos.Deployment.Console
                 var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
                 password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
-                localAnnouncer(password);
+                localResultAnnouncer(password);
             }
 
             RunComputingManagerOperation(GetPassword, credentialsJson, infrastructureTrackerJson);
@@ -148,6 +156,7 @@ namespace Naos.Deployment.Console
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "status", Description = "Gets the status of the instance found by name in provided tracker.")]
         public static void GetInstanceStatus(
@@ -156,11 +165,13 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
-            Action<string> announcer = null)
+            Action<string> announcer = null,
+            Action<string> resultAnnouncer = null)
         {
-            CommonSetup(debug, environment);
-
             var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
 
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -170,7 +181,7 @@ namespace Naos.Deployment.Console
                 var status = Run.TaskUntilCompletion(manager.GetInstanceStatusAsync(instance.Id, instance.Location));
                 status.Named(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                localAnnouncer(status.ToString());
+                localResultAnnouncer(status.ToString());
             }
 
             RunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
@@ -236,7 +247,13 @@ namespace Naos.Deployment.Console
             RunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
         }
 
-        private static void RunComputingManagerOperation(Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
+		/// <summary>
+        /// Runs provided operation with <see cref="ITrackComputingInfrastructure" /> and <see cref="IManageComputingInfrastructure" /> using provided configs.
+        /// </summary>
+        /// <param name="action">Action to run.</param>
+        /// <param name="credentialsJson">Credentials to use.</param>
+        /// <param name="infrastructureTrackerJson">Tracker JSON.</param>
+        public static void RunComputingManagerOperation(Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
         {
             new { action }.Must().NotBeNull().OrThrowFirstFailure();
             new { credentialsJson }.Must().NotBeNull().OrThrowFirstFailure();

@@ -321,10 +321,10 @@
     <Compile Include="CertificateManagement\NullCertificateRetriever.cs" />
     <Compile Include="CertificateManagement\CertificateManagementFactory.cs" />
     <Compile Include="DefaultDeploymentConfiguration.cs" />
-    <Compile Include="DeploymentAdjustment\DeploymentAdjustmentStrategiesApplicator.cs" />
-    <Compile Include="DeploymentAdjustment\AdjustDeploymentBase.cs" />
-    <Compile Include="DeploymentAdjustment\InjectedPackage.cs" />
     <Compile Include="DeploymentAdjustment\AddPackageAdjuster.cs" />
+    <Compile Include="DeploymentAdjustment\AdjustDeploymentBase.cs" />
+    <Compile Include="DeploymentAdjustment\DeploymentAdjustmentStrategiesApplicator.cs" />
+    <Compile Include="DeploymentAdjustment\InjectedPackage.cs" />
     <Compile Include="DeploymentAdjustment\MessageBusHarnessAdder.cs" />
     <Compile Include="DeploymentAdjustment\DatabaseManagementAdder.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
