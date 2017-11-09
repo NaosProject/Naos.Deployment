@@ -8,7 +8,6 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
 
     using Naos.Database.Domain;
@@ -19,7 +18,6 @@ namespace Naos.Deployment.Core
 
     using OBeautifulCode.TypeRepresentation;
 
-    using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
 
     using static System.FormattableString;
@@ -121,6 +119,7 @@ namespace Naos.Deployment.Core
                 configFileManager,
                 managementChannelNames,
                 new ItsConfigOverride[0],
+                new InitializationStrategyBase[0],
                 configToCreateWith,
                 packageHelper,
                 this.DatabaseManagementConfiguration.FileSystemManagementPackage,
@@ -170,6 +169,8 @@ namespace Naos.Deployment.Core
                         DatabaseNameToLocalhostConnectionDefinitionMap = databaseNameToLocalhostConnectionDefinitionMap,
                         DatabaseKindToDataDirectoryMap = databaseKindToDataDirectoryMap,
                         DatabaseKindToBackupDirectoryMap = databaseKindToBackupDirectoryMap,
+                        MongoUtilityDirectory = setupStepFactorySettings.MongoServerSettings.DefaultUtilityDirectory,
+                        WorkingDirectoryPath = setupStepFactorySettings.MongoServerSettings.DefaultWorkingDirectory,
                     };
 
             var databaseConfig = new ItsConfigOverride
@@ -178,6 +179,17 @@ namespace Naos.Deployment.Core
                                          FileContentsJson = configFileManager.SerializeConfigToFileText(databaseMessageHandlerSettings),
                                      };
 
+            var initializationStrategyDirectoryToCreate =
+                new InitializationStrategyDirectoryToCreate
+                    {
+                        DirectoryToCreate =
+                            new DirectoryToCreateDetails
+                                {
+                                    FullPath = databaseMessageHandlerSettings.WorkingDirectoryPath,
+                                    FullControlAccount = setupStepFactorySettings.MongoServerSettings.ServiceAccount,
+                                },
+                    };
+
             var databaseHandler = this.BuildHandlerPackage(
                 environment,
                 instanceName,
@@ -185,6 +197,7 @@ namespace Naos.Deployment.Core
                 configFileManager,
                 managementChannelNames,
                 new[] { databaseConfig },
+                new[] { initializationStrategyDirectoryToCreate },
                 configToCreateWith,
                 packageHelper,
                 this.DatabaseManagementConfiguration.DatabaseManagementPackage,
@@ -203,6 +216,7 @@ namespace Naos.Deployment.Core
             IManageConfigFiles configFileManager,
             IReadOnlyCollection<string> managementChannels,
             IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides,
+            IReadOnlyCollection<InitializationStrategyBase> initializationStrategiesToAdd,
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
             PackageDescriptionWithOverrides packageDescriptionToAdd,
@@ -273,12 +287,14 @@ namespace Naos.Deployment.Core
             var existingInitializationStrategies = packageDescriptionToAdd.InitializationStrategies.Select(_ => (InitializationStrategyBase)_.Clone()).ToList();
 
             var harnessPackagedConfig = new PackagedDeploymentConfiguration
-            {
-                DeploymentConfiguration = configToCreateWith,
-                PackageWithBundleIdentifier = packageToAdd,
-                ItsConfigOverrides = itsConfigOverridesToUse,
-                InitializationStrategies = existingInitializationStrategies,
-            };
+                                            {
+                                                DeploymentConfiguration = configToCreateWith,
+                                                PackageWithBundleIdentifier = packageToAdd,
+                                                ItsConfigOverrides = itsConfigOverridesToUse,
+                                                InitializationStrategies = existingInitializationStrategies
+                                                    .Concat(initializationStrategiesToAdd ?? new List<InitializationStrategyBase>())
+                                                    .ToList(),
+                                            };
 
             return harnessPackagedConfig;
         }

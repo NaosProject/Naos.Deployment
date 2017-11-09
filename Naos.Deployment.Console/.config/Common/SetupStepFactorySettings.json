@@ -17,6 +17,8 @@
         "defaultDataDirectory": "D:\\MongoData",
         "defaultLogDirectory": "D:\\MongoLog",
         "defaultBackupDirectory": "D:\\MongoBackup",
+        "defaultUtilityDirectory": "C:\\Program Files\\MongoDB\\Server\\3.2\\bin",
+        "defaultWorkingDirectory": "D:\\MongoTemp",
         "mongoServerPackage": {
             "id": "mongodb",
             "version": "3.2.7"

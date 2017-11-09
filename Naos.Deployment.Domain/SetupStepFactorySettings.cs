@@ -192,6 +192,16 @@ namespace Naos.Deployment.Domain
         /// Gets or sets the chocolatey package for Mongo Client.
         /// </summary>
         public PackageDescription MongoClientPackage { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory where the utlities reside.
+        /// </summary>
+        public string DefaultUtilityDirectory { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default directory to use for intermediate files.
+        /// </summary>
+        public string DefaultWorkingDirectory { get; set; }
     }
 
     /// <summary>
