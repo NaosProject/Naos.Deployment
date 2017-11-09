@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" ?>
+
+<package>
+  <metadata>
+    <id>Naos.Deployment.Bootstrapper</id>
+    <description>Recipe that installs the basic classes and references needed to run Naos.Deployment logic, servers to abstract configuration and not need to provided everything on the command line.</description>
+    <dependencies>
+      <dependency id="CLAP" version="[4.6,)" />
+      <dependency id="Naos.Logging.Domain" version="[1.0.9,)" />
+      <dependency id="Naos.Deployment.Core" version="[$version$,)" />
+      <dependency id="Naos.Recipes.Configuration.Setup" version="[1.0.82,)" />
+      <dependency id="Naos.Recipes.Console.Bootstrapper" version="[1.0.82,)" />
+      <dependency id="Naos.Serialization.Factory" version="[1.0.43,)" />
+      <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="[1.0.16,)" />
+      <dependency id="Spritely.Recipes.MustValidation" version="[0.6.3,)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="ExampleDeploymentProgram.cs.pp" target="content\net45\ExampleDeploymentProgram.cs.pp" />
+    <file src="ExampleDeploymentConsoleAbstraction.cs" target="content\net45\ExampleDeploymentConsoleAbstraction.cs" />
+  </files>
+</package>

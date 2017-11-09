@@ -39,9 +39,9 @@ namespace Naos.Deployment.Core
     }
 
     /// <summary>
-    /// Object to hold settings related to the packages used for management of a <see cref="InitializationStrategySqlServer" /> installation.
+    /// Object to hold settings related to the packages used for management of a <see cref="InitializationStrategySqlServer" /> or <see cref="InitializationStrategyMongo" /> installations.
     /// </summary>
-    public class SqlServerManagementConfiguration
+    public class DatabaseManagementConfiguration
     {
         /// <summary>
         /// Gets or sets the package (with initialization strategies and necessary overrides) to be deployed as the harness.
@@ -51,7 +51,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the package (with initialization strategies and necessary overrides) to be deployed as the harness.
         /// </summary>
-        public PackageDescriptionWithOverrides SqlServerManagementPackage { get; set; }
+        public PackageDescriptionWithOverrides DatabaseManagementPackage { get; set; }
 
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
@@ -61,7 +61,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public LogProcessorSettings SqlServerManagementLogProcessorSettings { get; set; }
+        public LogProcessorSettings DatabaseManagementLogProcessorSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the time to allow the handler harness process to run before recycling.

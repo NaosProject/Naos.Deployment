@@ -31,7 +31,7 @@ namespace Naos.Deployment.Core.Test
 
         private static readonly MessageBusHandlerHarnessConfiguration MessageBusHandlerHarnessConfiguration;
 
-        private static readonly SqlServerManagementConfiguration SqlServerManagementConfiguration;
+        private static readonly DatabaseManagementConfiguration DatabaseManagementConfiguration;
 
         private static readonly ConfigFileManager ConfigFileManager;
 
@@ -78,10 +78,10 @@ namespace Naos.Deployment.Core.Test
                                                                           },
                                                         };
 
-            SqlServerManagementConfiguration = new SqlServerManagementConfiguration
+            DatabaseManagementConfiguration = new DatabaseManagementConfiguration
                                                    {
                                                        FileSystemManagementLogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
-                                                       SqlServerManagementLogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
+                                                       DatabaseManagementLogProcessorSettings = new LogProcessorSettings(new[] { new InMemoryLogConfiguration(LogContexts.All), }),
                                                        HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides
@@ -103,7 +103,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                                  },
                                                                                                      },
                                                                                          },
-                                                       SqlServerManagementPackage = new PackageDescriptionWithOverrides
+                                                       DatabaseManagementPackage = new PackageDescriptionWithOverrides
                                                                                         {
                                                                                             Id = "Naos.Database.MessageBus.Hangfire.Console",
                                                                                             InitializationStrategies =
@@ -244,7 +244,7 @@ namespace Naos.Deployment.Core.Test
         public static void SqlServerManagementAdder___IsMatch_and_GetAdditionalPackages_with_zero_SqlServer_initialization___Is_false_and_empty_set()
         {
             // Arrange
-            var adder = new SqlServerManagementAdder(SqlServerManagementConfiguration);
+            var adder = new DatabaseManagementAdder(DatabaseManagementConfiguration);
             var packagesToDeploy = BuildPackagesToDeploy(new[] { new InitializationStrategyCertificateToInstall { CertificateToInstall = "MyCert" } }, "Pretend");
 
             // Act
@@ -282,7 +282,7 @@ namespace Naos.Deployment.Core.Test
         public static void SqlServerManagementAdder___IsMatch_and_GetAdditionalPackages_with_SqlServer_initialization___Is_true_and_has_expected_packages()
         {
             // Arrange
-            var adder = new SqlServerManagementAdder(SqlServerManagementConfiguration);
+            var adder = new DatabaseManagementAdder(DatabaseManagementConfiguration);
             var packagesToDeploy = BuildPackagesToDeploy(new[] { new InitializationStrategySqlServer { AdministratorPassword = "password", ManagementChannelName = "pretend", Name = "MyDatabase" } }, "Pretend");
 
             // Act

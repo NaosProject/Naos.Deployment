@@ -21,8 +21,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants>NaosDeploymentConsole</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Naos.Deployment.Console.XML</DocumentationFile>
@@ -33,8 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants>NaosDeploymentConsole</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Naos.Deployment.Console.XML</DocumentationFile>
@@ -102,8 +100,8 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.9\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.38-newserializationandd\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.36.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.36\lib\net45\Naos.Packaging.Domain.dll</HintPath>
@@ -175,8 +173,8 @@
     <Compile Include=".recipes\Spritely.Redo\RetriableFunction.cs" />
     <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".recipes\Spritely.Redo\Using.cs" />
-    <Compile Include="ConsoleAbstraction.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="ExampleDeploymentConsoleAbstraction.cs" />
+    <Compile Include="ExampleDeploymentProgram.cs.pp" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +194,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="App.config" />
+    <None Include="Naos.Deployment.Bootstrapper.recipe-nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

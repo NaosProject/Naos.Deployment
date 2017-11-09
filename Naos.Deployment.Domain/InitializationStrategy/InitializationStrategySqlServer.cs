@@ -11,7 +11,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Custom extension of the DeploymentConfiguration to accommodate database deployments.
     /// </summary>
-    public class InitializationStrategySqlServer : InitializationStrategyBase
+    public class InitializationStrategySqlServer : InitializationStrategyBase, IHaveManagementChannel
     {
         /// <summary>
         /// Gets or sets the name of the database.

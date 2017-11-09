@@ -26,12 +26,15 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
     using Its.Log.Instrumentation;
 
     using Naos.Compression.Domain;
+    using Naos.Cron;
     using Naos.Diagnostics.Domain;
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Sender;
     using Naos.MessageBus.Persistence;
     using Naos.Serialization.Factory;
+
+    using OBeautifulCode.TypeRepresentation;
 
     using Spritely.Recipes;
 
@@ -168,6 +171,52 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
                 }
 
                 Log.Write(() => new { ex = "Hangfire Server terminating. There are no active jobs and current time if beyond the timeout: " + timeout });
+            }
+        }
+
+
+        /// <summary>
+        /// Send the provided parcel.
+        /// </summary>
+        /// <param name="messageBusConnectionConfiguration">Persistence configuration.</param>
+        /// <param name="typeMatchStrategyForMessageResolution">Launch settings to use.</param>
+        /// <param name="parcel">Parcel to send.</param>
+        /// <param name="schedule">Optional recurring schedule.</param>
+        public static void Send(
+            MessageBusConnectionConfiguration messageBusConnectionConfiguration,
+            TypeMatchStrategy typeMatchStrategyForMessageResolution,
+            Parcel parcel,
+            ScheduleBase schedule = null)
+        {
+            new { messageBusConnectionConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
+            new { parcel }.Must().NotBeNull().OrThrowFirstFailure();
+
+            var serializerFactory = SerializerFactory.Instance;
+            var compressorFactory = CompressorFactory.Instance;
+
+            var envelopeMachine = new EnvelopeMachine(
+                PostOffice.MessageSerializationDescription,
+                serializerFactory,
+                compressorFactory,
+                typeMatchStrategyForMessageResolution);
+
+            var courier = new HangfireCourier(messageBusConnectionConfiguration.CourierPersistenceConnectionConfiguration, envelopeMachine);
+            using (var parcelTrackingSystem = new ParcelTrackingSystem(
+                courier,
+                envelopeMachine,
+                messageBusConnectionConfiguration.EventPersistenceConnectionConfiguration,
+                messageBusConnectionConfiguration.ReadModelPersistenceConnectionConfiguration))
+            {
+                var postOffice = new PostOffice(parcelTrackingSystem, HangfireCourier.DefaultChannelRouter, envelopeMachine);
+
+                if (schedule == null)
+                {
+                    postOffice.Send(parcel);
+                }
+                else
+                {
+                    postOffice.SendRecurring(parcel, schedule);
+                }
             }
         }
 

@@ -125,7 +125,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
-                                DatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
+                                SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
                                 return new dynamic[0];
                             },
                     });
@@ -177,7 +177,7 @@ namespace Naos.Deployment.Core
                                                                  RestoreFrom = restoreFileUri,
                                                                  RestrictedUserOption = RestrictedUserOption.Normal,
                                                              };
-                                    DatabaseManager.RestoreFull(realRemoteConnectionString, sqlServerStrategy.Name, restoreDetails);
+                                    SqlServerDatabaseManager.RestoreFull(realRemoteConnectionString, sqlServerStrategy.Name, restoreDetails);
                                     return new dynamic[0];
                                 },
                         });

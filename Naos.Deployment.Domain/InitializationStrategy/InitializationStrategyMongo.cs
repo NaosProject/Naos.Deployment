@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate creating a mongo database.
     /// </summary>
-    public class InitializationStrategyMongo : InitializationStrategyBase
+    public class InitializationStrategyMongo : InitializationStrategyBase, IHaveManagementChannel
     {
         /// <summary>
         /// Gets or sets name of the document database.

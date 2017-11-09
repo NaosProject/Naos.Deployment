@@ -7,6 +7,9 @@
 namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
+    using System.Linq;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Model object to hold the status of an instance.
@@ -29,5 +32,12 @@ namespace Naos.Deployment.Domain
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
         public IDictionary<string, CheckState> SystemChecks { get; set; }
+
+        /// <inheritdoc cref="object" />
+        public override string ToString()
+        {
+            var ret = Invariant($"State: {this.InstanceState}; System Checks: {string.Join(",", this.SystemChecks.Select(_ => Invariant($"{_.Key}={_.Value}")))}; Instance Checks: {string.Join(",", this.InstanceChecks.Select(_ => Invariant($"{_.Key}={_.Value}")))}; ");
+            return ret;
+        }
     }
 }
