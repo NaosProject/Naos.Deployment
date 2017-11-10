@@ -186,6 +186,7 @@ namespace Naos.Deployment.Core
                             new DirectoryToCreateDetails
                                 {
                                     FullPath = databaseMessageHandlerSettings.WorkingDirectoryPath,
+                                    FullControlAccount = setupStepFactorySettings.MongoServerSettings.ServiceAccount,
                                 },
                     };
 
