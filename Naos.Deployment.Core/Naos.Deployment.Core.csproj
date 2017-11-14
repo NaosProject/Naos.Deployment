@@ -227,11 +227,11 @@
     <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.39.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.39\lib\net461\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.40\lib\net461\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.39.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.39\lib\net461\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.40\lib\net461\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Bson, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Bson.1.0.43\lib\net461\Naos.Serialization.Bson.dll</HintPath>

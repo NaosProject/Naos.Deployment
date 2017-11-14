@@ -71,8 +71,8 @@
       <HintPath>..\packages\Naos.AWS.Core.1.0.49\lib\net461\Naos.AWS.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.39.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.39\lib\net461\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.40\lib\net461\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
