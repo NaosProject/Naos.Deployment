@@ -23,6 +23,8 @@ namespace Naos.Deployment.ComputingManagement
 
     using Spritely.Recipes;
 
+    using static System.FormattableString;
+
     using CheckState = Naos.Deployment.Domain.CheckState;
     using InstanceState = Naos.Deployment.Domain.InstanceState;
     using InstanceStatus = Naos.Deployment.Domain.InstanceStatus;
@@ -140,6 +142,13 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>The class.</returns>
         public IManageComputingInfrastructure InitializeCredentials(CredentialContainer credentialsToUse)
         {
+            new { credentialsToUse }.Must().NotBeNull().OrThrowFirstFailure();
+
+            if (credentialsToUse.Expiration <= DateTime.Now.AddHours(1))
+            {
+                throw new ArgumentException(Invariant($"Credentials supplied should expire more than 1 hour from now; expiration: {credentialsToUse.Expiration}"));
+            }
+
             this.credentials = credentialsToUse;
 
             return this;
@@ -597,6 +606,8 @@ namespace Naos.Deployment.ComputingManagement
             var rootDomain = host.Substring(index + 1);
 
             var hostingId = await this.tracker.GetDomainZoneIdAsync(environment, rootDomain);
+            hostingId.Named(Invariant($"{nameof(this.tracker.GetDomainZoneIdAsync)}-result-from-{environment}-{rootDomain}-MustFindAndId")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
             var dnsManager = new Route53Manager(this.credentials);
             await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain, ipAddresses);
         }

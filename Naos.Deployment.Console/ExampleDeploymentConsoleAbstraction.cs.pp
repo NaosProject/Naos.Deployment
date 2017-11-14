@@ -27,6 +27,7 @@ namespace $rootnamespace$
     using Naos.Deployment.Core;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+    using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
     using Naos.Recipes.Configuration.Setup;
@@ -264,6 +265,7 @@ namespace $rootnamespace$
             new { infrastructureTrackerJson }.Must().NotBeNull().OrThrowFirstFailure();
 
             var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
+
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();   
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
@@ -295,6 +297,7 @@ namespace $rootnamespace$
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="logProcessorSettings">Optional log processor settings for use by other class instead of via command line; DEFAULT is Settings based.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "telemetryFilePath", Justification = "Spelling/name is correct.")]
@@ -329,9 +332,10 @@ namespace $rootnamespace$
             [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
             [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] LogProcessorSettings logProcessorSettings = null)
         {
-            CommonSetup(debug, environment);
+            CommonSetup(debug, environment, logProcessorSettings);
 
             PrintArguments(
                 new
@@ -358,6 +362,7 @@ namespace $rootnamespace$
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
             var deploymentAdjustmentStrategiesApplicator = (DeploymentAdjustmentStrategiesApplicator)Settings.Deserialize(typeof(DeploymentAdjustmentStrategiesApplicator), deploymentAdjustmentApplicatorJson);
             var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
+
             var repoConfigs = (IReadOnlyCollection<PackageRepositoryConfiguration>)Settings.Deserialize(typeof(IReadOnlyCollection<PackageRepositoryConfiguration>), nugetPackageRepositoryConfigurationsJson);
             var overrideConfig = (DeploymentConfiguration)Settings.Deserialize(typeof(DeploymentConfiguration), overrideDeploymentConfigJson);
 

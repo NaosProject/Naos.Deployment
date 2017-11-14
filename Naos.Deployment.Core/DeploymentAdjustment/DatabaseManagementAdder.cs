@@ -102,8 +102,9 @@ namespace Naos.Deployment.Core
                 return ret;
             }
 
-            var managementChannelNames = sqlServerInitializations.Cast<IHaveManagementChannel>().Concat(mongoInitializations)
-                .Select(_ => _.ManagementChannelName).ToList();
+            var managementChannelNames = sqlServerInitializations.Cast<IHaveManagementChannel>().Concat(mongoInitializations).Select(
+                _ => _.ManagementChannelName ?? throw new ArgumentException(
+                         Invariant($"Must specify a {nameof(_.ManagementChannelName)} for initialization: {_}(type - {_.GetType()})"))).ToList();
 
             const int MaxManagementChannelNameLength = 23;
             var badManagementChannelNames = managementChannelNames.Where(_ => _.Length > MaxManagementChannelNameLength).Select(_ => _).ToList();

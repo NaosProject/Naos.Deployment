@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core.Test
                                      Source = "https://www.nuget.org/api/v2/",
                                      SourceName = "NuGet",
                                      ClearTextPassword = string.Empty,
-                                     Username = "user",
+                                     UserName = "user",
                                  };
 
             var packageManager = new PackageRetriever(tempPath, new[] { repoConfig });
