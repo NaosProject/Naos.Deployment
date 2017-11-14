@@ -335,7 +335,6 @@
     <Compile Include="PackagedDeploymentConfiguration.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="PackageDescriptionExtensionMethods.cs" />
-    <Compile Include="PackageDescriptionIdOnlyEqualityComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SetupSteps\SetupStep.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.EventLog.cs" />
