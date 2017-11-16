@@ -178,7 +178,7 @@ namespace $rootnamespace$
 
             CommonSetup(debug, environment, announcer: localAnnouncer);
 
-            void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            void GetInstanceStatus(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
@@ -189,7 +189,50 @@ namespace $rootnamespace$
                 localResultAnnouncer(status.ToString());
             }
 
-            RunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
+            RunComputingManagerOperation(GetInstanceStatus, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Gets the details of the instance found by name in provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "details", Description = "Gets the details of the instance found by name in provided tracker.")]
+        public static void GetInstanceDetails(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            var configFileManager = new ConfigFileManager(
+                new[] { Config.CommonPrecedence },
+                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+
+            void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+
+                var instanceText = configFileManager.SerializeConfigToFileText(instance);
+
+                localResultAnnouncer(instanceText);
+            }
+
+            RunComputingManagerOperation(GetInstanceDetails, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -200,6 +243,7 @@ namespace $rootnamespace$
         /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "start", Description = "Starts the instance found by name in provided tracker.")]
         public static void StartInstance(
@@ -207,16 +251,24 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
-            CommonSetup(debug, environment);
+            var localAnnouncer = announcer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
 
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
+                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                {
+                    activity.Trace("Starting");
+                    Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
+                    activity.Trace("Running");
+                }
             }
 
             RunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
@@ -228,31 +280,85 @@ namespace $rootnamespace$
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="force">Force the shutdown.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "stop", Description = "Stops the instance found by name in provided tracker.")]
         public static void StopInstance(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
-            CommonSetup(debug, environment);
+            var localAnnouncer = announcer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void StopInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+
+                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                {
+                    activity.Trace("Stopping");
+                    Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
+                    activity.Trace("Stopped");
+                }
+            }
+
+            RunComputingManagerOperation(StopInstance, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Stops then starts the instance found by name in provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="force">Force the shutdown.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "bounce", Description = "Stops then starts the instance found by name in provided tracker.")]
+        public static void StopThenStartInstance(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
 
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
 
-                Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location));
+                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                {
+                    activity.Trace("Stopping");
+                    Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
+                    activity.Trace("Restarting");
+                    Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
+                    activity.Trace("Running");
+                }
             }
 
             RunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
         }
 
-		/// <summary>
+        /// <summary>
         /// Runs provided operation with <see cref="ITrackComputingInfrastructure" /> and <see cref="IManageComputingInfrastructure" /> using provided configs.
         /// </summary>
         /// <param name="action">Action to run.</param>
@@ -276,7 +382,7 @@ namespace $rootnamespace$
                     action(infrastructureTracker, computingManager);
                 }
             }
-		}
+        }
 
         /// <summary>
         /// Deploys a new instance with specified packages.
@@ -408,25 +514,25 @@ namespace $rootnamespace$
                     using (var packageManager = new PackageRetriever(unzipDirPath, repoConfigs, null, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
                     {
                         var deploymentManager = new DeploymentManager(
-                                                    infrastructureTracker,
-                                                    computingManager,
-                                                    packageManager,
-                                                    certificateRetriever,
-                                                    defaultDeploymentConfiguration,
-                                                    setupFactorySettings,
-                                                    deploymentAdjustmentStrategiesApplicator,
-                                                    computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
-                                                    Console.WriteLine,
-                                                    line =>
-                                                        {
-                                                            /* no-op */
-                                                        },
-                                                    unzipDirPath,
-                                                    configFileManager,
-                                                    environmentCertificateName,
-                                                    announcementFilePath,
-                                                    debugAnnouncementFilePath,
-                                                    telemetryFilePath);
+                            infrastructureTracker,
+                            computingManager,
+                            packageManager,
+                            certificateRetriever,
+                            defaultDeploymentConfiguration,
+                            setupFactorySettings,
+                            deploymentAdjustmentStrategiesApplicator,
+                            computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
+                            Console.WriteLine,
+                            line =>
+                                {
+                                    /* no-op */
+                                },
+                            unzipDirPath,
+                            configFileManager,
+                            environmentCertificateName,
+                            announcementFilePath,
+                            debugAnnouncementFilePath,
+                            telemetryFilePath);
 
                         deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig).Wait();
                     }
@@ -510,10 +616,10 @@ namespace $rootnamespace$
                                                              : (StoreLocation)Enum.Parse(typeof(StoreLocation), encryptingCertificateStoreLocation);
 
             var encryptingCertificateLocator = new CertificateLocator(
-                                                   encryptingCertificateThumbprint,
-                                                   encryptingCertificateIsValid,
-                                                   encryptingCertificateStoreNameEnum,
-                                                   encryptingCertificateStoreLocationEnum);
+                encryptingCertificateThumbprint,
+                encryptingCertificateIsValid,
+                encryptingCertificateStoreNameEnum,
+                encryptingCertificateStoreLocationEnum);
 
             var bytes = File.ReadAllBytes(pfxFilePath);
             var certificateSigningRequestPemEncoded = certificateSigningRequestPemEncodedFilePath == null
