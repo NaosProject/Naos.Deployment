@@ -18,6 +18,8 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
@@ -76,6 +78,11 @@ namespace Naos.Deployment.MessageBus.Handler
                             computingInfrastructureManagerSettings,
                             settings,
                             computingManager);
+
+                if (string.IsNullOrWhiteSpace(systemId))
+                {
+                    throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
+                }
 
                 Log.Write(() => new { Info = "Stopping Instance", InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter), SystemId = systemId });
                 await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);

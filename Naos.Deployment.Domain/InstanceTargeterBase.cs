@@ -8,6 +8,8 @@ namespace Naos.Deployment.Domain
 {
     using System.ComponentModel;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Model class to contain information to find an instance.
     /// </summary>
@@ -34,6 +36,12 @@ namespace Naos.Deployment.Domain
         /// Gets the ID (per the computing platform provider) of the instance to change the type of.
         /// </summary>
         public string InstanceId { get; private set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Invariant($"{this.GetType()} - {nameof(this.InstanceId)}: {this.InstanceId}");
+        }
     }
 
     /// <summary>
@@ -54,5 +62,11 @@ namespace Naos.Deployment.Domain
         /// Gets the name of the instance (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a)'.
         /// </summary>
         public string Name { get; private set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Invariant($"{this.GetType()} - {nameof(this.Name)}: {this.Name}");
+        }
     }
 }

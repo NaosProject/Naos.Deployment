@@ -18,6 +18,8 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Handler for start instance messages.
     /// </summary>
@@ -76,6 +78,11 @@ namespace Naos.Deployment.MessageBus.Handler
                             computingInfrastructureManagerSettings,
                             settings,
                             computingManager);
+
+                if (string.IsNullOrWhiteSpace(systemId))
+                {
+                    throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
+                }
 
                 Log.Write(() => new { Info = "Starting Instance", InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter), SystemId = systemId });
                 await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
