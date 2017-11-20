@@ -15,7 +15,9 @@ namespace $rootnamespace$
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
 
     using CLAP;
@@ -114,7 +116,7 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
@@ -124,7 +126,7 @@ namespace $rootnamespace$
         public static void GetPassword(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
-            [Aliases("")] [Required] [Description("Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Required] [Description("Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
@@ -157,7 +159,7 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
@@ -197,7 +199,7 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
@@ -236,11 +238,85 @@ namespace $rootnamespace$
         }
 
         /// <summary>
+        /// Starts a remote session instance found by name in provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "connect", Description = "Starts a remote session instance found by name in provided tracker.")]
+        public static void ConnectToInstance(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            var configFileManager = new ConfigFileManager(
+                new[] { Config.CommonPrecedence },
+                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+
+            void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+
+                using (var activity = Log.Enter(() => new { Name = instanceName }))
+                {
+                    activity.Trace("Starting");
+					var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+					instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                    activity.Trace(Invariant($"Found instance: {instance.Id}"));
+
+					var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
+					privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                    activity.Trace(Invariant($"Found key for password decryption."));
+
+					var address =  instance.PrivateIpAddress;
+					var user = "administrator";
+					var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
+					password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+                    activity.Trace(Invariant($"Found password."));
+
+					// Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
+					var cmdKeyInitProcess = new Process();
+					var cmdKeyDisposeProcess = new Process();
+					var rdpProcess = new Process();
+
+					cmdKeyInitProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
+					cmdKeyInitProcess.StartInfo.Arguments = Invariant($"/generic:TERMSRV/{address} /user:{user} /pass:{password}");
+					cmdKeyInitProcess.Start();
+                    activity.Trace(Invariant($"Stored credentials temporarily stored using CMDKEY."));
+
+					rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
+					rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
+					rdpProcess.Start();
+                    activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
+
+					cmdKeyInitProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
+					cmdKeyInitProcess.StartInfo.Arguments = Invariant($"/delete:TERMSRV/{address} /user:{user} /pass:{password}");
+					cmdKeyInitProcess.Start();
+                    activity.Trace(Invariant($"Removed credentials temporarily stored using CMDKEY."));
+
+                    activity.Trace("Done - check for spawned window.");
+                }
+            }
+
+            RunComputingManagerOperation(GetInstanceDetails, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
         /// Starts the instance found by name in provided tracker.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
@@ -279,7 +355,7 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="force">Force the shutdown.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
@@ -320,7 +396,7 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="instanceName">Name of the computer to get password for (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="force">Force the shutdown.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
