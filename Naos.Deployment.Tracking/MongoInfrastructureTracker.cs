@@ -175,6 +175,14 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
+        public async Task<IReadOnlyCollection<InstanceDescription>> GetAllInstanceDescriptionsAsync(string environment)
+        {
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            var ret = arcology.Instances.Select(_ => _.InstanceDescription).ToList();
+            return ret;
+        }
+
+        /// <inheritdoc />
         public async Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
         {
             var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
@@ -231,6 +239,13 @@ namespace Naos.Deployment.Tracking
                 // Release the thread
                 this.arcologySemaphore.Release();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<string> GetSystemLocationAsync(string environment)
+        {
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetSystemLocation();
         }
 
         /// <summary>

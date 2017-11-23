@@ -8,6 +8,7 @@ namespace Naos.Deployment.Domain
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Threading.Tasks;
 
     using Naos.Packaging.Domain;
@@ -67,6 +68,13 @@ namespace Naos.Deployment.Domain
         /// Gets the instance description by ID.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
+        /// <returns>InstanceDescription if any by that ID.</returns>
+        Task<IReadOnlyCollection<InstanceDescription>> GetAllInstanceDescriptionsAsync(string environment);
+
+        /// <summary>
+        /// Gets the instance description by ID.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
         /// <param name="systemId">ID from the computing platform provider of the instance.</param>
         /// <returns>InstanceDescription if any by that ID.</returns>
         Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId);
@@ -105,6 +113,13 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress);
+
+        /// <summary>
+        /// Looks up the system location for an environment.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
+        /// <returns>System location.</returns>
+        Task<string> GetSystemLocationAsync(string environment);
     }
 
     /// <summary>
@@ -151,6 +166,12 @@ namespace Naos.Deployment.Domain
         }
 
         /// <inheritdoc />
+        public Task<IReadOnlyCollection<InstanceDescription>> GetAllInstanceDescriptionsAsync(string environment)
+        {
+            return Task.FromResult((IReadOnlyCollection<InstanceDescription>)new List<InstanceDescription>());
+        }
+
+        /// <inheritdoc />
         public Task<InstanceDescription> GetInstanceDescriptionByIdAsync(string environment, string systemId)
         {
             return Task.FromResult<InstanceDescription>(null);
@@ -178,6 +199,12 @@ namespace Naos.Deployment.Domain
         public Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress)
         {
             return this.emptyTask;
+        }
+
+        /// <inheritdoc />
+        public Task<string> GetSystemLocationAsync(string environment)
+        {
+            return Task.FromResult<string>(null);
         }
 
         private bool disposedValue = false; // To detect redundant calls

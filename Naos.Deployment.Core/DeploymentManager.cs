@@ -745,7 +745,7 @@ namespace Naos.Deployment.Core
             if (string.IsNullOrEmpty(systemInstanceId))
             {
                 // this is likely due to a failed previous install - MUST check if the instance actually got created...
-                var activeInstancesFromProvider = await this.computingManager.GetActiveInstancesFromProviderAsync(environment, instanceDescription.Location);
+                var activeInstancesFromProvider = await this.computingManager.GetActiveInstancesFromProviderAsync(environment);
 
                 var any = activeInstancesFromProvider.SingleOrDefault(_ => _.PrivateIpAddress == instanceDescription.PrivateIpAddress);
 

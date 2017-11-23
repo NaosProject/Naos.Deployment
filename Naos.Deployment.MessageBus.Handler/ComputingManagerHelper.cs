@@ -79,7 +79,7 @@ namespace Naos.Deployment.MessageBus.Handler
 
             var fullInstanceName = namer.GetInstanceName();
 
-            var providerInstances = await computingManager.GetActiveInstancesFromProviderAsync(settings.Environment, settings.SystemLocation);
+            var providerInstances = await computingManager.GetActiveInstancesFromProviderAsync(settings.Environment);
             var instance =
                 providerInstances.SingleOrDefault(
                     _ =>

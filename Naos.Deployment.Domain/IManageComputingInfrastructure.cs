@@ -91,9 +91,8 @@ namespace Naos.Deployment.Domain
         /// Gets the active (not terminated) instances for a given environment and location.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
-        /// <param name="systemLocation">System location to make calls against.</param>
         /// <returns>List of instances found in the computing platform provider.</returns>
-        Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment, string systemLocation);
+        Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment);
 
         /// <summary>
         /// Creates or updates the specified DNS entry to the provide IP Addresses.

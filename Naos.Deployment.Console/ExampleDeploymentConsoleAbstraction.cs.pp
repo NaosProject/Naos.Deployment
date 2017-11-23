@@ -195,6 +195,40 @@ namespace $rootnamespace$
         }
 
         /// <summary>
+        /// Gets the instance names (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a') in provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "list", Description = "Gets the instance names (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a') in provided tracker.")]
+        public static void GetInstanceNames(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void GetInstances(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instances = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                
+				instances.ToList().ForEach(_ => localResultAnnouncer(_.ComputerName));
+            }
+
+            RunComputingManagerOperation(GetInstances, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
         /// Gets the details of the instance found by name in provided tracker.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
@@ -246,6 +280,7 @@ namespace $rootnamespace$
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is fine.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "connect", Description = "Starts a remote session instance found by name in provided tracker.")]
         public static void ConnectToInstance(
@@ -259,10 +294,6 @@ namespace $rootnamespace$
             var localAnnouncer = announcer ?? Console.Write;
 
             CommonSetup(debug, environment, announcer: localAnnouncer);
-
-            var configFileManager = new ConfigFileManager(
-                new[] { Config.CommonPrecedence },
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -299,9 +330,9 @@ namespace $rootnamespace$
 					rdpProcess.Start();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
-					cmdKeyInitProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-					cmdKeyInitProcess.StartInfo.Arguments = Invariant($"/delete:TERMSRV/{address} /user:{user} /pass:{password}");
-					cmdKeyInitProcess.Start();
+					cmdKeyDisposeProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
+					cmdKeyDisposeProcess.StartInfo.Arguments = Invariant($"/delete:TERMSRV/{address}");
+					cmdKeyDisposeProcess.Start();
                     activity.Trace(Invariant($"Removed credentials temporarily stored using CMDKEY."));
 
                     activity.Trace("Done - check for spawned window.");

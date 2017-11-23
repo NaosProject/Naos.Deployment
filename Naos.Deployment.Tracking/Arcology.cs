@@ -105,6 +105,16 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <summary>
+        /// Gets the system location.
+        /// </summary>
+        /// <returns>System location.</returns>
+        public string GetSystemLocation()
+        {
+            var ret = this.Location;
+            return ret;
+        }
+
+        /// <summary>
         /// Looks up the key used for the instance and returns the private key.
         /// </summary>
         /// <param name="systemId">ID from the computing platform provider of the instance.</param>

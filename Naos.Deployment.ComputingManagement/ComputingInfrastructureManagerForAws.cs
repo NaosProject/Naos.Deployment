@@ -474,8 +474,10 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment, string systemLocation)
+        public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment)
         {
+            var systemLocation = await this.tracker.GetSystemLocationAsync(environment);
+
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
             var ret =
