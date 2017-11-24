@@ -104,7 +104,7 @@ namespace Naos.Deployment.Core
 
             var managementChannelNames = sqlServerInitializations.Cast<IHaveManagementChannel>().Concat(mongoInitializations).Select(
                 _ => _.ManagementChannelName ?? throw new ArgumentException(
-                         Invariant($"Must specify a {nameof(_.ManagementChannelName)} for initialization: {_}(type - {_.GetType()})"))).ToList();
+                         Invariant($"Must specify a {nameof(_.ManagementChannelName)} for initialization: {_}(type - {_.GetType()})"))).Distinct().ToList();
 
             const int MaxManagementChannelNameLength = 23;
             var badManagementChannelNames = managementChannelNames.Where(_ => _.Length > MaxManagementChannelNameLength).Select(_ => _).ToList();
@@ -160,7 +160,7 @@ namespace Naos.Deployment.Core
                     };
 
             var databaseNameToLocalhostConnectionDefinitionMap = databaseNameToAdminPasswordMap.ToDictionary(
-                k => k.Key,
+                k => k.Key.ToUpperInvariant(),
                 v => new ConnectionDefinition { Server = "localhost", DatabaseName = v.Key, UserName = "sa", Password = v.Value, });
 
             var databaseMessageHandlerSettings =

@@ -48,6 +48,18 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams),
                     });
 
+            var backupDirectory = mongoStrategy.BackupDirectory ?? this.Settings.MongoServerSettings.DefaultBackupDirectory;
+            var createBackupDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
+            var createBackupDirParams = new[] { backupDirectory, mongoServiceAccount };
+            mongoSteps.Add(
+                new SetupStep
+                    {
+                        Description = "Create " + backupDirectory + " and grant rights to Mongo service account.",
+                        SetupFunc =
+                            machineManager =>
+                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
+                    });
+
             var installMongoScript = this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages;
             var installMongoParams =
                 new[]

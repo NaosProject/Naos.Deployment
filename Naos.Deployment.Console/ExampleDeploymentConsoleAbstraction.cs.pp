@@ -18,6 +18,7 @@ namespace $rootnamespace$
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Management.Automation;
     using System.Security.Cryptography.X509Certificates;
 
     using CLAP;
@@ -295,51 +296,92 @@ namespace $rootnamespace$
 
             CommonSetup(debug, environment, announcer: localAnnouncer);
 
-            void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
 
                 using (var activity = Log.Enter(() => new { Name = instanceName }))
                 {
                     activity.Trace("Starting");
-					var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-					instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                    var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                    instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
                     activity.Trace(Invariant($"Found instance: {instance.Id}"));
 
-					var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
-					privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                    var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
+                    privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
                     activity.Trace(Invariant($"Found key for password decryption."));
 
-					var address =  instance.PrivateIpAddress;
-					var user = "administrator";
-					var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
-					password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+                    var address = instance.PrivateIpAddress;
+                    var user = "administrator";
+                    var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
+                    password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
                     activity.Trace(Invariant($"Found password."));
 
-					// Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
-					var cmdKeyInitProcess = new Process();
-					var cmdKeyDisposeProcess = new Process();
-					var rdpProcess = new Process();
+                    // Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
+                    using (var cmdKeyInitProcess = new Process
+                                                       {
+                                                           StartInfo = new ProcessStartInfo(
+                                                               Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe"),
+                                                               Invariant($"/generic:TERMSRV/{address} /user:{user} /pass:{password}"))
+                                                                               {
+                                                                                   RedirectStandardOutput = true,
+                                                                                   RedirectStandardError = true,
+                                                                                   UseShellExecute = false,
+                                                                               },
+                                                       })
+                    {
+                        cmdKeyInitProcess.Start().Named(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                        cmdKeyInitProcess.WaitForExit();
+                        var cmdKeyInitOutput = cmdKeyInitProcess.StandardOutput.ReadToEnd();
+                        var cmdKeyInitError = cmdKeyInitProcess.StandardError.ReadToEnd();
+                        var cmdKeyInitExitCode = cmdKeyInitProcess.ExitCode;
+                        if (cmdKeyInitExitCode != 0)
+                        {
+                            var cmdKeyInitFailedMessage = Invariant($"Failed to run {nameof(cmdKeyInitProcess)}; {Environment.NewLine}Console Out: {cmdKeyInitOutput}{Environment.NewLine}Console Error: {cmdKeyInitError}");
+                            throw new ApplicationFailedException(cmdKeyInitFailedMessage);
+                        }
 
-					cmdKeyInitProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-					cmdKeyInitProcess.StartInfo.Arguments = Invariant($"/generic:TERMSRV/{address} /user:{user} /pass:{password}");
-					cmdKeyInitProcess.Start();
-                    activity.Trace(Invariant($"Stored credentials temporarily stored using CMDKEY."));
+                        activity.Trace(Invariant($"Stored credentials temporarily stored using CMDKEY."));
+                    }
 
+                    var rdpProcess = new Process();
 					rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
 					rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
-					rdpProcess.Start();
+					rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
-					cmdKeyDisposeProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-					cmdKeyDisposeProcess.StartInfo.Arguments = Invariant($"/delete:TERMSRV/{address}");
-					cmdKeyDisposeProcess.Start();
-                    activity.Trace(Invariant($"Removed credentials temporarily stored using CMDKEY."));
+                    System.Threading.Thread.Sleep(TimeSpan.FromSeconds(5)); // dirty way to make sure that MSTSC launches before cleaning the credentials...
+
+                    using (var cmdKeyCleanupProcess = new Process
+                                                       {
+                                                           StartInfo = new ProcessStartInfo(
+                                                               Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe"),
+                                                               Invariant($"/delete:TERMSRV/{address}"))
+                                                                               {
+                                                                                   RedirectStandardOutput = true,
+                                                                                   RedirectStandardError = true,
+                                                                                   UseShellExecute = false,
+                                                                               },
+                                                       })
+                    {
+                        cmdKeyCleanupProcess.Start().Named(Invariant($"{nameof(cmdKeyCleanupProcess)}.{nameof(cmdKeyCleanupProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                        cmdKeyCleanupProcess.WaitForExit();
+                        var cmdKeyCleanupOutput = cmdKeyCleanupProcess.StandardOutput.ReadToEnd();
+                        var cmdKeyCleanupError = cmdKeyCleanupProcess.StandardError.ReadToEnd();
+                        var cmdKeyCleanupExitCode = cmdKeyCleanupProcess.ExitCode;
+                        if (cmdKeyCleanupExitCode != 0)
+                        {
+                            var cmdKeyCleanupFailedMessage = Invariant($"Failed to run {nameof(cmdKeyCleanupProcess)}; {Environment.NewLine}Console Out: {cmdKeyCleanupOutput}{Environment.NewLine}Console Error: {cmdKeyCleanupError}");
+                            throw new ApplicationFailedException(cmdKeyCleanupFailedMessage);
+                        }
+
+                        activity.Trace(Invariant($"Removed credentials temporarily stored using CMDKEY."));
+                    }
 
                     activity.Trace("Done - check for spawned window.");
                 }
             }
 
-            RunComputingManagerOperation(GetInstanceDetails, credentialsJson, infrastructureTrackerJson);
+            RunComputingManagerOperation(Connect, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>

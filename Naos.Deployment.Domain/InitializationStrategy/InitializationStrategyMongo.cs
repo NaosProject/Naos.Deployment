@@ -32,6 +32,11 @@ namespace Naos.Deployment.Domain
         public string LogDirectory { get; set; }
 
         /// <summary>
+        /// Gets or sets the directory to save backup files in.
+        /// </summary>
+        public string BackupDirectory { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether or not to disable journaling.
         /// </summary>
         public bool NoJournaling { get; set; }
