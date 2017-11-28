@@ -219,15 +219,42 @@ namespace Naos.Deployment.Tracking
             try
             {
                 var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
-                var matchingInstance =
-                    arcology.Instances.SingleOrDefault(
-                        _ => _.InstanceDescription.PrivateIpAddress == privateIpAddress && string.IsNullOrEmpty(_.InstanceDescription.Id));
+                var matchingInstance = arcology.Instances.SingleOrDefault(
+                    _ => _.InstanceDescription.PrivateIpAddress == privateIpAddress && string.IsNullOrEmpty(_.InstanceDescription.Id));
 
                 // write
                 if (matchingInstance == null)
                 {
                     throw new ArgumentException(
-                              "Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
+                        "Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
+                }
+
+                arcology.MutateInstancesRemove(matchingInstance);
+                var matchingInstanceContainer = CreateInstanceContainerFromInstance(matchingInstance);
+                await this.instanceCommands.RemoveOneAsync(matchingInstanceContainer);
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveInstanceFromTracking(string environment, string privateIpAddress)
+        {
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
+
+            try
+            {
+                var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+                var matchingInstance = arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.PrivateIpAddress == privateIpAddress);
+
+                // write
+                if (matchingInstance == null)
+                {
+                    throw new ArgumentException($"Could not find instance by IP address: {privateIpAddress}.");
                 }
 
                 arcology.MutateInstancesRemove(matchingInstance);
@@ -246,6 +273,14 @@ namespace Naos.Deployment.Tracking
         {
             var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
             return arcology.GetSystemLocation();
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<string>> GetIpAddressCidrsAsync(string environment)
+        {
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            var ret = arcology.ComputingContainers.Select(_ => _.Cidr).ToList();
+            return ret;
         }
 
         /// <summary>

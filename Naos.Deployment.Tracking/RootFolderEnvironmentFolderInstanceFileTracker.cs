@@ -17,6 +17,8 @@ namespace Naos.Deployment.Tracking
     using Naos.Serialization.Domain;
     using Naos.Serialization.Json;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Tracking system/certificate manager that will use a root folder and will have a folder per environment with a config file and store a file per machine.
     /// </summary>
@@ -218,26 +220,63 @@ namespace Naos.Deployment.Tracking
             lock (this.fileSync)
             {
                 var arcology = this.GetArcologyByEnvironmentName(environment);
+                var matchingInstance = arcology.Instances.SingleOrDefault(
+                    _ => _.InstanceDescription.PrivateIpAddress == privateIpAddress && string.IsNullOrEmpty(_.InstanceDescription.Id));
+
+                // once we have found the file we just need to delete the file
+                if (matchingInstance == null)
+                {
+                    throw new ArgumentException(
+                        "Could not find expected instance that failed to deploy (had a null or empty ID); Private IP: " + privateIpAddress);
+                }
+
+                var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+                var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
+                var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
+
+                if (File.Exists(instanceFilePathNamed))
+                {
+                    File.Delete(instanceFilePathNamed);
+                }
+
+                // clean up the file before it had a name (if applicable)
+                if (File.Exists(instanceFilePathIp))
+                {
+                    File.Delete(instanceFilePathIp);
+                }
+
+                return this.emptyTask;
+            }
+        }
+
+        /// <inheritdoc />
+        public Task RemoveInstanceFromTracking(string environment, string privateIpAddress)
+        {
+            lock (this.fileSync)
+            {
+                var arcology = this.GetArcologyByEnvironmentName(environment);
                 var matchingInstance =
                     arcology.Instances.SingleOrDefault(_ => _.InstanceDescription.PrivateIpAddress == privateIpAddress);
 
                 // once we have found the file we just need to delete the file
-                if (matchingInstance != null)
+                if (matchingInstance == null)
                 {
-                    var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
-                    var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
-                    var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
+                    throw new ArgumentException(Invariant($"Could not find instance by IP address: {privateIpAddress}."));
+                }
 
-                    if (File.Exists(instanceFilePathNamed))
-                    {
-                        File.Delete(instanceFilePathNamed);
-                    }
+                var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+                var instanceFilePathNamed = GetInstanceFilePathNamed(arcologyFolderPath, matchingInstance);
+                var instanceFilePathIp = GetInstanceFilePathIp(arcologyFolderPath, matchingInstance);
 
-                    // clean up the file before it had a name (if applicable)
-                    if (File.Exists(instanceFilePathIp))
-                    {
-                        File.Delete(instanceFilePathIp);
-                    }
+                if (File.Exists(instanceFilePathNamed))
+                {
+                    File.Delete(instanceFilePathNamed);
+                }
+
+                // clean up the file before it had a name (if applicable)
+                if (File.Exists(instanceFilePathIp))
+                {
+                    File.Delete(instanceFilePathIp);
                 }
 
                 return this.emptyTask;
@@ -252,6 +291,17 @@ namespace Naos.Deployment.Tracking
                 var arcology = this.GetArcologyByEnvironmentName(environment);
                 var ret = arcology.Location;
                 return Task.FromResult(ret);
+            }
+        }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<string>> GetIpAddressCidrsAsync(string environment)
+        {
+            lock (this.fileSync)
+            {
+                var arcology = this.GetArcologyByEnvironmentName(environment);
+                var ret = arcology.ComputingContainers.Select(_ => _.Cidr).ToList();
+                return Task.FromResult<IReadOnlyCollection<string>>(ret);
             }
         }
 

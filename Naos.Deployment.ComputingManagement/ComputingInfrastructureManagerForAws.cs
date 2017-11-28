@@ -12,8 +12,6 @@ namespace Naos.Deployment.ComputingManagement
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Amazon.EC2;
-
     using Its.Log.Instrumentation;
 
     using Naos.AWS.Contract;
@@ -477,11 +475,12 @@ namespace Naos.Deployment.ComputingManagement
         public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment)
         {
             var systemLocation = await this.tracker.GetSystemLocationAsync(environment);
+            var ipCidrs = await this.tracker.GetIpAddressCidrsAsync(environment);
 
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
-            var ret =
-                instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated).Select(
+            var ret = instances.Where(_ => ipCidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr)))
+                .Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated).Select(
                     _ =>
                         {
                             var tags = _.Tags ?? new Dictionary<string, string>();
@@ -493,7 +492,11 @@ namespace Naos.Deployment.ComputingManagement
 
                             var status = new InstanceStatus
                                              {
-                                                 InstanceState = (InstanceState)Enum.Parse(typeof(InstanceState), _.InstanceStatus.InstanceState.ToString(), true),
+                                                 InstanceState =
+                                                     (InstanceState)Enum.Parse(
+                                                         typeof(InstanceState),
+                                                         _.InstanceStatus.InstanceState.ToString(),
+                                                         true),
                                                  SystemChecks = new Dictionary<string, CheckState>(),
                                                  InstanceChecks = new Dictionary<string, CheckState>(),
                                              };

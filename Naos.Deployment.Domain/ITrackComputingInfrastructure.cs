@@ -115,11 +115,32 @@ namespace Naos.Deployment.Domain
         Task ProcessFailedInstanceDeploymentAsync(string environment, string privateIpAddress);
 
         /// <summary>
+        /// Removes an instance from tracking PERMANENTLY by looking up using the private IP address.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
+        /// <param name="privateIpAddress">The specified private IP address to use to find the instance.</param>
+        /// <returns>Task for async.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        Task RemoveInstanceFromTracking(string environment, string privateIpAddress);
+
+        /// <summary>
         /// Looks up the system location for an environment.
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
         /// <returns>System location.</returns>
         Task<string> GetSystemLocationAsync(string environment);
+
+        /// <summary>
+        /// Looks up the IP CIDRs of an environment.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
+        /// <returns>IP CIDRs.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Cidrs", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        Task<IReadOnlyCollection<string>> GetIpAddressCidrsAsync(string environment);
     }
 
     /// <summary>
@@ -202,9 +223,21 @@ namespace Naos.Deployment.Domain
         }
 
         /// <inheritdoc />
+        public Task RemoveInstanceFromTracking(string environment, string privateIpAddress)
+        {
+            return this.emptyTask;
+        }
+
+        /// <inheritdoc />
         public Task<string> GetSystemLocationAsync(string environment)
         {
             return Task.FromResult<string>(null);
+        }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<string>> GetIpAddressCidrsAsync(string environment)
+        {
+            return Task.FromResult<IReadOnlyCollection<string>>(null);
         }
 
         private bool disposedValue = false; // To detect redundant calls

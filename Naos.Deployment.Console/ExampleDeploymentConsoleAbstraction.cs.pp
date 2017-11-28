@@ -129,7 +129,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
@@ -172,7 +172,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
@@ -196,6 +196,40 @@ namespace $rootnamespace$
         }
 
         /// <summary>
+        /// Gets the instances that are active (not terminated) from the underlying computing provider.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "query", Description = "Gets the instances that are active (not terminated) from the underlying computing provider.")]
+        public static void GetActiveInstancesFromProvider(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void GetInstancesFromProvider(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instances = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+
+                instances.ToList().OrderBy(_ => _.Name).ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
+            }
+
+            RunComputingManagerOperation(GetInstancesFromProvider, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
         /// Gets the instance names (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a') in provided tracker.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
@@ -210,7 +244,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
@@ -223,10 +257,97 @@ namespace $rootnamespace$
             {
                 var instances = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
                 
-				instances.ToList().ForEach(_ => localResultAnnouncer(_.ComputerName));
+				instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
             }
 
             RunComputingManagerOperation(GetInstances, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Gets the instances only in either tracking or computer platform.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "diff", Description = "Gets the instances only in either tracking or computer platform.")]
+        public static void GetInstancesInTrackingAndNotProviderOrReverse(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void GetInstanceDifferences(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instancesInTracker = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+
+                var instancesOnlyInTracker = instancesInTracker
+                    .Where(tracked => !instancesInProvider.Any(provider => provider.PrivateIpAddress == tracked.PrivateIpAddress)).ToList();
+
+                var instancesOnlyInProvider = instancesInProvider
+                    .Where(provider => !instancesInTracker.Any(tracked => tracked.PrivateIpAddress == provider.PrivateIpAddress)).ToList();
+
+                instancesOnlyInTracker.ForEach(_ => localResultAnnouncer(Invariant($"only-tracked\t{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
+                instancesOnlyInProvider.ForEach(_ => localResultAnnouncer(Invariant($"un-tracked\t{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
+            }
+
+            RunComputingManagerOperation(GetInstanceDifferences, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Removes an instance from tracking that is not in the computing platform.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="privateIpAddressOfInstanceToRemove">IP Address of instance to remove.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Name/spelling is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name/spelling is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "purge", Description = "Gets the instances only in either tracking or computer platform.")]
+        public static void RemoveTrackedInstance(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("ip")] [Required] [Description("IP Address of instance to remove.")] string privateIpAddressOfInstanceToRemove,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void RemoveTrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+
+                var instanceInCloud = instancesInProvider.SingleOrDefault(_ => _.PrivateIpAddress == privateIpAddressOfInstanceToRemove);
+                if (instanceInCloud != null)
+                {
+                    throw new ArgumentException(Invariant($"IP Address provided: {privateIpAddressOfInstanceToRemove} exists in; ID: {instanceInCloud.Id}, Name: {instanceInCloud.Name}"));
+                }
+
+                Run.TaskUntilCompletion(tracker.RemoveInstanceFromTracking(environment, privateIpAddressOfInstanceToRemove));
+                localResultAnnouncer(Invariant($"Purged {privateIpAddressOfInstanceToRemove}"));
+            }
+
+            RunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -246,7 +367,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
         {
@@ -289,7 +410,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
@@ -400,7 +521,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
@@ -441,7 +562,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
@@ -482,7 +603,7 @@ namespace $rootnamespace$
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.Write;
@@ -587,7 +708,7 @@ namespace $rootnamespace$
             [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
             [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] LogProcessorSettings logProcessorSettings = null)
         {
             CommonSetup(debug, environment, logProcessorSettings);

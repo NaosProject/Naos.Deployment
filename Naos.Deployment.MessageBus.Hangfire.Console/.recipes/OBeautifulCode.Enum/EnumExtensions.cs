@@ -123,6 +123,21 @@ namespace OBeautifulCode.Enum.Recipes
         }
 
         /// <summary>
+        /// Checks if there is any overlap between the two <see cref="FlagsAttribute" /> enumerations.
+        /// </summary>
+        /// <param name="first">First to check.</param>
+        /// <param name="second">Second to check.</param>
+        /// <returns>Value indicating whether there is any overlap.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flag", Justification = "'Flag' is the most appropriate term here.")]
+        public static bool HasFlagOverlap(this Enum first, Enum second)
+        {
+            new { first, second }.Must().NotBeNull().OrThrowFirstFailure();
+
+            var ret = first.GetIndividualFlags().Intersect(second.GetIndividualFlags()).Any();
+            return ret;
+        }
+
+        /// <summary>
         /// Gets the individual flags of a flags enum.
         /// </summary>
         /// <param name="value">The enum value to decompose into it's individual flags.</param>

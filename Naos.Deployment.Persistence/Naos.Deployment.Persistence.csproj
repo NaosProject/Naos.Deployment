@@ -63,8 +63,8 @@
     <Reference Include="OBeautifulCode.DateTime, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.DateTime.1.0.4\lib\net45\OBeautifulCode.DateTime.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.8\lib\net45\OBeautifulCode.TypeRepresentation.dll</HintPath>
+    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.9\lib\net461\OBeautifulCode.TypeRepresentation.dll</HintPath>
     </Reference>
     <Reference Include="Spritely.ReadModel, Version=0.6.1.45, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Spritely.ReadModel.0.6.4\lib\net461\Spritely.ReadModel.dll</HintPath>
