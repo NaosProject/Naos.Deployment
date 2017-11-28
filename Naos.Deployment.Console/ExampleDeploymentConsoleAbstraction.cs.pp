@@ -310,15 +310,53 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of instance to remove.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "retire", Description = "Gets the instances only in either tracking or computer platform.")]
+        public static void RemoveInstance(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("name")] [Required] [Description("Name of instance to remove.")] string instanceName,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void RemoveTrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                localResultAnnouncer(Invariant($"Removing {instanceName}."));
+                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                localResultAnnouncer(Invariant($"Found {instanceName} - {instance.PrivateIpAddress} - {instance.Name}."));
+                Run.TaskUntilCompletion(manager.TerminateInstanceAsync(environment, instance.Id, instance.Location, true));
+                localResultAnnouncer(Invariant($"Removed {instanceName}."));
+            }
+
+            RunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Removes an instance from tracking that is not in the computing platform.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="privateIpAddressOfInstanceToRemove">IP Address of instance to remove.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Name/spelling is correct.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Name/spelling is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
-        [Verb(Aliases = "purge", Description = "Gets the instances only in either tracking or computer platform.")]
+        [Verb(Aliases = "purge", Description = "Removes an instance from tracking that is not in the computing platform.")]
         public static void RemoveTrackedInstance(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
@@ -344,7 +382,7 @@ namespace $rootnamespace$
                 }
 
                 Run.TaskUntilCompletion(tracker.RemoveInstanceFromTracking(environment, privateIpAddressOfInstanceToRemove));
-                localResultAnnouncer(Invariant($"Purged {privateIpAddressOfInstanceToRemove}"));
+                localResultAnnouncer(Invariant($"Removed {privateIpAddressOfInstanceToRemove} from Tracking."));
             }
 
             RunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);

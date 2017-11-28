@@ -479,8 +479,9 @@ namespace Naos.Deployment.ComputingManagement
 
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
-            var ret = instances.Where(_ => ipCidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr)))
-                .Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated).Select(
+            // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
+            var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated)
+                .Where(_ => ipCidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr))).Select(
                     _ =>
                         {
                             var tags = _.Tags ?? new Dictionary<string, string>();
