@@ -78,6 +78,7 @@ namespace Naos.Deployment.Core
 
             steps.Add(execScripts);
 
+            var fullComputerNameEnvironmentVariable = "FullComputerName";
             var windowsSkuEnvironmentVariable = "WindowsSku";
             var addEnvironmentVariables = new SetupStep
                                               {
@@ -96,6 +97,11 @@ namespace Naos.Deployment.Core
                                                                                                               Name = windowsSkuEnvironmentVariable,
                                                                                                               Value = windowsSku.ToString(),
                                                                                                           },
+                                                                                                      new
+                                                                                                          {
+                                                                                                              Name = fullComputerNameEnvironmentVariable,
+                                                                                                              Value = computerName,
+                                                                                                          },
                                                                                                   };
                                                           return
                                                               machineManager.RunScript(
@@ -111,7 +117,7 @@ namespace Naos.Deployment.Core
                                           Description = "Customize Instance Wallpaper",
                                           SetupFunc = machineManager =>
                                               {
-                                                  var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable };
+                                                  var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable, fullComputerNameEnvironmentVariable };
                                                   return
                                                       machineManager.RunScript(
                                                           this.Settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,

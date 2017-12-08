@@ -18,6 +18,8 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using OBeautifulCode.Reflection.Recipes;
+
     using Spritely.Recipes;
 
     using static System.FormattableString;
@@ -213,14 +215,20 @@ namespace Naos.Deployment.Core
                                         .Because(Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"))
                                         .OrThrow();
 
-                                    // ReSharper disable once AssignNullToNotNullAttribute - checked above with Must
-                                    var assembly = Assembly.LoadFrom(migrationAssemblyFilePath);
-                                    MigrationExecutor.Up(
-                                        assembly,
-                                        realRemoteConnectionString,
-                                        sqlServerStrategy.Name,
-                                        fluentMigration.Version,
-                                        this.debugAnnouncer);
+                                    // Need to run loose because FluentMigrator doesn't play nice...
+                                    using (var loader = AssemblyLoader.CreateAndLoadFromDirectory(
+                                        workingPath,
+                                        suppressBadImageFormatException: true,
+                                        suppressFileLoadException: true))
+                                    {
+                                        var assembly = loader.FilePathToAssemblyMap[migrationAssemblyFilePath];
+                                        MigrationExecutor.Up(
+                                            assembly,
+                                            realRemoteConnectionString,
+                                            sqlServerStrategy.Name,
+                                            fluentMigration.Version,
+                                            this.debugAnnouncer);
+                                    }
 
                                     return new dynamic[0];
                                 },

@@ -31,8 +31,8 @@ namespace OBeautifulCode.Reflection.Recipes
         /// <typeparam name="TAttribute">The type of the attribute to return.</typeparam>
         /// <param name="type">The type to scope the attribute search to.</param>
         /// <returns>
-        /// An attribute object of the specified type that has been applied to the specified
-        /// enum value or null if no such attribute has been applied.
+        /// The attribute of type <typeparamref name="TAttribute"/> that has been applied
+        /// to <paramref name="type"/> or null if no such attribute has been applied.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="type"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributes{T}(Type)"/>.</exception>
@@ -166,23 +166,125 @@ namespace OBeautifulCode.Reflection.Recipes
         /// <remarks>
         /// adapted from <a href="http://stackoverflow.com/a/9276348/356790"/>
         /// </remarks>
-        /// <typeparam name="T">The type of the attributes to return.</typeparam>
+        /// <typeparam name="TAttribute">The type of the attributes to return.</typeparam>
         /// <param name="enumValue">The enum value to scope the attribute search to.</param>
         /// <returns>
         /// A collection all attributes of the specified type that have been applied to the specified
         /// enum value or an empty collection if no such attribute has been applied.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
-        public static IReadOnlyCollection<T> GetAttributesOnEnumValue<T>(
+        public static IReadOnlyCollection<TAttribute> GetAttributesOnEnumValue<TAttribute>(
             this Enum enumValue)
-            where T : Attribute
+            where TAttribute : Attribute
         {
             new { enumValue }.Must().NotBeNull().OrThrow();
 
             var type = enumValue.GetType();
             var member = type.GetMember(enumValue.ToString());
-            var attributes = member[0].GetCustomAttributes(typeof(T), false);
-            var result = attributes.Cast<T>().ToList().AsReadOnly();
+            var attributes = member[0].GetCustomAttributes(typeof(TAttribute), false);
+            var result = attributes.Cast<TAttribute>().ToList().AsReadOnly();
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if an attribute of a specified type that have been applied to some type.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of the attributes to search for.</typeparam>
+        /// <param name="type">The type to scope the attribute search to.</param>
+        /// <param name="throwOnMultiple">
+        /// Optional.  Determines if method should throw when multiple instances of the specified 
+        /// attribute have been applied to the specified type.  Default is true 
+        /// (it's typically unlikely that multiple attributes of the same type are applied to a type).
+        /// </param>
+        /// <returns>
+        /// True if the attribute has been applied to the specified type, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="throwOnMultiple"/> is true and <paramref name="type"/> has multiple attributes of type <typeparamref name="TAttribute"/>.</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        public static bool HasAttribute<TAttribute>(
+            this Type type,
+            bool throwOnMultiple = true)
+            where TAttribute : Attribute
+        {
+            bool result;
+            if (throwOnMultiple)
+            {
+                result = GetAttribute<TAttribute>(type) != null;
+            }
+            else
+            {
+                result = GetAttributes<TAttribute>(type).Any();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if an attribute of the specified type has been applied to a specific enum value.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of the attributes to search for.</typeparam>
+        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
+        /// <param name="throwOnMultiple">
+        /// Optional.  Determines if method should throw when multiple instances of the specified 
+        /// attribute have been applied to the specified enum value.  Default is true 
+        /// (it's typically unlikely that multiple attributes of the same type are applied to an enum value).
+        /// </param>
+        /// <returns>
+        /// True if the attribute has been applied to the specified enum value, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="enumValue"/> is not an Enum.</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="throwOnMultiple"/> is true and <paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        public static bool HasAttributeOnEnumValue<TAttribute>(
+            this object enumValue,
+            bool throwOnMultiple = true)
+            where TAttribute : Attribute
+        {
+            bool result;
+            if (throwOnMultiple)
+            {
+                result = GetAttributeOnEnumValue<TAttribute>(enumValue) != null;
+            }
+            else
+            {
+                result = GetAttributesOnEnumValue<TAttribute>(enumValue).Any();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if an attribute of the specified type that has been applied to a specific enum value.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of the attributes to serach for.</typeparam>
+        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
+        /// <param name="throwOnMultiple">
+        /// Optional.  Determines if method should throw when multiple instances of the specified 
+        /// attribute have been applied to the specified enum value.  Default is true 
+        /// (it's typically unlikely that multiple attributes of the same type are applied to an enum value).
+        /// </param>
+        /// <returns>
+        /// True if the attribute has been applied to the specified enum value, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        public static bool HasAttributeOnEnumValue<TAttribute>(
+            this Enum enumValue,
+            bool throwOnMultiple = true)
+            where TAttribute : Attribute
+        {
+            bool result;
+            if (throwOnMultiple)
+            {
+                result = GetAttributeOnEnumValue<TAttribute>(enumValue) != null;
+            }
+            else
+            {
+                result = GetAttributesOnEnumValue<TAttribute>(enumValue).Any();
+            }
+
             return result;
         }
     }
