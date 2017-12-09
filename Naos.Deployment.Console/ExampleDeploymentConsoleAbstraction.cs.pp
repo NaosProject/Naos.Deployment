@@ -25,7 +25,8 @@ namespace $rootnamespace$
     using Its.Configuration;
     using Its.Log.Instrumentation;
 
-    using Naos.AWS.Contract;
+    using Naos.AWS.Domain;
+
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
     using Naos.Deployment.Domain;

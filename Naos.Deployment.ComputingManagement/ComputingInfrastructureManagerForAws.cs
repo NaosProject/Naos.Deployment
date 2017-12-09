@@ -14,8 +14,8 @@ namespace Naos.Deployment.ComputingManagement
 
     using Its.Log.Instrumentation;
 
-    using Naos.AWS.Contract;
     using Naos.AWS.Core;
+    using Naos.AWS.Domain;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
@@ -184,7 +184,7 @@ namespace Naos.Deployment.ComputingManagement
             await instanceToTurnOff.StopAsync(force, this.credentials);
             if (waitUntilOff)
             {
-                await instanceToTurnOff.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Stopped, this.credentials);
+                await instanceToTurnOff.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Stopped, this.credentials);
             }
         }
 
@@ -195,7 +195,7 @@ namespace Naos.Deployment.ComputingManagement
             await instanceToTurnOn.StartAsync(this.credentials);
             if (waitUntilOn)
             {
-                await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Running, this.credentials);
+                await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Running, this.credentials);
                 await this.WaitUntilStatusChecksCompleteRebootOnFailures(instanceToTurnOn, maxRebootAttemptsOnFailedStarts);
             }
         }
@@ -216,8 +216,8 @@ namespace Naos.Deployment.ComputingManagement
                     Thread.Sleep(TimeSpan.FromSeconds(timeToSleepInSeconds));
                     var instanceStatus = await instanceToTurnOn.GetStatusAsync(this.credentials);
 
-                    var anyFailures = instanceStatus.SystemChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed)
-                                      || instanceStatus.InstanceChecks.Any(_ => _.Value == Naos.AWS.Contract.CheckState.Failed);
+                    var anyFailures = instanceStatus.SystemChecks.Any(_ => _.Value == Naos.AWS.Domain.CheckState.Failed)
+                                      || instanceStatus.InstanceChecks.Any(_ => _.Value == Naos.AWS.Domain.CheckState.Failed);
                     if (anyFailures)
                     {
                         if (reboots < maxRebootAttempts)
@@ -228,7 +228,7 @@ namespace Naos.Deployment.ComputingManagement
                             const bool WaitUntilOn = true;
                             await this.TurnOffInstanceAsync(instanceToTurnOn.Id, instanceToTurnOn.Region, ForceStop, WaitUntilOn);
                             await instanceToTurnOn.StartAsync(this.credentials);
-                            await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Contract.InstanceState.Running, this.credentials);
+                            await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Running, this.credentials);
                             reboots = reboots + 1;
                         }
                         else
@@ -238,8 +238,8 @@ namespace Naos.Deployment.ComputingManagement
                         }
                     }
 
-                    success = instanceStatus.SystemChecks.All(_ => _.Value == Naos.AWS.Contract.CheckState.Passed)
-                              && instanceStatus.InstanceChecks.All(_ => _.Value == Naos.AWS.Contract.CheckState.Passed);
+                    success = instanceStatus.SystemChecks.All(_ => _.Value == Naos.AWS.Domain.CheckState.Passed)
+                              && instanceStatus.InstanceChecks.All(_ => _.Value == Naos.AWS.Domain.CheckState.Passed);
                 }
             }
             catch (DeploymentException)
@@ -480,7 +480,7 @@ namespace Naos.Deployment.ComputingManagement
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
             // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
-            var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Contract.InstanceState.Terminated)
+            var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
                 .Where(_ => ipCidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr))).Select(
                     _ =>
                         {
@@ -507,7 +507,7 @@ namespace Naos.Deployment.ComputingManagement
                                            Id = _.Id,
                                            Location = _.Region,
                                            Name = name,
-                                           Tags = tags,
+                                           Tags = tags.ToDictionary(k => k.Key, v => v.Value),
                                            InstanceStatus = status,
                                            PrivateIpAddress = _.PrivateIpAddress,
                                        };
