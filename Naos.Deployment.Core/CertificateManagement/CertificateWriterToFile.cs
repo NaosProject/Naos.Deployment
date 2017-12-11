@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Threading.Tasks;
 
@@ -47,7 +48,11 @@ namespace Naos.Deployment.Core.CertificateManagement
             lock (this.fileSync)
             {
                 var fileContentsRead = File.ReadAllText(this.filePath);
-                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContentsRead);
+                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContentsRead) ?? new CertificateCollection();
+                if (certificateCollection.Certificates == null)
+                {
+                    certificateCollection.Certificates = new List<CertificateDescriptionWithEncryptedPfxPayload>();
+                }
 
                 var idxToDelete = certificateCollection.Certificates.FindIndex(_ => string.Equals(_.FriendlyName, certificate.FriendlyName, StringComparison.CurrentCultureIgnoreCase));
                 if (idxToDelete != -1)
