@@ -173,7 +173,7 @@ namespace Naos.Deployment.ComputingManagement
             }
 
             var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
-            await instanceToTerminate.TerminateAsync(this.credentials);
+            await instanceToTerminate.TerminateAsync(TimeSpan.FromMinutes(10), this.credentials);
             await this.tracker.ProcessInstanceTerminationAsync(environment, instanceToTerminate.Id);
         }
 
@@ -184,7 +184,12 @@ namespace Naos.Deployment.ComputingManagement
             await instanceToTurnOff.StopAsync(force, this.credentials);
             if (waitUntilOff)
             {
-                await instanceToTurnOff.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Stopped, this.credentials);
+                await WaitUntil.InstanceInState(
+                    instanceToTurnOff,
+                    Naos.AWS.Domain.InstanceState.Stopped,
+                    new[] { Naos.AWS.Domain.InstanceState.Pending, Naos.AWS.Domain.InstanceState.Running, Naos.AWS.Domain.InstanceState.Terminated },
+                    TimeSpan.FromMinutes(10),
+                    this.credentials);
             }
         }
 
@@ -195,7 +200,12 @@ namespace Naos.Deployment.ComputingManagement
             await instanceToTurnOn.StartAsync(this.credentials);
             if (waitUntilOn)
             {
-                await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Running, this.credentials);
+                await WaitUntil.InstanceInState(
+                    instanceToTurnOn,
+                    Naos.AWS.Domain.InstanceState.Running,
+                    new[] { Naos.AWS.Domain.InstanceState.Stopped, Naos.AWS.Domain.InstanceState.Stopping, Naos.AWS.Domain.InstanceState.Terminated },
+                    TimeSpan.FromMinutes(10),
+                    this.credentials);
                 await this.WaitUntilStatusChecksCompleteRebootOnFailures(instanceToTurnOn, maxRebootAttemptsOnFailedStarts);
             }
         }
@@ -228,7 +238,12 @@ namespace Naos.Deployment.ComputingManagement
                             const bool WaitUntilOn = true;
                             await this.TurnOffInstanceAsync(instanceToTurnOn.Id, instanceToTurnOn.Region, ForceStop, WaitUntilOn);
                             await instanceToTurnOn.StartAsync(this.credentials);
-                            await instanceToTurnOn.WaitForStateAsync(Naos.AWS.Domain.InstanceState.Running, this.credentials);
+                            await WaitUntil.InstanceInState(
+                                instanceToTurnOn,
+                                Naos.AWS.Domain.InstanceState.Running,
+                                new[] { Naos.AWS.Domain.InstanceState.Stopped, Naos.AWS.Domain.InstanceState.Stopping, Naos.AWS.Domain.InstanceState.Terminated },
+                                TimeSpan.FromMinutes(10),
+                                this.credentials);
                             reboots = reboots + 1;
                         }
                         else
@@ -410,7 +425,7 @@ namespace Naos.Deployment.ComputingManagement
                                            : string.Empty,
                                };
 
-            var createdInstance = await instanceToCreate.CreateAsync(userData, this.credentials);
+            var createdInstance = await instanceToCreate.CreateAsync(userData, TimeSpan.FromMinutes(10), this.credentials);
 
             var systemSpecificDetails = new Dictionary<string, string>
                                             {
@@ -439,11 +454,11 @@ namespace Naos.Deployment.ComputingManagement
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
                     });
 
-            await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, this.credentials);
+            await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, TimeSpan.FromMinutes(10), this.credentials);
 
-            await createdInstance.AddTagInAwsAsync(this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString(), this.credentials);
+            await createdInstance.AddTagInAwsAsync(this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString(), TimeSpan.FromMinutes(10), this.credentials);
 
-            await createdInstance.AddTagInAwsAsync(this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString(), this.credentials);
+            await createdInstance.AddTagInAwsAsync(this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString(), TimeSpan.FromMinutes(10), this.credentials);
 
             var instanceDescription = new InstanceDescription()
             {
