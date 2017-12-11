@@ -408,7 +408,7 @@ namespace Naos.Deployment.ComputingManagement
                                            EnableSourceDestinationCheck = true,
                                        };
 
-            if (deploymentConfiguration.InstanceAccessibility == InstanceAccessibility.Public)
+            if (deploymentConfiguration.InstanceAccessibility == InstanceAccessibility.Public || deploymentConfiguration.InstanceAccessibility == InstanceAccessibility.Tunnel)
             {
                 instanceToCreate.ElasticIp = new ElasticIp
                                                  {

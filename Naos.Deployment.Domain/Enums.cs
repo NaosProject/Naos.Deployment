@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Domain
 {
+    using System;
+
     /// <summary>
     /// Enumeration of the types of deployed status of a package.
     /// </summary>
@@ -56,17 +58,22 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Indicates that it's irrelevant to this deployment.
         /// </summary>
-        DoesNotMatter = 0,
+        DoesNotMatter,
 
         /// <summary>
         /// Indicates accessible only inside the private network.
         /// </summary>
-        Private = 1,
+        Private,
 
         /// <summary>
         /// Indicates accessible to the public internet.
         /// </summary>
-        Public = 2,
+        Public,
+
+        /// <summary>
+        /// Indicates accessible to public internet but for tunnel purposes.
+        /// </summary>
+        Tunnel,
     }
 
     /// <summary>

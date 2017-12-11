@@ -65,9 +65,7 @@ namespace Naos.Deployment.Core
 
             // since values (where set) are the same for the entire collection just take the first one...
             var possiblePostDeploymentStrategy = deploymentConfigs.FirstOrDefault(_ => _.PostDeploymentStrategy != null);
-            var postDeploymentStrategy = possiblePostDeploymentStrategy == null
-                                             ? null
-                                             : possiblePostDeploymentStrategy.PostDeploymentStrategy;
+            var postDeploymentStrategy = possiblePostDeploymentStrategy?.PostDeploymentStrategy;
 
             // Make sure we don't have duplicate drive letter assignments.
             if (deploymentConfigs.Any(deploymentConfig => (deploymentConfig.Volumes ?? new Volume[0]).Select(_ => _.DriveLetter).Distinct().Count() != (deploymentConfig.Volumes ?? new Volume[0]).Count))
@@ -283,8 +281,7 @@ namespace Naos.Deployment.Core
             }
 
             // if the default isn't actually specifying anything then default to standard drive type (might wanna make configurable eventually...)
-            var volumes = (deploymentConfigInitial == null ? null : deploymentConfigInitial.Volumes)
-                          ?? defaultDeploymentConfig.Volumes;
+            var volumes = deploymentConfigInitial?.Volumes ?? defaultDeploymentConfig.Volumes;
             if (volumes != null)
             {
                 foreach (var volume in volumes)
@@ -305,32 +302,15 @@ namespace Naos.Deployment.Core
                 instanceCount = 1;
             }
 
-            var ret = new DeploymentConfiguration()
+            var ret = new DeploymentConfiguration
                           {
                               InstanceCount = instanceCount,
                               InstanceAccessibility = accessibilityValue,
-                              InstanceType =
-                                  (deploymentConfigInitial == null
-                                       ? null
-                                       : deploymentConfigInitial.InstanceType)
-                                  ?? defaultDeploymentConfig.InstanceType,
-                              Volumes =
-                                  volumes,
-                              ChocolateyPackages =
-                                  (deploymentConfigInitial == null
-                                       ? null
-                                       : deploymentConfigInitial.ChocolateyPackages)
-                                  ?? defaultDeploymentConfig.ChocolateyPackages,
-                              DeploymentStrategy =
-                                  (deploymentConfigInitial == null
-                                       ? null
-                                       : deploymentConfigInitial.DeploymentStrategy)
-                                  ?? defaultDeploymentConfig.DeploymentStrategy,
-                              PostDeploymentStrategy =
-                                  (deploymentConfigInitial == null
-                                       ? null
-                                       : deploymentConfigInitial.PostDeploymentStrategy)
-                                  ?? defaultDeploymentConfig.PostDeploymentStrategy,
+                              InstanceType = deploymentConfigInitial?.InstanceType ?? defaultDeploymentConfig.InstanceType,
+                              Volumes = volumes,
+                              ChocolateyPackages = deploymentConfigInitial?.ChocolateyPackages ?? defaultDeploymentConfig.ChocolateyPackages,
+                              DeploymentStrategy = deploymentConfigInitial?.DeploymentStrategy ?? defaultDeploymentConfig.DeploymentStrategy,
+                              PostDeploymentStrategy = deploymentConfigInitial?.PostDeploymentStrategy ?? defaultDeploymentConfig.PostDeploymentStrategy,
                           };
 
             if (ret.InstanceType != null)
