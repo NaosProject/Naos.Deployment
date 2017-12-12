@@ -20,15 +20,19 @@ namespace $rootnamespace$
     using System.Linq;
     using System.Management.Automation;
     using System.Security.Cryptography.X509Certificates;
+    using System.Xml.Serialization;
 
     using CLAP;
+
     using Its.Configuration;
     using Its.Log.Instrumentation;
 
+    using Naos.AWS.Core;
     using Naos.AWS.Domain;
 
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
+    using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
     using Naos.Logging.Domain;
@@ -38,8 +42,11 @@ namespace $rootnamespace$
     using Naos.Recipes.RunWithRetry;
     using Naos.Serialization.Factory;
 
+    using OBeautifulCode.Security.Recipes;
+
     using Spritely.Recipes;
     using Spritely.Redo;
+
     using static System.FormattableString;
 
     /// <summary>
@@ -257,7 +264,7 @@ namespace $rootnamespace$
             void GetInstances(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instances = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
-                
+
 				instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
             }
 
@@ -682,7 +689,7 @@ namespace $rootnamespace$
             var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
 
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
-            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();   
+            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
                 using (var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker))
@@ -940,6 +947,222 @@ namespace $rootnamespace$
             var cert = certToLoad.ToEncryptedVersion(encryptingCertificateLocator);
 
             Run.TaskUntilCompletion(writer.PersistCertificateAsync(cert));
+        }
+
+    /// <summary>
+    /// Creates a new environment.
+    /// </summary>
+    /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+    /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to create.</param>
+    /// <param name="outputArcologyPath">File path to create a file based arcology at.</param>
+    /// <param name="computingPlatformKeyFilePath">Key file from computing provider for creating assets.</param>
+    /// <param name="environmentCertificateFilePath">Certificate file to use for each machine.</param>
+    /// <param name="environmentCertificatePassword">Password for environment certificate file.</param>
+    /// <param name="deploymentCertificateFilePath">Certificate file to use for encrypting sensitive data.</param>
+    /// <param name="deploymentCertificatePassword">Password for the deployment certificate file.</param>
+    /// <param name="windowsSkuSearchPatternMapJson">Map of <see cref="WindowsSku" /> to search pattern to find appropriate instance template.</param>
+    /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
+    /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+    /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+    [Verb(Aliases = "create", Description = "Creates a new environment.")]
+        public static void CreateEnvironment(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Required] [Aliases("file")] [Description("XML Serialized ConfigEnvironment describing assets to create.")] string configFilePath,
+            [Required] [Aliases("path")] [Description("File path to create a file based arcology at.")] string outputArcologyPath,
+            [Required] [Aliases("")] [Description("ey file from computing provider for creating assets.")] string computingPlatformKeyFilePath,
+            [Required] [Aliases("")] [Description("Certificate to encrypt the key.")] string environmentCertificateFilePath,
+            [Required] [Aliases("")] [Description("Certificate file to use for each machine.")] string environmentCertificatePassword,
+            [Required] [Aliases("")] [Description("Password for environment certificate file.")] string deploymentCertificateFilePath,
+            [Required] [Aliases("")] [Description("Password for the deployment certificate file.")] string deploymentCertificatePassword,
+            [Required] [Aliases("")] [Description("Map of WindowsSku to search pattern to find appropriate instance template.")] string windowsSkuSearchPatternMapJson,
+            [Required] [Aliases("")] [Description("Map of root domain to root hosting ID for computing platform.")] string rootDomainHostingIdMapJson,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+        {
+            CommonSetup(debug, environment);
+
+            new
+                {
+                    credentialsJson,
+                    configFilePath,
+                    outputArcologyPath,
+                    computingPlatformKeyFilePath,
+                    environmentCertficateFilePath = environmentCertificateFilePath,
+                    environmentCertficatePassword = environmentCertificatePassword,
+                    deploymentCertficateFilePath = deploymentCertificateFilePath,
+                    deploymentCertficatePassword = deploymentCertificatePassword,
+                    windowsSkuSearchPatternMapJson,
+                    rootDomainHostingIdMapJson,
+                }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
+            var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
+
+            var outputConfigFilePath = Path.Combine(outputArcologyPath, Path.ChangeExtension(configFilePath, ".created.xml"));
+
+            var environmentCertificateBytes = File.ReadAllBytes(environmentCertificateFilePath);
+            var environmentCertificateChain = CertHelper.ExtractCertChainFromPfx(environmentCertificateBytes, environmentCertificatePassword);
+            var environmentCertificate = environmentCertificateChain.GetEndUserCertFromCertChain();
+
+            var deploymentCertificateBytes = File.ReadAllBytes(deploymentCertificateFilePath);
+            var deploymentCertificateChain = CertHelper.ExtractCertChainFromPfx(deploymentCertificateBytes, deploymentCertificatePassword);
+            var deploymentCertificate = deploymentCertificateChain.GetEndUserCertFromCertChain();
+            var encryptingCertificateLocator = new CertificateLocator(deploymentCertificate.GetThumbprint(), false);
+
+            // key text from Amazon does not actually work with the API out of the box...
+            var keyName = Path.GetFileNameWithoutExtension(computingPlatformKeyFilePath);
+            var keyText = File.ReadAllText(computingPlatformKeyFilePath);
+            var keyHeader = "-----BEGIN RSA PRIVATE KEY-----";
+            var keyFooter = "-----END RSA PRIVATE KEY-----";
+            var cleanKeyText = Invariant(
+                $"{keyHeader}{Environment.NewLine}{keyText.Replace(keyHeader, string.Empty).Replace(keyFooter, string.Empty).Replace(Environment.NewLine, string.Empty)}{Environment.NewLine}{keyFooter}");
+            var encryptedKey = Encryptor.Encrypt(cleanKeyText, encryptingCertificateLocator);
+
+            var rootDomainHostingIdMap = serializer.Deserialize<Dictionary<string, string>>(rootDomainHostingIdMapJson);
+            var windowsSkuSearchPatternMap = serializer.Deserialize<Dictionary<WindowsSku, string>>(windowsSkuSearchPatternMapJson);
+
+            var configFileXml = File.ReadAllText(configFilePath);
+            var xmlSerializer = new XmlSerializer(typeof(ConfigEnvironment));
+            ConfigEnvironment configuration;
+            using (var stringReader = new StringReader(configFileXml))
+            {
+                configuration = (ConfigEnvironment)xmlSerializer.Deserialize(stringReader);
+            }
+
+            if (configuration.Vpcs.Length > 1)
+            {
+                throw new ArgumentException("Cannot create more than one VPC for use with an arcology.");
+            }
+
+            void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    xmlSerializer.Serialize(stringWriter, updatedEnvironment);
+                    File.WriteAllText(outputConfigFilePath, stringWriter.ToString());
+                }
+            }
+
+            var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
+            var populatedEnvironment = Run.TaskUntilCompletion(Creator.CreateEnvironment(credentials, configuration, UpdateOutputConfigFile, TimeSpan.FromMinutes(10)));
+
+            var vpc = populatedEnvironment.Vpcs.Single();
+
+            var computingContainers = vpc.Subnets.Where(
+                _ => _.Name.ToUpperInvariant().Contains(InstanceAccessibility.Public.ToString().ToUpperInvariant())
+                     || _.Name.ToUpperInvariant().Contains(InstanceAccessibility.Private.ToString().ToUpperInvariant())
+                     || _.Name.ToUpperInvariant().Contains("VPN")).Select(
+                subnet =>
+                    {
+                        var routeTable = vpc.RouteTables.Single(_ => _.Name.Equals(subnet.RouteTableRef, StringComparison.CurrentCultureIgnoreCase));
+                        var accessiblity =
+                            routeTable.Routes.Any(
+                                route => populatedEnvironment.InternetGateways.Any(
+                                    gateway => route.TargetRef.Equals(gateway.Name, StringComparison.CurrentCultureIgnoreCase)))
+                                ? (subnet.Name.ToUpperInvariant().Contains("VPN") ? InstanceAccessibility.Tunnel : InstanceAccessibility.Public)
+                                : InstanceAccessibility.Private;
+
+                        var securityGroup = vpc.SecurityGroups.Single();
+
+                        var container = new ComputingContainerDescription
+                                            {
+                                                Cidr = subnet.Cidr,
+                                                ContainerLocation = subnet.AvailabilityZone,
+                                                ContainerId = subnet.SubnetId,
+                                                InstanceAccessibility = accessiblity,
+                                                SecurityGroupId = securityGroup.SecurityGroupId,
+                                                StartIpsAfter = 10,
+                                                EncryptingCertificateLocator = encryptingCertificateLocator,
+                                                KeyName = keyName,
+                                                EncryptedPrivateKey = encryptedKey,
+                                            };
+
+                        return container;
+                    }).ToList();
+
+            var arcologyInfo = new ArcologyInfo
+                                   {
+                                       Location = populatedEnvironment.RegionName,
+                                       ComputingContainers = computingContainers,
+                                       RootDomainHostingIdMap = rootDomainHostingIdMap,
+                                       WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
+                                   };
+
+            new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath).Create(environment, arcologyInfo);
+
+            var certificatesJsonFilePath = Path.Combine(outputArcologyPath, "Certificates.json");
+			CertificateWriterToFile.Create(certificatesJsonFilePath);
+
+            var certificateWriter = new CertificateWriterToFile(certificatesJsonFilePath);
+            var environmentCertToStore = new CertificateDescriptionWithClearPfxPayload(
+                Path.GetFileNameWithoutExtension(environmentCertificateFilePath),
+                environmentCertificate.GetThumbprint(),
+                environmentCertificate.GetValidityPeriod(),
+                environmentCertificate.GetX509SubjectAttributes().ToDictionary(k => k.Key.ToString(), v => v.Value),
+                environmentCertificateBytes,
+                environmentCertificatePassword);
+            Run.TaskUntilCompletion(certificateWriter.PersistCertificateAsync(environmentCertToStore, encryptingCertificateLocator));
+
+            var deploymentCertToStore = new CertificateDescriptionWithClearPfxPayload(
+                Path.GetFileNameWithoutExtension(deploymentCertificateFilePath),
+                deploymentCertificate.GetThumbprint(),
+                deploymentCertificate.GetValidityPeriod(),
+                deploymentCertificate.GetX509SubjectAttributes().ToDictionary(k => k.Key.ToString(), v => v.Value),
+                deploymentCertificateBytes,
+                deploymentCertificatePassword);
+            Run.TaskUntilCompletion(certificateWriter.PersistCertificateAsync(deploymentCertToStore, encryptingCertificateLocator));
+        }
+
+        /// <summary>
+        /// Destroy an existing environment.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to destroy.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [Verb(Aliases = "destroy", Description = "Destroy an existing environment.")]
+        public static void DestroyEnvironment(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Required] [Aliases("file")] [Description("Configuration file path describing environment to destroy.")] string configFilePath,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+        {
+            CommonSetup(debug, environment);
+
+            new
+                {
+                    credentialsJson,
+                    configFilePath,
+                }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
+            var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
+
+            var outputConfigFilePath = Path.ChangeExtension(configFilePath, ".removed.xml");
+
+            var configFileXml = File.ReadAllText(configFilePath);
+            var xmlSerializer = new XmlSerializer(typeof(ConfigEnvironment));
+            ConfigEnvironment configuration;
+            using (var stringReader = new StringReader(configFileXml))
+            {
+                configuration = (ConfigEnvironment)xmlSerializer.Deserialize(stringReader);
+            }
+
+            if (configuration.Vpcs.Length > 1)
+            {
+                throw new ArgumentException("Cannot create more than one VPC for use with an arcology.");
+            }
+
+            void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)
+            {
+                using (var stringWriter = new StringWriter())
+                {
+                    xmlSerializer.Serialize(stringWriter, updatedEnvironment);
+                    File.WriteAllText(outputConfigFilePath, stringWriter.ToString());
+                }
+            }
+
+            var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
+            var populatedEnvironment = Run.TaskUntilCompletion(Destroyer.RemoveEnvironment(credentials, configuration, UpdateOutputConfigFile, TimeSpan.FromMinutes(10)));
         }
 
         private static void NugetAnnouncementAction(string output, string nugetAnnouncementFilePath)

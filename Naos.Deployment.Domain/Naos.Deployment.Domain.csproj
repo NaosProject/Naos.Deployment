@@ -58,8 +58,8 @@
     <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.40\lib\net461\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Domain, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Domain.1.0.43\lib\net461\Naos.Serialization.Domain.dll</HintPath>
@@ -118,6 +118,7 @@
     <Compile Include="IManageComputingInfrastructure.cs" />
     <Compile Include="IManageDeployments.cs" />
     <Compile Include="InitializationStrategy\IHaveManagementChannel.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyCopyBytes.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyBase.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyCertificateToInstall.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyDirectoryToCreate.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="InitializationStrategy\InitializationStrategyIis.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMongo.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyOnetimeCall.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategySelfHost.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyScheduledTask.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategySqlServer.cs" />

@@ -49,6 +49,27 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
+        public async Task Create(string environment, ArcologyInfo arcologyInfo)
+        {
+            await Task.Run(
+                () =>
+                    {
+                        /* no-op */
+                    });
+
+            var arcologyInfoJson = Serializer.SerializeToString(arcologyInfo);
+
+            var folder = this.GetArcologyFolderPath(environment);
+            var file = Path.Combine(folder, Invariant($"{nameof(ArcologyInfo)}.json"));
+            if (File.Exists(file))
+            {
+                throw new ArgumentException(Invariant($"Arcology already has definition at: {file}"));
+            }
+
+            File.WriteAllText(file, arcologyInfoJson);
+        }
+
+        /// <inheritdoc />
         public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
         {
             lock (this.fileSync)

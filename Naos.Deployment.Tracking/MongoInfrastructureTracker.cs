@@ -34,6 +34,8 @@ namespace Naos.Deployment.Tracking
 
         private readonly IQueries<ArcologyInfoContainer> arcologyInfoQueries;
 
+        private readonly ICommands<string, ArcologyInfoContainer> arcologyInfoCommands;
+
         private readonly IQueries<InstanceContainer> instanceQueries;
 
         private readonly ICommands<string, InstanceContainer> instanceCommands;
@@ -42,19 +44,29 @@ namespace Naos.Deployment.Tracking
         /// Initializes a new instance of the <see cref="MongoInfrastructureTracker"/> class.
         /// </summary>
         /// <param name="arcologyInfoQueries">Query interface to get arcology information models.</param>
+        /// <param name="arcologyInfoCommands">Command interface to add arcology.</param>
         /// <param name="instanceQueries">Query interface to get instances.</param>
         /// <param name="instanceCommands">Command interface to add/update/remove instances.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public MongoInfrastructureTracker(
             IQueries<ArcologyInfoContainer> arcologyInfoQueries,
+            ICommands<string, ArcologyInfoContainer> arcologyInfoCommands,
             IQueries<InstanceContainer> instanceQueries,
             ICommands<string, InstanceContainer> instanceCommands)
         {
             this.arcologyInfoQueries = arcologyInfoQueries;
+            this.arcologyInfoCommands = arcologyInfoCommands;
             this.instanceQueries = instanceQueries;
             this.instanceCommands = instanceCommands;
 
             BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
+        }
+
+        /// <inheritdoc />
+        public async Task Create(string environment, ArcologyInfo arcologyInfo)
+        {
+            var arcologyInfoContainer = new ArcologyInfoContainer { Id = environment.ToUpperInvariant(), Environment = environment, ArcologyInfo = arcologyInfo };
+            await this.arcologyInfoCommands.AddOneAsync(arcologyInfoContainer);
         }
 
         /// <inheritdoc />

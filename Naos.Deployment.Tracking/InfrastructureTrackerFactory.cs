@@ -40,9 +40,10 @@ namespace Naos.Deployment.Tracking
                 var configAsDatabase = (InfrastructureTrackerConfigurationDatabase)infrastructureTrackerConfigurationBase;
                 var deploymentDatabase = configAsDatabase.Database;
                 var arcologyInfoQueries = deploymentDatabase.GetQueriesInterface<ArcologyInfoContainer>();
+                var arcologyInfoCommands = deploymentDatabase.GetCommandsInterface<string, ArcologyInfoContainer>();
                 var instanceQueries = deploymentDatabase.GetQueriesInterface<InstanceContainer>();
                 var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
-                ret = new MongoInfrastructureTracker(arcologyInfoQueries, instanceQueries, instanceCommands);
+                ret = new MongoInfrastructureTracker(arcologyInfoQueries, arcologyInfoCommands, instanceQueries, instanceCommands);
             }
             else
             {

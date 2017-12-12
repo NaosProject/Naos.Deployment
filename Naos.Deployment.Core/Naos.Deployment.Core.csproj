@@ -214,17 +214,17 @@
     <Reference Include="Naos.FileJanitor.MessageBus.Scheduler, Version=1.1.128.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.FileJanitor.MessageBus.Scheduler.1.1.128\lib\net461\Naos.FileJanitor.MessageBus.Scheduler.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Domain, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Domain.1.0.10\lib\net461\Naos.Logging.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.11\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.40\lib\net461\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.40.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.40\lib\net461\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.41\lib\net461\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Bson, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Bson.1.0.43\lib\net461\Naos.Serialization.Bson.dll</HintPath>
@@ -339,6 +339,7 @@
     <Compile Include="SetupSteps\SetupStepFactory.InstanceLevel.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Mongo.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.ItsConfig.cs" />
+    <Compile Include="SetupSteps\SetupStepFactory.InitializationStrategyOnetimeCall.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.SelfHost.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.ScheduledTask.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.SqlServer.cs" />

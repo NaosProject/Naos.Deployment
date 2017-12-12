@@ -184,7 +184,7 @@ namespace Naos.Deployment.Core
                 PackageDescription.NullPackageId,
                 StringComparison.CurrentCultureIgnoreCase))
             {
-                return "[DOES NOT HAVE A VERSION]";
+                return "[NULL PACKAGE VERSION IS IRRELEVANT]";
             }
 
             var nuspecSearchPattern = package.PackageDescription.Id + ".nuspec";

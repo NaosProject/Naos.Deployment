@@ -8,7 +8,6 @@ namespace Naos.Deployment.Domain
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Threading.Tasks;
 
     using Naos.Packaging.Domain;
@@ -20,6 +19,14 @@ namespace Naos.Deployment.Domain
     /// </summary>
     public interface ITrackComputingInfrastructure : IDisposable
     {
+        /// <summary>
+        /// Creates a new arcology.
+        /// </summary>
+        /// <param name="environment">Environment to create for.</param>
+        /// <param name="arcologyInfo"><see cref="ArcologyInfo" /> to use.</param>
+        /// <returns>Task for async.</returns>
+        Task Create(string environment, ArcologyInfo arcologyInfo);
+
         /// <summary>
         /// Gets instance descriptions of instances that have specified packages deployed to it.
         /// </summary>
@@ -152,6 +159,12 @@ namespace Naos.Deployment.Domain
             () =>
                 {
                 });
+
+        /// <inheritdoc />
+        public Task Create(string environment, ArcologyInfo arcologyInfo)
+        {
+            return this.emptyTask;
+        }
 
         /// <inheritdoc />
         public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)

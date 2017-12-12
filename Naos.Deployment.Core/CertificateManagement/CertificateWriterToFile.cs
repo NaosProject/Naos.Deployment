@@ -15,6 +15,8 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.Serialization.Domain;
     using Naos.Serialization.Json;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Implementation using a text file of <see cref="IPersistCertificates"/>.
     /// </summary>
@@ -25,6 +27,22 @@ namespace Naos.Deployment.Core.CertificateManagement
         private readonly object fileSync = new object();
 
         private readonly string filePath;
+
+        /// <summary>
+        /// Creates a new persistence file to use with <see cref="CertificateWriterToFile" /> instances.
+        /// </summary>
+        /// <param name="filePath">Path to save all state to.</param>
+        public static void Create(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                throw new ArgumentException(Invariant($"{nameof(CertificateWriterToFile)} cannot create because there is already a file at: {filePath}"));
+            }
+
+            var initialObject = new CertificateCollection();
+            var text = Serializer.SerializeToString(initialObject);
+            File.WriteAllText(filePath, text);
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CertificateWriterToFile"/> class.

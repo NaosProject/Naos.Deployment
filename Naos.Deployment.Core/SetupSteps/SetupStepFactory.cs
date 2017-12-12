@@ -197,6 +197,16 @@ namespace Naos.Deployment.Core
 
                 ret = new SetupStepBatch { ExecutionOrder = 7, Steps = scheduledTaskSteps };
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyOnetimeCall))
+            {
+                var onetimeCallSteps = this.GetOnetimeCallSpecificSteps(
+                    (InitializationStrategyOnetimeCall)strategy,
+                    packagedConfig.ItsConfigOverrides,
+                    packageDirectoryPath,
+                    environment);
+
+                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = onetimeCallSteps };
+            }
             else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
             {
                 var selfHostSteps =
@@ -209,7 +219,7 @@ namespace Naos.Deployment.Core
                         adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = selfHostSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = selfHostSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
@@ -222,7 +232,7 @@ namespace Naos.Deployment.Core
                                    adminPassword,
                                    funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = webSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 10, Steps = webSteps };
             }
             else
             {
@@ -260,26 +270,18 @@ namespace Naos.Deployment.Core
             var unzipParams = new[] { packageFilePath, packageDirectoryPath };
             var deployUnzippedFileStep = new SetupStep
                                              {
-                                                 Description =
-                                                     "Push package file and unzip: "
-                                                     + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(),
+                                                 Description = "Push package file and unzip: " + packagedConfig.PackageWithBundleIdentifier.Package
+                                                                   .PackageDescription.GetIdDotVersionString(),
                                                  SetupFunc = machineManager =>
                                                      {
-                                                         // don't push the null package...
-                                                         if (
-                                                             !string.Equals(
-                                                                 packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id,
-                                                                 PackageDescription.NullPackageId))
-                                                         {
-                                                             // in case we're in a retry scenario we should just overwrite...
-                                                             const bool Overwrite = true;
-                                                             machineManager.SendFile(
-                                                                 packageFilePath,
-                                                                 packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
-                                                                 false,
-                                                                 Overwrite);
-                                                             Log.Write(() => machineManager.RunScript(unzipScript, unzipParams));
-                                                         }
+                                                         // in case we're in a retry scenario we should just overwrite...
+                                                         const bool Overwrite = true;
+                                                         machineManager.SendFile(
+                                                             packageFilePath,
+                                                             packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
+                                                             false,
+                                                             Overwrite);
+                                                         Log.Write(() => machineManager.RunScript(unzipScript, unzipParams));
 
                                                          return new dynamic[0];
                                                      },

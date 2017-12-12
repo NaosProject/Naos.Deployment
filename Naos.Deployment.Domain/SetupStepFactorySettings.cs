@@ -289,6 +289,11 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription UpdateInstanceWallpaper { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to run a command one time during the deployment.
+        /// </summary>
+        public ScriptBlockDescription RunOnetimeCall { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to unzip a file.
         /// </summary>
         public ScriptBlockDescription UnzipFile { get; set; }
