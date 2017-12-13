@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" ?>
+
+<package>
+  <metadata>
+    <id>Naos.Deployment.Config.Common</id>
+    <description>Common config for Naos.Deployment.Console or other implementation to initialize SetupStepFactory, ComputingInfrastructureManager, and a default DeploymentConfiguration.</description>
+  </metadata>
+  <files>
+    <file src=".config\Common\ComputingInfrastructureManagerSettings.json" target="content\.config\Common\ComputingInfrastructureManagerSettings.json" />
+    <file src=".config\Common\DefaultDeploymentConfiguration.json" target="content\.config\Common\DefaultDeploymentConfiguration.json" />
+    <file src=".config\Common\SetupStepFactorySettings.json" target="content\.config\Common\SetupStepFactorySettings.json" />
+  </files>
+</package>

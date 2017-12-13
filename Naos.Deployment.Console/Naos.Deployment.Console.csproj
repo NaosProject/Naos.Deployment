@@ -202,6 +202,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <None Include="App.config" />
+    <None Include="Naos.Deployment.Config.Common.recipe-nuspec" />
     <None Include="Naos.Deployment.Bootstrapper.recipe-nuspec" />
     <None Include="packages.config" />
   </ItemGroup>

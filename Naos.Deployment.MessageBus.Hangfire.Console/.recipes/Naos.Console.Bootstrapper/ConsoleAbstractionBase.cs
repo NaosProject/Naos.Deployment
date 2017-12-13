@@ -228,21 +228,22 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         /// </summary>
         /// <example>PrintArguments(new { argumentOne, argumentTwo, maskedArgumentThree = MaskString(argumentThree), totalDays = argumentFour.TotalDays }, nameof(MyMethod));</example>
         /// <param name="anonymousObjectWithArguments">Object to reflect over properties of.</param>
+        /// <param name="description">Description of the event (DEFAULT is method name called).</param>
         /// <param name="method">Optional name of method being called, if null then it will construct a <see cref="StackTrace" /> to retrieve it; this takes about 10-15 milliseconds so it's not free but is relatively cheap to have a smaller mouth to feed.</param>
         /// <param name="announcer">Optional announcer; DEFAULT is null which will go to <see cref="Console.WriteLine(string)" />.<see cref="Console.WriteLine(string)" />.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "object", Justification = "Prefer this name for clarity.")]
-        protected static void PrintArguments(object anonymousObjectWithArguments = null, string method = null, Action<string> announcer = null)
+        protected static void PrintArguments(object anonymousObjectWithArguments = null, string description = null, string method = null, Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.WriteLine;
             var localMethod = method ?? new StackTrace().GetFrame(1).GetMethod().Name;
             var lines = new List<string>();
 
             var propertyInfos = anonymousObjectWithArguments?.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).ToList();
-            var firstLine = Invariant($"Called '{localMethod}' with no provided arguments");
+            var localFirstLine = Invariant($"Called '{localMethod}' with no provided arguments");
 
             if (propertyInfos != null && propertyInfos.Any())
             {
-                firstLine = Invariant($"Called '{localMethod}' with the following arguments:");
+                localFirstLine = Invariant($"Called '{localMethod}' with the following arguments:");
 
                 int longestLeftOffset = 3 + propertyInfos.Max(_ => _.Name.Length);
 
@@ -259,7 +260,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
 
             lines.Add(string.Empty);
 
-            localAnnouncer(firstLine);
+            localAnnouncer(string.IsNullOrWhiteSpace(description) ? localFirstLine : description);
             lines.ForEach(_ => localAnnouncer(_));
         }
 
