@@ -185,6 +185,10 @@ namespace Naos.Deployment.Core
             {
                 /* No additional steps necessary as the DeploymentManager performs this operation at the end */
             }
+            else if (strategy.GetType() == typeof(InitializationStrategyCopyBytes))
+            {
+                /* No additional steps necessary as the files will be copied by inclusion in the copy list */
+            }
             else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
             {
                 var scheduledTaskSteps =

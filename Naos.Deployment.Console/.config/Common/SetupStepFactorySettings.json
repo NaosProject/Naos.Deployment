@@ -1,7 +1,20 @@
 ﻿{
     "rootPackageDirectoriesToPrune": [ "tools", "ref", "runtimes", "analyzers" ],
-    "initializationStrategyTypesThatNeedPackageBytes": [ "Naos.Deployment.Domain.InitializationStrategyOnetimeCall, Naos.Deployment.Domain.InitializationStrategyCopyBytes, Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
-    "initializationStrategyTypesThatNeedEnvironmentCertificate": [ "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain", "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain" ],
+    "initializationStrategyTypesThatNeedPackageBytes": [
+        "Naos.Deployment.Domain.InitializationStrategyOnetimeCall, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyCopyBytes, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"
+    ],
+    "initializationStrategyTypesThatNeedEnvironmentCertificate": [
+        "Naos.Deployment.Domain.InitializationStrategyOnetimeCall, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyIis, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyMessageBusHandler, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategyScheduledTask, Naos.Deployment.Domain",
+        "Naos.Deployment.Domain.InitializationStrategySelfHost, Naos.Deployment.Domain"
+    ],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPath": "D:\\Deployments",
