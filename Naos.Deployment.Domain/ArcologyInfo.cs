@@ -24,6 +24,11 @@ namespace Naos.Deployment.Domain
         public string Location { get; set; }
 
         /// <summary>
+        /// Gets or sets the serialized environment specification.
+        /// </summary>
+        public string SerializedEnvironmentSpecification { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of supported computing containers in the arcology.
         /// </summary>
         public IReadOnlyCollection<ComputingContainerDescription> ComputingContainers { get; set; }

@@ -9,7 +9,7 @@ namespace Naos.Deployment.Persistence
     using Naos.Deployment.Domain;
 
     /// <summary>
-    /// Container object to hold an instance and save it in Mongo.
+    /// Container object to hold an arcology info and save it in Mongo.
     /// </summary>
     public class ArcologyInfoContainer
     {

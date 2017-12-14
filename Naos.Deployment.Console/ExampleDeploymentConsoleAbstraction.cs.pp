@@ -1002,7 +1002,9 @@ namespace $rootnamespace$
             var outputConfigFilePath = Path.Combine(outputArcologyPath, Path.ChangeExtension(configFilePath, ".Created.xml"));
             if (File.Exists(outputConfigFilePath))
             {
-                var backupOutputConfigFilePath = configFilePath + ".BackedUpOn" + DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture) + "Z";
+                var backupOutputConfigFilePath = Path.ChangeExtension(
+                    configFilePath,
+                    Invariant($".BackedUpOn{DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture)}Z.xml"));
                 if (File.Exists(backupOutputConfigFilePath))
                 {
                     throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));
@@ -1091,9 +1093,11 @@ namespace $rootnamespace$
                     return container;
                 }).ToList();
 
+			var outputConfigText = File.ReadAllText(outputConfigFilePath);
             var arcologyInfo = new ArcologyInfo
             {
                 Location = populatedEnvironment.RegionName,
+				SerializedEnvironmentSpecification = outputConfigText,
                 ComputingContainers = computingContainers,
                 RootDomainHostingIdMap = rootDomainHostingIdMap,
                 WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
@@ -1178,7 +1182,9 @@ namespace $rootnamespace$
             var outputConfigFilePath = Path.ChangeExtension(configFilePath, ".Removed.xml");
             if (File.Exists(outputConfigFilePath))
             {
-                var backupOutputConfigFilePath = outputConfigFilePath + ".BackedUpOn" + DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture) + "Z";
+                var backupOutputConfigFilePath = Path.ChangeExtension(
+                    configFilePath,
+                    Invariant($".BackedUpOn{DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture)}Z.xml"));
                 if (File.Exists(backupOutputConfigFilePath))
                 {
                     throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));

@@ -59,6 +59,12 @@ namespace Naos.Deployment.Tracking
 
             lock (this.fileSync)
             {
+                var arcologyFolderPath = this.GetArcologyFolderPath(environment);
+                var arcologyInfoJson = Serializer.SerializeToString(arcologyInfo);
+
+                var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, Invariant($"{nameof(ArcologyInfo)}.json"));
+                File.WriteAllText(arcologyInfoFilePath, arcologyInfoJson);
+
                 var arcology = new Arcology(environment, arcologyInfo, deployedInstances);
                 this.SaveArcology(arcology);
             }
@@ -340,7 +346,7 @@ namespace Naos.Deployment.Tracking
 
             var instanceFiles = Directory.GetFiles(arcologyFolderPath, InstancePrefix + "*", SearchOption.TopDirectoryOnly);
             var instances = instanceFiles.Select(_ => Serializer.Deserialize<DeployedInstance>(File.ReadAllText(_))).ToList();
-            var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, "ArcologyInfo.json");
+            var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, Invariant($"{nameof(ArcologyInfo)}.json"));
             var arcologyInfoText = File.ReadAllText(arcologyInfoFilePath);
             var arcologyInfo = Serializer.Deserialize<ArcologyInfo>(arcologyInfoText);
 
