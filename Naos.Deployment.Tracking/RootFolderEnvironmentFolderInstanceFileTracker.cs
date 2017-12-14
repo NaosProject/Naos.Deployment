@@ -60,6 +60,11 @@ namespace Naos.Deployment.Tracking
             lock (this.fileSync)
             {
                 var arcologyFolderPath = this.GetArcologyFolderPath(environment);
+                if (!Directory.Exists(arcologyFolderPath))
+                {
+                    Directory.CreateDirectory(arcologyFolderPath);
+                }
+
                 var arcologyInfoJson = Serializer.SerializeToString(arcologyInfo);
 
                 var arcologyInfoFilePath = Path.Combine(arcologyFolderPath, Invariant($"{nameof(ArcologyInfo)}.json"));

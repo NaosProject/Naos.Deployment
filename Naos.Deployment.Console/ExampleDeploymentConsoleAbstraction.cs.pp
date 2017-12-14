@@ -1003,14 +1003,14 @@ namespace $rootnamespace$
             if (File.Exists(outputConfigFilePath))
             {
                 var backupOutputConfigFilePath = Path.ChangeExtension(
-                    configFilePath,
+                    outputConfigFilePath,
                     Invariant($".BackedUpOn{DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture)}Z.xml"));
                 if (File.Exists(backupOutputConfigFilePath))
                 {
                     throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));
                 }
 
-                File.Move(configFilePath, backupOutputConfigFilePath);
+                File.Move(outputConfigFilePath, backupOutputConfigFilePath);
             }
 
             var environmentCertificateBytes = File.ReadAllBytes(environmentCertificateFilePath);
@@ -1172,25 +1172,25 @@ namespace $rootnamespace$
             var instances = Run.TaskUntilCompletion(new List<InstanceWithStatus>().FillFromAwsAsync(configuration.RegionName, credentials));
 
             // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
-            var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
+            var nonTerminatedInstances = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
                 .Where(_ => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr));
-            if (instances.Any())
+            if (nonTerminatedInstances.Any())
             {
-                throw new ArgumentException(Invariant($"Cannot destroy an environment with instances! {environment} has {string.Join(",", instances.Select(_ => _.Name))}.  If this is intended for destruction then first retire each instance."));
+                throw new ArgumentException(Invariant($"Cannot destroy an environment with instances! {environment} has {string.Join(",", instances.Select(_ => _.PrivateIpAddress))}.  If this is intended for destruction then first retire each instance."));
             }
 
             var outputConfigFilePath = Path.ChangeExtension(configFilePath, ".Removed.xml");
             if (File.Exists(outputConfigFilePath))
             {
                 var backupOutputConfigFilePath = Path.ChangeExtension(
-                    configFilePath,
+                    outputConfigFilePath,
                     Invariant($".BackedUpOn{DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture)}Z.xml"));
                 if (File.Exists(backupOutputConfigFilePath))
                 {
                     throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));
                 }
 
-                File.Move(configFilePath, backupOutputConfigFilePath);
+                File.Move(outputConfigFilePath, backupOutputConfigFilePath);
             }
 
             void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)

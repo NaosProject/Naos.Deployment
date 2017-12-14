@@ -289,6 +289,8 @@ namespace Naos.Deployment.Core
 
             string FuncToCreateNewDnsWithTokensReplaced(string tokenizedDns) => TokenSubstitutions.GetSubstitutedStringForDns(tokenizedDns, environment, numberedInstanceName, instanceNumber);
 
+            // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
+            var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
             if (configToCreateWith.DeploymentStrategy.RunSetupSteps)
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
@@ -340,9 +342,6 @@ namespace Naos.Deployment.Core
                     this.itsConfigPrecedenceAfterEnvironment,
                     this.setupStepFactory.Settings);
 
-                // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
-                var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
-
                 if (additionalPackages.Any())
                 {
                     additionalPackages.ToList().ForEach(
@@ -366,9 +365,9 @@ namespace Naos.Deployment.Core
                         createdInstanceDescription.Id,
                         packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription);
                 }
-
-                this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, FuncToCreateNewDnsWithTokensReplaced);
             }
+
+            this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, FuncToCreateNewDnsWithTokensReplaced);
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
             {
