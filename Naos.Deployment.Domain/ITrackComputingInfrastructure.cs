@@ -24,8 +24,9 @@ namespace Naos.Deployment.Domain
         /// </summary>
         /// <param name="environment">Environment to create for.</param>
         /// <param name="arcologyInfo"><see cref="ArcologyInfo" /> to use.</param>
+        /// <param name="deployedInstances">Optional <see cref="DeployedInstance" />'s that already exist.</param>
         /// <returns>Task for async.</returns>
-        Task Create(string environment, ArcologyInfo arcologyInfo);
+        Task Create(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null);
 
         /// <summary>
         /// Gets instance descriptions of instances that have specified packages deployed to it.
@@ -161,7 +162,7 @@ namespace Naos.Deployment.Domain
                 });
 
         /// <inheritdoc />
-        public Task Create(string environment, ArcologyInfo arcologyInfo)
+        public Task Create(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
             return this.emptyTask;
         }

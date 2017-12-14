@@ -77,11 +77,11 @@
     <Reference Include="MongoDB.Driver.Core, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Driver.Core.2.4.4\lib\net45\MongoDB.Driver.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.51\lib\net461\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.52\lib\net461\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.51\lib\net461\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.52\lib\net461\Naos.AWS.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Compression.Domain, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Compression.Domain.1.0.5\lib\net461\Naos.Compression.Domain.dll</HintPath>
@@ -96,8 +96,8 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.11\lib\net461\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.42\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>

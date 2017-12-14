@@ -58,11 +58,11 @@
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.51\lib\net461\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.52\lib\net461\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.51\lib\net461\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.52\lib\net461\Naos.AWS.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>

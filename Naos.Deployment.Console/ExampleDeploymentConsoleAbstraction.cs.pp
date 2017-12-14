@@ -16,6 +16,7 @@ namespace $rootnamespace$
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Management.Automation;
@@ -63,7 +64,7 @@ namespace $rootnamespace$
     {
         private static readonly object NugetAnnouncementFileLock = new object();
 
-        /// <summary>
+        /// <summary>n
         /// Gets new credentials on the computing platform provider, will be prepped such that output can be saved to a variable and passed back in for CredentialsJson parameter.
         /// </summary>
         /// <param name="location">Computing platform provider location to make the call against.</param>
@@ -265,7 +266,7 @@ namespace $rootnamespace$
             {
                 var instances = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
 
-				instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
+                instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
             }
 
             RunComputingManagerOperation(GetInstances, credentialsJson, infrastructureTrackerJson);
@@ -485,16 +486,16 @@ namespace $rootnamespace$
 
                     // Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
                     using (var cmdKeyInitProcess = new Process
-                                                       {
-                                                           StartInfo = new ProcessStartInfo(
+                    {
+                        StartInfo = new ProcessStartInfo(
                                                                Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe"),
                                                                Invariant($"/generic:TERMSRV/{address} /user:{user} /pass:{password}"))
-                                                                               {
-                                                                                   RedirectStandardOutput = true,
-                                                                                   RedirectStandardError = true,
-                                                                                   UseShellExecute = false,
-                                                                               },
-                                                       })
+                        {
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                        },
+                    })
                     {
                         cmdKeyInitProcess.Start().Named(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
                         cmdKeyInitProcess.WaitForExit();
@@ -511,24 +512,24 @@ namespace $rootnamespace$
                     }
 
                     var rdpProcess = new Process();
-					rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
-					rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
-					rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                    rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
+                    rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
+                    rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
                     System.Threading.Thread.Sleep(TimeSpan.FromSeconds(5)); // dirty way to make sure that MSTSC launches before cleaning the credentials...
 
                     using (var cmdKeyCleanupProcess = new Process
-                                                       {
-                                                           StartInfo = new ProcessStartInfo(
+                    {
+                        StartInfo = new ProcessStartInfo(
                                                                Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe"),
                                                                Invariant($"/delete:TERMSRV/{address}"))
-                                                                               {
-                                                                                   RedirectStandardOutput = true,
-                                                                                   RedirectStandardError = true,
-                                                                                   UseShellExecute = false,
-                                                                               },
-                                                       })
+                        {
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                        },
+                    })
                     {
                         cmdKeyCleanupProcess.Start().Named(Invariant($"{nameof(cmdKeyCleanupProcess)}.{nameof(cmdKeyCleanupProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
                         cmdKeyCleanupProcess.WaitForExit();
@@ -761,23 +762,23 @@ namespace $rootnamespace$
 
             PrintArguments(
                 new
-                    {
-                        workingPath,
-                        credentialsJson,
-                        deploymentAdjustmentApplicatorJson,
-                        nugetPackageRepositoryConfigurationsJson,
-                        certificateRetrieverJson,
-                        infrastructureTrackerJson,
-                        overrideDeploymentConfigJson,
-                        environment,
-                        instanceName,
-                        packagesToDeployJson,
-                        environmentCertificateName,
-                        announcementFilePath,
-                        debugAnnouncementFilePath,
-                        nugetAnnouncementFilePath,
-                        telemetryFilePath,
-                    });
+                {
+                    workingPath,
+                    credentialsJson,
+                    deploymentAdjustmentApplicatorJson,
+                    nugetPackageRepositoryConfigurationsJson,
+                    certificateRetrieverJson,
+                    infrastructureTrackerJson,
+                    overrideDeploymentConfigJson,
+                    environment,
+                    instanceName,
+                    packagesToDeployJson,
+                    environmentCertificateName,
+                    announcementFilePath,
+                    debugAnnouncementFilePath,
+                    nugetAnnouncementFilePath,
+                    telemetryFilePath,
+                });
 
             var packagesToDeploy = (ICollection<PackageDescriptionWithOverrides>)Settings.Deserialize(typeof(ICollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
             var certificateRetrieverConfiguration = (CertificateManagementConfigurationBase)Settings.Deserialize(typeof(CertificateManagementConfigurationBase), certificateRetrieverJson);
@@ -840,9 +841,9 @@ namespace $rootnamespace$
                             computingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch,
                             Console.WriteLine,
                             line =>
-                                {
-                                    /* no-op */
-                                },
+                            {
+                                /* no-op */
+                            },
                             unzipDirPath,
                             configFileManager,
                             environmentCertificateName,
@@ -898,16 +899,16 @@ namespace $rootnamespace$
 
             PrintArguments(
                 new
-                    {
-                        name,
-                        pfxFilePath,
-                        maskedPassword = MaskString(clearTextPassword),
-                        encryptingCertificateThumbprint,
-                        encryptingCertificateIsValid,
-                        encryptingCertificateStoreName,
-                        encryptingCertificateStoreLocation,
-                        certificateWriterJson,
-                    });
+                {
+                    name,
+                    pfxFilePath,
+                    maskedPassword = MaskString(clearTextPassword),
+                    encryptingCertificateThumbprint,
+                    encryptingCertificateIsValid,
+                    encryptingCertificateStoreName,
+                    encryptingCertificateStoreLocation,
+                    certificateWriterJson,
+                });
 
             new { name, pfxFilePath, clearTextPassword, encryptingCertificateThumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
@@ -949,56 +950,66 @@ namespace $rootnamespace$
             Run.TaskUntilCompletion(writer.PersistCertificateAsync(cert));
         }
 
-    /// <summary>
-    /// Creates a new environment.
-    /// </summary>
-    /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
-    /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to create.</param>
-    /// <param name="outputArcologyPath">File path to create a file based arcology at.</param>
-    /// <param name="computingPlatformKeyFilePath">Key file from computing provider for creating assets.</param>
-    /// <param name="environmentCertificateFilePath">Certificate file to use for each machine.</param>
-    /// <param name="environmentCertificatePassword">Password for environment certificate file.</param>
-    /// <param name="deploymentCertificateFilePath">Certificate file to use for encrypting sensitive data.</param>
-    /// <param name="deploymentCertificatePassword">Password for the deployment certificate file.</param>
-    /// <param name="windowsSkuSearchPatternMapJson">Map of <see cref="WindowsSku" /> to search pattern to find appropriate instance template.</param>
-    /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
-    /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-    /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
-    [Verb(Aliases = "create", Description = "Creates a new environment.")]
+        /// <summary>
+        /// Creates a new environment.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to create.</param>
+        /// <param name="outputArcologyPath">File path to create a file based arcology at.</param>
+        /// <param name="computingPlatformKeyFilePath">Key file from computing provider for creating assets.</param>
+        /// <param name="environmentCertificateFilePath">Certificate file to use for each machine.</param>
+        /// <param name="environmentCertificatePassword">Password for environment certificate file.</param>
+        /// <param name="deploymentCertificateFilePath">Certificate file to use for encrypting sensitive data.</param>
+        /// <param name="deploymentCertificatePassword">Password for the deployment certificate file.</param>
+        /// <param name="windowsSkuSearchPatternMapJson">Map of <see cref="WindowsSku" /> to search pattern to find appropriate instance template.</param>
+        /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "create", Description = "Creates a new environment.")]
         public static void CreateEnvironment(
-            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
-            [Required] [Aliases("file")] [Description("XML Serialized ConfigEnvironment describing assets to create.")] string configFilePath,
-            [Required] [Aliases("path")] [Description("File path to create a file based arcology at.")] string outputArcologyPath,
-            [Required] [Aliases("")] [Description("ey file from computing provider for creating assets.")] string computingPlatformKeyFilePath,
-            [Required] [Aliases("")] [Description("Certificate to encrypt the key.")] string environmentCertificateFilePath,
-            [Required] [Aliases("")] [Description("Certificate file to use for each machine.")] string environmentCertificatePassword,
-            [Required] [Aliases("")] [Description("Password for environment certificate file.")] string deploymentCertificateFilePath,
-            [Required] [Aliases("")] [Description("Password for the deployment certificate file.")] string deploymentCertificatePassword,
-            [Required] [Aliases("")] [Description("Map of WindowsSku to search pattern to find appropriate instance template.")] string windowsSkuSearchPatternMapJson,
-            [Required] [Aliases("")] [Description("Map of root domain to root hosting ID for computing platform.")] string rootDomainHostingIdMapJson,
-            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+                [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+                [Required] [Aliases("file")] [Description("XML Serialized ConfigEnvironment describing assets to create.")] string configFilePath,
+                [Required] [Aliases("path")] [Description("File path to create a file based arcology at.")] string outputArcologyPath,
+                [Required] [Aliases("")] [Description("ey file from computing provider for creating assets.")] string computingPlatformKeyFilePath,
+                [Required] [Aliases("")] [Description("Certificate to encrypt the key.")] string environmentCertificateFilePath,
+                [Required] [Aliases("")] [Description("Certificate file to use for each machine.")] string environmentCertificatePassword,
+                [Required] [Aliases("")] [Description("Password for environment certificate file.")] string deploymentCertificateFilePath,
+                [Required] [Aliases("")] [Description("Password for the deployment certificate file.")] string deploymentCertificatePassword,
+                [Required] [Aliases("")] [Description("Map of WindowsSku to search pattern to find appropriate instance template.")] string windowsSkuSearchPatternMapJson,
+                [Required] [Aliases("")] [Description("Map of root domain to root hosting ID for computing platform.")] string rootDomainHostingIdMapJson,
+                [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+                [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
         {
             CommonSetup(debug, environment);
 
             new
-                {
-                    credentialsJson,
-                    configFilePath,
-                    outputArcologyPath,
-                    computingPlatformKeyFilePath,
-                    environmentCertficateFilePath = environmentCertificateFilePath,
-                    environmentCertficatePassword = environmentCertificatePassword,
-                    deploymentCertficateFilePath = deploymentCertificateFilePath,
-                    deploymentCertficatePassword = deploymentCertificatePassword,
-                    windowsSkuSearchPatternMapJson,
-                    rootDomainHostingIdMapJson,
-                }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            {
+                credentialsJson,
+                configFilePath,
+                outputArcologyPath,
+                computingPlatformKeyFilePath,
+                environmentCertficateFilePath = environmentCertificateFilePath,
+                environmentCertficatePassword = environmentCertificatePassword,
+                deploymentCertficateFilePath = deploymentCertificateFilePath,
+                deploymentCertficatePassword = deploymentCertificatePassword,
+                windowsSkuSearchPatternMapJson,
+                rootDomainHostingIdMapJson,
+            }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
             var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
 
-            var outputConfigFilePath = Path.Combine(outputArcologyPath, Path.ChangeExtension(configFilePath, ".created.xml"));
+            var outputConfigFilePath = Path.Combine(outputArcologyPath, Path.ChangeExtension(configFilePath, ".Created.xml"));
+            if (File.Exists(outputConfigFilePath))
+            {
+                var backupOutputConfigFilePath = configFilePath + ".BackedUpOn" + DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture) + "Z";
+                if (File.Exists(backupOutputConfigFilePath))
+                {
+                    throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));
+                }
+
+                File.Move(configFilePath, backupOutputConfigFilePath);
+            }
 
             var environmentCertificateBytes = File.ReadAllBytes(environmentCertificateFilePath);
             var environmentCertificateChain = CertHelper.ExtractCertChainFromPfx(environmentCertificateBytes, environmentCertificatePassword);
@@ -1053,45 +1064,50 @@ namespace $rootnamespace$
                      || _.Name.ToUpperInvariant().Contains(InstanceAccessibility.Private.ToString().ToUpperInvariant())
                      || _.Name.ToUpperInvariant().Contains("VPN")).Select(
                 subnet =>
+                {
+                    var routeTable = vpc.RouteTables.Single(_ => _.Name.Equals(subnet.RouteTableRef, StringComparison.CurrentCultureIgnoreCase));
+                    var accessiblity =
+                        routeTable.Routes.Any(
+                            route => populatedEnvironment.InternetGateways.Any(
+                                gateway => route.TargetRef.Equals(gateway.Name, StringComparison.CurrentCultureIgnoreCase)))
+                            ? (subnet.Name.ToUpperInvariant().Contains("VPN") ? InstanceAccessibility.Tunnel : InstanceAccessibility.Public)
+                            : InstanceAccessibility.Private;
+
+                    var securityGroup = vpc.SecurityGroups.Single();
+
+                    var container = new ComputingContainerDescription
                     {
-                        var routeTable = vpc.RouteTables.Single(_ => _.Name.Equals(subnet.RouteTableRef, StringComparison.CurrentCultureIgnoreCase));
-                        var accessiblity =
-                            routeTable.Routes.Any(
-                                route => populatedEnvironment.InternetGateways.Any(
-                                    gateway => route.TargetRef.Equals(gateway.Name, StringComparison.CurrentCultureIgnoreCase)))
-                                ? (subnet.Name.ToUpperInvariant().Contains("VPN") ? InstanceAccessibility.Tunnel : InstanceAccessibility.Public)
-                                : InstanceAccessibility.Private;
+                        Cidr = subnet.Cidr,
+                        ContainerLocation = subnet.AvailabilityZone,
+                        ContainerId = subnet.SubnetId,
+                        InstanceAccessibility = accessiblity,
+                        SecurityGroupId = securityGroup.SecurityGroupId,
+                        StartIpsAfter = 10,
+                        EncryptingCertificateLocator = encryptingCertificateLocator,
+                        KeyName = keyName,
+                        EncryptedPrivateKey = encryptedKey,
+                    };
 
-                        var securityGroup = vpc.SecurityGroups.Single();
-
-                        var container = new ComputingContainerDescription
-                                            {
-                                                Cidr = subnet.Cidr,
-                                                ContainerLocation = subnet.AvailabilityZone,
-                                                ContainerId = subnet.SubnetId,
-                                                InstanceAccessibility = accessiblity,
-                                                SecurityGroupId = securityGroup.SecurityGroupId,
-                                                StartIpsAfter = 10,
-                                                EncryptingCertificateLocator = encryptingCertificateLocator,
-                                                KeyName = keyName,
-                                                EncryptedPrivateKey = encryptedKey,
-                                            };
-
-                        return container;
-                    }).ToList();
+                    return container;
+                }).ToList();
 
             var arcologyInfo = new ArcologyInfo
-                                   {
-                                       Location = populatedEnvironment.RegionName,
-                                       ComputingContainers = computingContainers,
-                                       RootDomainHostingIdMap = rootDomainHostingIdMap,
-                                       WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
-                                   };
+            {
+                Location = populatedEnvironment.RegionName,
+                ComputingContainers = computingContainers,
+                RootDomainHostingIdMap = rootDomainHostingIdMap,
+                WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
+            };
 
-            new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath).Create(environment, arcologyInfo);
+            if (!Directory.Exists(outputArcologyPath))
+            {
+                Directory.CreateDirectory(outputArcologyPath);
+            }
+
+            Run.TaskUntilCompletion(new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath).Create(environment, arcologyInfo));
 
             var certificatesJsonFilePath = Path.Combine(outputArcologyPath, "Certificates.json");
-			CertificateWriterToFile.Create(certificatesJsonFilePath);
+            CertificateWriterToFile.Create(certificatesJsonFilePath);
 
             var certificateWriter = new CertificateWriterToFile(certificatesJsonFilePath);
             var environmentCertToStore = new CertificateDescriptionWithClearPfxPayload(
@@ -1129,15 +1145,11 @@ namespace $rootnamespace$
         {
             CommonSetup(debug, environment);
 
-            new
-                {
-                    credentialsJson,
-                    configFilePath,
-                }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { credentialsJson }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { configFilePath }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
             var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
-
-            var outputConfigFilePath = Path.ChangeExtension(configFilePath, ".removed.xml");
+            var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
 
             var configFileXml = File.ReadAllText(configFilePath);
             var xmlSerializer = new XmlSerializer(typeof(ConfigEnvironment));
@@ -1152,6 +1164,29 @@ namespace $rootnamespace$
                 throw new ArgumentException("Cannot create more than one VPC for use with an arcology.");
             }
 
+            var cidr = configuration.Vpcs.Single().Cidr;
+            var instances = Run.TaskUntilCompletion(new List<InstanceWithStatus>().FillFromAwsAsync(configuration.RegionName, credentials));
+
+            // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
+            var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
+                .Where(_ => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr));
+            if (instances.Any())
+            {
+                throw new ArgumentException(Invariant($"Cannot destroy an environment with instances! {environment} has {string.Join(",", instances.Select(_ => _.Name))}.  If this is intended for destruction then first retire each instance."));
+            }
+
+            var outputConfigFilePath = Path.ChangeExtension(configFilePath, ".Removed.xml");
+            if (File.Exists(outputConfigFilePath))
+            {
+                var backupOutputConfigFilePath = outputConfigFilePath + ".BackedUpOn" + DateTime.UtcNow.ToString("yyyy-MM-dd--HH-mm-ss", CultureInfo.InvariantCulture) + "Z";
+                if (File.Exists(backupOutputConfigFilePath))
+                {
+                    throw new ArgumentException(Invariant($"Unexpected file present on disk: {backupOutputConfigFilePath}"));
+                }
+
+                File.Move(configFilePath, backupOutputConfigFilePath);
+            }
+
             void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)
             {
                 using (var stringWriter = new StringWriter())
@@ -1161,7 +1196,6 @@ namespace $rootnamespace$
                 }
             }
 
-            var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
             var populatedEnvironment = Run.TaskUntilCompletion(Destroyer.RemoveEnvironment(credentials, configuration, UpdateOutputConfigFile, TimeSpan.FromMinutes(10)));
         }
 
@@ -1173,6 +1207,25 @@ namespace $rootnamespace$
                 {
                     File.AppendAllText(nugetAnnouncementFilePath, output);
                 }
+            }
+        }
+
+        private static void CopyAll(DirectoryInfo source, DirectoryInfo target)
+        {
+            // https://stackoverflow.com/questions/58744/copy-the-entire-contents-of-a-directory-in-c-sharp (MSDN solution)
+            Directory.CreateDirectory(target.FullName);
+
+            // Copy each file into the new directory.
+            foreach (var fi in source.GetFiles())
+            {
+                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
+            }
+
+            // Copy each subdirectory using recursion.
+            foreach (var diSourceSubDir in source.GetDirectories())
+            {
+                var nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
+                CopyAll(diSourceSubDir, nextTargetSubDir);
             }
         }
     }

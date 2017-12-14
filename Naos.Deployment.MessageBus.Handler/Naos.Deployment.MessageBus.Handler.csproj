@@ -45,8 +45,8 @@
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.51\lib\net461\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.52\lib\net461\Naos.AWS.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Compression.Domain, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Compression.Domain.1.0.5\lib\net461\Naos.Compression.Domain.dll</HintPath>
@@ -58,8 +58,8 @@
     <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.40.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.40\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.1.42.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.42\lib\net461\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Domain, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Domain.1.0.43\lib\net461\Naos.Serialization.Domain.dll</HintPath>

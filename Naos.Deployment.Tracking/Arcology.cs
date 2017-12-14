@@ -28,8 +28,8 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         /// <param name="environment">Environment of the arcology.</param>
         /// <param name="arcologyInfo">Information about the arcology.</param>
-        /// <param name="deployedInstances">Deployed instances in the arcology.</param>
-        public Arcology(string environment, ArcologyInfo arcologyInfo, ICollection<DeployedInstance> deployedInstances)
+        /// <param name="deployedInstances">Optional deployed instances in the arcology.</param>
+        public Arcology(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
             new { arcologyInfo }.Must().NotBeNull().OrThrowFirstFailure();
 

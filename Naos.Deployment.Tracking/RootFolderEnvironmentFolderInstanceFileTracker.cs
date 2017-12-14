@@ -49,7 +49,7 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public async Task Create(string environment, ArcologyInfo arcologyInfo)
+        public async Task Create(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
             await Task.Run(
                 () =>
@@ -57,16 +57,11 @@ namespace Naos.Deployment.Tracking
                         /* no-op */
                     });
 
-            var arcologyInfoJson = Serializer.SerializeToString(arcologyInfo);
-
-            var folder = this.GetArcologyFolderPath(environment);
-            var file = Path.Combine(folder, Invariant($"{nameof(ArcologyInfo)}.json"));
-            if (File.Exists(file))
+            lock (this.fileSync)
             {
-                throw new ArgumentException(Invariant($"Arcology already has definition at: {file}"));
+                var arcology = new Arcology(environment, arcologyInfo, deployedInstances);
+                this.SaveArcology(arcology);
             }
-
-            File.WriteAllText(file, arcologyInfoJson);
         }
 
         /// <inheritdoc />
@@ -356,6 +351,10 @@ namespace Naos.Deployment.Tracking
         private void SaveArcology(Arcology arcology)
         {
             var arcologyFolderPath = this.GetArcologyFolderPath(arcology.Environment);
+            if (!Directory.Exists(arcologyFolderPath))
+            {
+                Directory.CreateDirectory(arcologyFolderPath);
+            }
 
             foreach (var instanceWrapper in arcology.Instances)
             {

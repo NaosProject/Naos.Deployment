@@ -63,10 +63,24 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public async Task Create(string environment, ArcologyInfo arcologyInfo)
+        public async Task Create(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
-            var arcologyInfoContainer = new ArcologyInfoContainer { Id = environment.ToUpperInvariant(), Environment = environment, ArcologyInfo = arcologyInfo };
-            await this.arcologyInfoCommands.AddOneAsync(arcologyInfoContainer);
+            // block to make sure only one thread is performing an operation
+            await this.arcologySemaphore.WaitAsync();
+
+            try
+            {
+                var arcologyInfoContainer = new ArcologyInfoContainer { Id = environment.ToUpperInvariant(), Environment = environment, ArcologyInfo = arcologyInfo };
+                await this.arcologyInfoCommands.AddOneAsync(arcologyInfoContainer);
+
+                var instanceContainers = (deployedInstances ?? new List<DeployedInstance>()).Select(CreateInstanceContainerFromInstance).ToList();
+                await this.instanceCommands.AddManyAsync(instanceContainers);
+            }
+            finally
+            {
+                // Release the thread
+                this.arcologySemaphore.Release();
+            }
         }
 
         /// <inheritdoc />
