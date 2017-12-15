@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
@@ -15,10 +16,16 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class NullCertificateRetriever : IGetCertificates
     {
-        /// <inheritdoc cref="IGetCertificates"/>>
-        public Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
+        /// <inheritdoc />
+        public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            return Task.FromResult((CertificateDescriptionWithClearPfxPayload)null);
+            return await Task.FromResult((CertificateDescriptionWithClearPfxPayload)null);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<string>> GetAllCertificateNamesAsync()
+        {
+            return await Task.FromResult((IReadOnlyCollection<string>)new string[0]);
         }
     }
 }

@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -49,6 +50,18 @@ namespace Naos.Deployment.Core.CertificateManagement
             }
 
             return Task.FromResult(certDetails);
+        }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<string>> GetAllCertificateNamesAsync()
+        {
+            lock (this.fileSync)
+            {
+                var fileContents = File.ReadAllText(this.filePath);
+                var certificateCollection = Serializer.Deserialize<CertificateCollection>(fileContents);
+                IReadOnlyCollection<string> certificateNames = certificateCollection.Certificates.Select(_ => _.FriendlyName).ToList();
+                return Task.FromResult(certificateNames);
+            }
         }
     }
 }

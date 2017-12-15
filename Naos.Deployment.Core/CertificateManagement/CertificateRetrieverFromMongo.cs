@@ -7,6 +7,8 @@
 namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
@@ -49,6 +51,14 @@ namespace Naos.Deployment.Core.CertificateManagement
             var certDetails = certificateDetails?.ToDecryptedVersion();
 
             return certDetails;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<string>> GetAllCertificateNamesAsync()
+        {
+            var certificateContainers = await this.certificateContainerQueries.GetAllAsync();
+            var certificateNames = certificateContainers.Select(_ => _.Id).ToList();
+            return certificateNames;
         }
 
         /// <summary>

@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Domain
 {
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -19,5 +20,11 @@ namespace Naos.Deployment.Domain
         /// <param name="name">Name of the certificate to find.</param>
         /// <returns>Certificate details matching name; null if not found.</returns>
         Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name);
+
+        /// <summary>
+        /// Gets all of the certificate names in the store.
+        /// </summary>
+        /// <returns>List of the certificate names in the store.</returns>
+        Task<IReadOnlyCollection<string>> GetAllCertificateNamesAsync();
     }
 }
