@@ -466,7 +466,6 @@ namespace $rootnamespace$
 
             void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-
                 using (var activity = Log.Enter(() => new { Name = instanceName }))
                 {
                     activity.Trace("Starting");
@@ -965,6 +964,9 @@ namespace $rootnamespace$
         /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "All disposables are disposed, not sure why it's upset about the Creator.CreateEnvironment call.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "This is fine.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "create", Description = "Creates a new environment.")]
         public static void CreateEnvironment(
@@ -1049,7 +1051,7 @@ namespace $rootnamespace$
 
             void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)
             {
-                using (var stringWriter = new StringWriter())
+                using (var stringWriter = new StringWriter(CultureInfo.InvariantCulture))
                 {
                     xmlSerializer.Serialize(stringWriter, updatedEnvironment);
                     File.WriteAllText(outputConfigFilePath, stringWriter.ToString());
@@ -1093,22 +1095,25 @@ namespace $rootnamespace$
                     return container;
                 }).ToList();
 
-			var outputConfigText = File.ReadAllText(outputConfigFilePath);
+            var outputConfigText = File.ReadAllText(outputConfigFilePath);
             var arcologyInfo = new ArcologyInfo
-            {
-                Location = populatedEnvironment.RegionName,
-				SerializedEnvironmentSpecification = outputConfigText,
-                ComputingContainers = computingContainers,
-                RootDomainHostingIdMap = rootDomainHostingIdMap,
-                WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
-            };
+                                   {
+                                       Location = populatedEnvironment.RegionName,
+                                       SerializedEnvironmentSpecification = outputConfigText,
+                                       ComputingContainers = computingContainers,
+                                       RootDomainHostingIdMap = rootDomainHostingIdMap,
+                                       WindowsSkuSearchPatternMap = windowsSkuSearchPatternMap,
+                                   };
 
             if (!Directory.Exists(outputArcologyPath))
             {
                 Directory.CreateDirectory(outputArcologyPath);
             }
 
-            Run.TaskUntilCompletion(new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath).Create(environment, arcologyInfo));
+            using (var newFileArcology = new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath))
+            {
+                Run.TaskUntilCompletion(newFileArcology.Create(environment, arcologyInfo));
+            }
 
             var certificatesJsonFilePath = Path.Combine(outputArcologyPath, "Certificates.json");
             CertificateWriterToFile.Create(certificatesJsonFilePath);
@@ -1140,6 +1145,8 @@ namespace $rootnamespace$
         /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to destroy.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "populatedEnvironment", Justification = "Keeping for visibility and use if necessary.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "destroy", Description = "Destroy an existing environment.")]
         public static void DestroyEnvironment(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
@@ -1195,7 +1202,7 @@ namespace $rootnamespace$
 
             void UpdateOutputConfigFile(ConfigEnvironment updatedEnvironment)
             {
-                using (var stringWriter = new StringWriter())
+                using (var stringWriter = new StringWriter(CultureInfo.InvariantCulture))
                 {
                     xmlSerializer.Serialize(stringWriter, updatedEnvironment);
                     File.WriteAllText(outputConfigFilePath, stringWriter.ToString());
@@ -1216,6 +1223,7 @@ namespace $rootnamespace$
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode", Justification = "This might still get used and is a weird situation.")]
         private static void CopyAll(DirectoryInfo source, DirectoryInfo target)
         {
             // https://stackoverflow.com/questions/58744/copy-the-entire-contents-of-a-directory-in-c-sharp (MSDN solution)
@@ -1228,10 +1236,10 @@ namespace $rootnamespace$
             }
 
             // Copy each subdirectory using recursion.
-            foreach (var diSourceSubDir in source.GetDirectories())
+            foreach (var sourceSubDir in source.GetDirectories())
             {
-                var nextTargetSubDir = target.CreateSubdirectory(diSourceSubDir.Name);
-                CopyAll(diSourceSubDir, nextTargetSubDir);
+                var nextTargetSubDir = target.CreateSubdirectory(sourceSubDir.Name);
+                CopyAll(sourceSubDir, nextTargetSubDir);
             }
         }
     }

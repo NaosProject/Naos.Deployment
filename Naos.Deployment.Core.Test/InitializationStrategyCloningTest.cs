@@ -28,6 +28,24 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Clone_InitializationStrategyCopyBytes_Works()
+        {
+            var original = new InitializationStrategyCopyBytes { JustificationForCopyPackage = "justification" };
+            var cloned = original.Clone() as InitializationStrategyCopyBytes;
+            Assert.NotNull(cloned);
+            Assert.Equal(original.JustificationForCopyPackage, cloned.JustificationForCopyPackage);
+        }
+
+        [Fact]
+        public static void Clone_InitializationStrategyOnetimeCall_Works()
+        {
+            var original = new InitializationStrategyOnetimeCall { JustificationForOnetimeCall = "justification" };
+            var cloned = original.Clone() as InitializationStrategyOnetimeCall;
+            Assert.NotNull(cloned);
+            Assert.Equal(original.JustificationForOnetimeCall, cloned.JustificationForOnetimeCall);
+        }
+
+        [Fact]
         public static void Clone_DirectoryToCreate_Works()
         {
             var original = new InitializationStrategyDirectoryToCreate
@@ -86,7 +104,8 @@ namespace Naos.Deployment.Core.Test
                                    PrimaryDns = "myDns",
                                    SslCertificateName = "certName",
                                    AppPoolAccount = "user",
-                                   EnableHttp = true,
+                                   HostHeaderForHttpBinding = "http",
+                                   HostHeaderForHttpsBinding = "https",
                                };
             var cloned = original.Clone() as InitializationStrategyIis;
             Assert.NotNull(cloned);
@@ -98,7 +117,8 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(original.AutoStartProvider.Type, cloned.AutoStartProvider.Type);
             Assert.Equal(original.PrimaryDns, cloned.PrimaryDns);
             Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
-            Assert.Equal(original.EnableHttp, cloned.EnableHttp);
+            Assert.Equal(original.HostHeaderForHttpBinding, cloned.HostHeaderForHttpBinding);
+            Assert.Equal(original.HostHeaderForHttpsBinding, cloned.HostHeaderForHttpsBinding);
         }
 
         [Fact]

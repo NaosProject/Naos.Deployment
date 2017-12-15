@@ -22,9 +22,14 @@ namespace Naos.Deployment.Domain
         public string SslCertificateName { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether or not to enable HTTP for the site (default is NOT).
+        /// Gets or sets the host header to use for HTTPS; DEFAULT will be none.
         /// </summary>
-        public bool EnableHttp { get; set; }
+        public string HostHeaderForHttpsBinding { get; set; }
+
+        /// <summary>
+        /// Gets or sets the host header to use for HTTP; DEFAULT will remove the HTTP binding.
+        /// </summary>
+        public string HostHeaderForHttpBinding { get; set; }
 
         /// <summary>
         /// Gets or sets the account to run the application pool as.
@@ -52,8 +57,9 @@ namespace Naos.Deployment.Domain
                               AppPoolStartMode = this.AppPoolStartMode,
                               SslCertificateName = this.SslCertificateName,
                               PrimaryDns = this.PrimaryDns,
-                              EnableHttp = this.EnableHttp,
-                          };
+                              HostHeaderForHttpsBinding = this.HostHeaderForHttpsBinding,
+                              HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
+            };
             return ret;
         }
     }

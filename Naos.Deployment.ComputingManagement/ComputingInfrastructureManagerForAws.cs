@@ -630,7 +630,7 @@ namespace Naos.Deployment.ComputingManagement
             hostingId.Named(Invariant($"{nameof(this.tracker.GetDomainZoneIdAsync)}-result-from-{environment}-{rootDomain}-MustFindAndId")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
             var dnsManager = new Route53Manager(this.credentials);
-            await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain, ipAddresses);
+            await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain.ToLowerInvariant(), ipAddresses);
         }
 
         private bool disposedValue = false; // To detect redundant calls

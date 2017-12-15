@@ -44,10 +44,10 @@ namespace Naos.Deployment.Core
             var autoStartProviderName = iisStrategy.AutoStartProvider?.Name;
             var autoStartProviderType = iisStrategy.AutoStartProvider?.Type;
 
-            var enableHttp = iisStrategy.EnableHttp;
+            var hostHeaderForHttpsBinding = iisStrategy.HostHeaderForHttpsBinding;
+            var hostHeaderForHttpBinding = iisStrategy.HostHeaderForHttpBinding;
 
             const bool EnableSni = false;
-            const bool AddHostHeaders = true;
 
             var appPoolPassword = appPoolAccount == null
                                       ? null
@@ -58,9 +58,10 @@ namespace Naos.Deployment.Core
 
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.GetPowershellPathableThumbprint(),
-                                               appPoolAccount, appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
-                                               AddHostHeaders, enableHttp,
+                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(),
+                                               certDetails.GetPowershellPathableThumbprint(), appPoolAccount, appPoolPassword, appPoolStartMode,
+                                               autoStartProviderName, autoStartProviderType, EnableSni, hostHeaderForHttpsBinding,
+                                               hostHeaderForHttpBinding,
                                            };
 
             webSteps.Add(
