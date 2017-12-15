@@ -34,6 +34,7 @@ namespace Naos.Deployment.Tracking
             new { arcologyInfo }.Must().NotBeNull().OrThrowFirstFailure();
 
             this.Environment = environment;
+            this.SerializedEnvironmentSpecification = arcologyInfo.SerializedEnvironmentSpecification;
             this.ComputingContainers = arcologyInfo.ComputingContainers;
             this.RootDomainHostingIdMap = arcologyInfo.RootDomainHostingIdMap;
             this.Location = arcologyInfo.Location;
