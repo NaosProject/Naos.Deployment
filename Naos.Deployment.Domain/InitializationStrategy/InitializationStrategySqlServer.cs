@@ -63,6 +63,13 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public string ManagementChannelName { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to download all dependant packages and re-package them together.
+        /// This will make targeting something for execution impossible and should not be used in conjuction
+        /// with <see cref="InitializationStrategyScheduledTask" /> or <see cref="InitializationStrategyOnetimeCall" />.
+        /// </summary>
+        public bool BundleDependencies { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {

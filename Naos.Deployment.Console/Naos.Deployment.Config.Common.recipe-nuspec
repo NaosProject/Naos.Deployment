@@ -9,5 +9,6 @@
     <file src=".config\Common\ComputingInfrastructureManagerSettings.json" target="content\.config\Common\ComputingInfrastructureManagerSettings.json" />
     <file src=".config\Common\DefaultDeploymentConfiguration.json" target="content\.config\Common\DefaultDeploymentConfiguration.json" />
     <file src=".config\Common\SetupStepFactorySettings.json" target="content\.config\Common\SetupStepFactorySettings.json" />
+    <file src="InstallNeededToMarkConfigCopyToOutput.ps1" target="tools\Install.ps1" />
   </files>
 </package>

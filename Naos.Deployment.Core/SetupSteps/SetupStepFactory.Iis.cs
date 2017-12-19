@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
@@ -44,7 +45,7 @@ namespace Naos.Deployment.Core
             var autoStartProviderName = iisStrategy.AutoStartProvider?.Name;
             var autoStartProviderType = iisStrategy.AutoStartProvider?.Type;
 
-            var hostHeaderForHttpsBinding = iisStrategy.HostHeaderForHttpsBinding;
+            var hostHeadersForHttpsBinding = (iisStrategy.HostHeadersForHttpsBinding ?? new List<string>()).ToList();
             var hostHeaderForHttpBinding = iisStrategy.HostHeaderForHttpBinding;
 
             const bool EnableSni = false;
@@ -60,7 +61,7 @@ namespace Naos.Deployment.Core
                                            {
                                                webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(),
                                                certDetails.GetPowershellPathableThumbprint(), appPoolAccount, appPoolPassword, appPoolStartMode,
-                                               autoStartProviderName, autoStartProviderType, EnableSni, hostHeaderForHttpsBinding,
+                                               autoStartProviderName, autoStartProviderType, EnableSni, hostHeadersForHttpsBinding,
                                                hostHeaderForHttpBinding,
                                            };
 

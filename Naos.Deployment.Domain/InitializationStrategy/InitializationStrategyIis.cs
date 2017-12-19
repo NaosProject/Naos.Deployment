@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Domain
 {
+    using System.Collections.Generic;
+
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
     /// </summary>
@@ -22,9 +24,9 @@ namespace Naos.Deployment.Domain
         public string SslCertificateName { get; set; }
 
         /// <summary>
-        /// Gets or sets the host header to use for HTTPS; DEFAULT will be none.
+        /// Gets or sets the host headers to use for HTTPS; DEFAULT will be none.
         /// </summary>
-        public string HostHeaderForHttpsBinding { get; set; }
+        public IReadOnlyCollection<string> HostHeadersForHttpsBinding { get; set; }
 
         /// <summary>
         /// Gets or sets the host header to use for HTTP; DEFAULT will remove the HTTP binding.
@@ -57,7 +59,7 @@ namespace Naos.Deployment.Domain
                               AppPoolStartMode = this.AppPoolStartMode,
                               SslCertificateName = this.SslCertificateName,
                               PrimaryDns = this.PrimaryDns,
-                              HostHeaderForHttpsBinding = this.HostHeaderForHttpsBinding,
+                              HostHeadersForHttpsBinding = this.HostHeadersForHttpsBinding,
                               HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
             };
             return ret;

@@ -242,6 +242,7 @@
     <Content Include=".config\Common\SetupStepFactorySettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <None Include="InstallNeededToMarkConfigCopyToOutput.ps1" />
     <None Include="App.config" />
     <None Include="Naos.Deployment.Config.Common.recipe-nuspec" />
     <None Include="Naos.Deployment.Bootstrapper.recipe-nuspec" />
@@ -273,6 +274,7 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.0-beta004\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.1.0-beta004\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy $(ProjectDir)\.config $(TargetDir)\.config /E /Y /I</PostBuildEvent>

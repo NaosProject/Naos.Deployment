@@ -95,18 +95,14 @@ namespace Naos.Deployment.Core.Test
             var original = new InitializationStrategyIis
                                {
                                    AppPoolStartMode = ApplicationPoolStartMode.AlwaysRunning,
-                                   AutoStartProvider =
-                                       new AutoStartProvider
-                                           {
-                                               Name = "Provider",
-                                               Type = "Type",
-                                           },
+                                   AutoStartProvider = new AutoStartProvider { Name = "Provider", Type = "Type", },
                                    PrimaryDns = "myDns",
                                    SslCertificateName = "certName",
                                    AppPoolAccount = "user",
                                    HostHeaderForHttpBinding = "http",
-                                   HostHeaderForHttpsBinding = "https",
+                                   HostHeadersForHttpsBinding = new[] { "https" },
                                };
+
             var cloned = original.Clone() as InitializationStrategyIis;
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
@@ -118,7 +114,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(original.PrimaryDns, cloned.PrimaryDns);
             Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
             Assert.Equal(original.HostHeaderForHttpBinding, cloned.HostHeaderForHttpBinding);
-            Assert.Equal(original.HostHeaderForHttpsBinding, cloned.HostHeaderForHttpsBinding);
+            Assert.Equal(original.HostHeadersForHttpsBinding, cloned.HostHeadersForHttpsBinding);
         }
 
         [Fact]

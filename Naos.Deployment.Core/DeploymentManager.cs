@@ -490,9 +490,9 @@ namespace Naos.Deployment.Core
             ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string deploymentFileSearchPattern)
         {
-            bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) => hasStrategies != null
-                                                                                                     && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
-                                                                                                         || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any());
+            bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) =>
+                hasStrategies != null && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
+                                          || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any(_ => _.BundleDependencies));
 
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
