@@ -223,10 +223,9 @@ namespace Naos.Deployment.Core.Test
                                                       new InitializationStrategyCreateEventLog { Source = eventLogSource, LogName = customEventLog },
                                                       new InitializationStrategyIis
                                                           {
-                                                              AppPoolStartMode =
-                                                                  ApplicationPoolStartMode.AlwaysRunning,
+                                                              AppPoolStartMode = ApplicationPoolStartMode.AlwaysRunning,
                                                               PrimaryDns = hangfireDns,
-                                                              SslCertificateName = sslCertName,
+                                                              HttpsBindings = new[] { new HttpsBinding { SslCertificateName = sslCertName } },
                                                               AutoStartProvider =
                                                                   new AutoStartProvider
                                                                       {

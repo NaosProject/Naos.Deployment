@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Custom extension of the InitializationStrategyBase to accommodate web service/site deployments.
@@ -19,14 +20,9 @@ namespace Naos.Deployment.Domain
         public string PrimaryDns { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the SSL certificate to lookup and use.
-        /// </summary>
-        public string SslCertificateName { get; set; }
-
-        /// <summary>
         /// Gets or sets the host headers to use for HTTPS; DEFAULT will be none.
         /// </summary>
-        public IReadOnlyCollection<string> HostHeadersForHttpsBinding { get; set; }
+        public IReadOnlyCollection<HttpsBinding> HttpsBindings { get; set; }
 
         /// <summary>
         /// Gets or sets the host header to use for HTTP; DEFAULT will remove the HTTP binding.
@@ -53,15 +49,40 @@ namespace Naos.Deployment.Domain
         {
             var ret = new InitializationStrategyIis
                           {
-                              AutoStartProvider =
-                                  (AutoStartProvider)this.AutoStartProvider.Clone(),
+                              AutoStartProvider = (AutoStartProvider)this.AutoStartProvider.Clone(),
                               AppPoolAccount = this.AppPoolAccount,
                               AppPoolStartMode = this.AppPoolStartMode,
-                              SslCertificateName = this.SslCertificateName,
                               PrimaryDns = this.PrimaryDns,
-                              HostHeadersForHttpsBinding = this.HostHeadersForHttpsBinding,
+                              HttpsBindings = this.HttpsBindings.Select(_ => _.Clone()).ToList(),
                               HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
-            };
+                          };
+
+            return ret;
+        }
+    }
+
+    /// <summary>
+    /// HTTPS binding.
+    /// </summary>
+    public class HttpsBinding
+    {
+        /// <summary>
+        /// Gets or sets the host header to use with the .
+        /// </summary>
+        public string HostHeader { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the SSL certificate to lookup and use.
+        /// </summary>
+        public string SslCertificateName { get; set; }
+
+        /// <summary>
+        /// Clone method.
+        /// </summary>
+        /// <returns>Cloned binding.</returns>
+        public HttpsBinding Clone()
+        {
+            var ret = new HttpsBinding { HostHeader = this.HostHeader, SslCertificateName = this.SslCertificateName, };
             return ret;
         }
     }

@@ -281,7 +281,7 @@ namespace Naos.Deployment.Core
                 ",",
                 createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
             var createdInstanceMessage =
-                $"Instance {instanceNumber} - Created new instance => ComputingName: {createdInstanceDescription.Name}, ID: {createdInstanceDescription.Id}, Private IP: {createdInstanceDescription.PrivateIpAddress}, System Specific Details: {systemSpecificDetailsAsString}";
+                $"Instance {instanceNumber} - Created new instance => ComputingName: {createdInstanceDescription.Name}, ID: {createdInstanceDescription.Id}, Private IP: {createdInstanceDescription.PrivateIpAddress}, Public IP: {createdInstanceDescription.PublicIpAddress}, System Specific Details: {systemSpecificDetailsAsString}";
             this.LogAnnouncement(createdInstanceMessage, instanceNumber);
 
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);

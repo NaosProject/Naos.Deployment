@@ -15,6 +15,8 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -22,6 +24,22 @@ namespace Naos.Deployment.Core
     {
         private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
+            var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
+            if (httpsBindingDefinitions.Select(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
+            {
+                throw new ArgumentException(Invariant($"Cannot have more than one binding without a {nameof(HttpsBinding)}.{nameof(HttpsBinding.HostHeader)} that is blank; site {iisStrategy.PrimaryDns}."));
+            }
+
+            if (httpsBindingDefinitions.Count == 0 && string.IsNullOrWhiteSpace(iisStrategy.HostHeaderForHttpBinding))
+            {
+                throw new ArgumentException(Invariant($"Must specify {nameof(iisStrategy.HttpsBindings)} and/or {iisStrategy.HostHeaderForHttpBinding}; site {iisStrategy.PrimaryDns}."));
+            }
+
+            if (httpsBindingDefinitions.Any(_ => string.IsNullOrWhiteSpace(_.SslCertificateName)))
+            {
+                throw new ArgumentException(Invariant($"Must specify specify a {nameof(HttpsBinding.SslCertificateName)} on all {nameof(iisStrategy.HttpsBindings)}; site {iisStrategy.PrimaryDns}."));
+            }
+
             var primaryDns = funcToCreateNewDnsWithTokensReplaced(iisStrategy.PrimaryDns);
 
             var webSteps = new List<SetupStep>();
@@ -30,11 +48,20 @@ namespace Naos.Deployment.Core
             var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, webRootPath, environment, webConfigPath);
             webSteps.AddRange(itsConfigSteps);
 
-            var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(iisStrategy.SslCertificateName);
-            if (certDetails == null)
+            var certificateNameToThumbprintMap = new Dictionary<string, string>();
+            foreach (var bindingDefinition in httpsBindingDefinitions)
             {
-                throw new DeploymentException("Could not find certificate by name: " + iisStrategy.SslCertificateName);
+                var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(bindingDefinition.SslCertificateName);
+                if (certDetails == null)
+                {
+                    throw new DeploymentException("Could not find certificate by name: " + bindingDefinition.SslCertificateName);
+                }
+
+                certificateNameToThumbprintMap.Add(bindingDefinition.SslCertificateName, certDetails.GetPowershellPathableThumbprint());
             }
+
+            var httpsBindings = httpsBindingDefinitions
+                .Select(_ => new { Thumbprint = certificateNameToThumbprintMap[_.SslCertificateName], HostHeader = _.HostHeader }).ToList();
 
             var appPoolStartMode = iisStrategy.AppPoolStartMode == ApplicationPoolStartMode.None
                                        ? ApplicationPoolStartMode.OnDemand
@@ -45,7 +72,6 @@ namespace Naos.Deployment.Core
             var autoStartProviderName = iisStrategy.AutoStartProvider?.Name;
             var autoStartProviderType = iisStrategy.AutoStartProvider?.Type;
 
-            var hostHeadersForHttpsBinding = (iisStrategy.HostHeadersForHttpsBinding ?? new List<string>()).ToList();
             var hostHeaderForHttpBinding = iisStrategy.HostHeaderForHttpBinding;
 
             const bool EnableSni = false;
@@ -59,10 +85,9 @@ namespace Naos.Deployment.Core
 
             var installWebParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(),
-                                               certDetails.GetPowershellPathableThumbprint(), appPoolAccount, appPoolPassword, appPoolStartMode,
-                                               autoStartProviderName, autoStartProviderType, EnableSni, hostHeadersForHttpsBinding,
-                                               hostHeaderForHttpBinding,
+                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), appPoolAccount,
+                                               appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
+                                               httpsBindings, hostHeaderForHttpBinding,
                                            };
 
             webSteps.Add(
