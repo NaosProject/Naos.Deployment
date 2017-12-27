@@ -46,7 +46,7 @@ namespace Naos.Deployment.Core
         public MessageBusHandlerHarnessConfiguration MessageBusHandlerHarnessConfiguration { get; private set; }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
-        public override bool IsMatch(IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
+        public override bool IsMatch(IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
             // get all message bus handler initializations to know if we need a handler.
             var packagesWithMessageBusInitializations =
@@ -69,7 +69,7 @@ namespace Naos.Deployment.Core
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
+        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
         {
             new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
             new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
@@ -129,7 +129,7 @@ namespace Naos.Deployment.Core
             return ret == null ? new InjectedPackage[0] : new[] { new InjectedPackage(ReasonString, ret) };
         }
 
-        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, ICollection<InitializationStrategyMessageBusHandler> messageBusInitializations, ICollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string rootDeploymentPath)
+        private PackagedDeploymentConfiguration BuildMessageBusHarnessPackagedConfig(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<InitializationStrategyMessageBusHandler> messageBusInitializations, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string rootDeploymentPath)
         {
             // TODO:    Maybe this should be exclusively done with that provided package and
             // TODO:        only update the private channel to monitor and directory of packages...

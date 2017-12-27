@@ -136,7 +136,7 @@
         /// <param name="command">Command to run in "CMD.exe".</param>
         /// <param name="commandParameters">Parameters to be passed to the command.</param>
         /// <returns>Console output of the command.</returns>
-        string RunCmd(string command, ICollection<string> commandParameters = null);
+        string RunCmd(string command, IReadOnlyCollection<string> commandParameters = null);
 
         /// <summary>
         /// Runs an arbitrary command using "CMD.exe /c" on localhost instead of the provided remote computer..
@@ -144,7 +144,7 @@
         /// <param name="command">Command to run in "CMD.exe".</param>
         /// <param name="commandParameters">Parameters to be passed to the command.</param>
         /// <returns>Console output of the command.</returns>
-        string RunCmdOnLocalhost(string command, ICollection<string> commandParameters = null);
+        string RunCmdOnLocalhost(string command, IReadOnlyCollection<string> commandParameters = null);
 
         /// <summary>
         /// Runs an arbitrary script block on localhost instead of the provided remote computer.
@@ -152,7 +152,7 @@
         /// <param name="scriptBlock">Script block.</param>
         /// <param name="scriptBlockParameters">Parameters to be passed to the script block.</param>
         /// <returns>Collection of objects that were the output from the script block.</returns>
-        ICollection<dynamic> RunScriptOnLocalhost(string scriptBlock, ICollection<object> scriptBlockParameters = null);
+        IReadOnlyCollection<dynamic> RunScriptOnLocalhost(string scriptBlock, IReadOnlyCollection<object> scriptBlockParameters = null);
 
         /// <summary>
         /// Runs an arbitrary script block.
@@ -160,7 +160,7 @@
         /// <param name="scriptBlock">Script block.</param>
         /// <param name="scriptBlockParameters">Parameters to be passed to the script block.</param>
         /// <returns>Collection of objects that were the output from the script block.</returns>
-        ICollection<dynamic> RunScript(string scriptBlock, ICollection<object> scriptBlockParameters = null);
+        IReadOnlyCollection<dynamic> RunScript(string scriptBlock, IReadOnlyCollection<object> scriptBlockParameters = null);
     }
 
     /// <inheritdoc />
@@ -280,7 +280,7 @@
         /// Locally updates the trusted hosts to have the ipAddress provided.
         /// </summary>
         /// <returns>List of the trusted hosts.</returns>
-        public static ICollection<string> GetListOfIpAddressesFromLocalTrustedHosts()
+        public static IReadOnlyCollection<string> GetListOfIpAddressesFromLocalTrustedHosts()
         {
             lock (SyncTrustedHosts)
             {
@@ -632,7 +632,7 @@
         }
 
         /// <inheritdoc />
-        public string RunCmd(string command, ICollection<string> commandParameters = null)
+        public string RunCmd(string command, IReadOnlyCollection<string> commandParameters = null)
         {
             var scriptBlock = BuildCmdScriptBlock(command, commandParameters);
             var outputObjects = this.RunScript(scriptBlock);
@@ -641,7 +641,7 @@
         }
 
         /// <inheritdoc />
-        public string RunCmdOnLocalhost(string command, ICollection<string> commandParameters = null)
+        public string RunCmdOnLocalhost(string command, IReadOnlyCollection<string> commandParameters = null)
         {
             var scriptBlock = BuildCmdScriptBlock(command, commandParameters);
             var outputObjects = this.RunScriptOnLocalhost(scriptBlock);
@@ -649,7 +649,7 @@
             return ret;
         }
 
-        private static string BuildCmdScriptBlock(string command, ICollection<string> commandParameters)
+        private static string BuildCmdScriptBlock(string command, IReadOnlyCollection<string> commandParameters)
         {
             var line = " `\"" + command + "`\"";
             foreach (var commandParameter in commandParameters ?? new List<string>())
@@ -664,7 +664,7 @@
         }
 
         /// <inheritdoc />
-        public ICollection<dynamic> RunScriptOnLocalhost(string scriptBlock, ICollection<object> scriptBlockParameters = null)
+        public IReadOnlyCollection<dynamic> RunScriptOnLocalhost(string scriptBlock, IReadOnlyCollection<object> scriptBlockParameters = null)
         {
             List<object> ret;
 
@@ -682,7 +682,7 @@
         }
 
         /// <inheritdoc />
-        public ICollection<dynamic> RunScript(string scriptBlock, ICollection<object> scriptBlockParameters = null)
+        public IReadOnlyCollection<dynamic> RunScript(string scriptBlock, IReadOnlyCollection<object> scriptBlockParameters = null)
         {
             List<object> ret;
 
@@ -746,7 +746,7 @@
 
         private List<dynamic> RunScriptUsingSession(
             string scriptBlock,
-            ICollection<object> scriptBlockParameters,
+            IReadOnlyCollection<object> scriptBlockParameters,
             Runspace runspace,
             object sessionObject)
         {

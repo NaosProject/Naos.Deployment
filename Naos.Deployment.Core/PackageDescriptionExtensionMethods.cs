@@ -22,8 +22,8 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="withStrategies">Original collection to use.</param>
         /// <returns>New collection without strategies.</returns>
-        public static ICollection<PackageDescription> WithoutStrategies(
-            this ICollection<PackageDescriptionWithOverrides> withStrategies)
+        public static IReadOnlyCollection<PackageDescription> WithoutStrategies(
+            this IReadOnlyCollection<PackageDescriptionWithOverrides> withStrategies)
         {
             var ret = withStrategies.Select(_ => new PackageDescription { Id = _.Id, Version = _.Version }).ToList();
             return ret;

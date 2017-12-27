@@ -24,7 +24,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the action to run for setup (takes a IManageMachines implementation as a parameter to perform necessary actions remotely).
         /// </summary>
-        public Func<IManageMachines, ICollection<dynamic>> SetupFunc { get; set; }
+        public Func<IManageMachines, IReadOnlyCollection<dynamic>> SetupFunc { get; set; }
 
         /// <inheritdoc />
         public override string ToString()
@@ -46,6 +46,6 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the ordered list of steps to run.
         /// </summary>
-        public ICollection<SetupStep> Steps { get; set; }
+        public IReadOnlyCollection<SetupStep> Steps { get; set; }
     }
 }

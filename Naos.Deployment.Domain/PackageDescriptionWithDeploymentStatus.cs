@@ -6,12 +6,10 @@
 
 namespace Naos.Deployment.Domain
 {
-    using Naos.Packaging.Domain;
-
     /// <summary>
     /// Package description that can contain a deployment status for use with tracking.
     /// </summary>
-    public class PackageDescriptionWithDeploymentStatus : PackageDescription
+    public class PackageDescriptionWithDeploymentStatus : PackageDescriptionWithOverrides
     {
         /// <summary>
         /// Gets or sets the deployment status of the package.

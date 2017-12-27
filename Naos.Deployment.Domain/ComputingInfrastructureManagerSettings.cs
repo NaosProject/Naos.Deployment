@@ -18,46 +18,46 @@ namespace Naos.Deployment.Domain
         /// Gets or sets a map of drive letters to AWS volume descriptors.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public IDictionary<string, string> DriveLetterVolumeDescriptorMap { get; set; }
+        public IReadOnlyDictionary<string, string> DriveLetterVolumeDescriptorMap { get; set; }
 
         /// <summary>
         /// Gets or sets the map of the volume type to the system specific values.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public IDictionary<VolumeType, string> VolumeTypeValueMap { get; set; }
+        public IReadOnlyDictionary<VolumeType, string> VolumeTypeValueMap { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<AwsInstanceType> AwsInstanceTypes { get; set; }
+        public IReadOnlyCollection<AwsInstanceType> AwsInstanceTypes { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<AwsInstanceType> AwsInstanceTypesForSqlWeb { get; set; }
+        public IReadOnlyCollection<AwsInstanceType> AwsInstanceTypesForSqlWeb { get; set; }
 
         /// <summary>
         /// Gets or sets a list (in order) of the AWS instance types and their core/RAM details to be used for SQL instances.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<AwsInstanceType> AwsInstanceTypesForSqlStandard { get; set; }
+        public IReadOnlyCollection<AwsInstanceType> AwsInstanceTypesForSqlStandard { get; set; }
 
         /// <summary>
         /// Gets or sets the user data to use when creating an instance (list allows for keeping multiple lines in JSON format).
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<string> InstanceCreationUserDataLines { get; set; }
+        public IReadOnlyCollection<string> InstanceCreationUserDataLines { get; set; }
 
         /// <summary>
         /// Gets or sets a list of package ID's that should be disregarded when looking to replace packages with instance terminations.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public ICollection<string> PackageIdsToIgnoreDuringTerminationSearch { get; set; }
+        public IReadOnlyCollection<string> PackageIdsToIgnoreDuringTerminationSearch { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the key to use when tagging an instance with its name.

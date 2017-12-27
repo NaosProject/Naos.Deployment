@@ -34,7 +34,7 @@ namespace Naos.Deployment.Domain
         /// <param name="environment">Environment to scope check to.</param>
         /// <param name="packages">Packages to look for instances it's deployed to.</param>
         /// <returns>Instance descriptions that have packages deployed to it.</returns>
-        Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages);
+        Task<IReadOnlyCollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, IReadOnlyCollection<PackageDescription> packages);
 
         /// <summary>
         /// Removes an instance from the tracking system.
@@ -54,7 +54,7 @@ namespace Naos.Deployment.Domain
         Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
-            ICollection<PackageDescription> intendedPackages);
+            IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages);
 
         /// <summary>
         /// Adds the instance to the tracking system.
@@ -168,9 +168,9 @@ namespace Naos.Deployment.Domain
         }
 
         /// <inheritdoc />
-        public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
+        public Task<IReadOnlyCollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, IReadOnlyCollection<PackageDescription> packages)
         {
-            return Task.FromResult<ICollection<InstanceDescription>>(new List<InstanceDescription>());
+            return Task.FromResult<IReadOnlyCollection<InstanceDescription>>(new List<InstanceDescription>());
         }
 
         /// <inheritdoc />
@@ -183,7 +183,7 @@ namespace Naos.Deployment.Domain
         public Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
-            ICollection<PackageDescription> intendedPackages)
+            IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
             return Task.FromResult(new InstanceCreationDetails());
         }

@@ -76,7 +76,7 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
+        public Task<IReadOnlyCollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, IReadOnlyCollection<PackageDescription> packages)
         {
             lock (this.fileSync)
             {
@@ -122,7 +122,7 @@ namespace Naos.Deployment.Tracking
         public Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
-            ICollection<PackageDescription> intendedPackages)
+            IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
             lock (this.fileSync)
             {

@@ -60,7 +60,7 @@ namespace Naos.Deployment.Core
 
         private readonly DeploymentAdjustmentStrategiesApplicator deploymentAdjustmentStrategiesApplicator;
 
-        private readonly ICollection<string> packageIdsToIgnoreDuringTerminationSearch;
+        private readonly IReadOnlyCollection<string> packageIdsToIgnoreDuringTerminationSearch;
 
         private readonly string[] itsConfigPrecedenceAfterEnvironment;
 
@@ -107,7 +107,7 @@ namespace Naos.Deployment.Core
             DefaultDeploymentConfiguration defaultDeploymentConfiguration,
             SetupStepFactorySettings setupStepFactorySettings,
             DeploymentAdjustmentStrategiesApplicator deploymentAdjustmentStrategiesApplicator,
-            ICollection<string> packageIdsToIgnoreDuringTerminationSearch,
+            IReadOnlyCollection<string> packageIdsToIgnoreDuringTerminationSearch,
             Action<string> announcer,
             Action<string> debugAnnouncer,
             string workingDirectory,
@@ -147,7 +147,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public async Task DeployPackagesAsync(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
+        public async Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
         {
             if (this.telemetryFile != null)
             {
@@ -254,12 +254,12 @@ namespace Naos.Deployment.Core
 
         private async Task CreateNumberedInstanceAsync(
             int instanceNumber,
-            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
+            IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string environment,
             string instanceName,
             int instanceCount,
             DeploymentConfiguration configToCreateWith,
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides)
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides)
         {
             // create new aws instance(s)
             var numberedInstanceName = instanceCount == 1 ? instanceName : instanceName + "-" + instanceNumber;
@@ -274,7 +274,7 @@ namespace Naos.Deployment.Core
                     environment,
                     numberedInstanceName,
                     configToCreateWith,
-                    packagesToDeploy.Select(_ => _ as PackageDescription).ToList(),
+                    packagesToDeploy,
                     configToCreateWith.DeploymentStrategy.IncludeInstanceInitializationScript);
 
             var systemSpecificDetailsAsString = string.Join(
@@ -380,7 +380,7 @@ namespace Naos.Deployment.Core
         private void UpsertDnsEntriesAsNecessary(
             int instanceNumber,
             string environment,
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             InstanceDescription createdInstanceDescription,
             Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
@@ -486,8 +486,8 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private ICollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
-            ICollection<PackageDescriptionWithOverrides> packagesToDeploy,
+        private IReadOnlyCollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
+            IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string deploymentFileSearchPattern)
         {
             bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) =>
@@ -699,7 +699,7 @@ namespace Naos.Deployment.Core
             return adminPassword;
         }
 
-        private async Task TerminateInstancesBeingReplacedAsync(ICollection<PackageDescription> packagesToDeploy, string environment)
+        private async Task TerminateInstancesBeingReplacedAsync(IReadOnlyCollection<PackageDescription> packagesToDeploy, string environment)
         {
             var packagesToIgnore = this.packageIdsToIgnoreDuringTerminationSearch.Select(_ => new PackageDescription { Id = _ }).ToList();
 
@@ -831,7 +831,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private void LogDebugAnnouncement(string step, int instanceNumber, ICollection<dynamic> output)
+        private void LogDebugAnnouncement(string step, int instanceNumber, IReadOnlyCollection<dynamic> output)
         {
             var stringOutput = (output ?? new List<dynamic>()).Select(_ => _ == null ? string.Empty : Convert.ToString(_)).Cast<string>().ToList();
 

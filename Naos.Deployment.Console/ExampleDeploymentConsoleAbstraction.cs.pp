@@ -779,7 +779,7 @@ namespace $rootnamespace$
                     telemetryFilePath,
                 });
 
-            var packagesToDeploy = (ICollection<PackageDescriptionWithOverrides>)Settings.Deserialize(typeof(ICollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
+            var packagesToDeploy = (IReadOnlyCollection<PackageDescriptionWithOverrides>)Settings.Deserialize(typeof(IReadOnlyCollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
             var certificateRetrieverConfiguration = (CertificateManagementConfigurationBase)Settings.Deserialize(typeof(CertificateManagementConfigurationBase), certificateRetrieverJson);
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)Settings.Deserialize(typeof(InfrastructureTrackerConfigurationBase), infrastructureTrackerJson);
             var deploymentAdjustmentStrategiesApplicator = (DeploymentAdjustmentStrategiesApplicator)Settings.Deserialize(typeof(DeploymentAdjustmentStrategiesApplicator), deploymentAdjustmentApplicatorJson);

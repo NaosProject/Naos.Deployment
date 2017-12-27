@@ -81,7 +81,7 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         /// <param name="packages">Package list to use for finding instances.</param>
         /// <returns>The list of instances that have the specified packages deployed (in any state) to them.</returns>
-        public ICollection<InstanceDescription> GetInstancesByDeployedPackages(ICollection<PackageDescription> packages)
+        public IReadOnlyCollection<InstanceDescription> GetInstancesByDeployedPackages(IReadOnlyCollection<PackageDescription> packages)
         {
             var instancesThatHaveAnyOfTheProvidedPackages =
                 this.Instances.Where(
@@ -175,7 +175,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="deploymentConfiguration">Deployment requirements.</param>
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <returns>Object holding information necessary to track and create an instance.</returns>
-        public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages)
+        public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
             new { deploymentConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
 
@@ -235,6 +235,8 @@ namespace Naos.Deployment.Tracking
                         Id = _.Id,
                         Version = _.Version,
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
+                        InitializationStrategies = _.InitializationStrategies,
+                        ItsConfigOverrides = _.ItsConfigOverrides,
                     });
 
             var newTracked = new DeployedInstance()
@@ -281,6 +283,8 @@ namespace Naos.Deployment.Tracking
                                     DeploymentStatus =
                                         PackageDeploymentStatus
                                         .DeployedSuccessfully,
+                                    InitializationStrategies = new InitializationStrategyBase[0],
+                                    ItsConfigOverrides = new ItsConfigOverride[0],
                                 };
 
                 instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Add(package.Id, toAdd);

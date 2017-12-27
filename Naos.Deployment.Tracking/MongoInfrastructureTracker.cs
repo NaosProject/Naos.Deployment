@@ -84,7 +84,7 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
-        public async Task<ICollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, ICollection<PackageDescription> packages)
+        public async Task<IReadOnlyCollection<InstanceDescription>> GetInstancesByDeployedPackagesAsync(string environment, IReadOnlyCollection<PackageDescription> packages)
         {
             var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
             return arcology.GetInstancesByDeployedPackages(packages);
@@ -120,7 +120,7 @@ namespace Naos.Deployment.Tracking
         public async Task<InstanceCreationDetails> GetNewInstanceCreationDetailsAsync(
             string environment,
             DeploymentConfiguration deploymentConfiguration,
-            ICollection<PackageDescription> intendedPackages)
+            IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
             // block to make sure only one thread is performing an operation
             await this.arcologySemaphore.WaitAsync();

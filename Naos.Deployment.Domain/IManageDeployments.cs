@@ -22,6 +22,6 @@ namespace Naos.Deployment.Domain
         /// <param name="instanceName">Name of the instance the deployment will reside on.</param>
         /// <param name="deploymentConfigOverride">Optional overrides to the deployment configuration.</param>
         /// <returns>Task for async.</returns>
-        Task DeployPackagesAsync(ICollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
+        Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
     }
 }

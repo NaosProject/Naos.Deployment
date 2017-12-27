@@ -77,7 +77,7 @@ namespace Naos.Deployment.Domain
         /// <param name="intendedPackages">Packages that are planned to be deployed.</param>
         /// <param name="includeInstanceInitializationScript">Include the initialization script during creation.</param>
         /// <returns>Description of created instance.</returns>
-        Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript);
+        Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript);
 
         /// <summary>
         /// Gets the instance description by the name provided (null if not found).
@@ -106,7 +106,7 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
 #pragma warning disable SA1305 // Field names should not use Hungarian notation
-        Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses);
+        Task UpsertDnsEntryAsync(string environment, string location, string domain, IReadOnlyCollection<string> ipAddresses);
 #pragma warning restore SA1305 // Field names should not use Hungarian notation
 
         /// <summary>

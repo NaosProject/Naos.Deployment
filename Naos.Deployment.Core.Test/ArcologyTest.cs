@@ -22,8 +22,8 @@ namespace Naos.Deployment.Core.Test
         {
             // arrange
             var environment = "envo";
-            var packageExisting = new PackageDescription { Id = "MyTestPackage", Version = "1" };
-            var packageSearching = new PackageDescription { Id = "MyTestPackage", Version = "2" };
+            var packageExisting = new PackageDescriptionWithOverrides { Id = "MyTestPackage", Version = "1" };
+            var packageSearching = new PackageDescriptionWithOverrides { Id = "MyTestPackage", Version = "2" };
 
             var computingContainers = new[]
                                                      {

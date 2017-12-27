@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public abstract bool IsMatch(
             IManageConfigFiles configFileManager,
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith);
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Naos.Deployment.Core
             string instanceName,
             int instanceNumber,
             IManageConfigFiles configFileManager,
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
             string[] itsConfigPrecedenceAfterEnvironment,

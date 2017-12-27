@@ -48,7 +48,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript)
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript)
         {
             return await Task.FromResult(new InstanceDescription());
         }
@@ -74,7 +74,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses)
+        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, IReadOnlyCollection<string> ipAddresses)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
         }

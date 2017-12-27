@@ -28,7 +28,7 @@ namespace Naos.Deployment.Core
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
-        public static DeploymentConfiguration Flatten(this ICollection<DeploymentConfiguration> deploymentConfigs)
+        public static DeploymentConfiguration Flatten(this IReadOnlyCollection<DeploymentConfiguration> deploymentConfigs)
         {
             // Makes sure we don't have competing IncludeInstanceInitializationScript values
             if (
@@ -153,7 +153,7 @@ namespace Naos.Deployment.Core
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VolumeType", Justification = "Spelling/name is correct.")]
-        private static VolumeType Flatten(this ICollection<VolumeType> types)
+        private static VolumeType Flatten(this IReadOnlyCollection<VolumeType> types)
         {
             if (types.Contains(VolumeType.HighPerformance))
             {
@@ -321,7 +321,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private static WindowsSku GetLargestWindowsSku(ICollection<WindowsSku> windowsSkus)
+        private static WindowsSku GetLargestWindowsSku(IReadOnlyCollection<WindowsSku> windowsSkus)
         {
             if (windowsSkus == null || windowsSkus.Count == 0)
             {

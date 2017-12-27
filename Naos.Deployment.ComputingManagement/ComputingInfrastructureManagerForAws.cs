@@ -307,7 +307,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, ICollection<PackageDescription> intendedPackages, bool includeInstanceInitializationScript)
+        public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript)
         {
             var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
             if (existing != null)
@@ -452,6 +452,8 @@ namespace Naos.Deployment.ComputingManagement
                         Id = _.Id,
                         Version = _.Version,
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
+                        InitializationStrategies = _.InitializationStrategies,
+                        ItsConfigOverrides = _.ItsConfigOverrides,
                     });
 
             await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, TimeSpan.FromMinutes(10), this.credentials);
@@ -612,7 +614,7 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
-        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, ICollection<string> ipAddresses)
+        public async Task UpsertDnsEntryAsync(string environment, string location, string domain, IReadOnlyCollection<string> ipAddresses)
         {
             // from: http://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net
             var host = new Uri("http://" + domain).Host;
@@ -630,7 +632,7 @@ namespace Naos.Deployment.ComputingManagement
             hostingId.Named(Invariant($"{nameof(this.tracker.GetDomainZoneIdAsync)}-result-from-{environment}-{rootDomain}-MustFindAndId")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
 
             var dnsManager = new Route53Manager(this.credentials);
-            await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain.ToLowerInvariant(), ipAddresses);
+            await dnsManager.UpsertDnsEntryAsync(location, hostingId, Route53EntryType.A, domain.ToLowerInvariant(), ipAddresses.ToList());
         }
 
         private bool disposedValue = false; // To detect redundant calls

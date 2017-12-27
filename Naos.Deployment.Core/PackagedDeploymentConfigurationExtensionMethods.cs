@@ -25,8 +25,8 @@ namespace Naos.Deployment.Core
         /// <param name="defaultDeploymentConfig">Default configuration to use for missing properties.</param>
         /// <returns>List of configurations with defaults applied.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
-        public static ICollection<PackagedDeploymentConfiguration> ApplyDefaults(
-            this ICollection<PackagedDeploymentConfiguration> packagedConfigs,
+        public static IReadOnlyCollection<PackagedDeploymentConfiguration> ApplyDefaults(
+            this IReadOnlyCollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)
         {
             new { packagedConfigs }.Must().NotBeNull().OrThrowFirstFailure();
@@ -65,8 +65,8 @@ namespace Naos.Deployment.Core
         /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Collection of initialization strategies matching the type specified.</returns>
-        public static ICollection<T> GetInitializationStrategiesOf<T>(
-            this ICollection<PackagedDeploymentConfiguration> baseCollection)
+        public static IReadOnlyCollection<T> GetInitializationStrategiesOf<T>(
+            this IReadOnlyCollection<PackagedDeploymentConfiguration> baseCollection)
             where T : InitializationStrategyBase
         {
             var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
@@ -80,8 +80,8 @@ namespace Naos.Deployment.Core
         /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Collection of initialization strategies matching the type specified.</returns>
-        public static ICollection<T> GetInitializationStrategiesOf<T>(
-            this ICollection<IHaveInitializationStrategies> baseCollection)
+        public static IReadOnlyCollection<T> GetInitializationStrategiesOf<T>(
+            this IReadOnlyCollection<IHaveInitializationStrategies> baseCollection)
             where T : InitializationStrategyBase
         {
             var ret = baseCollection.SelectMany(_ => _.GetInitializationStrategiesOf<T>()).ToList();
@@ -96,8 +96,8 @@ namespace Naos.Deployment.Core
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <returns>Filtered collection of where the initialization strategies match the type specified.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "Passing through and needs constraining.")]
-        public static ICollection<PackagedDeploymentConfiguration> WhereContainsInitializationStrategyOf<T>(
-            this ICollection<PackagedDeploymentConfiguration> baseCollection)
+        public static IReadOnlyCollection<PackagedDeploymentConfiguration> WhereContainsInitializationStrategyOf<T>(
+            this IReadOnlyCollection<PackagedDeploymentConfiguration> baseCollection)
             where T : InitializationStrategyBase
         {
             var ret = baseCollection.Where(_ => _.GetInitializationStrategiesOf<T>().Count > 0).ToList();
@@ -111,9 +111,9 @@ namespace Naos.Deployment.Core
         /// <param name="baseCollection">Base collection of packaged configurations to operate on.</param>
         /// <param name="overrideConfig">Configuration to apply as an override.</param>
         /// <returns>New collection of packaged configurations with overrides applied.</returns>
-        public static ICollection<PackagedDeploymentConfiguration>
+        public static IReadOnlyCollection<PackagedDeploymentConfiguration>
             OverrideDeploymentConfig(
-            this ICollection<PackagedDeploymentConfiguration> baseCollection,
+            this IReadOnlyCollection<PackagedDeploymentConfiguration> baseCollection,
             DeploymentConfiguration overrideConfig)
         {
             var ret =

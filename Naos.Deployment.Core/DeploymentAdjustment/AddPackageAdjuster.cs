@@ -50,7 +50,7 @@ namespace Naos.Deployment.Core
         public bool ShouldBundleDependenciesOfPackage { get; private set; }
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
-        public override bool IsMatch(IManageConfigFiles configFileManager, ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
+        public override bool IsMatch(IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
             var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
             return matches.Any();
@@ -62,7 +62,7 @@ namespace Naos.Deployment.Core
             string instanceName,
             int instanceNumber,
             IManageConfigFiles configFileManager,
-            ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
             string[] itsConfigPrecedenceAfterEnvironment,
@@ -93,7 +93,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> GetMatches(ICollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
+        private IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> GetMatches(IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
             var initializationStrategies =
                 packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToTypeDescription())).ToList();
