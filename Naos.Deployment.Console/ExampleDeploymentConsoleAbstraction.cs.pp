@@ -326,7 +326,7 @@ namespace $rootnamespace$
         /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "retire", Description = "Gets the instances only in either tracking or computer platform.")]
-        public static void RemoveInstance(
+        public static void RemoveTrackedInstance(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("name")] [Required] [Description("Name of instance to remove.")] string instanceName,
@@ -357,7 +357,8 @@ namespace $rootnamespace$
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
-        /// <param name="privateIpAddressOfInstanceToRemove">IP Address of instance to remove.</param>
+        /// <param name="privateIpAddressOfInstanceToRemove">IP Address of instance to remove (cannot be used with <paramref name="instanceNameOfInstanceToRemove" />).</param>
+        /// <param name="instanceNameOfInstanceToRemove">Name of instance to remove (cannot be used with <paramref name="privateIpAddressOfInstanceToRemove" />).</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
@@ -366,10 +367,11 @@ namespace $rootnamespace$
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "purge", Description = "Removes an instance from tracking that is not in the computing platform.")]
-        public static void RemoveTrackedInstance(
+        public static void RemoveTrackedInstanceNotInComputingPlatform(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
-            [Aliases("ip")] [Required] [Description("IP Address of instance to remove.")] string privateIpAddressOfInstanceToRemove,
+            [Aliases("ip")] [Description("IP Address of instance to remove.")] string privateIpAddressOfInstanceToRemove,
+            [Aliases("name")] [Description("Name of instance to remove.")] string instanceNameOfInstanceToRemove,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
             [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
@@ -378,16 +380,38 @@ namespace $rootnamespace$
             var localAnnouncer = announcer ?? Console.Write;
             var localResultAnnouncer = resultAnnouncer ?? Console.Write;
 
+            if (string.IsNullOrWhiteSpace(privateIpAddressOfInstanceToRemove) && string.IsNullOrWhiteSpace(instanceNameOfInstanceToRemove))
+            {
+                throw new ArgumentException(Invariant($"Must specify EITHER {nameof(privateIpAddressOfInstanceToRemove)} OR {nameof(instanceNameOfInstanceToRemove)}"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(privateIpAddressOfInstanceToRemove) && !string.IsNullOrWhiteSpace(instanceNameOfInstanceToRemove))
+            {
+                throw new ArgumentException(Invariant($"Cannot specify BOTH {nameof(privateIpAddressOfInstanceToRemove)} OR {nameof(instanceNameOfInstanceToRemove)}"));
+            }
+
             CommonSetup(debug, environment, announcer: localAnnouncer);
 
             void RemoveTrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                if (!string.IsNullOrWhiteSpace(instanceNameOfInstanceToRemove))
+                {
+                    var instancesInTracking = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                    var trackedInstance = instancesInTracking.SingleOrDefault(
+                        _ => (_.ComputerName ?? string.Empty).Equals(instanceNameOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
+                    if (trackedInstance != null)
+                    {
+                        privateIpAddressOfInstanceToRemove = trackedInstance.PrivateIpAddress;
+                    }
+                }
 
-                var instanceInCloud = instancesInProvider.SingleOrDefault(_ => _.PrivateIpAddress == privateIpAddressOfInstanceToRemove);
+                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                var instanceInCloud = instancesInProvider.SingleOrDefault(
+                    _ => ((_.PrivateIpAddress ?? string.Empty).Equals(privateIpAddressOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase)));
+
                 if (instanceInCloud != null)
                 {
-                    throw new ArgumentException(Invariant($"IP Address provided: {privateIpAddressOfInstanceToRemove} exists in; ID: {instanceInCloud.Id}, Name: {instanceInCloud.Name}"));
+                    throw new ArgumentException(Invariant($"IP Address provided: {privateIpAddressOfInstanceToRemove} exists in Provider; ID: {instanceInCloud.Id}, Name: {instanceInCloud.Name}"));
                 }
 
                 Run.TaskUntilCompletion(tracker.RemoveInstanceFromTracking(environment, privateIpAddressOfInstanceToRemove));
@@ -395,6 +419,62 @@ namespace $rootnamespace$
             }
 
             RunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
+        /// Removes an instance from the computing platform that is not in tracking.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="systemIdOfInstanceToRemove">ID of instance to remove (ID from the computing platform).</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="announcer">Optional announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        /// <param name="resultAnnouncer">Optional result announcer for use by other class instead of via command line; DEFAULT is Console.Write.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "kill", Description = "Removes an instance from the computing platform that is not in tracking.")]
+        public static void RemoveInstanceInComputingPlatformNotTracked(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("id")] [Required] [Description("ID of instance to remove (ID from the computing platform).")] string systemIdOfInstanceToRemove,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> announcer = null,
+            [Description("FOR INTERNAL USE ONLY.")] Action<string> resultAnnouncer = null)
+        {
+            var localAnnouncer = announcer ?? Console.Write;
+            var localResultAnnouncer = resultAnnouncer ?? Console.Write;
+
+            new { systemIdOfInstanceToRemove }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+
+            CommonSetup(debug, environment, announcer: localAnnouncer);
+
+            void RemoveUntrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+
+                var instanceInCloud = instancesInProvider.SingleOrDefault(
+                    _ => ((_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase)));
+
+                if (instanceInCloud == null)
+                {
+                    throw new ArgumentException(Invariant($"ID provided: {systemIdOfInstanceToRemove} does NOT exist in provider."));
+                }
+
+                var instancesInTracking = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                var trackedInstance = instancesInTracking.SingleOrDefault(
+                    _ => (_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
+
+                if (trackedInstance != null)
+                {
+                    throw new ArgumentException(Invariant($"ID provided: {systemIdOfInstanceToRemove} does exist in Tracking; ID: {trackedInstance.Id}, Name: {trackedInstance.Name}"));
+                }
+
+                Run.TaskUntilCompletion(manager.TerminateInstanceAsync(environment, systemIdOfInstanceToRemove, instanceInCloud.Location, true));
+                localResultAnnouncer(Invariant($"Removed {systemIdOfInstanceToRemove} from Provider."));
+            }
+
+            RunComputingManagerOperation(RemoveUntrackedInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
