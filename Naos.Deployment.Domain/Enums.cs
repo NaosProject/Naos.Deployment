@@ -142,6 +142,11 @@ namespace Naos.Deployment.Domain
         /// High performance volume type.
         /// </summary>
         HighPerformance,
+
+        /// <summary>
+        /// Instance level volume, whatever is provided from computing platform.
+        /// </summary>
+        Instance,
     }
 
     /// <summary>

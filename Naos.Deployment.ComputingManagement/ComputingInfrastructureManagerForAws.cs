@@ -346,8 +346,9 @@ namespace Naos.Deployment.ComputingManagement
                 return mapResult;
             }
 
+            // don't create volumes for instance declared drives...
             var mappedVolumes =
-                deploymentConfiguration.Volumes.Select(
+                deploymentConfiguration.Volumes.Where(_ => _.Type != VolumeType.Instance).Select(
                     _ =>
                     new EbsVolume()
                         {
