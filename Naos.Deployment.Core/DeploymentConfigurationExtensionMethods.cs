@@ -155,6 +155,11 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "VolumeType", Justification = "Spelling/name is correct.")]
         private static VolumeType Flatten(this IReadOnlyCollection<VolumeType> types)
         {
+            if (types.Any(_ => _ == VolumeType.Instance) && types.Any(_ => _ != VolumeType.Instance))
+            {
+                throw new NotSupportedException("Cannot have flatten volumes that are Instance with those that are not.");
+            }
+
             if (types.Contains(VolumeType.HighPerformance))
             {
                 return VolumeType.HighPerformance;

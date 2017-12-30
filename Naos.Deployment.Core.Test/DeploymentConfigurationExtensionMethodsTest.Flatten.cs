@@ -326,6 +326,13 @@ namespace Naos.Deployment.Core.Test
             foreach (var option in Enum.GetValues(typeof(VolumeType)))
             {
                 var typed = (VolumeType)option;
+
+                // can't flatten Instances with others.
+                if (typed == VolumeType.Instance)
+                {
+                    continue;
+                }
+
                 var config = new DeploymentConfiguration()
                 {
                     Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = typed } },
