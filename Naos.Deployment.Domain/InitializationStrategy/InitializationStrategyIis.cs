@@ -53,7 +53,7 @@ namespace Naos.Deployment.Domain
                               AppPoolAccount = this.AppPoolAccount,
                               AppPoolStartMode = this.AppPoolStartMode,
                               PrimaryDns = this.PrimaryDns,
-                              HttpsBindings = this.HttpsBindings.Select(_ => _.Clone()).ToList(),
+                              HttpsBindings = this.HttpsBindings?.Select(_ => _.Clone()).ToList(),
                               HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
                           };
 

@@ -343,7 +343,7 @@ namespace Naos.Deployment.Core
 
             foreach (var iis in iisStrategies)
             {
-                foreach (var httpsBinding in iis.HttpsBindings)
+                foreach (var httpsBinding in iis.HttpsBindings ?? new HttpsBinding[0])
                 {
                     VerifyCertificate(httpsBinding.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
                 }
