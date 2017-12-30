@@ -558,6 +558,20 @@ namespace $rootnamespace$
                     activity.Trace(Invariant($"Found key for password decryption."));
 
                     var address = instance.PrivateIpAddress;
+                    var dnsStrategies = instance.DeployedPackages.Values.SelectMany(_ => _?.GetInitializationStrategiesOf<InitializationStrategyDnsEntry>())
+                        .Where(_ => _ != null).ToList();
+                    if (dnsStrategies.Any())
+                    {
+                        var allPrivateDnsEntries = dnsStrategies.Select(_ => _.PrivateDnsEntry).Distinct().ToList();
+                        var tempAddress = allPrivateDnsEntries.First().Replace("{environment}", environment);
+
+                        // can't deal with other tokens, use IP.
+                        if (!tempAddress.Contains("{"))
+                        {
+                            address = tempAddress;
+                        }
+                    }
+
                     var user = "administrator";
                     var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
                     password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
