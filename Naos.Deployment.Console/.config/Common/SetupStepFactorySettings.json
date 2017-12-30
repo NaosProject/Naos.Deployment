@@ -27,11 +27,11 @@
     "mongoServerSettings": {
         "serviceAccount": "SYSTEM",
         "serviceName": "MongoDB",
-        "defaultDataDirectory": "C:\\MongoData",
-        "defaultLogDirectory": "C:\\MongoLog",
-        "defaultBackupDirectory": "C:\\MongoBackup",
+        "defaultDataDirectory": "D:\\MongoData",
+        "defaultLogDirectory": "D:\\MongoLog",
+        "defaultBackupDirectory": "D:\\MongoBackup",
         "defaultUtilityDirectory": "C:\\Program Files\\MongoDB\\Server\\3.2\\bin",
-        "defaultWorkingDirectory": "C:\\MongoTemp",
+        "defaultWorkingDirectory": "D:\\MongoTemp",
         "mongoServerPackage": {
             "id": "mongodb",
             "version": "3.2.7"
@@ -45,8 +45,8 @@
         "sqlServiceName": "MSSQLSERVER",
         "sqlServiceAccount": "NT SERVICE\\MSSQLSERVER",
         "backupProcessServiceAccount": "NT AUTHORITY\\NETWORKSERVICE",
-        "defaultBackupDirectory": "C:\\SqlBackup\\",
-        "defaultDataDirectory": "C:\\SqlData\\",
+        "defaultBackupDirectory": "D:\\SqlBackup\\",
+        "defaultDataDirectory": "D:\\SqlData\\",
         "defaultTimeout": "00:01:00"
     },
     "webServerSettings": {

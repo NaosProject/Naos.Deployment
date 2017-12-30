@@ -113,6 +113,8 @@ namespace Naos.Deployment.Core
 
             ThrowIfCertificatesNotProperlyConfigured(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyCertificateToInstall>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategySelfHost>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>());
 
+            ThrowIfMissingNecessaryVolumes(packagedConfig.DeploymentConfiguration.Volumes, packagedConfig.GetInitializationStrategiesOf<InitializationStrategySqlServer>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
+
             var ret = new List<SetupStepBatch>();
 
             var distinctInitializationStrategyTypes = packagedConfig.InitializationStrategies.Select(_ => _.GetType()).Distinct().ToList();
@@ -299,10 +301,21 @@ namespace Naos.Deployment.Core
             return Path.Combine(this.RootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
         }
 
+        private static void ThrowIfMissingNecessaryVolumes(IReadOnlyCollection<Volume> volumes, IReadOnlyCollection<InitializationStrategySqlServer> initializationStrategiesSql, IReadOnlyCollection<InitializationStrategyMongo> initializationStrategiesMongo)
+        {
+            if ((initializationStrategiesSql?.Any() ?? false) || (initializationStrategiesMongo?.Any() ?? false))
+            {
+                if (!(volumes?.Any(_ => "D".Equals((_?.DriveLetter ?? string.Empty).ToUpperInvariant())) ?? false))
+                {
+                    throw new DeploymentException(Invariant($"Must have a 'D' volume to use initialization strategies: {nameof(InitializationStrategySqlServer)}, {nameof(InitializationStrategyMongo)}"));
+                }
+            }
+        }
+
         private static void ThrowIfCertificatesNotProperlyConfigured(
-            ICollection<InitializationStrategyCertificateToInstall> certificateToInstallStrategies,
-            ICollection<InitializationStrategySelfHost> selfHostStrategies,
-            ICollection<InitializationStrategyIis> iisStrategies)
+            IReadOnlyCollection<InitializationStrategyCertificateToInstall> certificateToInstallStrategies,
+            IReadOnlyCollection<InitializationStrategySelfHost> selfHostStrategies,
+            IReadOnlyCollection<InitializationStrategyIis> iisStrategies)
         {
             void VerifyCertificate(string certName, string description)
             {

@@ -1195,7 +1195,7 @@ namespace $rootnamespace$
                 Run.TaskUntilCompletion(newFileArcology.Create(environment, arcologyInfo));
             }
 
-            var certificatesJsonFilePath = Path.Combine(outputArcologyPath, "Certificates.json");
+            var certificatesJsonFilePath = Path.Combine(outputArcologyPath, Invariant($"{environment}.Certificates.json"));
             CertificateWriterToFile.Create(certificatesJsonFilePath);
 
             var certificateWriter = new CertificateWriterToFile(certificatesJsonFilePath);

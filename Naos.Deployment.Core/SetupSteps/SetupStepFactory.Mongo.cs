@@ -122,7 +122,7 @@ namespace Naos.Deployment.Core
             return mongoSteps;
         }
 
-        private static void ThrowIfMultipleMongoStrategiesAreInvalidCombination(ICollection<InitializationStrategyMongo> mongoStrategies)
+        private static void ThrowIfMultipleMongoStrategiesAreInvalidCombination(IReadOnlyCollection<InitializationStrategyMongo> mongoStrategies)
         {
             // Make sure we only have one data,log path, and journaling option because mongo uses a single config file for this
             var distinctNoJournaling = mongoStrategies.Select(_ => _.NoJournaling).Distinct();

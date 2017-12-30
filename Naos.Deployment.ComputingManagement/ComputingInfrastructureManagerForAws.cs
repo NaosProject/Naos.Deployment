@@ -309,6 +309,12 @@ namespace Naos.Deployment.ComputingManagement
         /// <inheritdoc />
         public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript)
         {
+            new { deploymentConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
+            new { deploymentConfiguration.Volumes }.Must().NotBeNull().OrThrowFirstFailure();
+
+            deploymentConfiguration.Volumes.SingleOrDefault(_ => "C".Equals((_.DriveLetter ?? string.Empty).ToUpperInvariant()))
+                .Named("MustHaveVolumeWithDriveLetterC").Must().NotBeNull().OrThrowFirstFailure();
+
             var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
             if (existing != null)
             {

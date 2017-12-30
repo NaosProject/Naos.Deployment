@@ -24,7 +24,7 @@ namespace Naos.Deployment.Core
         /// <typeparam name="T">Type of initialization strategy to look for.</typeparam>
         /// <param name="objectWithInitializationStrategies">Object to operate on.</param>
         /// <returns>Collection of initialization strategies matching the type specified.</returns>
-        public static ICollection<T> GetInitializationStrategiesOf<T>(
+        public static IReadOnlyCollection<T> GetInitializationStrategiesOf<T>(
             this IHaveInitializationStrategies objectWithInitializationStrategies)
             where T : InitializationStrategyBase
         {
