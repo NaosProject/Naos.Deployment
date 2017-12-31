@@ -9,6 +9,7 @@ namespace Naos.Deployment.Persistence
     using System;
     using System.Collections.Generic;
 
+    using Naos.Cron;
     using Naos.Deployment.Domain;
     using Naos.Serialization.Bson;
 
@@ -48,6 +49,7 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(InstanceDetailsFromComputingPlatform),
                                                                                     typeof(InstanceStatus),
                                                                                     typeof(InstanceTargeterBase),
+                                                                                    typeof(ScheduleBase),
                                                                                     typeof(InstanceType),
                                                                                     typeof(ItsConfigOverride),
                                                                                     typeof(PackageDescriptionWithDeploymentStatus),
