@@ -6,22 +6,134 @@
 
 namespace Naos.Deployment.Core.Test
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
+    using FluentAssertions;
+
     using Its.Configuration;
 
+    using Naos.Cron;
     using Naos.Deployment.Domain;
+    using Naos.Deployment.Persistence;
     using Naos.MessageBus.Domain;
     using Naos.Recipes.Configuration.Setup;
+    using Naos.Serialization.Bson;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     using Xunit;
 
+    using static System.FormattableString;
+
     public static class SerializerTest
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Can't configure config serialization without.")]
         static SerializerTest()
         {
             Config.ConfigureSerialization();
+            JsonSerializerToUse = new NaosJsonSerializer();
+        }
+
+        private static readonly NaosJsonSerializer JsonSerializerToUse;
+
+        [Fact]
+        public static void RoundtripSerializeDeserialize___Using_SerializationDescription___Works()
+        {
+            // Arrange
+            var expected = new DeployedInstance
+                               {
+                                   InstanceDescription =
+                                       new InstanceDescription
+                                           {
+                                               DeployedPackages =
+                                                   new[]
+                                                       {
+                                                           new PackageDescriptionWithDeploymentStatus
+                                                               {
+                                                                   InitializationStrategies
+                                                                       = new InitializationStrategyBase[]
+                                                                             {
+                                                                                 new
+                                                                                     InitializationStrategyDnsEntry
+                                                                                         {
+                                                                                             PrivateDnsEntry = "something",
+                                                                                         },
+                                                                                 new
+                                                                                     InitializationStrategyScheduledTask
+                                                                                         {
+                                                                                             Schedule = new DailyScheduleInUtc(),
+                                                                                         },
+                                                                             },
+                                                               },
+                                                       }.ToDictionary(k => Guid.NewGuid().ToString(), v => v),
+                                           },
+                               };
+
+            void ThrowIfObjectsDiffer(object actualAsObject)
+            {
+                var actual = actualAsObject as DeployedInstance;
+                actual.Should().NotBeNull();
+                actual.InstanceDescription.DeployedPackages.First().Value.InitializationStrategies.First().GetType().Should().Be(expected.InstanceDescription.DeployedPackages.First().Value.InitializationStrategies.First().GetType());
+                actual.InstanceDescription.DeployedPackages.First().Value.InitializationStrategies.Skip(1).First().GetType().Should().Be(expected.InstanceDescription.DeployedPackages.First().Value.InitializationStrategies.Skip(1).First().GetType());
+            }
+
+            // Act & Assert
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new NaosBsonSerializer<DeploymentBsonConfiguration>());
+        }
+
+        private static void ActAndAssertForRoundtripSerialization(object expected, Action<object> throwIfObjectsDiffer, NaosBsonSerializer bsonSerializer, bool testBson = true, bool testJson = true)
+        {
+            var stringSerializers = new List<IStringSerializeAndDeserialize>();
+            var binarySerializers = new List<IBinarySerializeAndDeserialize>();
+
+            if (testJson)
+            {
+                stringSerializers.Add(JsonSerializerToUse);
+                binarySerializers.Add(JsonSerializerToUse);
+            }
+
+            if (testBson)
+            {
+                stringSerializers.Add(bsonSerializer);
+                binarySerializers.Add(bsonSerializer);
+            }
+
+            if (!stringSerializers.Any() || !binarySerializers.Any())
+            {
+                throw new InvalidOperationException("no serializers are being tested");
+            }
+
+            foreach (var stringSerializer in stringSerializers)
+            {
+                var actualString = stringSerializer.SerializeToString(expected);
+                var actualObject = stringSerializer.Deserialize(actualString, expected.GetType());
+
+                try
+                {
+                    throwIfObjectsDiffer(actualObject);
+                }
+                catch (Exception ex)
+                {
+                    throw new NaosSerializationException(Invariant($"Failure with {nameof(stringSerializer)} - {stringSerializer.GetType()}"), ex);
+                }
+            }
+
+            foreach (var binarySerializer in binarySerializers)
+            {
+                var actualBytes = binarySerializer.SerializeToBytes(expected);
+                var actualObject = binarySerializer.Deserialize(actualBytes, expected.GetType());
+
+                try
+                {
+                    throwIfObjectsDiffer(actualObject);
+                }
+                catch (Exception ex)
+                {
+                    throw new NaosSerializationException(Invariant($"Failure with {nameof(binarySerializer)} - {binarySerializer.GetType()}"), ex);
+                }
+            }
         }
 
         [Fact]

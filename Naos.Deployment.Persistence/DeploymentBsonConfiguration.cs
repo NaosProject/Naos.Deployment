@@ -17,9 +17,10 @@ namespace Naos.Deployment.Persistence
     /// </summary>
     public class DeploymentBsonConfiguration : BsonConfigurationBase
     {
-        /// <inheritdoc cref="BsonConfigurationBase" />
+        /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Has a lot of type references by its nature.")]
-        protected override IReadOnlyCollection<Type> TypesToAutoRegister => new[]
+        protected override IReadOnlyCollection<Type> ClassTypesToRegisterAlongWithInheritors =>
+                                                                                new[]
                                                                                 {
                                                                                     // Domain types
                                                                                     typeof(ArcologyInfo),
@@ -42,16 +43,6 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(Encryptor),
                                                                                     typeof(ImageDetails),
                                                                                     typeof(InitializationStrategyBase),
-                                                                                    typeof(InitializationStrategyCertificateToInstall),
-                                                                                    typeof(InitializationStrategyCreateEventLog),
-                                                                                    typeof(InitializationStrategyDirectoryToCreate),
-                                                                                    typeof(InitializationStrategyDnsEntry),
-                                                                                    typeof(InitializationStrategyIis),
-                                                                                    typeof(InitializationStrategyMessageBusHandler),
-                                                                                    typeof(InitializationStrategyMongo),
-                                                                                    typeof(InitializationStrategyScheduledTask),
-                                                                                    typeof(InitializationStrategySelfHost),
-                                                                                    typeof(InitializationStrategySqlServer),
                                                                                     typeof(InstanceCreationDetails),
                                                                                     typeof(InstanceDescription),
                                                                                     typeof(InstanceDetailsFromComputingPlatform),
