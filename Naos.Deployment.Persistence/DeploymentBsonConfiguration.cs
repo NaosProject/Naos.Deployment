@@ -49,7 +49,6 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(InstanceDetailsFromComputingPlatform),
                                                                                     typeof(InstanceStatus),
                                                                                     typeof(InstanceTargeterBase),
-                                                                                    typeof(ScheduleBase),
                                                                                     typeof(InstanceType),
                                                                                     typeof(ItsConfigOverride),
                                                                                     typeof(PackageDescriptionWithDeploymentStatus),
@@ -62,6 +61,9 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(ArcologyInfoContainer),
                                                                                     typeof(CertificateContainer),
                                                                                     typeof(InstanceContainer),
+
+                                                                                    // External types
+                                                                                    typeof(ScheduleBase),
                                                                                 };
     }
 }

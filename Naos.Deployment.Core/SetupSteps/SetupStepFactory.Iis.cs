@@ -51,13 +51,16 @@ namespace Naos.Deployment.Core
             var certificateNameToThumbprintMap = new Dictionary<string, string>();
             foreach (var bindingDefinition in httpsBindingDefinitions)
             {
-                var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(bindingDefinition.SslCertificateName);
-                if (certDetails == null)
+                if (!certificateNameToThumbprintMap.ContainsKey(bindingDefinition.SslCertificateName))
                 {
-                    throw new DeploymentException("Could not find certificate by name: " + bindingDefinition.SslCertificateName);
-                }
+                    var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(bindingDefinition.SslCertificateName);
+                    if (certDetails == null)
+                    {
+                        throw new DeploymentException("Could not find certificate by name: " + bindingDefinition.SslCertificateName);
+                    }
 
-                certificateNameToThumbprintMap.Add(bindingDefinition.SslCertificateName, certDetails.GetPowershellPathableThumbprint());
+                    certificateNameToThumbprintMap.Add(bindingDefinition.SslCertificateName, certDetails.GetPowershellPathableThumbprint());
+                }
             }
 
             var httpsBindings = httpsBindingDefinitions
