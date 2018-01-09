@@ -44,6 +44,12 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public AutoStartProvider AutoStartProvider { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to enable SNI.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sni", Justification = "Spelling/name is correct.")]
+        public bool EnableSni { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
@@ -55,6 +61,7 @@ namespace Naos.Deployment.Domain
                               PrimaryDns = this.PrimaryDns,
                               HttpsBindings = this.HttpsBindings?.Select(_ => _.Clone()).ToList(),
                               HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
+                              EnableSni = this.EnableSni,
                           };
 
             return ret;

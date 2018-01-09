@@ -77,8 +77,6 @@ namespace Naos.Deployment.Core
 
             var hostHeaderForHttpBinding = iisStrategy.HostHeaderForHttpBinding;
 
-            const bool EnableSni = false;
-
             var appPoolPassword = appPoolAccount == null
                                       ? null
                                       : appPoolAccount.ToUpperInvariant()
@@ -89,7 +87,7 @@ namespace Naos.Deployment.Core
             var installWebParameters = new object[]
                                            {
                                                webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), appPoolAccount,
-                                               appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, EnableSni,
+                                               appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, iisStrategy.EnableSni,
                                                httpsBindings, hostHeaderForHttpBinding,
                                            };
 
