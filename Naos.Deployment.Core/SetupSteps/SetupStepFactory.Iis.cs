@@ -25,7 +25,7 @@ namespace Naos.Deployment.Core
         private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
-            if (httpsBindingDefinitions.Select(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
+            if (httpsBindingDefinitions.Where(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
             {
                 throw new ArgumentException(Invariant($"Cannot have more than one binding without a {nameof(HttpsBinding)}.{nameof(HttpsBinding.HostHeader)} that is blank; site {iisStrategy.PrimaryDns}."));
             }
