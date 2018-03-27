@@ -65,7 +65,6 @@ namespace Naos.Deployment.Core
             IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
             DeploymentConfiguration configToCreateWith,
             PackageHelper packageHelper,
-            string[] itsConfigPrecedenceAfterEnvironment,
             SetupStepFactorySettings setupStepFactorySettings)
         {
             new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();

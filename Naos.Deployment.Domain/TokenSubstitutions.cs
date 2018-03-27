@@ -88,5 +88,19 @@ namespace Naos.Deployment.Domain
 
             return ret;
         }
+
+        /// <summary>
+        /// Apply path substitutions to the provided string.
+        /// </summary>
+        /// <param name="stringToApplyTokenSubstitutions">Tokenized string to apply token substitutions to.</param>
+        /// <param name="deploymentDriveLetter">Volume drive letter that is being used for deploying package.</param>
+        /// <returns>Provided string with any found substitutions</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "string", Justification = "Spelling/name is correct.")]
+        public static string GetSubstitutedStringForPath(string stringToApplyTokenSubstitutions, string deploymentDriveLetter)
+        {
+            var ret = stringToApplyTokenSubstitutions?.Replace("{deploymentDriveLetter}", deploymentDriveLetter);
+
+            return ret;
+        }
     }
 }

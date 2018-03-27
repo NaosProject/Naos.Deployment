@@ -78,7 +78,7 @@ namespace Naos.Deployment.Core
         /// <inheritdoc cref="AdjustDeploymentBase" />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
+        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, SetupStepFactorySettings setupStepFactorySettings)
         {
             new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
             new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();

@@ -18,6 +18,8 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using Spritely.Recipes;
+
     using static System.FormattableString;
 
     /// <summary>
@@ -30,7 +32,7 @@ namespace Naos.Deployment.Core
 
         private readonly IGetPackages packageManager;
 
-        private readonly string[] itsConfigPrecedenceAfterEnvironment;
+        private readonly IManageConfigFiles configFileManager;
 
         private readonly string environmentCertificateName;
 
@@ -44,16 +46,16 @@ namespace Naos.Deployment.Core
         /// <param name="settings">Settings for the factory.</param>
         /// <param name="certificateRetriever">Certificate retriever to get certificates for steps.</param>
         /// <param name="packageManager">Package manager to use for getting package files contents.</param>
-        /// <param name="itsConfigPrecedenceAfterEnvironment">Its.Config precedence chain to be applied after the environment during any setup steps concerned with it.</param>
+        /// <param name="configFileManager">Config file manager to use when creating or manipulating config files.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="workingDirectory">Working directory to create scratch files.</param>
         /// <param name="debugAnnouncer">Announcer for events.</param>
-        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, string[] itsConfigPrecedenceAfterEnvironment, string environmentCertificateName, string workingDirectory, Action<string> debugAnnouncer)
+        public SetupStepFactory(SetupStepFactorySettings settings, IGetCertificates certificateRetriever, IGetPackages packageManager, IManageConfigFiles configFileManager, string environmentCertificateName, string workingDirectory, Action<string> debugAnnouncer)
         {
             this.Settings = settings;
             this.packageManager = packageManager;
             this.certificateRetriever = certificateRetriever;
-            this.itsConfigPrecedenceAfterEnvironment = itsConfigPrecedenceAfterEnvironment;
+            this.configFileManager = configFileManager;
             this.environmentCertificateName = environmentCertificateName;
             this.workingDirectory = workingDirectory;
             this.debugAnnouncer = debugAnnouncer;
@@ -63,11 +65,6 @@ namespace Naos.Deployment.Core
         /// Gets the administrator account name.
         /// </summary>
         public string AdministratorAccount => this.Settings.AdministratorAccount;
-
-        /// <summary>
-        /// Gets the root deployment path.
-        /// </summary>
-        public string RootDeploymentPath => this.Settings.RootDeploymentPath;
 
         /// <summary>
         /// Gets the initialization strategy types that require the package bytes to be copied up to the target server.
@@ -298,7 +295,9 @@ namespace Naos.Deployment.Core
 
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
-            return Path.Combine(this.RootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
+            var volumes = packagedConfig.DeploymentConfiguration.Volumes;
+            var rootDeploymentPath = this.Settings.BuildRootDeploymentPath(volumes);
+            return Path.Combine(rootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
         }
 
         private static void ThrowIfMissingNecessaryVolumes(IReadOnlyCollection<Volume> volumes, IReadOnlyCollection<InitializationStrategySqlServer> initializationStrategiesSql, IReadOnlyCollection<InitializationStrategyMongo> initializationStrategiesMongo)
@@ -348,6 +347,76 @@ namespace Naos.Deployment.Core
                     VerifyCertificate(httpsBinding.SslCertificateName, Invariant($"IIS: {iis.PrimaryDns}"));
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Extensions to <see cref="SetupStepFactorySettings" />.
+    /// </summary>
+    public static class SetupFactorySettingsExtensions
+    {
+        /// <summary>
+        /// Builds a root deployment path from the provided settings with any additional context that is required.
+        /// </summary>
+        /// <param name="settings">Settings to use.</param>
+        /// <param name="volumes">Volumes of current instance.</param>
+        /// <returns>Root deployment path to use.</returns>
+        public static string BuildRootDeploymentPath(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
+        {
+            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
+
+            var deploymentDriveLetter = settings.GetDeploymentDriveLetter(volumes);
+
+            var ret = TokenSubstitutions.GetSubstitutedStringForPath(settings.RootDeploymentPathTemplate, deploymentDriveLetter);
+            return ret;
+        }
+
+        /// <summary>
+        /// Builds a default logging path from the provided settings with any additional context that is required.
+        /// </summary>
+        /// <param name="settings">Settings to use.</param>
+        /// <param name="volumes">Volumes of current instance.</param>
+        /// <returns>Default logging path to use.</returns>
+        public static string BuildDefaultLoggingPath(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
+        {
+            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
+
+            var deploymentDriveLetter = settings.GetDeploymentDriveLetter(volumes);
+
+            var ret = TokenSubstitutions.GetSubstitutedStringForPath(settings.DefaultLoggingPathTemplate, deploymentDriveLetter);
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets the deployment drive letter from the provided settings with any additional context that is required.
+        /// </summary>
+        /// <param name="settings">Settings to use.</param>
+        /// <param name="volumes">Volumes of current instance.</param>
+        /// <returns>Deployment drive letter to use.</returns>
+        public static string GetDeploymentDriveLetter(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
+        {
+            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
+            new { volumes }.Must().NotBeNull().And().NotBeEmptyEnumerable<Volume>().OrThrowFirstFailure();
+
+            var driveLetters = volumes.Select(_ => _.DriveLetter).ToList();
+            string deploymentDriveLetter = null;
+            foreach (var driveLetterToCheck in settings.DeploymentDriveLetterPrecedence)
+            {
+                deploymentDriveLetter = driveLetters.FirstOrDefault(_ => _ == driveLetterToCheck);
+                if (!string.IsNullOrWhiteSpace(deploymentDriveLetter))
+                {
+                    break;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(deploymentDriveLetter))
+            {
+                throw new ArgumentException(
+                    Invariant(
+                        $"Must specify a drive in the {nameof(settings.DeploymentDriveLetterPrecedence)}; expected one of ({string.Join(",", settings.DeploymentDriveLetterPrecedence)}); found ({string.Join(",", driveLetters)})."));
+            }
+
+            return deploymentDriveLetter;
         }
     }
 }

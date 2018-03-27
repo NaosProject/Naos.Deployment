@@ -62,8 +62,6 @@ namespace Naos.Deployment.Core
 
         private readonly IReadOnlyCollection<string> packageIdsToIgnoreDuringTerminationSearch;
 
-        private readonly string[] itsConfigPrecedenceAfterEnvironment;
-
         private readonly ConcurrentBag<TelemetryEntry> telemetry = new ConcurrentBag<TelemetryEntry>();
 
         private readonly string telemetryFile;
@@ -132,13 +130,11 @@ namespace Naos.Deployment.Core
 
             new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
 
-            this.itsConfigPrecedenceAfterEnvironment = configFileManager.ItsConfigPrecedenceAfterEnvironment;
-
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
                 certificateRetriever,
                 packageManager,
-                this.itsConfigPrecedenceAfterEnvironment,
+                this.configFileManager,
                 environmentCertificateName,
                 workingDirectory,
                 this.debugAnnouncer);
@@ -187,7 +183,7 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = $"{this.setupStepFactory.Settings.ConfigDirectory}/{environment}/DeploymentConfigurationWithStrategies.json";
+            var deploymentFileSearchPattern = this.configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
 
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
@@ -322,7 +318,8 @@ namespace Naos.Deployment.Core
                         configToCreateWith.InstanceType.WindowsSku,
                         environment,
                         configToCreateWith.ChocolateyPackages,
-                        packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList());
+                        packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),
+                        this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes));
 
                 this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
                 await this.RunActionWithTelemetryAsync("Run instance level setup steps", () => this.RunSetupStepsAsync(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
@@ -339,7 +336,6 @@ namespace Naos.Deployment.Core
                     packagedDeploymentConfigsWithDefaultsAndOverrides,
                     configToCreateWith,
                     this.packageHelper,
-                    this.itsConfigPrecedenceAfterEnvironment,
                     this.setupStepFactory.Settings);
 
                 if (additionalPackages.Any())

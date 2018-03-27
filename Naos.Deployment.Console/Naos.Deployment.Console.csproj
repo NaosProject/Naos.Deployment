@@ -125,11 +125,11 @@
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Domain, Version=1.1.179.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Domain.1.1.179\lib\net461\Naos.Database.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Domain, Version=1.1.182.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Domain.1.1.182\lib\net461\Naos.Database.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer, Version=1.1.179.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.1.1.179\lib\net461\Naos.Database.SqlServer.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer, Version=1.1.182.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.1.1.182\lib\net461\Naos.Database.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.1.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.1.9\lib\net461\Naos.Diagnostics.Domain.dll</HintPath>

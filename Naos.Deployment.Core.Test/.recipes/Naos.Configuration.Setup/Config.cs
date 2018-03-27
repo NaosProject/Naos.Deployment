@@ -43,6 +43,11 @@ namespace Naos.Recipes.Configuration.Setup
         /// Common precedence used after the environment specific precedence.
         /// </summary>
         public const string CommonPrecedence = "Common";
+		
+        /// <summary>
+        /// Default directory name for configuration files.
+        /// </summary>
+        public const string DefaultConfigDirectoryName = ".config";
 
         /// <summary>
         /// Set up serialization logic for Newtonsoft and Its.Configuration to use when reading settings.

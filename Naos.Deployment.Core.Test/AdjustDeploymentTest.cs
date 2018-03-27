@@ -124,7 +124,7 @@ namespace Naos.Deployment.Core.Test
                                                                                         },
                                                    };
 
-            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             DeploymentConfig = new DeploymentConfiguration
                                    {
@@ -195,7 +195,6 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    new[] { Config.CommonPrecedence },
                     Settings.Get<SetupStepFactorySettings>());
             }
 
@@ -231,7 +230,6 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    new[] { Config.CommonPrecedence },
                     Settings.Get<SetupStepFactorySettings>());
             }
 
@@ -268,7 +266,6 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    new[] { Config.CommonPrecedence },
                     Settings.Get<SetupStepFactorySettings>());
             }
 
@@ -309,7 +306,6 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    new[] { Config.CommonPrecedence },
                     setupStepFactorySettings);
             }
 

@@ -18,11 +18,6 @@ namespace Naos.Deployment.Domain
     public class SetupStepFactorySettings
     {
         /// <summary>
-        /// Gets or sets the child directory name to use for Its.Configuration files; (i.e. '.config').
-        /// </summary>
-        public string ConfigDirectory { get; set; }
-
-        /// <summary>
         /// Gets or sets the name of the environment variable to use when setting the 'Environment'.
         /// </summary>
         public string EnvironmentEnvironmentVariableName { get; set; }
@@ -59,9 +54,20 @@ namespace Naos.Deployment.Domain
         public HarnessSettings HarnessSettings { get; set; }
 
         /// <summary>
-        /// Gets or sets the root deployment path.
+        /// Gets or sets the root deployment path but will need substitutions applied.
         /// </summary>
-        public string RootDeploymentPath { get; set; }
+        public string RootDeploymentPathTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default logging path but will need substitutions applied.
+        /// </summary>
+        public string DefaultLoggingPathTemplate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the prcedence order to use when identifying the deployment volume.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Order matters and collection is small, keeping an array for clarity.")]
+        public string[] DeploymentDriveLetterPrecedence { get; set; }
 
         /// <summary>
         /// Gets or sets the server settings of the mongo setup.

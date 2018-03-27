@@ -26,8 +26,9 @@ namespace Naos.Deployment.Core
         /// <param name="environment">Environment the instance is in.</param>
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
+        /// <param name="workingDirectoryForFileCopyDuringInstanceSetup">Path to store files temporarily.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup)
         {
             var steps = new List<SetupStep>();
 
@@ -179,7 +180,7 @@ namespace Naos.Deployment.Core
                     var usersToGrantAccessToKey = allInitializationStrategies.Select(this.GetAccountToUse).Where(_ => _ != null).Distinct().ToArray();
 
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
-                                                   this.RootDeploymentPath,
+                                                   workingDirectoryForFileCopyDuringInstanceSetup,
                                                    this.Settings.HarnessSettings.HarnessAccount,
                                                    this.Settings.WebServerSettings.IisAccount,
                                                    usersToGrantAccessToKey,

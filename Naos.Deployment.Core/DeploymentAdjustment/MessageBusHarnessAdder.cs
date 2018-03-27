@@ -69,9 +69,10 @@ namespace Naos.Deployment.Core
 
         /// <inheritdoc cref="AdjustDeploymentBase" />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, string[] itsConfigPrecedenceAfterEnvironment, SetupStepFactorySettings setupStepFactorySettings)
+        public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, SetupStepFactorySettings setupStepFactorySettings)
         {
             new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
+            new { configToCreateWith }.Must().NotBeNull().OrThrowFirstFailure();
             new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
             new { setupStepFactorySettings }.Must().NotBeNull().OrThrowFirstFailure();
 
@@ -93,11 +94,10 @@ namespace Naos.Deployment.Core
 
                 // extract appropriate files from
                 var itsConfigFilesFromPackage = new Dictionary<string, string>();
-                var precedenceChain = new[] { environment }.ToList();
-                precedenceChain.AddRange(itsConfigPrecedenceAfterEnvironment);
+                var precedenceChain = configFileManager.BuildPrecedenceChain(environment);
                 foreach (var precedenceElement in precedenceChain)
                 {
-                    var itsConfigFolderPattern = Invariant($"{setupStepFactorySettings.ConfigDirectory}/{precedenceElement}/");
+                    var itsConfigFolderPattern = configFileManager.BuildConfigPath(precedence: precedenceElement);
 
                     var itsConfigFilesFromPackageForPrecedenceElement =
                         packageHelper.GetMultipleFileContentsFromPackageAsStrings(
@@ -114,6 +114,7 @@ namespace Naos.Deployment.Core
                     itsConfigFilesFromPackage.Select(
                         _ => new ItsConfigOverride { FileNameWithoutExtension = Path.GetFileNameWithoutExtension(_.Key), FileContentsJson = _.Value }));
 
+                var rootDeploymentPath = setupStepFactorySettings.BuildRootDeploymentPath(configToCreateWith.Volumes);
                 ret = this.BuildMessageBusHarnessPackagedConfig(
                     environment,
                     instanceName,
@@ -123,7 +124,7 @@ namespace Naos.Deployment.Core
                     itsConfigOverridesForHandlers,
                     configToCreateWith,
                     packageHelper,
-                    setupStepFactorySettings.RootDeploymentPath);
+                    rootDeploymentPath);
             }
 
             return ret == null ? new InjectedPackage[0] : new[] { new InjectedPackage(ReasonString, ret) };

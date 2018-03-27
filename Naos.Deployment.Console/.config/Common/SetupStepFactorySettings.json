@@ -17,8 +17,9 @@
     ],
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
-    "rootDeploymentPath": "C:\\Deployments",
-    "configDirectory": ".config",
+    "rootDeploymentPathTemplate": "{deploymentDriveLetter}:\\Deployments",
+    "defaultLoggingPathTemplate": "{deploymentDriveLetter}:\\Logs",
+    "deploymentDriveLetterPrecedence": [ "D", "C" ],
     "environmentEnvironmentVariableName": "Environment",
     "administratorAccount": "Administrator",
     "harnessSettings": {

@@ -6,12 +6,12 @@
 
 namespace Naos.Deployment.Core
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Text;
+
     using Naos.Deployment.Domain;
+
     using static System.FormattableString;
 
     /// <summary>
@@ -28,8 +28,7 @@ namespace Naos.Deployment.Core
         {
             var itsConfigSteps = new List<SetupStep>();
             var updateExeConfigScriptBlock = this.Settings.DeploymentScriptBlocks.UpdateItsConfigPrecedence;
-            var precedenceChain = new[] { environment }.ToList();
-            precedenceChain.AddRange(this.itsConfigPrecedenceAfterEnvironment);
+            var precedenceChain = this.configFileManager.BuildPrecedenceChain(environment);
             var updateExeConfigScriptParams = new object[] { configFilePath, precedenceChain.ToArray() };
 
             itsConfigSteps.Add(
@@ -39,13 +38,13 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams),
                     });
 
-            var configFileDirectoryPath = Path.GetDirectoryName(configFilePath) ?? throw new ArgumentException(Invariant($"Could not extract parent path from {nameof(configFilePath)} in {nameof(SetupStepFactory)}.{nameof(SetupStepFactory.GetItsConfigSteps)}, value: {configFilePath}."));
-
             foreach (var itsConfigOverride in itsConfigOverrides ?? new List<ItsConfigOverride>())
             {
-                var itsFileSubPath = Invariant($"{this.Settings.ConfigDirectory}/{environment}/{itsConfigOverride.FileNameWithoutExtension}.json");
+                var itsFilePath = this.configFileManager.BuildConfigPath(
+                    applicationRootPath,
+                    environment,
+                    Invariant($"{itsConfigOverride.FileNameWithoutExtension}.json"));
 
-                var itsFilePath = Path.Combine(configFileDirectoryPath, itsFileSubPath);
                 var itsFileBytes = Encoding.UTF8.GetBytes(itsConfigOverride.FileContentsJson);
 
                 itsConfigSteps.Add(

@@ -109,7 +109,7 @@ namespace $rootnamespace$
                 virtualMfaDeviceId,
                 mfaValue);
 
-            var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+            var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             var rawRet = configFileManager.SerializeConfigToFileText(retObj);
 
@@ -503,9 +503,7 @@ namespace $rootnamespace$
 
             CommonSetup(debug, environment, announcer: localAnnouncer);
 
-            var configFileManager = new ConfigFileManager(
-                new[] { Config.CommonPrecedence },
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+            var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -919,7 +917,7 @@ namespace $rootnamespace$
                         File.Delete(nugetAnnouncementFilePath);
                     }
 
-                    var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                    var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
                     using (var packageManager = new PackageRetriever(unzipDirPath, repoConfigs, null, s => NugetAnnouncementAction(s, nugetAnnouncementFilePath)))
                     {
