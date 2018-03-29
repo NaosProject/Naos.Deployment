@@ -39,6 +39,7 @@ namespace Naos.Deployment.Core
 
             var exeFullPath = Path.Combine(packageDirectoryPath, exeFilePathRelativeToPackageRoot);
             var exeConfigFullPath = exeFullPath + ".config"; // App.Config should get named this.
+            var applicationRootPath = Path.GetDirectoryName(exeFullPath);
 
             scheduledTaskSetupSteps.Add(
                 new SetupStep
@@ -47,7 +48,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, packageDirectoryPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, applicationRootPath, environment, exeConfigFullPath);
             scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
             // in case we're serializing an expression schedule run the loop into a new object...

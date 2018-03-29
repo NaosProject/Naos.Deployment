@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupStepFactory.InitializationStrategyOnetimeCall.cs" company="Naos">
+// <copyright file="SetupStepFactory.OnetimeCall.cs" company="Naos">
 //    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -29,8 +29,9 @@ namespace Naos.Deployment.Core
 
             var exeFullPath = Path.Combine(consoleRootPath, exeFilePathRelativeToPackageRoot);
             var exeConfigFullPath = exeFullPath + ".config"; // App.Config should get named this.
+            var applicationRootPath = Path.GetDirectoryName(exeFullPath);
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, consoleRootPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, applicationRootPath, environment, exeConfigFullPath);
             onetimeCallSetupSteps.AddRange(itsConfigSteps);
 
             var onetimeCallParams = new object[] { exeFullPath, arguments };

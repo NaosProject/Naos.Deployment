@@ -201,12 +201,17 @@ namespace Naos.Deployment.Core
                                 FileNameWithoutExtension = nameof(MessageBusConnectionConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.PersistenceConnectionConfiguration),
                             },
-                        new ItsConfigOverride
-                            {
-                                FileNameWithoutExtension = nameof(LogProcessorSettings),
-                                FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings),
-                            },
                     });
+
+            if (this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings != null)
+            {
+                itsConfigOverridesToUse.Add(
+                    new ItsConfigOverride
+                        {
+                            FileNameWithoutExtension = nameof(LogProcessorSettings),
+                            FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings),
+                        });
+            }
 
             var messageBusHandlerHarnessInitializationStrategies = this.MessageBusHandlerHarnessConfiguration.Package.InitializationStrategies.Select(_ => (InitializationStrategyBase)_.Clone()).ToList();
 

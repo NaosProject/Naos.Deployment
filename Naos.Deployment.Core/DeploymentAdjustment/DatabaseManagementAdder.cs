@@ -278,12 +278,17 @@ namespace Naos.Deployment.Core
                                 FileNameWithoutExtension = nameof(MessageBusConnectionConfiguration),
                                 FileContentsJson = configFileManager.SerializeConfigToFileText(this.DatabaseManagementConfiguration.PersistenceConnectionConfiguration),
                             },
-                        new ItsConfigOverride
-                            {
-                                FileNameWithoutExtension = nameof(LogProcessorSettings),
-                                FileContentsJson = configFileManager.SerializeConfigToFileText(logProcessorSettings),
-                            },
                     });
+
+            if (logProcessorSettings != null)
+            {
+                itsConfigOverridesToUse.Add(
+                    new ItsConfigOverride
+                        {
+                            FileNameWithoutExtension = nameof(LogProcessorSettings),
+                            FileContentsJson = configFileManager.SerializeConfigToFileText(logProcessorSettings),
+                        });
+            }
 
             var existingInitializationStrategies = packageDescriptionToAdd.InitializationStrategies.Select(_ => (InitializationStrategyBase)_.Clone()).ToList();
 
