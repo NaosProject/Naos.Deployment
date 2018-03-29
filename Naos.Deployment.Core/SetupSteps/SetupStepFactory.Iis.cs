@@ -14,6 +14,7 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
 
     using static System.FormattableString;
 
@@ -22,7 +23,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
             if (httpsBindingDefinitions.Where(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
@@ -45,7 +46,7 @@ namespace Naos.Deployment.Core
             var webSteps = new List<SetupStep>();
             var webConfigPath = Path.Combine(webRootPath, "web.config");
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, webRootPath, environment, webConfigPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, webRootPath, environment, webConfigPath);
             webSteps.AddRange(itsConfigSteps);
 
             var certificateNameToThumbprintMap = new Dictionary<string, string>();

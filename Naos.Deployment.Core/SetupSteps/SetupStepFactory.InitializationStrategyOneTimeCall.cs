@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.IO;
 
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
 
     using static System.FormattableString;
 
@@ -18,7 +19,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetOnetimeCallSpecificSteps(InitializationStrategyOnetimeCall onetimeCallStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment)
+        private List<SetupStep> GetOnetimeCallSpecificSteps(InitializationStrategyOnetimeCall onetimeCallStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment)
         {
             var exeFilePathRelativeToPackageRoot = onetimeCallStrategy.ExeFilePathRelativeToPackageRoot;
             var justification = onetimeCallStrategy.JustificationForOnetimeCall;
@@ -29,7 +30,7 @@ namespace Naos.Deployment.Core
             var exeFullPath = Path.Combine(consoleRootPath, exeFilePathRelativeToPackageRoot);
             var exeConfigFullPath = exeFullPath + ".config"; // App.Config should get named this.
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, consoleRootPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, consoleRootPath, environment, exeConfigFullPath);
             onetimeCallSetupSteps.AddRange(itsConfigSteps);
 
             var onetimeCallParams = new object[] { exeFullPath, arguments };

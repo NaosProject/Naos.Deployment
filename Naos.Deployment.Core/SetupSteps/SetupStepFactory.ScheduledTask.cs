@@ -12,13 +12,14 @@ namespace Naos.Deployment.Core
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
+        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {
             var schedule = scheduledTaskStrategy.Schedule;
             var exeFilePathRelativeToPackageRoot = scheduledTaskStrategy.ExeFilePathRelativeToPackageRoot;
@@ -28,11 +29,11 @@ namespace Naos.Deployment.Core
             var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
             var runElevated = scheduledTaskStrategy.RunElevated;
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(defaultLogProcessorSettings, itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
@@ -46,7 +47,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, packageDirectoryPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, packageDirectoryPath, environment, exeConfigFullPath);
             scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
             // in case we're serializing an expression schedule run the loop into a new object...

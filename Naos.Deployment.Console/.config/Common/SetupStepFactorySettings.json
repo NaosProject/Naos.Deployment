@@ -18,7 +18,17 @@
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPathTemplate": "{deploymentDriveLetter}:\\Deployments",
-    "defaultLoggingPathTemplate": "{deploymentDriveLetter}:\\Logs",
+    "defaultLogProcessorSettings": {
+        "configurations": [
+            {
+                "timeSlicePerFile": "00:10:00",
+                "fileNamePrefix": "All",
+                "logFileDirectoryPath": "{deploymentDriveLetter}:\\Logs",
+                "createDirectoryStructureIfMissing": true,
+                "contextsToLog": "all"
+            }
+        ]
+    },
     "deploymentDriveLetterPrecedence": [ "D", "C" ],
     "environmentEnvironmentVariableName": "Environment",
     "administratorAccount": "Administrator",

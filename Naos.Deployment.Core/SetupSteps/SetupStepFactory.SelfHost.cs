@@ -14,13 +14,14 @@ namespace Naos.Deployment.Core
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
 
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
             var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
@@ -75,6 +76,7 @@ namespace Naos.Deployment.Core
             var name = "SelfHostKeepAliveFor" + exeFilePathRelativeToPackageRoot;
             var description = $"Task to ensure that the self host {exeFilePathRelativeToPackageRoot} is always running.";
             var scheduledTaskStesps = this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
+                defaultLogProcessorSettings,
                 itsConfigOverrides,
                 packageDirectoryPath,
                 environment,

@@ -57,22 +57,23 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void BuildConfigPath___With_file_and_no_precedence___Throws()
+        public static void BuildConfigPath___With_no_precedence___Uses_least_significant()
         {
             // Arrange
             var manager = new ConfigFileManager(
-                new[] { Config.CommonPrecedence },
+                new[] { "another", Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
                 SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             var file = "file";
 
+            var expected = Invariant($"{Config.DefaultConfigDirectoryName}\\{Config.CommonPrecedence}\\{file}");
+
             // Act
-            var exception = Record.Exception(() => manager.BuildConfigPath(fileNameWithExtension: file));
+            var actual = manager.BuildConfigPath(fileNameWithExtension: file);
 
             // Assert
-            exception.Should().NotBeNull();
-            exception.Message.Should().Be("Must specify precedence when specifying fileNameWithExtension.");
+            actual.Should().Be(expected);
         }
 
         [Fact]
@@ -146,7 +147,7 @@ namespace Naos.Deployment.Core.Test
                 SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
 
             var root = "root";
-            var expected = Invariant($"{root}\\{Config.DefaultConfigDirectoryName}");
+            var expected = Invariant($"{root}\\{Config.DefaultConfigDirectoryName}\\{Config.CommonPrecedence}");
 
             // Act
             var actual = manager.BuildConfigPath(root);

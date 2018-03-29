@@ -9,6 +9,7 @@ namespace Naos.Deployment.Domain
     using System;
     using System.IO;
     using System.Linq;
+    using System.Text;
 
     using Its.Configuration;
 
@@ -40,8 +41,8 @@ namespace Naos.Deployment.Domain
         /// Builds a config path with varying degrees of precision.
         /// </summary>
         /// <param name="rootPath">Optional root path to use.</param>
-        /// <param name="precedence">Optional precedence to use.</param>
-        /// <param name="fileNameWithExtension">Optional filename to use, must include <paramref name="precedence" /> when using.</param>
+        /// <param name="precedence">Optional precedence to use, will choose lowest common precedence if none specified.</param>
+        /// <param name="fileNameWithExtension">Optional filename to use.</param>
         /// <returns>Config path.</returns>
         string BuildConfigPath(string rootPath = null, string precedence = null, string fileNameWithExtension = null);
 
@@ -51,6 +52,13 @@ namespace Naos.Deployment.Domain
         /// <param name="environment">Optional root path to use.</param>
         /// <returns>Precedence chain.</returns>
         string[] BuildPrecedenceChain(string environment = null);
+
+        /// <summary>
+        /// Converts the string contents of a configuration file to the bytes that should be written on disk.
+        /// </summary>
+        /// <param name="fileContents">String contents of configuration file.</param>
+        /// <returns>Bytes of configuration file to be written to disk.</returns>
+        byte[] ConvertConfigFileTextToFileBytes(string fileContents);
     }
 
     /// <summary>
@@ -92,12 +100,8 @@ namespace Naos.Deployment.Domain
         /// <inheritdoc cref="IManageConfigFiles" />
         public string BuildConfigPath(string rootPath = null, string precedence = null, string fileNameWithExtension = null)
         {
-            if (!string.IsNullOrWhiteSpace(fileNameWithExtension) && string.IsNullOrWhiteSpace(precedence))
-            {
-                throw new ArgumentException(Invariant($"Must specify {nameof(precedence)} when specifying {nameof(fileNameWithExtension)}."));
-            }
-
-            var ret = Path.Combine(rootPath ?? string.Empty, this.configDirectoryName, precedence ?? string.Empty, fileNameWithExtension ?? string.Empty);
+            var localPrecedence = precedence ?? this.itsConfigPrecedenceAfterEnvironment.Last() ?? throw new ArgumentException(Invariant($"Must specify at least one item in {nameof(this.itsConfigPrecedenceAfterEnvironment)} if NOT specifying {nameof(precedence)}."));
+            var ret = Path.Combine(rootPath ?? string.Empty, this.configDirectoryName, localPrecedence, fileNameWithExtension ?? string.Empty);
             return ret;
         }
 
@@ -106,6 +110,13 @@ namespace Naos.Deployment.Domain
         {
             var front = string.IsNullOrWhiteSpace(environment) ? new string[0] : new[] { environment };
             return front.Concat(this.itsConfigPrecedenceAfterEnvironment).ToArray();
+        }
+
+        /// <inheritdoc cref="IManageConfigFiles" />
+        public byte[] ConvertConfigFileTextToFileBytes(string fileContents)
+        {
+            var ret = Encoding.UTF8.GetBytes(fileContents);
+            return ret;
         }
     }
 }
