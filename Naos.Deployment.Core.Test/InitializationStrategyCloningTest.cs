@@ -18,6 +18,17 @@ namespace Naos.Deployment.Core.Test
     public static class InitializationStrategyCloningTest
     {
         [Fact]
+        public static void Clone_ReplaceTokenInFiles_Works()
+        {
+            var original = new InitializationStrategyReplaceTokenInFiles { FileSearchPattern = "pattern", Token = ":environment:", Replacement = "{environment}" };
+            var cloned = original.Clone() as InitializationStrategyReplaceTokenInFiles;
+            Assert.NotNull(cloned);
+            Assert.Equal(original.FileSearchPattern, cloned.FileSearchPattern);
+            Assert.Equal(original.Token, cloned.Token);
+            Assert.Equal(original.Replacement, cloned.Replacement);
+        }
+
+        [Fact]
         public static void Clone_CertificateToInstall_Works()
         {
             var original = new InitializationStrategyCertificateToInstall { CertificateToInstall = "cert", AccountToGrantPrivateKeyAccess = "someone" };

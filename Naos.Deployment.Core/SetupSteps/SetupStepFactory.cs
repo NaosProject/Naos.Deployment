@@ -10,7 +10,6 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
@@ -141,19 +140,25 @@ namespace Naos.Deployment.Core
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
             var defaultLogProcessorSettings = this.GetDefaultLogProcessorSettings(packagedConfig);
 
-            if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
+            if (strategy.GetType() == typeof(InitializationStrategyReplaceTokenInFiles))
+            {
+                var tokenSteps = this.GetReplaceTokenInFilesSpecificSteps((InitializationStrategyReplaceTokenInFiles)strategy, packageDirectoryPath, funcToCreateNewDnsWithTokensReplaced);
+
+                ret = new SetupStepBatch { ExecutionOrder = 2, Steps = tokenSteps };
+            }
+            else if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
             {
                 var dirSteps = this.GetDirectoryToCreateSpecificSteps(
                     (InitializationStrategyDirectoryToCreate)strategy,
                     this.Settings.HarnessSettings.HarnessAccount,
                     this.Settings.WebServerSettings.IisAccount);
 
-                ret = new SetupStepBatch { ExecutionOrder = 2, Steps = dirSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = dirSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyCreateEventLog))
             {
                 var eventLogSteps = this.GetCreateEventLogSpecificSteps((InitializationStrategyCreateEventLog)strategy);
-                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = eventLogSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = eventLogSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
             {
@@ -165,19 +170,19 @@ namespace Naos.Deployment.Core
                             this.Settings.HarnessSettings.HarnessAccount,
                             this.Settings.WebServerSettings.IisAccount);
 
-                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = certSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = certSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
             {
                 var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.PackageWithBundleIdentifier.Package);
 
-                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = databaseSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = databaseSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMongo))
             {
                 var mongoSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
 
-                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = mongoSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = mongoSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
             {
@@ -202,7 +207,7 @@ namespace Naos.Deployment.Core
                         environment,
                         adminPassword);
 
-                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = scheduledTaskSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = scheduledTaskSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyOnetimeCall))
             {
@@ -213,7 +218,7 @@ namespace Naos.Deployment.Core
                     packageDirectoryPath,
                     environment);
 
-                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = onetimeCallSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = onetimeCallSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
             {
@@ -228,7 +233,7 @@ namespace Naos.Deployment.Core
                         adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = selfHostSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 10, Steps = selfHostSteps };
             }
             else if (strategy.GetType() == typeof(InitializationStrategyIis))
             {
@@ -242,7 +247,7 @@ namespace Naos.Deployment.Core
                                    adminPassword,
                                    funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 10, Steps = webSteps };
+                ret = new SetupStepBatch { ExecutionOrder = 11, Steps = webSteps };
             }
             else
             {

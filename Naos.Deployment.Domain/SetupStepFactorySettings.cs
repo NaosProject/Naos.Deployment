@@ -244,6 +244,11 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription SetupWinRmScript { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to replace tokens in files.
+        /// </summary>
+        public ScriptBlockDescription ReplaceTokenInFiles { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to download an S3 object to a path.
         /// </summary>
         public ScriptBlockDescription DownloadS3Object { get; set; }

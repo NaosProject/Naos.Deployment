@@ -130,6 +130,7 @@
     <Compile Include="InitializationStrategy\InitializationStrategyIis.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMessageBusHandler.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyMongo.cs" />
+    <Compile Include="InitializationStrategy\InitializationStrategyReplaceTokenInFiles.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyOnetimeCall.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategySelfHost.cs" />
     <Compile Include="InitializationStrategy\InitializationStrategyScheduledTask.cs" />

@@ -918,6 +918,21 @@
                 "}"
             ]
         },
+        "replaceTokenInFiles": {
+            "parameterNames": [ "RootPath", "FileSearchPattern", "Token", "ReplacementValue" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $RootPath, [string] $FileSearchPattern, [string] $Token, [string] $ReplacementValue)",
+                "   $files = ls $RootPath -Recurse -Filter $FileSearchPattern | %{ $_.FullName }",
+                "   $files | %{",
+                "      $file = $_",
+                "      $old = Get-Content $file",
+                "      $new = $old.Replace($Token, $ReplacementValue)",
+                "      $new | Out-File $file",
+                "   }",
+                "}"
+            ]
+        },
         "renameComputerScript": {
             "parameterNames": [ "ComputerName" ],
             "scriptTextLines": [
