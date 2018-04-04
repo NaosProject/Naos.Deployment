@@ -123,7 +123,9 @@ namespace Naos.Deployment.Core
 
             var instanceCount = deploymentConfigs.Max(_ => _.InstanceCount);
 
-            var ret = new DeploymentConfiguration()
+            var tags = deploymentConfigs.SelectMany(_ => _.TagNameToValueMap ?? new Dictionary<string, string>()).ToDictionary(k => k.Key, v => v.Value);
+
+            var ret = new DeploymentConfiguration
                           {
                               InstanceCount = instanceCount,
                               InstanceType =
@@ -142,6 +144,7 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages = chocolateyPackagesToUse,
                               DeploymentStrategy = deploymentStrategy,
                               PostDeploymentStrategy = postDeploymentStrategy,
+                              TagNameToValueMap = tags,
                           };
 
             if (!string.IsNullOrWhiteSpace(ret.InstanceType.SpecificImageSystemId) && ret.InstanceType.WindowsSku != WindowsSku.SpecificImageSupplied)
@@ -221,21 +224,12 @@ namespace Naos.Deployment.Core
                           {
                               InstanceCount = instanceCount,
                               InstanceAccessibility = instanceAccessibility,
-                              InstanceType =
-                                  deploymentConfigOverride.InstanceType
-                                  ?? deploymentConfigInitial.InstanceType,
-                              Volumes =
-                                  deploymentConfigOverride.Volumes
-                                  ?? deploymentConfigInitial.Volumes,
-                              ChocolateyPackages =
-                                  deploymentConfigOverride.ChocolateyPackages
-                                  ?? deploymentConfigInitial.ChocolateyPackages,
-                              DeploymentStrategy =
-                                  deploymentConfigOverride.DeploymentStrategy
-                                  ?? deploymentConfigInitial.DeploymentStrategy,
-                              PostDeploymentStrategy =
-                                  deploymentConfigOverride.PostDeploymentStrategy
-                                  ?? deploymentConfigInitial.PostDeploymentStrategy,
+                              InstanceType = deploymentConfigOverride.InstanceType ?? deploymentConfigInitial.InstanceType,
+                              Volumes = deploymentConfigOverride.Volumes ?? deploymentConfigInitial.Volumes,
+                              ChocolateyPackages = deploymentConfigOverride.ChocolateyPackages ?? deploymentConfigInitial.ChocolateyPackages,
+                              DeploymentStrategy = deploymentConfigOverride.DeploymentStrategy ?? deploymentConfigInitial.DeploymentStrategy,
+                              PostDeploymentStrategy = deploymentConfigOverride.PostDeploymentStrategy ?? deploymentConfigInitial.PostDeploymentStrategy,
+                              TagNameToValueMap = deploymentConfigOverride.TagNameToValueMap ?? deploymentConfigInitial.TagNameToValueMap,
                           };
 
             if (ret.InstanceType == null)
@@ -316,6 +310,7 @@ namespace Naos.Deployment.Core
                               ChocolateyPackages = deploymentConfigInitial?.ChocolateyPackages ?? defaultDeploymentConfig.ChocolateyPackages,
                               DeploymentStrategy = deploymentConfigInitial?.DeploymentStrategy ?? defaultDeploymentConfig.DeploymentStrategy,
                               PostDeploymentStrategy = deploymentConfigInitial?.PostDeploymentStrategy ?? defaultDeploymentConfig.PostDeploymentStrategy,
+                              TagNameToValueMap = deploymentConfigInitial?.TagNameToValueMap ?? defaultDeploymentConfig.TagNameToValueMap,
                           };
 
             if (ret.InstanceType != null)

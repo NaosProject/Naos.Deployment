@@ -63,7 +63,8 @@ namespace Naos.Deployment.Core.Test
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
                                         PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
-                                    };
+                                        TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);
             Assert.Equal(defaultConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
@@ -77,6 +78,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(true, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(true, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(true, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
+            Assert.Equal(defaultConfig.TagNameToValueMap.Single(), appliedConfig.TagNameToValueMap.Single());
         }
 
         [Fact]

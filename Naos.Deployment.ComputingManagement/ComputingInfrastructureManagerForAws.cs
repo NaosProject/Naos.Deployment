@@ -469,6 +469,19 @@ namespace Naos.Deployment.ComputingManagement
 
             await createdInstance.AddTagInAwsAsync(this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString(), TimeSpan.FromMinutes(10), this.credentials);
 
+            var reservedTags = new[] { Constants.NameTagKey, this.settings.EnvironmentTagKey, this.settings.WindowsSkuTagKey, this.settings.InstanceAccessibilityTagKey, };
+            foreach (var tag in deploymentConfiguration.TagNameToValueMap ?? new Dictionary<string, string>())
+            {
+                if (reservedTags.Contains(tag.Key))
+                {
+                    Log.Write(Invariant($"Skipping tag {tag.Key}:{tag.Value} because it's one of the reserved tag keys ({string.Join(",", reservedTags)})."));
+                }
+                else
+                {
+                    await createdInstance.AddTagInAwsAsync(tag.Key, tag.Value, TimeSpan.FromMinutes(10), this.credentials);
+                }
+            }
+
             var instanceDescription = new InstanceDescription()
             {
                 Id = createdInstance.Id,

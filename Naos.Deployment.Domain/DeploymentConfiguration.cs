@@ -56,6 +56,14 @@ namespace Naos.Deployment.Domain
         public PostDeploymentStrategy PostDeploymentStrategy { get; set; }
 
         /// <summary>
+        /// Gets or sets the map of tag name to value.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> TagNameToValueMap { get; set; }
+
+        private IReadOnlyCollection<KeyValuePair<string, string>> SafeSortedTags =>
+            (this.TagNameToValueMap ?? new Dictionary<string, string>()).OrderBy(_ => _.Key).ToList();
+
+        /// <summary>
         /// Equal operator.
         /// </summary>
         /// <param name="first">Left item.</param>
@@ -73,7 +81,12 @@ namespace Naos.Deployment.Domain
                 return false;
             }
 
-            return (first.InstanceType == second.InstanceType) && (first.InstanceAccessibility == second.InstanceAccessibility) && (first.InstanceCount == second.InstanceCount) && (first.Volumes ?? new Volume[0]).SequenceEqual(second.Volumes ?? new Volume[0]) && (first.ChocolateyPackages ?? new PackageDescription[0]).SequenceEqual(second.ChocolateyPackages ?? new PackageDescription[0]) && (first.DeploymentStrategy == second.DeploymentStrategy) && (first.PostDeploymentStrategy == second.PostDeploymentStrategy);
+            return (first.InstanceType == second.InstanceType) && (first.InstanceAccessibility == second.InstanceAccessibility)
+                   && (first.InstanceCount == second.InstanceCount) && (first.Volumes ?? new Volume[0]).SequenceEqual(second.Volumes ?? new Volume[0])
+                   && (first.ChocolateyPackages ?? new PackageDescription[0]).SequenceEqual(second.ChocolateyPackages ?? new PackageDescription[0])
+                   && (first.DeploymentStrategy == second.DeploymentStrategy)
+                   && (first.PostDeploymentStrategy == second.PostDeploymentStrategy
+                   && first.SafeSortedTags.SequenceEqual(second.SafeSortedTags));
         }
 
         /// <summary>
@@ -91,6 +104,15 @@ namespace Naos.Deployment.Domain
         public override bool Equals(object obj) => this == (obj as DeploymentConfiguration);
 
         /// <inheritdoc />
-        public override int GetHashCode() => HashCodeHelper.Initialize().Hash(this.InstanceType).Hash(this.InstanceAccessibility).Hash(this.InstanceCount).HashElements(this.Volumes).HashElements(this.ChocolateyPackages).Hash(this.DeploymentStrategy).Hash(this.PostDeploymentStrategy).Value;
+        public override int GetHashCode() =>
+            HashCodeHelper.Initialize()
+            .Hash(this.InstanceType)
+            .Hash(this.InstanceAccessibility)
+            .Hash(this.InstanceCount)
+            .HashElements(this.Volumes)
+            .HashElements(this.ChocolateyPackages)
+            .Hash(this.DeploymentStrategy)
+            .Hash(this.PostDeploymentStrategy)
+            .HashElements(this.SafeSortedTags).Value;
     }
 }

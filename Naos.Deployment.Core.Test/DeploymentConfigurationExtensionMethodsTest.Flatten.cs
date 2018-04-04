@@ -189,6 +189,19 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        public static void Flatten_Tags_Merged()
+        {
+            var a = new DeploymentConfiguration() { TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } }, };
+
+            var b = new DeploymentConfiguration() { TagNameToValueMap = new Dictionary<string, string> { { "world", "hello" } }, };
+
+            var output = new[] { a, b }.Flatten();
+            Assert.Equal(2, output.TagNameToValueMap.Count);
+            Assert.Equal(a.TagNameToValueMap.Single().Value, output.TagNameToValueMap[a.TagNameToValueMap.Single().Key]);
+            Assert.Equal(b.TagNameToValueMap.Single().Value, output.TagNameToValueMap[b.TagNameToValueMap.Single().Key]);
+        }
+
+        [Fact]
         public static void Flatten_PostDeploymentStrategy_Persisted()
         {
             var a = new DeploymentConfiguration()

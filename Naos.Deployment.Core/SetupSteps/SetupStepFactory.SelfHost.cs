@@ -28,6 +28,7 @@ namespace Naos.Deployment.Core
             var sslCertificateName = selfHostStrategy.SslCertificateName;
             var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
             var selfHostExeFilePathRelativeToPackageRoot = selfHostStrategy.SelfHostExeFilePathRelativeToPackageRoot;
+            var selfHostExeArguments = selfHostStrategy.SelfHostArguments;
             var applicationId = Guid.NewGuid().ToString().ToUpper();
             var runElevated = selfHostStrategy.RunElevated;
 
@@ -73,6 +74,7 @@ namespace Naos.Deployment.Core
             // task steps to keep the console exe alive
             var schedule = new IntervalSchedule { Interval = TimeSpan.FromMinutes(1) };
             var exeFilePathRelativeToPackageRoot = selfHostExeFilePathRelativeToPackageRoot;
+            var arguments = selfHostExeArguments;
             var name = "SelfHostKeepAliveFor" + exeFilePathRelativeToPackageRoot;
             var description = $"Task to ensure that the self host {exeFilePathRelativeToPackageRoot} is always running.";
             var scheduledTaskStesps = this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
@@ -87,7 +89,7 @@ namespace Naos.Deployment.Core
                 runElevated,
                 name,
                 description,
-                null);
+                arguments);
 
             selfHostSteps.AddRange(scheduledTaskStesps);
 

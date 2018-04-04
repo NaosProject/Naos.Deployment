@@ -20,6 +20,11 @@ namespace Naos.Deployment.Domain
         public string SelfHostExeFilePathRelativeToPackageRoot { get; set; }
 
         /// <summary>
+        /// Gets or sets the arguments to pass to the executable.
+        /// </summary>
+        public string SelfHostArguments { get; set; }
+
+        /// <summary>
         /// Gets or sets the DNS entries to support access of the self hosted deployment.
         /// </summary>
         public IReadOnlyCollection<string> SelfHostSupportedDnsEntries { get; set; }
@@ -45,6 +50,7 @@ namespace Naos.Deployment.Domain
             var ret = new InitializationStrategySelfHost
                           {
                               SelfHostExeFilePathRelativeToPackageRoot = this.SelfHostExeFilePathRelativeToPackageRoot,
+                              SelfHostArguments = this.SelfHostArguments,
                               SslCertificateName = this.SslCertificateName,
                               SelfHostSupportedDnsEntries =
                                   this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),

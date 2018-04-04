@@ -43,6 +43,7 @@ namespace Naos.Deployment.Core.Test
                 ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
                 DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
                 PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
+                TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
             };
 
             var overrideConfig = new DeploymentConfiguration();
@@ -60,6 +61,7 @@ namespace Naos.Deployment.Core.Test
                 appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(baseConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(baseConfig.PostDeploymentStrategy.TurnOffInstance, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
+            Assert.Equal(baseConfig.TagNameToValueMap.Single(), appliedConfig.TagNameToValueMap.Single());
         }
 
         [Fact]
@@ -81,7 +83,8 @@ namespace Naos.Deployment.Core.Test
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
                                         PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
-                                    };
+                                        TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
             Assert.Equal(overrideConfig.InstanceCount, appliedConfig.InstanceCount);
@@ -95,6 +98,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.DeploymentStrategy.IncludeInstanceInitializationScript, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(overrideConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(overrideConfig.PostDeploymentStrategy.TurnOffInstance, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
+            Assert.Equal(overrideConfig.TagNameToValueMap.Single(), appliedConfig.TagNameToValueMap.Single());
         }
 
         [Fact]
@@ -113,6 +117,7 @@ namespace Naos.Deployment.Core.Test
                                      ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
                                      DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
                                      PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
+                                     TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
                                  };
 
             var overrideConfig = new DeploymentConfiguration
@@ -128,7 +133,8 @@ namespace Naos.Deployment.Core.Test
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
                                         DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = false, RunSetupSteps = false },
                                         PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false },
-                                    };
+                                        TagNameToValueMap = new Dictionary<string, string> { { "world", "hello" } },
+            };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
             Assert.Equal(overrideConfig.InstanceAccessibility, appliedConfig.InstanceAccessibility);
@@ -142,6 +148,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.DeploymentStrategy.IncludeInstanceInitializationScript, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(overrideConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(overrideConfig.PostDeploymentStrategy.TurnOffInstance, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
+            Assert.Equal(overrideConfig.TagNameToValueMap.Single(), appliedConfig.TagNameToValueMap.Single());
         }
     }
 }
