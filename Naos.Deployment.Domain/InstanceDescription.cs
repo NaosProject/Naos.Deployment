@@ -65,6 +65,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly", Justification = "Keeping without constructor for now due to serialization issues.")]
-        public Dictionary<string, string> SystemSpecificDetails { get; set; }
+        public IReadOnlyDictionary<string, string> SystemSpecificDetails { get; set; }
+
+        /// <summary>
+        /// Gets or sets the tags on the instance.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> Tags { get; set; }
     }
 }

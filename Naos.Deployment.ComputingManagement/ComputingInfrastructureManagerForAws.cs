@@ -17,7 +17,6 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.AWS.Core;
     using Naos.AWS.Domain;
     using Naos.Deployment.Domain;
-    using Naos.Packaging.Domain;
 
     using Spritely.Recipes;
 
@@ -398,8 +397,7 @@ namespace Naos.Deployment.ComputingManagement
             var instanceToCreate = new Instance()
                                        {
                                            Name = instanceName,
-                                           Ami =
-                                               ami,
+                                           Ami = ami,
                                            ContainingSubnet = new Subnet()
                                                                   {
                                                                       Id = instanceDetails.ComputingContainerDescription.ContainerId,
@@ -463,20 +461,29 @@ namespace Naos.Deployment.ComputingManagement
                         ItsConfigOverrides = _.ItsConfigOverrides,
                     });
 
-            await createdInstance.AddTagInAwsAsync(this.settings.EnvironmentTagKey, environment, TimeSpan.FromMinutes(10), this.credentials);
+            var reservedTags = new Dictionary<string, string>
+                           {
+                               { Constants.NameTagKey, instanceName },
+                               { this.settings.EnvironmentTagKey, environment },
+                               { this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString() },
+                               { this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString() },
+                           };
 
-            await createdInstance.AddTagInAwsAsync(this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString(), TimeSpan.FromMinutes(10), this.credentials);
+            var reservedTagNames = reservedTags.Select(_ => _.Key).ToList();
+            var configTags = deploymentConfiguration.TagNameToValueMap ?? new Dictionary<string, string>();
+            var badTags = configTags.Where(_ => reservedTagNames.Contains(_.Key)).ToList();
+            var goodTags = configTags.Where(_ => !reservedTagNames.Contains(_.Key)).ToList();
+            var tags = reservedTags.Concat(goodTags).ToDictionary(k => k.Key, v => v.Value);
 
-            await createdInstance.AddTagInAwsAsync(this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString(), TimeSpan.FromMinutes(10), this.credentials);
-
-            var reservedTags = new[] { Constants.NameTagKey, this.settings.EnvironmentTagKey, this.settings.WindowsSkuTagKey, this.settings.InstanceAccessibilityTagKey, };
-            foreach (var tag in deploymentConfiguration.TagNameToValueMap ?? new Dictionary<string, string>())
+            foreach (var badTag in badTags)
             {
-                if (reservedTags.Contains(tag.Key))
-                {
-                    Log.Write(Invariant($"Skipping tag {tag.Key}:{tag.Value} because it's one of the reserved tag keys ({string.Join(",", reservedTags)})."));
-                }
-                else
+                Log.Write(Invariant($"Skipping tag {badTag.Key}:{badTag.Value} because it's one of the reserved tag keys ({string.Join(",", reservedTagNames)})."));
+            }
+
+            foreach (var tag in tags)
+            {
+                /* this is done automatically and doesn't need to be added here */
+                if (tag.Key != Constants.NameTagKey)
                 {
                     await createdInstance.AddTagInAwsAsync(tag.Key, tag.Value, TimeSpan.FromMinutes(10), this.credentials);
                 }
@@ -493,6 +500,7 @@ namespace Naos.Deployment.ComputingManagement
                 PrivateIpAddress = createdInstance.PrivateIpAddress,
                 DeployedPackages = deployedPackages,
                 SystemSpecificDetails = systemSpecificDetails,
+                Tags = tags,
             };
 
             await this.tracker.ProcessInstanceCreationAsync(instanceDescription);

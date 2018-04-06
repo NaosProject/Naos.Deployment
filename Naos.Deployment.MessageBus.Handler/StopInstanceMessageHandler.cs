@@ -71,21 +71,30 @@ namespace Naos.Deployment.MessageBus.Handler
         {
             using (var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings))
             {
-                var systemId =
+                var systemIds =
                     await
-                        ComputingManagerHelper.GetSystemIdFromTargeterAsync(
+                        ComputingManagerHelper.GetSystemIdsFromTargeterAsync(
                             instanceTargeter,
                             computingInfrastructureManagerSettings,
                             settings,
                             computingManager);
 
-                if (string.IsNullOrWhiteSpace(systemId))
+                foreach (var systemId in systemIds)
                 {
-                    throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
-                }
+                    if (string.IsNullOrWhiteSpace(systemId))
+                    {
+                        throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
+                    }
 
-                Log.Write(() => new { Info = "Stopping Instance", InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter), SystemId = systemId });
-                await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);
+                    Log.Write(
+                        () => new
+                                  {
+                                      Info = "Stopping Instance",
+                                      InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter),
+                                      SystemId = systemId,
+                                  });
+                    await computingManager.TurnOffInstanceAsync(systemId, settings.SystemLocation, waitUntilOff);
+                }
             }
         }
     }

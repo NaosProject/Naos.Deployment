@@ -504,6 +504,8 @@
                 "   # Set IIS Service to restart on failure and reboot on 3rd failure",
                 "   $services = Get-WMIObject win32_service | Where-Object {$_.name -imatch 'W3SVC' -and $_.startmode -eq 'Auto'}; foreach ($service in $services){sc.exe failure $service.name reset= 86400 actions= restart/5000/restart/5000/reboot/5000}",
                 "   Import-Module WebAdministration",
+				"   # Make sure we have imported the module correctly, this command will throw if it didn't work",
+                "   ls IIS://",
                 "   Write-Output \"Using site path for IIS at $WebRootPath\"",
                 "   Write-Output 'Removing default site if present to avoid any potential conflicts'",
                 "   if (Test-Path 'IIS:\\Sites\\Default Web Site'){ Remove-Item 'IIS:\\Sites\\Default Web Site' -Force -Recurse}",

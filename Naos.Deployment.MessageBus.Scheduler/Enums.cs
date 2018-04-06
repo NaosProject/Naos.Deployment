@@ -7,18 +7,18 @@
 namespace Naos.Deployment.MessageBus.Scheduler
 {
     /// <summary>
-    /// Enumeration of the pathway to lookup an instance by name.
+    /// Enumeration of the pathway to lookup an instance.
     /// </summary>
-    public enum InstanceNameLookupSource
+    public enum InstanceLookupSource
     {
         /// <summary>
-        /// Lookup instance IDs using the name in the arcology.
+        /// Lookup instance IDs using the arcology.
         /// </summary>
         Arcology,
 
         /// <summary>
-        /// Lookup instance IDs using the name in the tag on the provider for the instance.
+        /// Lookup instance IDs using the provider for the instance.
         /// </summary>
-        ProviderTag,
+        Provider,
     }
 }

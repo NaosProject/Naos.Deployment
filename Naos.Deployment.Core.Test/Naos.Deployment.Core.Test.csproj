@@ -150,6 +150,7 @@
     <Compile Include=".recipes\Spritely.MustValidation\Rules.cs" />
     <Compile Include=".recipes\Spritely.MustValidation\ValidatedNotNullAttribute.cs" />
     <Compile Include=".recipes\Spritely.SecureString\SecureString.cs" />
+    <Compile Include="ComputingManagerHelperTests.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.Flatten.cs" />
     <Compile Include="PackageHelperTests.cs" />

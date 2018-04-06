@@ -220,4 +220,25 @@ namespace Naos.Deployment.Domain
         /// </summary>
         Passed,
     }
+
+    /// <summary>
+    /// Strategy on how to match tags when searching.
+    /// </summary>
+    public enum TagMatchStrategy
+    {
+        /// <summary>
+        /// Invalid default state.
+        /// </summary>
+        Invalid,
+
+        /// <summary>
+        /// Must match all tags.
+        /// </summary>
+        All,
+
+        /// <summary>
+        /// Must match only one tag.
+        /// </summary>
+        Any,
+    }
 }

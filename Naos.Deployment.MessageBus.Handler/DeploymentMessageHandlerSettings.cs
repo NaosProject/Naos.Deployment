@@ -45,9 +45,9 @@ namespace Naos.Deployment.MessageBus.Handler
         public int MaxRebootsOnFailedStatusCheck { get; set; }
 
         /// <summary>
-        /// Gets or sets the source to use for looking up an instance by name.
+        /// Gets or sets the source to use for looking up an instance.
         /// </summary>
-        public InstanceNameLookupSource InstanceNameLookupSource { get; set; }
+        public InstanceLookupSource InstanceLookupSource { get; set; }
 
         /// <summary>
         /// Gets or sets the infrastructure tracker configuration.

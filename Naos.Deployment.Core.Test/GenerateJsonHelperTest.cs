@@ -88,7 +88,7 @@ namespace Naos.Deployment.Core.Test
                 SystemLocation = region,
                 ContainerSystemLocation = availabilityZone,
                 InfrastructureTrackerConfiguration = infrastructureTrackerConfig,
-                InstanceNameLookupSource = InstanceNameLookupSource.Arcology,
+                InstanceLookupSource = InstanceLookupSource.Arcology,
             };
 
             var deploymentHandler = new PackageDescriptionWithOverrides

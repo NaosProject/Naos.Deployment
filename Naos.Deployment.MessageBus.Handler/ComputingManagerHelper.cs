@@ -19,6 +19,8 @@ namespace Naos.Deployment.MessageBus.Handler
 
     using Spritely.Recipes;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Helper class to share methods across handlers.
     /// </summary>
@@ -99,6 +101,69 @@ namespace Naos.Deployment.MessageBus.Handler
             return instance.Id;
         }
 
+        private static async Task<IReadOnlyCollection<string>> GetSystemIdsFromTagInArcologyAsync(IReadOnlyDictionary<string, string> tagsToMatch, TagMatchStrategy tagMatchStrategy, DeploymentMessageHandlerSettings settings)
+        {
+            var tracker = InfrastructureTrackerFactory.Create(settings.InfrastructureTrackerConfiguration);
+            var allDescriptions = await tracker.GetAllInstanceDescriptionsAsync(settings.Environment);
+            var ret = new List<string>();
+            foreach (var description in allDescriptions)
+            {
+                if (IsTagMatch(description.Tags, tagsToMatch, tagMatchStrategy))
+                {
+                    ret.Add(description.Id);
+                }
+            }
+
+            return ret;
+        }
+
+        private static async Task<IReadOnlyCollection<string>> GetSystemIdsFromTagInProviderAsync(
+            IReadOnlyDictionary<string, string> tagsToMatch,
+            TagMatchStrategy tagMatchStrategy,
+            DeploymentMessageHandlerSettings settings,
+            IManageComputingInfrastructure computingManager)
+        {
+            var providerInstances = await computingManager.GetActiveInstancesFromProviderAsync(settings.Environment);
+            var ret = new List<string>();
+            foreach (var instance in providerInstances)
+            {
+                if (IsTagMatch(instance.Tags, tagsToMatch, tagMatchStrategy))
+                {
+                    ret.Add(instance.Id);
+                }
+            }
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Matches tags to a set using a strategy.
+        /// </summary>
+        /// <param name="tags">Tags to match against.</param>
+        /// <param name="tagsToMatch">Tags to match.</param>
+        /// <param name="tagMatchStrategy">Strategy for matching.</param>
+        /// <returns>A value indicating whether or not there is a match.</returns>
+        public static bool IsTagMatch(IReadOnlyDictionary<string, string> tags, IReadOnlyDictionary<string, string> tagsToMatch, TagMatchStrategy tagMatchStrategy)
+        {
+            Func<IReadOnlyCollection<KeyValuePair<string, string>>, Func<KeyValuePair<string, string>, bool>, bool> evaluateMatchCriteriaOnItemsMethod;
+
+            switch (tagMatchStrategy)
+            {
+                case TagMatchStrategy.All:
+                    evaluateMatchCriteriaOnItemsMethod = Enumerable.All;
+                    break;
+                case TagMatchStrategy.Any:
+                    evaluateMatchCriteriaOnItemsMethod = Enumerable.Any;
+                    break;
+                default:
+                    throw new NotSupportedException(Invariant($"Unsupported {nameof(TagMatchStrategy)}; {tagMatchStrategy}"));
+            }
+
+            var safeTagsToMatch = tagsToMatch ?? new Dictionary<string, string>();
+            var safeTags = tags ?? new Dictionary<string, string>();
+            return evaluateMatchCriteriaOnItemsMethod(safeTagsToMatch, _ => safeTags.Contains(_));
+        }
+
         /// <summary>
         /// Gets a system ID using the specified targeter.
         /// </summary>
@@ -107,39 +172,76 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingManager">Computing infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
-        public static async Task<string> GetSystemIdFromTargeterAsync(
+        public static async Task<IReadOnlyCollection<string>> GetSystemIdsFromTargeterAsync(
             InstanceTargeterBase instanceTargeter,
             ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,
             DeploymentMessageHandlerSettings settings,
             IManageComputingInfrastructure computingManager)
         {
-            string ret;
+            IReadOnlyCollection<string> ret;
             var type = instanceTargeter.GetType();
             if (type == typeof(InstanceTargeterSystemId))
             {
                 var asId = (InstanceTargeterSystemId)instanceTargeter;
-                ret = asId.InstanceId;
+                ret = new[] { asId.InstanceId };
+            }
+            else if (type == typeof(InstanceTargeterTagMatch))
+            {
+                var asTag = (InstanceTargeterTagMatch)instanceTargeter;
+                var tags = asTag.Tags;
+                if (tags.ContainsKey(computingInfrastructureManagerSettings.EnvironmentTagKey))
+                {
+                    var specifiedEnvironment = tags[computingInfrastructureManagerSettings.EnvironmentTagKey];
+                    if (specifiedEnvironment != settings.Environment)
+                    {
+                        throw new NotSupportedException(Invariant($"Manipulating instances in other environments is not supported; specified environment: {specifiedEnvironment}, current environment {settings.Environment}"));
+                    }
+                }
+                else
+                {
+                    tags = tags.Concat(new[] { new KeyValuePair<string, string>(computingInfrastructureManagerSettings.EnvironmentTagKey, settings.Environment), })
+                               .ToDictionary(k => k.Key, v => v.Value);
+                }
+
+                switch (settings.InstanceLookupSource)
+                {
+                    case InstanceLookupSource.Provider:
+                        ret = await GetSystemIdsFromTagInProviderAsync(
+                                  tags,
+                                  asTag.TagMatchStrategy,
+                                  settings,
+                                  computingManager);
+                        break;
+                    case InstanceLookupSource.Arcology:
+                        ret = await GetSystemIdsFromTagInArcologyAsync(tags, asTag.TagMatchStrategy, settings);
+                        break;
+                    default:
+                        throw new NotSupportedException(
+                            "InstanceLookupSource not supported: " + settings.InstanceLookupSource);
+                }
             }
             else if (type == typeof(InstanceTargeterNameLookup))
             {
                 var asNameLookup = (InstanceTargeterNameLookup)instanceTargeter;
-                switch (settings.InstanceNameLookupSource)
+                switch (settings.InstanceLookupSource)
                 {
-                    case InstanceNameLookupSource.ProviderTag:
-                        ret =
+                    case InstanceLookupSource.Provider:
+                        var systemIdFromProviderNameTag =
                             await
                             GetSystemIdFromNameFromTagAsync(
                                 asNameLookup.Name,
                                 computingInfrastructureManagerSettings,
                                 settings,
                                 computingManager);
+                        ret = new[] { systemIdFromProviderNameTag };
                         break;
-                    case InstanceNameLookupSource.Arcology:
-                        ret = await GetSystemIdFromNameFromArcologyAsync(asNameLookup.Name, settings);
+                    case InstanceLookupSource.Arcology:
+                        var systemIdFromArcologyName = await GetSystemIdFromNameFromArcologyAsync(asNameLookup.Name, settings);
+                        ret = new[] { systemIdFromArcologyName };
                         break;
                     default:
                         throw new NotSupportedException(
-                            "InstanceNameLookupSource not supported: " + settings.InstanceNameLookupSource);
+                            "InstanceLookupSource not supported: " + settings.InstanceLookupSource);
                 }
             }
             else

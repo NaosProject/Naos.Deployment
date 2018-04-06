@@ -6,7 +6,9 @@
 
 namespace Naos.Deployment.Domain
 {
+    using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Linq;
 
     using static System.FormattableString;
 
@@ -67,6 +69,39 @@ namespace Naos.Deployment.Domain
         public override string ToString()
         {
             return Invariant($"{this.GetType()} - {nameof(this.Name)}: {this.Name}");
+        }
+    }
+
+    /// <summary>
+    /// Implementation of InstanceTargeterBase that uses a tag or tags to match.
+    /// </summary>
+    public class InstanceTargeterTagMatch : InstanceTargeterBase
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InstanceTargeterTagMatch"/> class.
+        /// </summary>
+        /// <param name="tags">Tags to match in the arcology.</param>
+        /// <param name="tagMatchStrategy">Optional strategy to use for matching tags; DEFAULT is all.</param>
+        public InstanceTargeterTagMatch(IReadOnlyDictionary<string, string> tags, TagMatchStrategy tagMatchStrategy = TagMatchStrategy.All)
+        {
+            this.TagMatchStrategy = tagMatchStrategy;
+            this.Tags = tags ?? new Dictionary<string, string>();
+        }
+
+        /// <summary>
+        /// Gets the tags to match'.
+        /// </summary>
+        public IReadOnlyDictionary<string, string> Tags { get; private set; }
+
+        /// <summary>
+        /// Gets the tag match strategy.
+        /// </summary>
+        public TagMatchStrategy TagMatchStrategy { get; private set; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Invariant($"{this.GetType()} - {nameof(this.TagMatchStrategy)}: {this.TagMatchStrategy}; {nameof(this.Tags)}: {string.Join(",", this.Tags.Select(_ => _.Key + "=" + _.Value))}");
         }
     }
 }
