@@ -154,7 +154,7 @@ namespace Naos.Deployment.Core
 
         private async Task<IReadOnlyCollection<SetupStepBatch>> GetStrategySpecificSetupStepBatchesAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            IReadOnlyCollection<SetupStepBatch> ret = null;
+            IReadOnlyCollection<SetupStepBatch> ret = new SetupStepBatch[0];
             var package = packagedConfig.PackageWithBundleIdentifier.Package;
             var packageId = package.PackageDescription.Id;
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
