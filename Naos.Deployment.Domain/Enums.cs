@@ -6,8 +6,6 @@
 
 namespace Naos.Deployment.Domain
 {
-    using System;
-
     /// <summary>
     /// Enumeration of the types of deployed status of a package.
     /// </summary>
@@ -240,5 +238,31 @@ namespace Naos.Deployment.Domain
         /// Must match only one tag.
         /// </summary>
         Any,
+    }
+
+    /// <summary>
+    /// Slot of execution for setup steps.
+    /// </summary>
+    public enum SetupStepExecutionSlot
+    {
+        /// <summary>
+        /// Invalid default.
+        /// </summary>
+        Invalid,
+
+        /// <summary>
+        /// Before reboot.
+        /// </summary>
+        PreReboot,
+
+        /// <summary>
+        /// First after reboot.
+        /// </summary>
+        FirstAfterReboot,
+
+        /// <summary>
+        /// Last after reboot.
+        /// </summary>
+        LastAfterReboot,
     }
 }

@@ -205,7 +205,9 @@
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Enum.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Field.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Property.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\AwsCertificateManagerPayload.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\CertHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\ExtractedPfxFile.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\PemHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\SignatureAlgorithm.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\X509FieldKind.cs" />

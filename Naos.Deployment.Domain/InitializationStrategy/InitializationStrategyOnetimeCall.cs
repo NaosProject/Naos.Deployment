@@ -26,6 +26,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public string JustificationForOnetimeCall { get; set; }
 
+        /// <summary>
+        /// Gets or sets the slot to execute in.
+        /// </summary>
+        public SetupStepExecutionSlot SetupStepExecutionSlot { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {

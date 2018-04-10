@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetReplaceTokenInFilesSpecificSteps(InitializationStrategyReplaceTokenInFiles replaceTokenStrategy, string rootPath, Func<string, string> funcToReplaceTokensInReplacementValue)
+        private List<SetupStep> GetReplaceTokenInFilesSpecificSteps(InitializationStrategyReplaceTokenInFiles replaceTokenStrategy, string packageId, string rootPath, Func<string, string> funcToReplaceTokensInReplacementValue)
         {
             var fileSearchPattern = replaceTokenStrategy.FileSearchPattern;
             var token = replaceTokenStrategy.Token;
@@ -30,7 +30,7 @@ namespace Naos.Deployment.Core
 
             var replaceTokenStep = new SetupStep
                                       {
-                                          Description = Invariant($"Replacing token '{token}' with '{replacementValue}' in files matching pattern '{fileSearchPattern}'."),
+                                          Description = Invariant($"Replacing token '{token}' with '{replacementValue}' in files matching pattern '{fileSearchPattern}' for '{packageId}'."),
                                           SetupFunc = machineManager => machineManager.RunScript(
                                               this.Settings.DeploymentScriptBlocks.ReplaceTokenInFiles.ScriptText,
                                               replaceTokenParams),

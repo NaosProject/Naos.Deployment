@@ -24,11 +24,10 @@ namespace Naos.Deployment.Core
         /// <param name="computerName">Computer name to use in windows for the instance.</param>
         /// <param name="windowsSku">The windows SKU used to create the instance.</param>
         /// <param name="environment">Environment the instance is in.</param>
-        /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <param name="workingDirectoryForFileCopyDuringInstanceSetup">Path to store files temporarily.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<PackageDescription> chocolateyPackages, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup)
         {
             var steps = new List<SetupStep>();
 
@@ -169,9 +168,6 @@ namespace Naos.Deployment.Core
 
             steps.Add(explorerShowHidden);
 
-            var installChocoSteps = this.GetChocolateySetupSteps(chocolateyPackages);
-            steps.AddRange(installChocoSteps);
-
             if (!string.IsNullOrEmpty(this.environmentCertificateName))
             {
                 var distinctInitializationStrategyTypes = allInitializationStrategies.Select(_ => _.GetType()).ToList();
@@ -180,6 +176,7 @@ namespace Naos.Deployment.Core
                     var usersToGrantAccessToKey = allInitializationStrategies.Select(this.GetAccountToUse).Where(_ => _ != null).Distinct().ToArray();
 
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
+                                                   "Instance Level",
                                                    workingDirectoryForFileCopyDuringInstanceSetup,
                                                    this.Settings.HarnessSettings.HarnessAccount,
                                                    this.Settings.WebServerSettings.IisAccount,
@@ -204,10 +201,21 @@ namespace Naos.Deployment.Core
 
             steps.Add(rename);
 
-            return new[] { new SetupStepBatch { ExecutionOrder = 0, Steps = steps } };
+            return new[] { new SetupStepBatch { ExecutionOrder = ExecutionOrder.InstanceLevel, Steps = steps } };
         }
 
-        private ICollection<SetupStep> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
+        /// <summary>
+        /// Gets the chocolatey setup steps.
+        /// </summary>
+        /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
+        /// <returns>List of setup steps </returns>
+        public IReadOnlyCollection<SetupStepBatch> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
+        {
+            var chocolateyIndividualSetupSteps = this.GetChocolateyIndividualSetupSteps(chocolateyPackages);
+            return new[] { new SetupStepBatch { ExecutionOrder = ExecutionOrder.Chocolatey, Steps = chocolateyIndividualSetupSteps } };
+        }
+
+        private IReadOnlyCollection<SetupStep> GetChocolateyIndividualSetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
         {
             var installChocoSteps = new List<SetupStep>();
             if (chocolateyPackages != null && chocolateyPackages.Any())

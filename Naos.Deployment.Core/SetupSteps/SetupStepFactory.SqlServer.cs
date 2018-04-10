@@ -10,7 +10,6 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
 
     using Naos.Database.Domain;
     using Naos.Database.Migrator;
@@ -36,8 +35,7 @@ namespace Naos.Deployment.Core
         {
             if (sqlServerStrategy.Create != null && sqlServerStrategy.Restore != null)
             {
-                throw new NotSupportedException(
-                    "A create and restore on a single database initialization strategy is not supported.");
+                throw new NotSupportedException(Invariant($"A create and restore on a single database initialization strategy is not supported, see config for '{package.PackageDescription.Id}'."));
             }
 
             var databaseSteps = new List<SetupStep>();
@@ -49,7 +47,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = "Create " + backupDirectory + " and grant rights to SQL service account.",
+                        Description = Invariant($"Create{backupDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
@@ -60,7 +58,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = "Add rights to " + backupDirectory + " for backup process account.",
+                        Description = Invariant($"Add rights to {backupDirectory} for backup process account for '{package.PackageDescription.Id}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams),
@@ -72,7 +70,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                 {
-                    Description = "Create " + dataDirectory + " and grant rights to SQL service account.",
+                    Description = Invariant($"Create {dataDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams),
@@ -83,7 +81,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                 {
-                    Description = "Turn on Mixed Mode Auth, enable SA account, and set password.",
+                    Description = Invariant($"Turn on Mixed Mode Auth, enable SA account, and set password for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams),
@@ -95,7 +93,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                 {
-                    Description = "Update default instance paths on database.",
+                    Description = Invariant($"Update default instance paths on database for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams),
@@ -106,7 +104,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                 {
-                    Description = "Restart SQL server for account change(s) to take effect.",
+                    Description = Invariant($"Restart SQL server for account change(s) to take effect for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams),
@@ -123,7 +121,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"}"),
+                        Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"} for '{package.PackageDescription.Id}'"),
                         SetupFunc = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
@@ -134,10 +132,9 @@ namespace Naos.Deployment.Core
 
             if (sqlServerStrategy.Restore != null)
             {
-                var awsRestore = sqlServerStrategy.Restore as DatabaseRestoreFromS3;
-                if (awsRestore == null)
+                if (!(sqlServerStrategy.Restore is DatabaseRestoreFromS3 awsRestore))
                 {
-                    throw new NotSupportedException("Currently no support for type of database restore: " + sqlServerStrategy.Restore.GetType());
+                    throw new NotSupportedException(Invariant($"Currently no support for type of database restore '{sqlServerStrategy.Restore.GetType()}' for '{package.PackageDescription.Id}'"));
                 }
 
                 var databaseConfigurationForRestore = this.BuildDatabaseConfiguration(

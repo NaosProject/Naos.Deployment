@@ -1108,12 +1108,12 @@ namespace $rootnamespace$
             }
 
             var environmentCertificateBytes = File.ReadAllBytes(environmentCertificateFilePath);
-            var environmentCertificateChain = CertHelper.ExtractCertChainFromPfx(environmentCertificateBytes, environmentCertificatePassword);
-            var environmentCertificate = environmentCertificateChain.GetEndUserCertFromCertChain();
+            var environmentCertificateChain = CertHelper.ExtractCryptographicObjectsFromPfxFile(environmentCertificateBytes, environmentCertificatePassword);
+            var environmentCertificate = environmentCertificateChain.CertificateChain.GetEndUserCertFromCertChain();
 
             var deploymentCertificateBytes = File.ReadAllBytes(deploymentCertificateFilePath);
-            var deploymentCertificateChain = CertHelper.ExtractCertChainFromPfx(deploymentCertificateBytes, deploymentCertificatePassword);
-            var deploymentCertificate = deploymentCertificateChain.GetEndUserCertFromCertChain();
+            var deploymentCertificateChain = CertHelper.ExtractCryptographicObjectsFromPfxFile(deploymentCertificateBytes, deploymentCertificatePassword);
+            var deploymentCertificate = deploymentCertificateChain.CertificateChain.GetEndUserCertFromCertChain();
             var encryptingCertificateLocator = new CertificateLocator(deploymentCertificate.GetThumbprint(), false);
 
             // key text from Amazon does not actually work with the API out of the box...

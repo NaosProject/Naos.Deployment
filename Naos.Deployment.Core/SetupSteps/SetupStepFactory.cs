@@ -121,111 +121,190 @@ namespace Naos.Deployment.Core
             if (distinctInitializationStrategyTypes.Any(_ => this.InitializationStrategyTypesThatNeedPackageBytes.Contains(_)))
             {
                 var deployUnzippedFileStep = this.GetCopyAndUnzipPackageStep(packagedConfig);
-                var batch = new SetupStepBatch { ExecutionOrder = 1, Steps = new[] { deployUnzippedFileStep } };
+                var batch = new SetupStepBatch
+                                {
+                                    ExecutionOrder = ExecutionOrder.CopyPackages,
+                                    Steps = new[] { deployUnzippedFileStep },
+                                };
+                ret.Add(batch);
+            }
+
+            if (distinctInitializationStrategyTypes.OfType<InitializationStrategyIis>().Any())
+            {
+                var installIisSteps = this.GetIisInstallSteps();
+                var batch = new SetupStepBatch { ExecutionOrder = ExecutionOrder.InstallIis, Steps = installIisSteps, };
+                ret.Add(batch);
+            }
+
+            if (distinctInitializationStrategyTypes.OfType<InitializationStrategyMongo>().Any())
+            {
+                var installMongoSteps = this.GetInstallMongoSteps();
+                var batch = new SetupStepBatch { ExecutionOrder = ExecutionOrder.InstallMongo, Steps = installMongoSteps, };
                 ret.Add(batch);
             }
 
             foreach (var initializationStrategy in packagedConfig.InitializationStrategies)
             {
-                var initSteps = await this.GetStrategySpecificSetupStepsAsync(initializationStrategy, packagedConfig, environment, adminPassword, funcToCreateNewDnsWithTokensReplaced);
-                ret.Add(initSteps);
+                var initSteps = await this.GetStrategySpecificSetupStepBatchesAsync(initializationStrategy, packagedConfig, environment, adminPassword, funcToCreateNewDnsWithTokensReplaced);
+                ret.AddRange(initSteps);
             }
 
             return ret;
         }
 
-        private async Task<SetupStepBatch> GetStrategySpecificSetupStepsAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<IReadOnlyCollection<SetupStepBatch>> GetStrategySpecificSetupStepBatchesAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            SetupStepBatch ret = null;
+            IReadOnlyCollection<SetupStepBatch> ret = null;
+            var package = packagedConfig.PackageWithBundleIdentifier.Package;
+            var packageId = package.PackageDescription.Id;
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
             var defaultLogProcessorSettings = this.GetDefaultLogProcessorSettings(packagedConfig);
 
-            if (strategy.GetType() == typeof(InitializationStrategyReplaceTokenInFiles))
+            if (strategy is InitializationStrategyReplaceTokenInFiles replaceTokenStrategy)
             {
-                var tokenSteps = this.GetReplaceTokenInFilesSpecificSteps((InitializationStrategyReplaceTokenInFiles)strategy, packageDirectoryPath, funcToCreateNewDnsWithTokensReplaced);
+                var tokenSteps = this.GetReplaceTokenInFilesSpecificSteps(replaceTokenStrategy, packageId, packageDirectoryPath, funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 2, Steps = tokenSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.ReplaceTokenInFiles,
+                                      Steps = tokenSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyDirectoryToCreate))
+            else if (strategy is InitializationStrategyDirectoryToCreate directoryToCreateStrategy)
             {
                 var dirSteps = this.GetDirectoryToCreateSpecificSteps(
-                    (InitializationStrategyDirectoryToCreate)strategy,
+                    directoryToCreateStrategy,
+                    packageId,
                     this.Settings.HarnessSettings.HarnessAccount,
                     this.Settings.WebServerSettings.IisAccount);
 
-                ret = new SetupStepBatch { ExecutionOrder = 3, Steps = dirSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.CreateDirectory,
+                                      Steps = dirSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyCreateEventLog))
+            else if (strategy is InitializationStrategyCreateEventLog eventLogToCreateStrategy)
             {
-                var eventLogSteps = this.GetCreateEventLogSpecificSteps((InitializationStrategyCreateEventLog)strategy);
-                ret = new SetupStepBatch { ExecutionOrder = 4, Steps = eventLogSteps };
+                var eventLogSteps = this.GetCreateEventLogSpecificSteps(eventLogToCreateStrategy, packageId);
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.CreateEventLog,
+                                      Steps = eventLogSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyCertificateToInstall))
+            else if (strategy is InitializationStrategyCertificateToInstall certToInstallStrategy)
             {
                 var certSteps =
                     await
                         this.GetCertificateToInstallSpecificStepsAsync(
-                            (InitializationStrategyCertificateToInstall)strategy,
+                            certToInstallStrategy,
+                            packageId,
                             packageDirectoryPath,
                             this.Settings.HarnessSettings.HarnessAccount,
                             this.Settings.WebServerSettings.IisAccount);
 
-                ret = new SetupStepBatch { ExecutionOrder = 5, Steps = certSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.InstallCertificate,
+                                      Steps = certSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategySqlServer))
+            else if (strategy is InitializationStrategySqlServer sqlServerStrategy)
             {
-                var databaseSteps = this.GetSqlServerSpecificSteps((InitializationStrategySqlServer)strategy, packagedConfig.PackageWithBundleIdentifier.Package);
+                var databaseSteps = this.GetSqlServerSpecificSteps(sqlServerStrategy, package);
 
-                ret = new SetupStepBatch { ExecutionOrder = 6, Steps = databaseSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.SqlServer,
+                                      Steps = databaseSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyMongo))
+            else if (strategy is InitializationStrategyMongo mongoStrategy)
             {
-                var mongoSteps = this.GetMongoSpecificSteps((InitializationStrategyMongo)strategy);
+                var mongoSteps = this.GetConfigureMongoSteps(mongoStrategy);
 
-                ret = new SetupStepBatch { ExecutionOrder = 7, Steps = mongoSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.ConfigureMongo,
+                                      Steps = mongoSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyMessageBusHandler))
+            else if (strategy is InitializationStrategyMessageBusHandler)
             {
-                /* No additional steps necessary as the DeploymentManager should have included a harness by virtue of this type of initialization strategy */
+                /* No additional steps necessary as the work would be done in a deployment adjuster if needed */
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyDnsEntry))
+            else if (strategy is InitializationStrategyDnsEntry)
             {
-                /* No additional steps necessary as the DeploymentManager performs this operation at the end */
+                /* No additional steps necessary as the DeploymentManager performs this operation directly */
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyCopyBytes))
+            else if (strategy is InitializationStrategyCopyBytes)
             {
-                /* No additional steps necessary as the files will be copied by inclusion in the copy list */
+                /* No additional steps necessary as the files will be copied by inclusion in the copy white list */
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyScheduledTask))
+            else if (strategy is InitializationStrategyScheduledTask scheduledTaskStrategy)
             {
                 var scheduledTaskSteps =
                     this.GetScheduledTaskSpecificSteps(
-                        (InitializationStrategyScheduledTask)strategy,
+                        scheduledTaskStrategy,
                         defaultLogProcessorSettings,
                         packagedConfig.ItsConfigOverrides,
                         packageDirectoryPath,
                         environment,
                         adminPassword);
 
-                ret = new SetupStepBatch { ExecutionOrder = 8, Steps = scheduledTaskSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.ScheduledTask,
+                                      Steps = scheduledTaskSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyOnetimeCall))
+            else if (strategy is InitializationStrategyOnetimeCall onetimeCallStrategy)
             {
                 var onetimeCallSteps = this.GetOnetimeCallSpecificSteps(
-                    (InitializationStrategyOnetimeCall)strategy,
+                    onetimeCallStrategy,
                     defaultLogProcessorSettings,
                     packagedConfig.ItsConfigOverrides,
                     packageDirectoryPath,
                     environment);
 
-                ret = new SetupStepBatch { ExecutionOrder = 9, Steps = onetimeCallSteps };
+                var oneTimeExecutionOrder = onetimeCallStrategy.SetupStepExecutionSlot.GetOneTimeExecutionOrder();
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = oneTimeExecutionOrder,
+                                      Steps = onetimeCallSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategySelfHost))
+            else if (strategy is InitializationStrategySelfHost selfHostStrategy)
             {
                 var selfHostSteps =
                     await
                     this.GetSelfHostSpecificSteps(
-                        (InitializationStrategySelfHost)strategy,
+                        selfHostStrategy,
                         defaultLogProcessorSettings,
                         packagedConfig.ItsConfigOverrides,
                         packageDirectoryPath,
@@ -233,13 +312,21 @@ namespace Naos.Deployment.Core
                         adminPassword,
                         funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 10, Steps = selfHostSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.SelfHost,
+                                      Steps = selfHostSteps,
+                                  },
+                          };
             }
-            else if (strategy.GetType() == typeof(InitializationStrategyIis))
+            else if (strategy is InitializationStrategyIis iisStrategy)
             {
                 var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
-                var webSteps = await this.GetIisSpecificSetupStepsAsync(
-                                   (InitializationStrategyIis)strategy,
+
+                var webStepsAfterReboot = await this.GetIisSpecificSetupStepsAsync(
+                                   iisStrategy,
                                    defaultLogProcessorSettings,
                                    packagedConfig.ItsConfigOverrides,
                                    webRootPath,
@@ -247,7 +334,14 @@ namespace Naos.Deployment.Core
                                    adminPassword,
                                    funcToCreateNewDnsWithTokensReplaced);
 
-                ret = new SetupStepBatch { ExecutionOrder = 11, Steps = webSteps };
+                ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.ConfigureIis,
+                                      Steps = webStepsAfterReboot,
+                                  },
+                          };
             }
             else
             {

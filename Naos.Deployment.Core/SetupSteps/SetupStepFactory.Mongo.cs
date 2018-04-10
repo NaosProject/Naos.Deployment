@@ -17,7 +17,51 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetMongoSpecificSteps(InitializationStrategyMongo mongoStrategy)
+        private List<SetupStep> GetInstallMongoSteps()
+        {
+            var mongoInstallSteps = new List<SetupStep>();
+
+            var installMongoScript = this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages;
+            var installMongoParams =
+                new[]
+                    {
+                        this.Settings.MongoServerSettings.MongoServerPackage,
+                        this.Settings.MongoServerSettings.MongoClientPackage,
+                    }.Select(_ => _ as object).ToArray();
+
+            mongoInstallSteps.Add(
+                new SetupStep
+                    {
+                        Description = "Install Mongo Server and Client.",
+                        SetupFunc =
+                            machineManager =>
+                                machineManager.RunScript(installMongoScript.ScriptText, installMongoParams),
+                    });
+
+            var openPortParamsOne = new[] { "27017", "Allow TCP 27017 IN for Mongo" };
+            mongoInstallSteps.Add(
+                new SetupStep
+                    {
+                        Description = $"Open port 27017 for Mongo",
+                        SetupFunc =
+                            machineManager =>
+                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
+                    });
+
+            var openPortParamsTwo = new[] { "27018", "Allow TCP 27018 IN for Mongo" };
+            mongoInstallSteps.Add(
+                new SetupStep
+                    {
+                        Description = $"Open port 27018 for Mongo",
+                        SetupFunc =
+                            machineManager =>
+                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),
+                    });
+
+            return mongoInstallSteps;
+        }
+
+        private List<SetupStep> GetConfigureMongoSteps(InitializationStrategyMongo mongoStrategy)
         {
             var mongoSteps = new List<SetupStep>();
             var mongoServiceAccount = this.Settings.MongoServerSettings.ServiceAccount;
@@ -60,23 +104,6 @@ namespace Naos.Deployment.Core
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
                     });
 
-            var installMongoScript = this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages;
-            var installMongoParams =
-                new[]
-                    {
-                        this.Settings.MongoServerSettings.MongoServerPackage,
-                        this.Settings.MongoServerSettings.MongoClientPackage,
-                    }.Select(_ => _ as object).ToArray();
-
-            mongoSteps.Add(
-                new SetupStep
-                    {
-                        Description = "Install Mongo Server and Client.",
-                        SetupFunc =
-                            machineManager =>
-                            machineManager.RunScript(installMongoScript.ScriptText, installMongoParams),
-                    });
-
             var configureMongoScript = this.Settings.DeploymentScriptBlocks.ConfigureMongo;
             var configureMongoParams = new object[] { mongoStrategy.DocumentDatabaseName, mongoStrategy.AdministratorPassword, dataDirectory, logDirectory, mongoStrategy.NoJournaling };
             mongoSteps.Add(
@@ -97,26 +124,6 @@ namespace Naos.Deployment.Core
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams),
-                });
-
-            var openPortParamsOne = new[] { "27017", "Allow TCP 27017 IN for Mongo" };
-            mongoSteps.Add(
-                new SetupStep
-                {
-                    Description = $"Open port 27017 for Mongo",
-                    SetupFunc =
-                            machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
-                });
-
-            var openPortParamsTwo = new[] { "27018", "Allow TCP 27018 IN for Mongo" };
-            mongoSteps.Add(
-                new SetupStep
-                {
-                    Description = $"Open port 27018 for Mongo",
-                    SetupFunc =
-                            machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),
                 });
 
             return mongoSteps;

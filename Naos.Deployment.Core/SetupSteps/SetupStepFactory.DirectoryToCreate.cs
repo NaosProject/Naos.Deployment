@@ -11,21 +11,21 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string harnessAccount, string iisAccount)
+        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string packageId, string harnessAccount, string iisAccount)
         {
             var dir = directoryToCreateStrategy.DirectoryToCreate;
             var fullControlAccount = TokenSubstitutions.GetSubstitutedStringForAccounts(dir.FullControlAccount, harnessAccount, iisAccount);
             var dirParams = new object[] { dir.FullPath, fullControlAccount };
             var ret = new SetupStep
             {
-                Description =
-                    "Creating directory: " + dir.FullPath + " with full control granted to: "
-                    + fullControlAccount,
+                Description = Invariant($"Creating directory '{dir.FullPath}' with full control granted to '{fullControlAccount}' for '{packageId}'."),
                 SetupFunc =
                     machineManager =>
                     machineManager.RunScript(

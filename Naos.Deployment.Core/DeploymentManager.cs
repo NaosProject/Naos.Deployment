@@ -16,6 +16,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+    using Naos.Recipes.RunWithRetry;
     using Naos.Recipes.WinRM;
     using Naos.Serialization.Domain;
     using Naos.Serialization.Json;
@@ -291,6 +292,8 @@ namespace Naos.Deployment.Core
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
 
+                var setupSteps = new List<SetupStepBatch>();
+
                 var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetryAsync(
@@ -310,23 +313,6 @@ namespace Naos.Deployment.Core
                         "Wait for WinRM access",
                         () => Task.Run(() => this.WaitUntilMachineIsAccessible(machineManager)),
                         instanceNumber);
-
-                var instanceLevelSetupSteps =
-                    await
-                    this.setupStepFactory.GetInstanceLevelSetupSteps(
-                        createdInstanceDescription.ComputerName,
-                        configToCreateWith.InstanceType.WindowsSku,
-                        environment,
-                        configToCreateWith.ChocolateyPackages,
-                        packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),
-                        this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes));
-
-                this.LogAnnouncement("Running setup actions that finalize the instance creation.", instanceNumber);
-                await this.RunActionWithTelemetryAsync("Run instance level setup steps", () => this.RunSetupStepsAsync(machineManager, instanceLevelSetupSteps, instanceNumber), instanceNumber);
-
-                // this is necessary for finishing start up items, might have to try a few times until WinRM is available...
-                this.LogAnnouncement("Rebooting new instance to finalize any items from instance setup.", instanceNumber);
-                this.RebootInstance(instanceNumber, machineManager);
 
                 var additionalPackages = this.deploymentAdjustmentStrategiesApplicator.IdentifyAdditionalPackages(
                     environment,
@@ -348,22 +334,45 @@ namespace Naos.Deployment.Core
                             });
                 }
 
+                var instanceLevelSetupSteps =
+                    await
+                    this.setupStepFactory.GetInstanceLevelSetupSteps(
+                        createdInstanceDescription.ComputerName,
+                        configToCreateWith.InstanceType.WindowsSku,
+                        environment,
+                        packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),
+                        this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes));
+                setupSteps.AddRange(instanceLevelSetupSteps);
+
+                var chocoSetupSteps = this.setupStepFactory.GetChocolateySetupSteps(configToCreateWith.ChocolateyPackages);
+                setupSteps.AddRange(chocoSetupSteps);
+
+                var rebootSetupSteps = this.GetRebootSteps(instanceNumber);
+                setupSteps.AddRange(rebootSetupSteps);
+
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
-                    var setupStepBatches = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, FuncToCreateNewDnsWithTokensReplaced);
-                    this.LogAnnouncement("Running setup actions for package: " + packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString(), instanceNumber);
-
-                    await this.RunSetupStepsAsync(machineManager, setupStepBatches, instanceNumber);
-
-                    // Mark the instance as having the successfully deployed packages
-                    await this.tracker.ProcessDeployedPackageAsync(
-                        environment,
+                    var packageDescription = packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription;
+                    var strategySetupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, FuncToCreateNewDnsWithTokensReplaced);
+                    var updateArcologySetupSteps = this.GetSetupStepsToUpdateArcologyAfterPackageIsDeployed(
+                        packageDescription,
                         createdInstanceDescription.Id,
-                        packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription);
-                }
-            }
+                        environment);
 
-            this.UpsertDnsEntriesAsNecessary(instanceNumber, environment, packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, createdInstanceDescription, FuncToCreateNewDnsWithTokensReplaced);
+                    var packageSetupSteps = new SetupStepBatch[0].Concat(strategySetupSteps).Concat(updateArcologySetupSteps).ToList();
+                    setupSteps.AddRange(packageSetupSteps);
+                }
+
+                var updateDnsSteps = this.GetUpdateDnsSteps(
+                    instanceNumber,
+                    environment,
+                    packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness,
+                    createdInstanceDescription,
+                    FuncToCreateNewDnsWithTokensReplaced);
+                setupSteps.AddRange(updateDnsSteps);
+
+                await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
+            }
 
             if ((configToCreateWith.PostDeploymentStrategy ?? new PostDeploymentStrategy()).TurnOffInstance)
             {
@@ -371,6 +380,59 @@ namespace Naos.Deployment.Core
                 this.LogAnnouncement("Post deployment strategy: TurnOffInstance is true - shutting down instance.", instanceNumber);
                 await this.computingManager.TurnOffInstanceAsync(createdInstanceDescription.Id, createdInstanceDescription.Location, WaitUntilOff);
             }
+        }
+
+        private SetupStepBatch[] GetRebootSteps(int instanceNumber)
+        {
+            return new[]
+                       {
+                           new SetupStepBatch
+                               {
+                                   ExecutionOrder = ExecutionOrder.Reboot,
+                                   Steps = new[]
+                                               {
+                                                   new SetupStep
+                                                       {
+                                                           Description =
+                                                               "Rebooting instance to finalize installations that require it.",
+                                                           SetupFunc = m =>
+                                                               {
+                                                                   this.RebootInstance(instanceNumber, m);
+                                                                   return new object[0];
+                                                               },
+                                                       },
+                                               },
+                               },
+                       };
+        }
+
+        private SetupStepBatch[] GetUpdateDnsSteps(int instanceNumber, string environment, List<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, InstanceDescription createdInstanceDescription, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        {
+            return new[]
+                       {
+                           new SetupStepBatch
+                               {
+                                   ExecutionOrder = ExecutionOrder.Dns,
+                                   Steps = new[]
+                                               {
+                                                   new SetupStep
+                                                       {
+                                                           Description =
+                                                               "Rebooting instance to finalize installations that require it.",
+                                                           SetupFunc = m =>
+                                                               {
+                                                                   this.UpsertDnsEntriesAsNecessary(
+                                                                       instanceNumber,
+                                                                       environment,
+                                                                       packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness,
+                                                                       createdInstanceDescription,
+                                                                       funcToCreateNewDnsWithTokensReplaced);
+                                                                   return new object[0];
+                                                               },
+                                                       },
+                                               },
+                               },
+                       };
         }
 
         private void UpsertDnsEntriesAsNecessary(
@@ -470,7 +532,7 @@ namespace Naos.Deployment.Core
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
-            var orderedSteps = setupStepBatches.Where(_ => _ != null).OrderBy(_ => _.ExecutionOrder).SelectMany(_ => _?.Steps).Where(_ => _ != null).ToList();
+            var orderedSteps = setupStepBatches.Where(_ => _ != null).OrderBy(_ => _.ExecutionOrder).SelectMany(_ => _.Steps).Where(_ => _ != null).ToList();
             foreach (var setupStep in orderedSteps)
             {
                 Task RetryingSetupAction()
@@ -596,7 +658,7 @@ namespace Naos.Deployment.Core
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Want to catch a general exception.")]
-        private void RebootInstance(int instanceNumber, MachineManager machineManager)
+        private void RebootInstance(int instanceNumber, IManageMachines machineManager)
         {
             var sleepTimeInSeconds = 1d;
             var rebootCallSucceeded = false;
@@ -629,8 +691,37 @@ namespace Naos.Deployment.Core
             this.WaitUntilMachineIsAccessible(machineManager);
         }
 
+        private IReadOnlyCollection<SetupStepBatch> GetSetupStepsToUpdateArcologyAfterPackageIsDeployed(PackageDescription packageDescription, string instanceId, string environment)
+        {
+            var ret = new[]
+                          {
+                              new SetupStepBatch
+                                  {
+                                      ExecutionOrder = ExecutionOrder.UpdateArcology,
+                                      Steps = new[]
+                                                  {
+                                                      new SetupStep
+                                                          {
+                                                              Description = "Mark deployed - " + packageDescription.GetIdDotVersionString(),
+                                                              SetupFunc = m =>
+                                                                  {
+                                                                      Run.TaskUntilCompletion(
+                                                                          this.tracker.ProcessDeployedPackageAsync(
+                                                                              environment,
+                                                                              instanceId,
+                                                                              packageDescription));
+                                                                      return new object[0];
+                                                                  },
+                                                          },
+                                                  },
+                                  },
+                          };
+
+            return ret;
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "notNeededResults", Justification = "Keeping to show there is a result, we just don't need it here.")]
-        private void WaitUntilMachineIsAccessible(MachineManager machineManager)
+        private void WaitUntilMachineIsAccessible(IManageMachines machineManager)
         {
             const int MaxExceptionCount = 10000;
             var exceptionCount = 0;

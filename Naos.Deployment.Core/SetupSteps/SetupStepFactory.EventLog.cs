@@ -19,7 +19,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetCreateEventLogSpecificSteps(InitializationStrategyCreateEventLog eventLogToCreateStrategy)
+        private List<SetupStep> GetCreateEventLogSpecificSteps(InitializationStrategyCreateEventLog eventLogToCreateStrategy, string packageId)
         {
             var eventLogSteps = new List<SetupStep>();
 
@@ -34,7 +34,7 @@ namespace Naos.Deployment.Core
             eventLogSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Creating EventLog '{logName}' for Source '{sources}'"),
+                        Description = Invariant($"Creating EventLog '{logName}' for Source '{sources}' for '{packageId}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams),

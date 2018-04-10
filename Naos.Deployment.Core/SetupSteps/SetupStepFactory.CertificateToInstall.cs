@@ -15,21 +15,23 @@ namespace Naos.Deployment.Core
 
     using Spritely.Recipes;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageDirectoryPath, string harnessAccount, string iisAccount)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageId, string packageDirectoryPath, string harnessAccount, string iisAccount)
         {
             var usersToGrantPrivateKeyAccess = new[] { certToInstallStrategy.AccountToGrantPrivateKeyAccess };
             var certificateName = certToInstallStrategy.CertificateToInstall;
             var installExportable = certToInstallStrategy.InstallExportable;
 
-            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName, installExportable);
+            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageId, packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName, installExportable);
         }
 
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string tempPathToStoreFileWhileInstalling, string harnessAccount, string iisAccount, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string packageId, string tempPathToStoreFileWhileInstalling, string harnessAccount, string iisAccount, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
         {
             var certSteps = new List<SetupStep>();
 
@@ -40,14 +42,14 @@ namespace Naos.Deployment.Core
             var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(certificateName);
             if (certDetails == null)
             {
-                throw new DeploymentException("Could not find certificate by name: " + certificateName);
+                throw new DeploymentException(Invariant($"Could not find certificate by name '{certificateName}' for '{packageId}'"));
             }
 
             var certificateTargetPath = Path.Combine(tempPathToStoreFileWhileInstalling, certDetails.GenerateFileName());
             certSteps.Add(
                 new SetupStep
                     {
-                        Description = "Send certificate file (removed after installation): " + certDetails.GenerateFileName(),
+                        Description = Invariant($"Send certificate file (removed after installation) '{certDetails.GenerateFileName()}' for '{packageId}'"),
                         SetupFunc = machineManager =>
                             {
                                 machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
@@ -60,7 +62,7 @@ namespace Naos.Deployment.Core
             certSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}]",
+                        Description = Invariant($"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}] for '{packageId}'"),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),

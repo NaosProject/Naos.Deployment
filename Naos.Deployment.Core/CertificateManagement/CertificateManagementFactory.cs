@@ -91,7 +91,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = "Spelling/name is correct.")]
         public static CertificateDescriptionWithClearPfxPayload BuildCertificateDescriptionWithClearPfxPayload(string friendlyName, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
         {
-            var endUserCert = CertHelper.ExtractCertChainFromPfx(pfxBytes, pfxPasswordInClearText).GetEndUserCertFromCertChain();
+            var endUserCert = CertHelper.ExtractCryptographicObjectsFromPfxFile(pfxBytes, pfxPasswordInClearText).CertificateChain.GetEndUserCertFromCertChain();
             var certFields = endUserCert.GetX509Fields();
             var certFieldsAsStrings = certFields.ToDictionary(k => k.Key.ToString(), v => v.Value?.ToString());
             var certValidityPeriod = endUserCert.GetValidityPeriod();

@@ -264,9 +264,14 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription InstallCertificate { get; set; }
 
         /// <summary>
-        /// Gets or sets the script block to install and configure a website in IIS.
+        /// Gets or sets the script block to install IIS.
         /// </summary>
-        public ScriptBlockDescription InstallAndConfigureWebsite { get; set; }
+        public ScriptBlockDescription InstallIis { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to configure a website in IIS.
+        /// </summary>
+        public ScriptBlockDescription ConfigureIis { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to create a new directory and grant full control to the specified user.

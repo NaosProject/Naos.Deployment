@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the order to execute the step.
         /// </summary>
-        public int ExecutionOrder { get; set; }
+        public ExecutionOrder ExecutionOrder { get; set; }
 
         /// <summary>
         /// Gets or sets the ordered list of steps to run.

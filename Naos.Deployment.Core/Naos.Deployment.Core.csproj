@@ -224,7 +224,9 @@
     <Compile Include=".recipes\Naos.WinRM\Naos.WinRM.cs" />
     <Compile Include=".recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\AssemblyLoader.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\AwsCertificateManagerPayload.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\CertHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Security\ExtractedPfxFile.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\PemHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\SignatureAlgorithm.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\X509FieldKind.cs" />
@@ -271,6 +273,7 @@
     <Compile Include="SetupSteps\SetupStepFactory.CertificateToInstall.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.DirectoryToCreate.cs" />
+    <Compile Include="SetupSteps\ExecutionOrder.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Iis.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.InstanceLevel.cs" />
     <Compile Include="SetupSteps\SetupStepFactory.Mongo.cs" />

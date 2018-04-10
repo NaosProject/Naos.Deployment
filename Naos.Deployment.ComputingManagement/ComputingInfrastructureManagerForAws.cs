@@ -469,10 +469,10 @@ namespace Naos.Deployment.ComputingManagement
                                { this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString() },
                            };
 
-            var reservedTagNames = reservedTags.Select(_ => _.Key).ToList();
+            var reservedTagNames = reservedTags.Select(_ => _.Key.ToUpperInvariant()).ToList();
             var configTags = deploymentConfiguration.TagNameToValueMap ?? new Dictionary<string, string>();
-            var badTags = configTags.Where(_ => reservedTagNames.Contains(_.Key)).ToList();
-            var goodTags = configTags.Where(_ => !reservedTagNames.Contains(_.Key)).ToList();
+            var badTags = configTags.Where(_ => reservedTagNames.Contains(_.Key.ToUpperInvariant())).ToList();
+            var goodTags = configTags.Where(_ => !reservedTagNames.Contains(_.Key.ToUpperInvariant())).ToList();
             var tags = reservedTags.Concat(goodTags).ToDictionary(k => k.Key, v => v.Value);
 
             foreach (var badTag in badTags)

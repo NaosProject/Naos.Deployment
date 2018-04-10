@@ -23,6 +23,19 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
+        private IReadOnlyCollection<SetupStep> GetIisInstallSteps()
+        {
+            return new[]
+                       {
+                           new SetupStep
+                               {
+                                   Description = "Install IIS.",
+                                   SetupFunc = machineManager =>
+                                       machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallIis.ScriptText),
+                               },
+                       };
+        }
+
         private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
@@ -85,7 +98,7 @@ namespace Naos.Deployment.Core
                                             ? adminPassword
                                             : null;
 
-            var installWebParameters = new object[]
+            var configureWebsiteParameters = new object[]
                                            {
                                                webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), appPoolAccount,
                                                appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, iisStrategy.EnableSni,
@@ -98,7 +111,7 @@ namespace Naos.Deployment.Core
                     Description = "Install IIS and configure website/webservice.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallAndConfigureWebsite.ScriptText, installWebParameters),
+                        machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureIis.ScriptText, configureWebsiteParameters),
                 });
 
             return webSteps;
