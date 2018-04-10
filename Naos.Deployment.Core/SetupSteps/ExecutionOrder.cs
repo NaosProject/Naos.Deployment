@@ -25,49 +25,49 @@ namespace Naos.Deployment.Core
 
         InstanceLevel = 0,
 
-        InstallIis = InstanceLevel + 1,
+        InstallIis,
 
-        CopyPackages = InstallIis + 1,
+        CopyPackages,
 
-        ReplaceTokenInFiles = CopyPackages + 1,
+        ReplaceTokenInFiles,
 
-        CreateDirectory = ReplaceTokenInFiles + 1,
+        CreateDirectory,
 
-        CreateEventLog = CreateDirectory + 1,
+        CreateEventLog,
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = "Spelling/name is correct.")]
-        Chocolatey = CreateEventLog + 1,
+        Chocolatey,
 
-        InstallMongo = Chocolatey + 1,
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "OneTime", Justification = "Spelling/name is correct.")]
-        OneTimeBeforeReboot = InstallMongo + 1,
-
-        Reboot = OneTimeBeforeReboot + 1,
+        InstallMongo,
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "OneTime", Justification = "Spelling/name is correct.")]
-        OneTimeAfterRebootFirst = Reboot + 1,
+        OneTimeBeforeReboot,
 
-        InstallCertificate = OneTimeAfterRebootFirst + 1,
-
-        SqlServer = InstallCertificate + 1,
-
-        ConfigureMongo = SqlServer + 1,
-
-        ScheduledTask = ConfigureMongo + 1,
-
-        SelfHost = ScheduledTask + 1,
-
-        ConfigureIis = SelfHost + 1,
+        Reboot,
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "OneTime", Justification = "Spelling/name is correct.")]
-        OneTimeAfterRebootLast = ConfigureIis + 1,
+        OneTimeAfterRebootFirst,
 
-        Dns = OneTimeAfterRebootLast + 1,
+        InstallCertificate,
 
-        UpdateArcology = Dns + 1,
+        SqlServer,
 
-        PostDeployment = UpdateArcology + 1,
+        ConfigureMongo,
+
+        ScheduledTask,
+
+        SelfHost,
+
+        ConfigureIis,
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "OneTime", Justification = "Spelling/name is correct.")]
+        OneTimeAfterRebootLast,
+
+        Dns,
+
+        UpdateArcology,
+
+        PostDeployment,
 
 #pragma warning restore 1591
 #pragma warning restore SA1602 // Enumeration items should be documented
