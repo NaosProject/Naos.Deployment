@@ -8,6 +8,7 @@ namespace Naos.Deployment.Core.Test
 {
     using System;
     using System.Linq;
+    using System.Net;
 
     using FluentAssertions;
 
@@ -20,6 +21,28 @@ namespace Naos.Deployment.Core.Test
 
     public static class SetupFactoryExtensionsTests
     {
+        [Fact]
+        public static void ExecutionOrderWorks()
+        {
+            // Arrange
+            var expected = new[]
+                               {
+                                   ExecutionOrder.Invalid, ExecutionOrder.InstanceLevel, ExecutionOrder.CopyPackages, ExecutionOrder.OneTimeBeforeReboot,
+                                   ExecutionOrder.OneTimeAfterRebootFirst, ExecutionOrder.OneTimeAfterRebootLast, ExecutionOrder.Dns,
+                               };
+
+            var input = expected.OrderBy(_ => _.ToString()).ToList();
+
+            // Act
+            var actual = input.OrderBy(_ => _).ToList();
+            var actualCasted = input.OrderBy(_ => (int)_).ToList();
+
+            // Assert
+            expected.Should().NotEqual(input);
+            actual.Should().Equal(expected);
+            actualCasted.Should().Equal(expected);
+        }
+
         [Fact]
         public static void BuildRootDeploymentPath___Only_c_volume___Chooses_c()
         {
