@@ -49,7 +49,7 @@ namespace Naos.Deployment.Core
             certSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Send certificate file (removed after installation) '{certDetails.GenerateFileName()}' for '{packageId}'"),
+                        Description = Invariant($"Send certificate file (removed after installation) '{certDetails.GenerateFileName()}' for '{packageId}.'"),
                         SetupFunc = machineManager =>
                             {
                                 machineManager.SendFile(certificateTargetPath, certDetails.PfxBytes);
@@ -62,7 +62,7 @@ namespace Naos.Deployment.Core
             certSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}] for '{packageId}'"),
+                        Description = Invariant($"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}] for '{packageId}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),

@@ -13,6 +13,8 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -33,7 +35,7 @@ namespace Naos.Deployment.Core
 
             var setupWinRm = new SetupStep
                                  {
-                                     Description = "Setup WinRM",
+                                     Description = "Setup WinRM.",
                                      SetupFunc =
                                          machineManager =>
                                          machineManager.RunScript(
@@ -45,7 +47,7 @@ namespace Naos.Deployment.Core
 
             var setupUpdates = new SetupStep
                                    {
-                                       Description = "Setup Windows Updates",
+                                       Description = "Setup Windows Updates.",
                                        SetupFunc =
                                            machineManager =>
                                            machineManager.RunScript(
@@ -57,7 +59,7 @@ namespace Naos.Deployment.Core
 
             var setupTime = new SetupStep
                                 {
-                                    Description = "Setup Windows Time",
+                                    Description = "Setup Windows Time.",
                                     SetupFunc =
                                         machineManager =>
                                         machineManager.RunScript(
@@ -68,7 +70,7 @@ namespace Naos.Deployment.Core
 
             var execScripts = new SetupStep
                                   {
-                                      Description = "Enable Script Execution",
+                                      Description = "Enable Script Execution.",
                                       SetupFunc =
                                           machineManager =>
                                           machineManager.RunScript(
@@ -82,7 +84,7 @@ namespace Naos.Deployment.Core
             var windowsSkuEnvironmentVariable = "WindowsSku";
             var addEnvironmentVariables = new SetupStep
                                               {
-                                                  Description = "Add Machine Level Environment Variables",
+                                                  Description = "Add Machine Level Environment Variables.",
                                                   SetupFunc = machineManager =>
                                                       {
                                                           var environmentVariablesToAdd = new[]
@@ -114,7 +116,7 @@ namespace Naos.Deployment.Core
 
             var wallpaperUpdate = new SetupStep
                                       {
-                                          Description = "Customize Instance Wallpaper",
+                                          Description = "Customize Instance Wallpaper.",
                                           SetupFunc = machineManager =>
                                               {
                                                   var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable, fullComputerNameEnvironmentVariable };
@@ -155,7 +157,7 @@ namespace Naos.Deployment.Core
 
             var explorerShowHidden = new SetupStep
                                          {
-                                             Description = "Set Explorer to show all hidden files with extensions",
+                                             Description = "Set Explorer to show all hidden files with extensions.",
                                              SetupFunc = machineManager =>
                                                  {
                                                      var fileExplorerParams = new[] { registryKeysToUpdateExplorer };
@@ -189,7 +191,7 @@ namespace Naos.Deployment.Core
 
             var rename = new SetupStep
                              {
-                                 Description = "Rename Computer",
+                                 Description = "Rename Computer.",
                                  SetupFunc = machineManager =>
                                      {
                                          var renameParams = new[] { computerName };
@@ -222,7 +224,7 @@ namespace Naos.Deployment.Core
             {
                 var installChocoClientStep = new SetupStep
                                                  {
-                                                     Description = "Install Chocolatey Client",
+                                                     Description = "Install Chocolatey Client.",
                                                      SetupFunc =
                                                          machineManager =>
                                                          machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallChocolatey.ScriptText),
@@ -234,7 +236,7 @@ namespace Naos.Deployment.Core
                 {
                     var installChocoPackagesStep = new SetupStep
                                                        {
-                                                           Description = "Install Chocolatey Package: " + chocoPackage.GetIdDotVersionString(),
+                                                           Description = Invariant($"Install Chocolatey Package: {chocoPackage.GetIdDotVersionString()}."),
                                                            SetupFunc = machineManager =>
                                                                {
                                                                    var installChocoPackageParams = new object[] { chocoPackage };

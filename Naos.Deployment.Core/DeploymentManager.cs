@@ -429,8 +429,7 @@ namespace Naos.Deployment.Core
                                                {
                                                    new SetupStep
                                                        {
-                                                           Description =
-                                                               "Rebooting instance to finalize installations that require it.",
+                                                           Description = "Rebooting instance to finalize installations that require it.",
                                                            SetupFunc = m =>
                                                                {
                                                                    RebootInstance(m);
@@ -694,13 +693,13 @@ namespace Naos.Deployment.Core
                         }
                         else
                         {
-                            var exceededMaxTriesMessage = Invariant($"  ! Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}");
+                            var exceededMaxTriesMessage = Invariant($"  ! {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}");
                             this.LogAnnouncement(exceededMaxTriesMessage, instanceNumber);
                         }
                     }
                     else
                     {
-                        var failedRetryingMessage = Invariant($"  ! Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying");
+                        var failedRetryingMessage = Invariant($"  ! {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying");
                         this.LogAnnouncement(failedRetryingMessage, instanceNumber);
                         this.LogDebugAnnouncement(setupStep.Description, instanceNumber, new[] { ex });
                         Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
@@ -720,7 +719,7 @@ namespace Naos.Deployment.Core
                                                   {
                                                       new SetupStep
                                                           {
-                                                              Description = "Mark deployed - " + packageDescription.GetIdDotVersionString(),
+                                                              Description = Invariant($"Mark deployed - {packageDescription.GetIdDotVersionString()}."),
                                                               SetupFunc = m =>
                                                                   {
                                                                       Run.TaskUntilCompletion(

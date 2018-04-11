@@ -53,43 +53,43 @@ namespace Naos.Deployment.Domain
     }
 
     /// <summary>
-    /// Exception occurred trying to do a deployment but the error is centered around input and the stack trace is unimportant.
+    /// Exception to communicate that credentials are either expired or close to expiration.
     /// </summary>
     [Serializable]
-    public class DeploymentInputException : Exception
+    public class CredentialsPreRunCheckFailedException : Exception
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentInputException"/> class.
+        /// Initializes a new instance of the <see cref="CredentialsPreRunCheckFailedException"/> class.
         /// </summary>
-        public DeploymentInputException()
+        public CredentialsPreRunCheckFailedException()
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentInputException"/> class.
+        /// Initializes a new instance of the <see cref="CredentialsPreRunCheckFailedException"/> class.
         /// </summary>
         /// <param name="message">Exception message.</param>
-        public DeploymentInputException(string message)
+        public CredentialsPreRunCheckFailedException(string message)
             : base(message)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentInputException"/> class.
+        /// Initializes a new instance of the <see cref="CredentialsPreRunCheckFailedException"/> class.
         /// </summary>
         /// <param name="message">Exception message.</param>
         /// <param name="innerException">Inner exception.</param>
-        public DeploymentInputException(string message, Exception innerException)
+        public CredentialsPreRunCheckFailedException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DeploymentInputException"/> class.
+        /// Initializes a new instance of the <see cref="CredentialsPreRunCheckFailedException"/> class.
         /// </summary>
         /// <param name="info">Serialization info.</param>
         /// <param name="context">Reading context.</param>
-        protected DeploymentInputException(SerializationInfo info, StreamingContext context)
+        protected CredentialsPreRunCheckFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }

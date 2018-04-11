@@ -42,7 +42,7 @@ namespace Naos.Deployment.Core
             mongoInstallSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Open port 27017 for Mongo",
+                        Description = $"Open port 27017 for Mongo.",
                         SetupFunc =
                             machineManager =>
                                 machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
@@ -52,7 +52,7 @@ namespace Naos.Deployment.Core
             mongoInstallSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Open port 27018 for Mongo",
+                        Description = $"Open port 27018 for Mongo.",
                         SetupFunc =
                             machineManager =>
                                 machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),

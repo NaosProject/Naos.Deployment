@@ -43,7 +43,7 @@ namespace Naos.Deployment.Core
             selfHostSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Configure SSL Certificate {sslCertificateName} for Self Hosting",
+                        Description = $"Configure SSL Certificate {sslCertificateName} for Self Hosting.",
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(
@@ -55,7 +55,7 @@ namespace Naos.Deployment.Core
             selfHostSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Configure user {scheduledTaskAccount} for Self Hosting",
+                        Description = $"Configure user {scheduledTaskAccount} for Self Hosting.",
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams),
@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core
             selfHostSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Open port 443 for Self Hosting",
+                        Description = $"Open port 443 for Self Hosting.",
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams),

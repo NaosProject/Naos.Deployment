@@ -36,7 +36,7 @@ namespace Naos.Deployment.Core
             itsConfigSteps.Add(
                 new SetupStep
                     {
-                        Description = "Update Its.Config precedence: " + string.Join("|", precedenceChain),
+                        Description = Invariant($"Update Its.Config precedence: {string.Join("|", precedenceChain)}."),
                         SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams),
                     });
 
@@ -46,7 +46,7 @@ namespace Naos.Deployment.Core
             itsConfigSteps.Add(
                 new SetupStep
                     {
-                        Description = "(Over)write default Its.Config logging file: " + nameof(LogProcessorSettings),
+                        Description = Invariant($"(Over)write default Its.Config logging file: {nameof(LogProcessorSettings)}."),
                         SetupFunc = machineManager =>
                             {
                                 machineManager.SendFile(logProcessorSettingsFilePath, logProcessorSettingsBytes, false, true);
@@ -66,7 +66,7 @@ namespace Naos.Deployment.Core
                 itsConfigSteps.Add(
                     new SetupStep
                         {
-                            Description = "(Over)write Its.Config file: " + itsConfigOverride.FileNameWithoutExtension,
+                            Description = Invariant($"(Over)write Its.Config file: {itsConfigOverride.FileNameWithoutExtension}."),
                             SetupFunc = machineManager =>
                                 {
                                     machineManager.SendFile(itsFilePath, itsFileBytes, false, true);

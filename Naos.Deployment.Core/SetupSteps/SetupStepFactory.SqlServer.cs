@@ -121,7 +121,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"} for '{package.PackageDescription.Id}'"),
+                        Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"} for '{package.PackageDescription.Id}'."),
                         SetupFunc = machineManager =>
                             {
                                 var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
@@ -134,7 +134,7 @@ namespace Naos.Deployment.Core
             {
                 if (!(sqlServerStrategy.Restore is DatabaseRestoreFromS3 awsRestore))
                 {
-                    throw new NotSupportedException(Invariant($"Currently no support for type of database restore '{sqlServerStrategy.Restore.GetType()}' for '{package.PackageDescription.Id}'"));
+                    throw new NotSupportedException(Invariant($"Currently no support for type of database restore '{sqlServerStrategy.Restore.GetType()}' for '{package.PackageDescription.Id}'."));
                 }
 
                 var databaseConfigurationForRestore = this.BuildDatabaseConfiguration(
@@ -147,7 +147,7 @@ namespace Naos.Deployment.Core
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description = Invariant($"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}"),
+                            Description = Invariant($"Restore - Region: {awsRestore.Region}; Bucket: {awsRestore.BucketName}; File: {awsRestore.FileName}."),
                             SetupFunc = machineManager =>
                                 {
                                     var restoreFilePath = Path.Combine(sqlServerStrategy.BackupDirectory, awsRestore.FileName);
@@ -194,7 +194,7 @@ namespace Naos.Deployment.Core
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description = "Run Database Fluent Migration to Version: " + fluentMigration.Version,
+                            Description = Invariant($"Run Database Fluent Migration to Version: {fluentMigration.Version}."),
                             SetupFunc = machineManager =>
                                 {
                                     var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);

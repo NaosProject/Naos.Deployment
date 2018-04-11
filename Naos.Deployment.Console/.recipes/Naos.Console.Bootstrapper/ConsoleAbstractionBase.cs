@@ -25,6 +25,7 @@ namespace Naos.Deployment.Console
     using Naos.Recipes.Configuration.Setup;
 
     using OBeautifulCode.Collection.Recipes;
+    using OBeautifulCode.TypeRepresentation;
 
     using Spritely.Recipes;
 
@@ -38,6 +39,11 @@ namespace Naos.Deployment.Console
     [System.CodeDom.Compiler.GeneratedCode("Naos.Recipes.Console.Bootstrapper", "See package version number")]
     public abstract class ConsoleAbstractionBase
     {
+        /// <summary>
+        /// Gets the exception types that should fail but NOT print the stack trace as the message is sufficient to understand the issue (useful for input failures). 
+        /// </summary>
+        protected static IReadOnlyCollection<TypeDescription> ExceptionTypeDescriptionsToOnlyPrintMessage { get; set; } = new TypeDescription[0];
+
         /// <summary>
         /// Entry point to simulate a failure.
         /// </summary>
@@ -107,6 +113,7 @@ namespace Naos.Deployment.Console
 #pragma warning restore CS3001 // Argument type is not CLS-compliant
         {
             new { context }.Must().NotBeNull().OrThrowFirstFailure();
+            var typeDescriptionComparer = new TypeComparer(TypeMatchStrategy.NamespaceAndName);
 
             // change color to red
             var originalColor = Console.ForegroundColor;
@@ -116,6 +123,12 @@ namespace Naos.Deployment.Console
             if (context.Exception is CommandLineParserException)
             {
                 Console.WriteLine("Failure parsing command line arguments.  Run the exe with the 'help' command for usage.");
+                Console.WriteLine("   " + context.Exception.Message);
+            }
+            else if ((ExceptionTypeDescriptionsToOnlyPrintMessage ?? new TypeDescription[0]).Any(_ => typeDescriptionComparer.Equals(_, context.Exception.GetType().ToTypeDescription())))
+            {
+                Console.WriteLine("Failure during execution; configured to omit stack trace.");
+                Console.WriteLine(string.Empty);
                 Console.WriteLine("   " + context.Exception.Message);
             }
             else

@@ -38,7 +38,7 @@ namespace Naos.Deployment.Core
             var argumentsForDescription = arguments ?? "<no arguments>";
             var onetimeCallStep = new SetupStep
                                       {
-                                          Description = Invariant($"Running one time call because {justification}; command: {exeFilePathRelativeToPackageRoot}, args: {argumentsForDescription}"),
+                                          Description = Invariant($"Running one time call because {justification}; command: {exeFilePathRelativeToPackageRoot}, args: {argumentsForDescription}."),
                                           SetupFunc = machineManager => machineManager.RunScript(
                                               this.Settings.DeploymentScriptBlocks.RunOnetimeCall.ScriptText,
                                               onetimeCallParams),

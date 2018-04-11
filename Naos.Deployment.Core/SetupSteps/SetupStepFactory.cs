@@ -379,8 +379,7 @@ namespace Naos.Deployment.Core
             var unzipParams = new[] { packageFilePath, packageDirectoryPath };
             var deployUnzippedFileStep = new SetupStep
                                              {
-                                                 Description = "Push package file and unzip: " + packagedConfig.PackageWithBundleIdentifier.Package
-                                                                   .PackageDescription.GetIdDotVersionString(),
+                                                 Description = Invariant($"Push package file and unzip: {packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.GetIdDotVersionString()}."),
                                                  SetupFunc = machineManager =>
                                                      {
                                                          // in case we're in a retry scenario we should just overwrite...
@@ -390,9 +389,7 @@ namespace Naos.Deployment.Core
                                                              packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
                                                              false,
                                                              Overwrite);
-                                                         Log.Write(() => machineManager.RunScript(unzipScript, unzipParams));
-
-                                                         return new dynamic[0];
+                                                         return machineManager.RunScript(unzipScript, unzipParams);
                                                      },
                                              };
 

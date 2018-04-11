@@ -14,6 +14,8 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
@@ -44,7 +46,7 @@ namespace Naos.Deployment.Core
             scheduledTaskSetupSteps.Add(
                 new SetupStep
                     {
-                        Description = "Enable history for scheduled tasks",
+                        Description = "Enable history for scheduled tasks.",
                         SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
                     });
 
@@ -96,9 +98,7 @@ namespace Naos.Deployment.Core
             var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, runElevated, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
                                           {
-                                              Description =
-                                                  "Creating scheduled task to run: " + exeFilePathRelativeToPackageRoot + " " + (arguments ?? "<no arguments>") + " with schedule: "
-                                                  + cronExpression,
+                                              Description = Invariant($"Creating scheduled task to run: {exeFilePathRelativeToPackageRoot} {arguments ?? "<no arguments>"} with schedule: {cronExpression}."),
                                               SetupFunc =
                                                   machineManager =>
                                                   machineManager.RunScript(
