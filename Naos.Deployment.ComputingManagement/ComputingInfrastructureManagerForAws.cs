@@ -143,7 +143,7 @@ namespace Naos.Deployment.ComputingManagement
 
             if (credentialsToUse.CredentialType == CredentialType.Token && credentialsToUse.Expiration <= DateTime.Now.AddHours(1))
             {
-                throw new ArgumentException(Invariant($"Token credentials supplied should expire more than 1 hour from now; expiration: {credentialsToUse.Expiration}"));
+                throw new DeploymentInputException(Invariant($"Token credentials supplied should expire more than 1 hour from now; expiration: {credentialsToUse.Expiration}"));
             }
 
             this.credentials = credentialsToUse;

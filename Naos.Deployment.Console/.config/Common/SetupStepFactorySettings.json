@@ -482,9 +482,6 @@
                 "   Add-WindowsFeature -IncludeManagementTools -Name Web-Default-Doc, Web-Dir-Browsing, Web-Http-Errors, Web-Static-Content, Web-Http-Redirect, Web-Http-Logging, Web-Custom-Logging, Web-Log-Libraries, Web-Request-Monitor, Web-Http-Tracing, Web-Basic-Auth, Web-Digest-Auth, Web-Windows-Auth, Web-Net-Ext, Web-Net-Ext45, Web-Asp-Net, Web-Asp-Net45, Web-ISAPI-Ext, Web-ISAPI-Filter, Web-Scripting-Tools, NET-Framework-45-ASPNET",
                 "   # Set IIS Service to restart on failure and reboot on 3rd failure",
                 "   $services = Get-WMIObject win32_service | Where-Object {$_.name -imatch 'W3SVC' -and $_.startmode -eq 'Auto'}; foreach ($service in $services){sc.exe failure $service.name reset= 86400 actions= restart/5000/restart/5000/reboot/5000}",
-                "   Import-Module WebAdministration",
-                "   # Make sure we have imported the module correctly, this command will throw if it didn't work",
-                "   ls IIS://",
                 "}"
             ]
         },

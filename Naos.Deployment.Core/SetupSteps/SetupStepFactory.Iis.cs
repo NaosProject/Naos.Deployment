@@ -108,7 +108,7 @@ namespace Naos.Deployment.Core
             webSteps.Add(
                 new SetupStep
                 {
-                    Description = "Install IIS and configure website/webservice.",
+                    Description = "Configure website/webservice in IIS.",
                     SetupFunc =
                         machineManager =>
                         machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureIis.ScriptText, configureWebsiteParameters),

@@ -292,8 +292,6 @@ namespace Naos.Deployment.Core
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
 
-                var setupSteps = new List<SetupStepBatch>();
-
                 var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetryAsync(
@@ -334,6 +332,8 @@ namespace Naos.Deployment.Core
                             });
                 }
 
+                var setupSteps = new List<SetupStepBatch>();
+
                 var instanceLevelSetupSteps =
                     await
                     this.setupStepFactory.GetInstanceLevelSetupSteps(
@@ -347,8 +347,11 @@ namespace Naos.Deployment.Core
                 var chocoSetupSteps = this.setupStepFactory.GetChocolateySetupSteps(configToCreateWith.ChocolateyPackages);
                 setupSteps.AddRange(chocoSetupSteps);
 
-                var rebootSetupSteps = this.GetRebootSteps(instanceNumber);
+                var rebootSetupSteps = this.GetRebootSteps();
                 setupSteps.AddRange(rebootSetupSteps);
+
+                var blockUntilRebooted = this.GetBlockeUntilRebootedSteps();
+                setupSteps.AddRange(blockUntilRebooted);
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
@@ -382,8 +385,41 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private SetupStepBatch[] GetRebootSteps(int instanceNumber)
+        private SetupStepBatch[] GetRebootSteps()
         {
+            void RebootInstance(IManageMachines machineManager)
+            {
+                const int MaxFailureCount = 500;
+                var failureCount = 0;
+
+                var sleepTimeInSeconds = 10d;
+                var rebootCallSucceeded = false;
+                while (!rebootCallSucceeded)
+                {
+                    sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
+                    Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
+
+                    try
+                    {
+                        lock (this.syncMachineManager)
+                        {
+                            machineManager.Reboot();
+                        }
+
+                        rebootCallSucceeded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // ignore failures until they exceed threshold...
+                        failureCount = failureCount + 1;
+                        if (failureCount > MaxFailureCount)
+                        {
+                            throw new DeploymentException(Invariant($"Failed to reboot: {machineManager.IpAddress}"), ex);
+                        }
+                    }
+                }
+            }
+
             return new[]
                        {
                            new SetupStepBatch
@@ -397,7 +433,7 @@ namespace Naos.Deployment.Core
                                                                "Rebooting instance to finalize installations that require it.",
                                                            SetupFunc = m =>
                                                                {
-                                                                   this.RebootInstance(instanceNumber, m);
+                                                                   RebootInstance(m);
                                                                    return new object[0];
                                                                },
                                                        },
@@ -406,27 +442,21 @@ namespace Naos.Deployment.Core
                        };
         }
 
-        private SetupStepBatch[] GetUpdateDnsSteps(int instanceNumber, string environment, List<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness, InstanceDescription createdInstanceDescription, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private SetupStepBatch[] GetBlockeUntilRebootedSteps()
         {
             return new[]
                        {
                            new SetupStepBatch
                                {
-                                   ExecutionOrder = ExecutionOrder.Dns,
+                                   ExecutionOrder = ExecutionOrder.BlockUntilRebooted,
                                    Steps = new[]
                                                {
                                                    new SetupStep
                                                        {
-                                                           Description =
-                                                               "Rebooting instance to finalize installations that require it.",
+                                                           Description = "Waiting for machine to come back up from reboot.",
                                                            SetupFunc = m =>
                                                                {
-                                                                   this.UpsertDnsEntriesAsNecessary(
-                                                                       instanceNumber,
-                                                                       environment,
-                                                                       packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness,
-                                                                       createdInstanceDescription,
-                                                                       funcToCreateNewDnsWithTokensReplaced);
+                                                                   this.WaitUntilMachineIsAccessible(m);
                                                                    return new object[0];
                                                                },
                                                        },
@@ -435,15 +465,28 @@ namespace Naos.Deployment.Core
                        };
         }
 
-        private void UpsertDnsEntriesAsNecessary(
-            int instanceNumber,
-            string environment,
-            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
-            InstanceDescription createdInstanceDescription,
-            Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private SetupStepBatch[] GetUpdateDnsSteps(int instanceNumber, string environment, List<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, InstanceDescription createdInstanceDescription, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            // get all DNS initializations to update any private DNS entries.
-            this.LogAnnouncement("Updating DNS for all DNS initializations (if applicable)", instanceNumber);
+            List<SetupStep> steps = new List<SetupStep>();
+
+            SetupStep BuildDnsStep(string dns, string ipAddress, string instanceLocation)
+            {
+                var step = new SetupStep
+                               {
+                                   Description = Invariant($"Pointing {dns} at {ipAddress}."),
+                                   SetupFunc = m =>
+                                       {
+                                           lock (this.syncDnsManager)
+                                           {
+                                               this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress }).Wait();
+                                           }
+
+                                           return new object[0];
+                                       },
+                               };
+                return step;
+            }
+
             var dnsInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides.GetInitializationStrategiesOf<InitializationStrategyDnsEntry>();
             foreach (var initialization in dnsInitializations)
             {
@@ -458,7 +501,8 @@ namespace Naos.Deployment.Core
                     var privateIpAddress = createdInstanceDescription.PrivateIpAddress;
                     var privateDnsEntry = funcToCreateNewDnsWithTokensReplaced(initialization.PrivateDnsEntry);
 
-                    this.UpsertDnsEntry(instanceNumber, environment, privateDnsEntry, privateIpAddress, createdInstanceDescription.Location);
+                    var step = BuildDnsStep(privateDnsEntry, privateIpAddress, createdInstanceDescription.Location);
+                    steps.Add(step);
                 }
 
                 if (!string.IsNullOrEmpty(initialization.PublicDnsEntry))
@@ -471,26 +515,26 @@ namespace Naos.Deployment.Core
                     }
 
                     var publicDnsEntry = funcToCreateNewDnsWithTokensReplaced(initialization.PublicDnsEntry);
-
-                    this.UpsertDnsEntry(instanceNumber, environment, publicDnsEntry, publicIpAddress, createdInstanceDescription.Location);
+                    var step = BuildDnsStep(publicDnsEntry, publicIpAddress, createdInstanceDescription.Location);
+                    steps.Add(step);
                 }
             }
-        }
 
-#pragma warning disable SA1305 // Field names should not use Hungarian notation
-        private void UpsertDnsEntry(int instanceNumber, string environment, string dns, string ipAddress, string instanceLocation)
-        {
-            this.LogAnnouncement(Invariant($" - Pointing {dns} at {ipAddress}."), instanceNumber);
-
-            lock (this.syncDnsManager)
-            {
-                this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress }).Wait();
-            }
+            return new[]
+                       {
+                           new SetupStepBatch
+                               {
+                                   ExecutionOrder = ExecutionOrder.Dns,
+                                   Steps = steps,
+                               },
+                       };
         }
-#pragma warning restore SA1305 // Field names should not use Hungarian notation
 
         private async Task WaitUntilStatusChecksSucceedAsync(int instanceNumber, InstanceDescription createdInstanceDescription)
         {
+            const int MaxFailureCount = 500;
+            var failureCount = 0;
+
             var sleepTimeInSeconds = 10d;
             var allChecksPassed = false;
             while (!allChecksPassed)
@@ -524,6 +568,13 @@ namespace Naos.Deployment.Core
 
                 allChecksPassed = status.InstanceChecks.All(_ => _.Value == CheckState.Passed)
                                   && status.SystemChecks.All(_ => _.Value == CheckState.Passed);
+
+                // ignore failures until they exceed threshold...
+                failureCount = failureCount + 1;
+                if (!allChecksPassed && failureCount > MaxFailureCount)
+                {
+                    throw new DeploymentException(Invariant($"Status checks never fully passed; InstanceChecks: '{string.Join(",", status.InstanceChecks.Select(_ => _.Key + "=" + _.Value))}', SystemChecks: '{string.Join(",", status.SystemChecks.Select(_ => _.Key + "=" + _.Value))}'."));
+                }
             }
         }
 
@@ -532,6 +583,7 @@ namespace Naos.Deployment.Core
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
 
+            this.LogAnnouncement("Running setup steps to finalize setup.", instanceNumber);
             var orderedSteps = setupStepBatches.Where(_ => _ != null).OrderBy(_ => _.ExecutionOrder).SelectMany(_ => _.Steps).Where(_ => _ != null).ToList();
             foreach (var setupStep in orderedSteps)
             {
@@ -642,53 +694,19 @@ namespace Naos.Deployment.Core
                         }
                         else
                         {
-                            var exceededMaxTriesMessage = Invariant($"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}");
+                            var exceededMaxTriesMessage = Invariant($"  ! Step {setupStep.Description} - Exception on try {tries}/{maxTries} - {ex}");
                             this.LogAnnouncement(exceededMaxTriesMessage, instanceNumber);
                         }
                     }
                     else
                     {
-                        var failedRetryingMessage = Invariant($"Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying");
+                        var failedRetryingMessage = Invariant($"  ! Step {setupStep.Description} - Exception on try {tries}/{maxTries} - retrying");
                         this.LogAnnouncement(failedRetryingMessage, instanceNumber);
                         this.LogDebugAnnouncement(setupStep.Description, instanceNumber, new[] { ex });
                         Thread.Sleep(TimeSpan.FromSeconds(tries * 10));
                     }
                 }
             }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Want to catch a general exception.")]
-        private void RebootInstance(int instanceNumber, IManageMachines machineManager)
-        {
-            var sleepTimeInSeconds = 1d;
-            var rebootCallSucceeded = false;
-            var tries = 0;
-            while (!rebootCallSucceeded)
-            {
-                tries = tries + 1;
-                sleepTimeInSeconds = sleepTimeInSeconds * 1.2; // add 20% each loop
-                Thread.Sleep(TimeSpan.FromSeconds(sleepTimeInSeconds));
-
-                try
-                {
-                    lock (this.syncMachineManager)
-                    {
-                        machineManager.Reboot();
-                    }
-
-                    rebootCallSucceeded = true;
-                }
-                catch (Exception ex)
-                {
-                    if (tries > 100)
-                    {
-                        this.LogAnnouncement(ex.ToString(), instanceNumber);
-                    }
-                }
-            }
-
-            this.LogAnnouncement("Waiting for machine to come back up from reboot.", instanceNumber);
-            this.WaitUntilMachineIsAccessible(machineManager);
         }
 
         private IReadOnlyCollection<SetupStepBatch> GetSetupStepsToUpdateArcologyAfterPackageIsDeployed(PackageDescription packageDescription, string instanceId, string environment)
@@ -723,10 +741,11 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "notNeededResults", Justification = "Keeping to show there is a result, we just don't need it here.")]
         private void WaitUntilMachineIsAccessible(IManageMachines machineManager)
         {
-            const int MaxExceptionCount = 10000;
-            var exceptionCount = 0;
+            var testScript = @"{ ls C:\Windows }";
 
-            // TODO: move to machineManager.BlockUntilAvailable(TimeSpan.Zero);
+            const int MaxFailureCount = 500;
+            var failureCount = 0;
+
             var sleepTimeInSeconds = 10d;
             var reachable = false;
             while (!reachable)
@@ -739,18 +758,18 @@ namespace Naos.Deployment.Core
                     lock (this.syncMachineManager)
                     {
                         // ReSharper disable once UnusedVariable - keeping to show that there is a return and intentionally ignoring...
-                        var notNeededResults = machineManager.RunScript(@"{ ls C:\Windows }");
+                        var notNeededResults = machineManager.RunScript(testScript);
                     }
 
                     reachable = true;
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // swallow exceptions on purpose unless they exceed threshold...
-                    exceptionCount = exceptionCount + 1;
-                    if (exceptionCount > MaxExceptionCount)
+                    // ignore failures until they exceed threshold...
+                    failureCount = failureCount + 1;
+                    if (failureCount > MaxFailureCount)
                     {
-                        throw;
+                        throw new DeploymentException(Invariant($"Failed to execute successful script via WinRM, script = '{testScript}'"), ex);
                     }
                 }
             }
@@ -763,6 +782,9 @@ namespace Naos.Deployment.Core
         /// <returns>Password for instance.</returns>
         public async Task<string> GetAdminPasswordForInstanceAsync(InstanceDescription instanceDescription)
         {
+            const int MaxFailureCount = 500;
+            var failureCount = 0;
+
             string adminPassword = null;
             var sleepTimeInSeconds = 10d;
             var privateKey = await this.tracker.GetPrivateKeyOfInstanceByIdAsync(instanceDescription.Environment, instanceDescription.Id);
@@ -777,9 +799,14 @@ namespace Naos.Deployment.Core
                         instanceDescription,
                         privateKey);
                 }
-                catch (PasswordUnavailableException)
+                catch (PasswordUnavailableException ex)
                 {
-                    // No-op - just wait until it is available
+                    // ignore failures until they exceed threshold...
+                    failureCount = failureCount + 1;
+                    if (failureCount > MaxFailureCount)
+                    {
+                        throw new DeploymentException(Invariant($"Failed to retrieve password for '{instanceDescription.Name} | {instanceDescription.PrivateIpAddress}'."), ex);
+                    }
                 }
             }
 

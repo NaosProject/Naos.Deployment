@@ -176,7 +176,7 @@ namespace Naos.Deployment.Core
                     var usersToGrantAccessToKey = allInitializationStrategies.Select(this.GetAccountToUse).Where(_ => _ != null).Distinct().ToArray();
 
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
-                                                   "Instance Level",
+                                                   "Instance",
                                                    workingDirectoryForFileCopyDuringInstanceSetup,
                                                    this.Settings.HarnessSettings.HarnessAccount,
                                                    this.Settings.WebServerSettings.IisAccount,
