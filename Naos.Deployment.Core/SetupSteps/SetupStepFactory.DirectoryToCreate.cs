@@ -31,7 +31,7 @@ namespace Naos.Deployment.Core
                     machineManager.RunScript(
                         this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl
                         .ScriptText,
-                        dirParams),
+                        dirParams).ToList(),
             };
 
             return new[] { ret }.ToList();

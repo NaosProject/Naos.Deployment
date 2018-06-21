@@ -14,7 +14,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Container object for storing a single environments entire state.
@@ -31,7 +31,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="deployedInstances">Optional deployed instances in the arcology.</param>
         public Arcology(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
-            new { arcologyInfo }.Must().NotBeNull().OrThrowFirstFailure();
+            new { arcologyInfo }.Must().NotBeNull();
 
             this.Environment = environment;
             this.SerializedEnvironmentSpecification = arcologyInfo.SerializedEnvironmentSpecification;
@@ -53,7 +53,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="instanceToRemove">Instance to remove from collection.</param>
         public void MutateInstancesRemove(DeployedInstance instanceToRemove)
         {
-            new { instanceToRemove }.Must().NotBeNull().OrThrowFirstFailure();
+            new { instanceToRemove }.Must().NotBeNull();
 
             var removed = this.instances.Remove(instanceToRemove);
             if (!removed)
@@ -177,7 +177,7 @@ namespace Naos.Deployment.Tracking
         /// <returns>Object holding information necessary to track and create an instance.</returns>
         public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
-            new { deploymentConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
+            new { deploymentConfiguration }.Must().NotBeNull();
 
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
@@ -263,7 +263,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="package">Package that was successfully deployed.</param>
         public static void UpdatePackageVerificationInInstanceDeploymentList(DeployedInstance instanceToUpdatePackagesOn, PackageDescription package)
         {
-            new { instanceToUpdatePackagesOn }.Must().NotBeNull().OrThrowFirstFailure();
+            new { instanceToUpdatePackagesOn }.Must().NotBeNull();
 
             PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
             var existing =

@@ -7,10 +7,11 @@
 namespace Naos.Deployment.Core
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using Naos.Deployment.Domain;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -26,8 +27,8 @@ namespace Naos.Deployment.Core
             var logName = eventLogToCreateStrategy.LogName;
             var sources = eventLogToCreateStrategy.Source;
 
-            new { logName }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { source = sources }.Must().NotBeNull().And().NotBeEmptyEnumerable<string>().OrThrowFirstFailure();
+            new { logName }.Must().NotBeNullNorWhiteSpace();
+            new { sources }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             var createEventLogParams = new object[] { logName, sources };
 
@@ -37,7 +38,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Creating EventLog '{logName}' for Source '{sources}' for '{packageId}'."),
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams).ToList(),
                     });
 
             return eventLogSteps;

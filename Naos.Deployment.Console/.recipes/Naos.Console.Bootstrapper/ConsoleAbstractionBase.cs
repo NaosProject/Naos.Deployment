@@ -12,6 +12,7 @@ namespace Naos.Deployment.Console
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
 
@@ -21,13 +22,14 @@ namespace Naos.Deployment.Console
     using Its.Log.Instrumentation;
 
     using Naos.Diagnostics.Domain;
+    using Naos.Diagnostics.Recipes;
     using Naos.Logging.Domain;
     using Naos.Recipes.Configuration.Setup;
+    using Naos.Telemetry.Domain;
 
     using OBeautifulCode.Collection.Recipes;
+    using OBeautifulCode.Validation.Recipes;
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
 
     using static System.FormattableString;
 
@@ -112,7 +114,7 @@ namespace Naos.Deployment.Console
         public static void Error(ExceptionContext context)
 #pragma warning restore CS3001 // Argument type is not CLS-compliant
         {
-            new { context }.Must().NotBeNull().OrThrowFirstFailure();
+            new { context }.Must().NotBeNull();
             var typeDescriptionComparer = new TypeComparer(TypeMatchStrategy.NamespaceAndName);
 
             // change color to red
@@ -154,7 +156,7 @@ namespace Naos.Deployment.Console
         [Verb(Aliases = nameof(WellKnownConsoleVerb.Help), IsDefault = true)]
         public static void ShowUsage(string helpText)
         {
-            new { helpText }.Must().NotBeNull().OrThrowFirstFailure();
+            new { helpText }.Must().NotBeNull();
 
             Console.WriteLine("   Usage");
             Console.Write("   -----");
@@ -166,14 +168,14 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
-        /// Runs common setup logic to prepare for <see cref="Its.Log" /> and <see cref="Its.Configuration" />, also will launch the debugger if the debug flag is provided.
+        /// Runs common setup logic to prepare for and <see cref="Its.Configuration" />, also will launch the debugger if the debug flag is provided.
         /// </summary>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
-        /// <param name="logProcessorSettings">Optional <see cref="LogProcessorSettings" /> to use instead of the default found in <see cref="Its.Configuration" />.</param>
-        /// <param name="configuredAndManagedLogProcessors">Optional set of pre-configured and externally managed <see cref="LogProcessorBase" /> to use.</param>
+        /// <param name="logWritingSettings">Optional <see cref="LogWritingSettings" /> to use instead of the default found in <see cref="Its.Configuration" />.</param>
+        /// <param name="configuredAndManagedLogProcessors">Optional set of pre-configured and externally managed <see cref="LogWriterBase" /> to use.</param>
         /// <param name="announcer">Optional announcer; DEFAULT is null which will go to <see cref="Console.WriteLine(string)" />.<see cref="Console.WriteLine(string)" />.</param>
-        protected static void CommonSetup(bool debug, string environment = null, LogProcessorSettings logProcessorSettings = null, IReadOnlyCollection<LogProcessorBase> configuredAndManagedLogProcessors = null, Action<string> announcer = null)
+        protected static void CommonSetup(bool debug, string environment = null, LogWritingSettings logWritingSettings = null, IReadOnlyCollection<LogWriterBase> configuredAndManagedLogProcessors = null, Action<string> announcer = null)
         {
             var localAnnouncer = announcer ?? Console.WriteLine;
 
@@ -210,14 +212,36 @@ namespace Naos.Deployment.Console
              * swapped out to send all Its.Log messages to another logging framework if  *
              * there is already one in place.                                            *
              *---------------------------------------------------------------------------*/
-            var localLogProcessorSettings = logProcessorSettings ?? Settings.Get<LogProcessorSettings>();
+            var localLogProcessorSettings = logWritingSettings ?? Settings.Get<LogWritingSettings>();
             if (localLogProcessorSettings == null)
             {
                 localAnnouncer("No LogProcessorSettings provided or found in config; using Null Object susbstitue.");
-                localLogProcessorSettings = new LogProcessorSettings();
+                localLogProcessorSettings = new LogWritingSettings();
             }
 
-            LogProcessing.Instance.Setup(localLogProcessorSettings, localAnnouncer, configuredAndManagedLogProcessors);
+            LogWriting.Instance.Setup(localLogProcessorSettings, localAnnouncer, configuredAndManagedLogProcessors);
+
+        }
+
+        /// <summary>
+        /// Build and write standard telemetry items to  <see cref="Its.Log" />.
+        /// </summary>
+        protected static void WriteStandardTelemetry()
+        {
+            /*---------------------------------------------------------------------------*
+             * Write telemetry:  Log telemetry general records                           *
+             *---------------------------------------------------------------------------*/
+            var dateTimeOfSampleInUtc = DateTime.UtcNow;
+            var machineDetails = DomainFactory.CreateMachineDetails();
+            var processDetails = DomainFactory.CreateProcessDetails();
+
+            var processDirectory = Path.GetDirectoryName(processDetails.FilePath) ?? throw new InvalidOperationException("Could not get directory from process file path: " + processDetails.FilePath);
+            var processSiblingAssemblies = Directory.GetFiles(processDirectory, "*", SearchOption.AllDirectories)
+                .Where(_ => _.ToLowerInvariant().EndsWith(".exe") || _.ToLowerInvariant().EndsWith(".dll")).Select(_ => AssemblyDetails.CreateFromFile(_))
+                .ToList();
+
+            var diagnosticsTelemetry = new DiagnosticsTelemetry(dateTimeOfSampleInUtc, machineDetails, processDetails, processSiblingAssemblies);
+            Log.Write(() => diagnosticsTelemetry);
         }
 
         /// <summary>
@@ -228,7 +252,7 @@ namespace Naos.Deployment.Console
         /// <returns>Masked string.</returns>
         protected static string MaskString(string input, int percentageOfStringToMask = 70)
         {
-            new { percentageOfStringToMask }.Must().BeInRange(1, 99).OrThrowFirstFailure();
+            new { percentageOfStringToMask }.Must().BeInRange(1, 99);
 
             var localInput = input ?? string.Empty;
             int indexToMaskUntil = (int)(localInput.Length * (percentageOfStringToMask / 100d));
@@ -321,7 +345,7 @@ namespace Naos.Deployment.Console
     /// <summary>
     /// Example of how to extend the base class to add your custom functionality.  It's recommeneded that each method take
     /// optional environment name AND debug boolean paramters and then call the <see cref="ConsoleAbstractionBase.CommonSetup" /> but not necessary.
-    /// The common setup also allows for provided the <see cref="LogProcessorSettings" /> directly instead of the default
+    /// The common setup also allows for provided the <see cref="LogWritingSettings" /> directly instead of the default
     /// loading from <see cref="Its.Configuration" />.
     /// </summary>
     public class ExampleConsoleAbstraction : ConsoleAbstractionBase
@@ -342,12 +366,17 @@ namespace Naos.Deployment.Console
              * Normally this would just be done from the Its.Configuration file but the  *
              * we're overriding to only use the Console for demonstration purposes.      *
              *---------------------------------------------------------------------------*/
-            var logProcessorSettingsOverride = new LogProcessorSettings(new[] { new ConsoleLogConfiguration(LogContexts.All, LogContexts.AllErrors) });
+            var logProcessorSettingsOverride = new LogWritingSettings(new[] { new ConsoleLogConfig(LogItemOrigins.All, LogItemOrigins.AllErrors),  });
 
             /*---------------------------------------------------------------------------*
              * Any method should run this logic to debug, setup config & logging, etc.   *
              *---------------------------------------------------------------------------*/
             CommonSetup(debug, environment, logProcessorSettingsOverride);
+			
+            /*---------------------------------------------------------------------------*
+             * Any method should run this logic to write telemetry info to the log.      *
+             *---------------------------------------------------------------------------*/
+            WriteStandardTelemetry();
 
             /*---------------------------------------------------------------------------*
              * This is not necessary but often very useful to print out the arguments.   *

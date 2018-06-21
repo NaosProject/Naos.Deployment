@@ -18,14 +18,15 @@
     "maxSetupStepAttempts": 10,
     "throwOnFailedSetupStep": true,
     "rootDeploymentPathTemplate": "{deploymentDriveLetter}:\\Deployments",
-    "defaultLogProcessorSettings": {
-        "configurations": [
+    "defaultLogWritingSettings": {
+        "configs": [
             {
                 "timeSlicePerFile": "00:10:00",
                 "fileNamePrefix": "All",
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\Logs",
                 "createDirectoryStructureIfMissing": true,
-                "contextsToLog": "all"
+                "originsToLog": "all",
+                "logItemPropertiesToIncludeInLogMessage": "default"
             }
         ]
     },
@@ -474,7 +475,7 @@
             ]
         },
         "installIis": {
-            "parameterNames": [ ],
+            "parameterNames": [],
             "scriptTextLines": [
                 "{",
                 "param()",
@@ -512,7 +513,7 @@
                 "   Write-Output \"    CertThumbprint: $CertThumbprint\"",
                 "   Write-Output ''",
                 "   Import-Module WebAdministration",
-				"   # Make sure we have imported the module correctly, this command will throw if it didn't work",
+                "   # Make sure we have imported the module correctly, this command will throw if it didn't work",
                 "   ls IIS://",
                 "   Write-Output \"Using site path for IIS at $WebRootPath\"",
                 "   Write-Output 'Removing default site if present to avoid any potential conflicts'",

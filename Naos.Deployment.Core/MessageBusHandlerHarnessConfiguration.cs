@@ -30,7 +30,7 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public LogProcessorSettings LogProcessorSettings { get; set; }
+        public LogWritingSettings LogWritingSettings { get; set; }
 
         /// <summary>
         /// Gets or sets connection configuration for the message bus handler harness to be configured with.
@@ -56,12 +56,12 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public LogProcessorSettings FileSystemManagementLogProcessorSettings { get; set; }
+        public LogWritingSettings FileSystemManagementLogWritingSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the log processor settings to be used when deploying the harness.
         /// </summary>
-        public LogProcessorSettings DatabaseManagementLogProcessorSettings { get; set; }
+        public LogWritingSettings DatabaseManagementLogWritingSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the time to allow the handler harness process to run before recycling.

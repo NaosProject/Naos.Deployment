@@ -28,15 +28,16 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
     using Naos.Compression.Domain;
     using Naos.Cron;
     using Naos.Diagnostics.Domain;
+    using Naos.Diagnostics.Recipes;
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Sender;
     using Naos.MessageBus.Persistence;
     using Naos.Serialization.Factory;
+    using Naos.Telemetry.Domain;
 
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -64,9 +65,9 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             MessageBusLaunchConfiguration launchConfig,
             IHandlerFactory handlerFactory)
         {
-            new { messageBusConnectionConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
-            new { launchConfig }.Must().NotBeNull().OrThrowFirstFailure();
-            new { handlerFactory }.Must().NotBeNull().OrThrowFirstFailure();
+            new { messageBusConnectionConfiguration }.Must().NotBeNull();
+            new { launchConfig }.Must().NotBeNull();
+            new { handlerFactory }.Must().NotBeNull();
 
             if (launchConfig.ChannelsToMonitor.Any(_ => _.GetType() != typeof(SimpleChannel)))
             {
@@ -79,14 +80,12 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
                 assembliesToRecord.AddRange(reflectionHandlerFactory.FilePathToAssemblyMap.Values);
             }
 
-            var assemblyDetails = assembliesToRecord.Select(SafeFetchAssemblyDetails).ToList();
-            var machineDetails = MachineDetails.Create();
-            var harnessStaticDetails = new HarnessStaticDetails
-                                           {
-                                               MachineDetails = machineDetails,
-                                               ExecutingUser = Environment.UserDomainName + "\\" + Environment.UserName,
-                                               Assemblies = assemblyDetails,
-                                           };
+            var processSiblingAssemblies = assembliesToRecord.Select(SafeFetchAssemblyDetails).ToList();
+            var dateTimeOfSampleInUtc = DateTime.UtcNow;
+            var machineDetails = DomainFactory.CreateMachineDetails();
+            var processDetails = DomainFactory.CreateProcessDetails();
+
+            var diagnosticsTelemetry = new DiagnosticsTelemetry(dateTimeOfSampleInUtc, machineDetails, processDetails, processSiblingAssemblies);
 
             var serializerFactory = SerializerFactory.Instance;
             var compressorFactory = CompressorFactory.Instance;
@@ -127,7 +126,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
                 handlerFactory,
                 handlerSharedStateMap,
                 launchConfig.ChannelsToMonitor,
-                harnessStaticDetails,
+                diagnosticsTelemetry,
                 parcelTrackingSystem,
                 activeMessageTracker,
                 postOffice,
@@ -188,8 +187,8 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             Parcel parcel,
             ScheduleBase schedule = null)
         {
-            new { messageBusConnectionConfiguration }.Must().NotBeNull().OrThrowFirstFailure();
-            new { parcel }.Must().NotBeNull().OrThrowFirstFailure();
+            new { messageBusConnectionConfiguration }.Must().NotBeNull();
+            new { parcel }.Must().NotBeNull();
 
             var serializerFactory = SerializerFactory.Instance;
             var compressorFactory = CompressorFactory.Instance;
@@ -223,10 +222,15 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Catching and swallowing on purpose.")]
         private static AssemblyDetails SafeFetchAssemblyDetails(Assembly assembly)
         {
-            new { assembly }.Must().NotBeNull().OrThrowFirstFailure();
+            new { assembly }.Must().NotBeNull();
 
             // get a default
-            var ret = new AssemblyDetails { FilePath = assembly.Location };
+            var assemblyName = assembly.GetName();
+            var ret = new AssemblyDetails(
+                assemblyName?.Name ?? "assembly.GetName() returned null",
+                assemblyName?.Version ?? new Version(0, 0),
+                assembly.Location,
+                assembly.ImageRuntimeVersion);
 
             try
             {

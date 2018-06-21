@@ -11,7 +11,7 @@ namespace Naos.Deployment.Domain
     using System.Globalization;
     using System.Net;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Container with the description of an arcology (defines things needed to add to the arcology).
@@ -59,8 +59,8 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         public static bool IsIpAddressInRange(string ipAddress, string cidr)
         {
-            new { ipAddress }.Must().NotBeNull().OrThrowFirstFailure();
-            new { cidr }.Must().NotBeNull().OrThrowFirstFailure();
+            new { ipAddress }.Must().NotBeNullNorWhiteSpace();
+            new { cidr }.Must().NotBeNullNorWhiteSpace();
 
             if (cidr == "0.0.0.0/0")
             {

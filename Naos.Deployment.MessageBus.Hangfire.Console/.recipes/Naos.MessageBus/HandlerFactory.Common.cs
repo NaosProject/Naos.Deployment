@@ -24,8 +24,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Factory builder to provide logic to resolve the appropriate <see cref="IHandleMessages" /> for a dispatched <see cref="IMessage" /> implementation.
@@ -77,7 +76,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         /// <returns>Map of message type to handler type.</returns>
         internal static IReadOnlyDictionary<Type, Type> DiscoverHandlersInAssemblies(IReadOnlyCollection<Assembly> assembliesToLookIn, bool includeInternalHandlers = true)
         {
-            new { assembliesToLookIn }.Must().NotBeNull().And().NotBeEmptyEnumerable<Assembly>().OrThrowFirstFailure();
+            new { assembliesToLookIn }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             var localDictionary = new Dictionary<Type, Type>();
 
@@ -94,7 +93,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         {
             var configuration = Settings.Get<HandlerFactoryConfiguration>();
 
-            new { handlerFactoryConfiguration = configuration }.Must().NotBeNull().OrThrowFirstFailure();
+            new { configuration }.Must().NotBeNull();
 
             var ret = !string.IsNullOrWhiteSpace(configuration.HandlerAssemblyPath)
                           ? new ReflectionHandlerFactory(configuration.HandlerAssemblyPath, configuration.TypeMatchStrategyForMessageResolution)

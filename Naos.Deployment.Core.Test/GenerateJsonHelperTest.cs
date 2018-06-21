@@ -53,10 +53,10 @@ namespace Naos.Deployment.Core.Test
             var channelNameTwo = "cloud";
             var logFilePath = @"D:\Deployments\Naos.Deployment\packagedWebsite\DeploymentHandler.txt";
             var eventLogSource = "DeploymentHandler";
-            var logConfigurations = new LogConfigurationBase[]
+            var logConfigurations = new LogWriterConfigBase[]
                                         {
-                                            new EventLogConfiguration(LogContexts.AllErrors, eventLogSource, customEventLog),
-                                            new FileLogConfiguration(LogContexts.All, logFilePath),
+                                            new EventLogConfig(LogItemOrigins.AllErrors, eventLogSource, customEventLog),
+                                            new FileLogConfig(LogItemOrigins.All, logFilePath),
                                         };
 
             var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
@@ -108,8 +108,8 @@ namespace Naos.Deployment.Core.Test
                                                     {
                                                         new ItsConfigOverride
                                                             {
-                                                                FileNameWithoutExtension = nameof(LogProcessorSettings),
-                                                                FileContentsJson = serializer.SerializeToString(new LogProcessorSettings(logConfigurations)),
+                                                                FileNameWithoutExtension = nameof(LogWritingSettings),
+                                                                FileContentsJson = serializer.SerializeToString(new LogWritingSettings(logConfigurations)),
                                                             },
                                                         new ItsConfigOverride
                                                             {
@@ -139,10 +139,10 @@ namespace Naos.Deployment.Core.Test
             var hangfireHarnessPackageId = "Naos.MessageBus.Hangfire.Harness";
             var logFilePath = @"D:\Deployments\Naos.MessageBus.Hangfire.Harness\packagedWebsite\HangfireHarnessLog.txt";
             var eventLogSource = "HangfireHarness";
-            var logConfigurations = new LogConfigurationBase[]
+            var logConfigurations = new LogWriterConfigBase[]
                                         {
-                                            new EventLogConfiguration(LogContexts.AllErrors, eventLogSource, customEventLog),
-                                            new FileLogConfiguration(LogContexts.All, logFilePath),
+                                            new EventLogConfig(LogItemOrigins.AllErrors, eventLogSource, customEventLog),
+                                            new FileLogConfig(LogItemOrigins.All, logFilePath),
                                         };
 
             var launchConfiguration = new MessageBusLaunchConfiguration(
@@ -246,8 +246,8 @@ namespace Naos.Deployment.Core.Test
                                                           },
                                                       new ItsConfigOverride
                                                           {
-                                                              FileNameWithoutExtension = nameof(LogProcessorSettings),
-                                                              FileContentsJson = serializer.SerializeToString(new LogProcessorSettings(logConfigurations)),
+                                                              FileNameWithoutExtension = nameof(LogWritingSettings),
+                                                              FileContentsJson = serializer.SerializeToString(new LogWritingSettings(logConfigurations)),
                                                           },
                                                       new ItsConfigOverride
                                                           {

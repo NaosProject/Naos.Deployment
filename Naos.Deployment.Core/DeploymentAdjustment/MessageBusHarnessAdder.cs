@@ -16,10 +16,7 @@ namespace Naos.Deployment.Core
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
-
-    using static System.FormattableString;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Class to implement <see cref="AdjustDeploymentBase"/> to add message bus harness package when needed.
@@ -71,10 +68,10 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, SetupStepFactorySettings setupStepFactorySettings)
         {
-            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
-            new { configToCreateWith }.Must().NotBeNull().OrThrowFirstFailure();
-            new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
-            new { setupStepFactorySettings }.Must().NotBeNull().OrThrowFirstFailure();
+            new { configFileManager }.Must().NotBeNull();
+            new { configToCreateWith }.Must().NotBeNull();
+            new { packageHelper }.Must().NotBeNull();
+            new { setupStepFactorySettings }.Must().NotBeNull();
 
             PackagedDeploymentConfiguration ret = null;
 
@@ -203,13 +200,13 @@ namespace Naos.Deployment.Core
                             },
                     });
 
-            if (this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings != null)
+            if (this.MessageBusHandlerHarnessConfiguration.LogWritingSettings != null)
             {
                 itsConfigOverridesToUse.Add(
                     new ItsConfigOverride
                         {
-                            FileNameWithoutExtension = nameof(LogProcessorSettings),
-                            FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.LogProcessorSettings),
+                            FileNameWithoutExtension = nameof(LogWritingSettings),
+                            FileContentsJson = configFileManager.SerializeConfigToFileText(this.MessageBusHandlerHarnessConfiguration.LogWritingSettings),
                         });
             }
 

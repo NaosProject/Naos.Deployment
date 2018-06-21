@@ -17,8 +17,7 @@ namespace Naos.Deployment.Core
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -80,9 +79,9 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, SetupStepFactorySettings setupStepFactorySettings)
         {
-            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
-            new { packageHelper }.Must().NotBeNull().OrThrowFirstFailure();
-            new { setupStepFactorySettings }.Must().NotBeNull().OrThrowFirstFailure();
+            new { configFileManager }.Must().NotBeNull();
+            new { packageHelper }.Must().NotBeNull();
+            new { setupStepFactorySettings }.Must().NotBeNull();
 
             var sqlServerInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides
                 .WhereContainsInitializationStrategyOf<InitializationStrategySqlServer>().GetInitializationStrategiesOf<InitializationStrategySqlServer>()
@@ -125,7 +124,7 @@ namespace Naos.Deployment.Core
                 packageHelper,
                 this.DatabaseManagementConfiguration.FileSystemManagementPackage,
                 FileJanitorChannelSuffix,
-                this.DatabaseManagementConfiguration.FileSystemManagementLogProcessorSettings);
+                this.DatabaseManagementConfiguration.FileSystemManagementLogWritingSettings);
 
             ret.Add(new InjectedPackage(ReasonStringFile, fileJanitor));
 
@@ -203,7 +202,7 @@ namespace Naos.Deployment.Core
                 packageHelper,
                 this.DatabaseManagementConfiguration.DatabaseManagementPackage,
                 DatabaseChannelSuffix,
-                this.DatabaseManagementConfiguration.DatabaseManagementLogProcessorSettings);
+                this.DatabaseManagementConfiguration.DatabaseManagementLogWritingSettings);
 
             ret.Add(new InjectedPackage(ReasonStringDatabase, databaseHandler));
 
@@ -222,7 +221,7 @@ namespace Naos.Deployment.Core
             PackageHelper packageHelper,
             PackageDescriptionWithOverrides packageDescriptionToAdd,
             string channelSuffix,
-            LogProcessorSettings logProcessorSettings)
+            LogWritingSettings logWritingSettings)
         {
             // Create a new list to use for the overrides of the handler harness deployment
             var itsConfigOverridesToUse = new List<ItsConfigOverride>();
@@ -280,13 +279,13 @@ namespace Naos.Deployment.Core
                             },
                     });
 
-            if (logProcessorSettings != null)
+            if (logWritingSettings != null)
             {
                 itsConfigOverridesToUse.Add(
                     new ItsConfigOverride
                         {
-                            FileNameWithoutExtension = nameof(LogProcessorSettings),
-                            FileContentsJson = configFileManager.SerializeConfigToFileText(logProcessorSettings),
+                            FileNameWithoutExtension = nameof(logWritingSettings),
+                            FileContentsJson = configFileManager.SerializeConfigToFileText(logWritingSettings),
                         });
             }
 

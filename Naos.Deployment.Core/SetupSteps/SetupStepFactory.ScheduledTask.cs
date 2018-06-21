@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
 
     using Naos.Cron;
     using Naos.Deployment.Domain;
@@ -21,7 +22,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
+        private List<SetupStep> GetScheduledTaskSpecificSteps(InitializationStrategyScheduledTask scheduledTaskStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string consoleRootPath, string environment, string adminPassword)
         {
             var schedule = scheduledTaskStrategy.Schedule;
             var exeFilePathRelativeToPackageRoot = scheduledTaskStrategy.ExeFilePathRelativeToPackageRoot;
@@ -31,11 +32,11 @@ namespace Naos.Deployment.Core
             var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
             var runElevated = scheduledTaskStrategy.RunElevated;
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(defaultLogProcessorSettings, itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(defaultLogWritingSettings, itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
@@ -47,10 +48,10 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = "Enable history for scheduled tasks.",
-                        SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText),
+                        SetupFunc = machineManager => machineManager.RunScript(this.Settings.DeploymentScriptBlocks.EnableScheduledTaskHistory.ScriptText).ToList(),
                     });
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, applicationRootPath, environment, exeConfigFullPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogWritingSettings, applicationRootPath, environment, exeConfigFullPath);
             scheduledTaskSetupSteps.AddRange(itsConfigSteps);
 
             // in case we're serializing an expression schedule run the loop into a new object...
@@ -103,7 +104,7 @@ namespace Naos.Deployment.Core
                                                   machineManager =>
                                                   machineManager.RunScript(
                                                       this.Settings.DeploymentScriptBlocks.SetupScheduledTask.ScriptText,
-                                                      setupScheduledTaskParams),
+                                                      setupScheduledTaskParams).ToList(),
                                           };
 
             scheduledTaskSetupSteps.Add(createScheduledTask);

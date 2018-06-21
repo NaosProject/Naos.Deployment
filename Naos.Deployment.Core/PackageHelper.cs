@@ -18,7 +18,8 @@ namespace Naos.Deployment.Core
 
     using Naos.Packaging.Domain;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
+
     using Spritely.Redo;
 
     /// <summary>
@@ -52,7 +53,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public PackageWithBundleIdentifier GetPackage(PackageDescription packageDescription, bool bundleAllDependencies)
         {
-            new { packageDescription }.Must().NotBeNull().OrThrowFirstFailure();
+            new { packageDescription }.Must().NotBeNull();
 
             const string DirectoryDateTimeToStringFormat = "yyyy-MM-dd--HH-mm-ss--ffff";
             var localWorkingDirectory = Path.Combine(this.workingDirectory, "Down-" + DateTime.Now.ToString(DirectoryDateTimeToStringFormat, CultureInfo.CurrentCulture));
@@ -136,7 +137,7 @@ namespace Naos.Deployment.Core
         /// <returns>List of paths deemed extraneous to be removed.</returns>
         public static IReadOnlyCollection<string> FindExtraneousFrameworksToDelete(string[] frameworkDirectories)
         {
-            new { frameworkDirectories }.Must().NotBeNull().OrThrowFirstFailure();
+            new { frameworkDirectories }.Must().NotBeNull();
 
             var directoriesToDelete = new List<string>();
             var frameworkFolderToKeep = frameworkDirectories.Length == 1
@@ -177,7 +178,7 @@ namespace Naos.Deployment.Core
         /// <returns>Version specified in the NUSPEC config.</returns>
         public string GetActualVersionFromPackage(Package package)
         {
-            new { package }.Must().NotBeNull().OrThrowFirstFailure();
+            new { package }.Must().NotBeNull();
 
             if (string.Equals(
                 package.PackageDescription.Id,

@@ -31,12 +31,12 @@ namespace Naos.Deployment.Core
                                {
                                    Description = "Install IIS.",
                                    SetupFunc = machineManager =>
-                                       machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallIis.ScriptText),
+                                       machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallIis.ScriptText).ToList(),
                                },
                        };
         }
 
-        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
             if (httpsBindingDefinitions.Where(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
@@ -59,7 +59,7 @@ namespace Naos.Deployment.Core
             var webSteps = new List<SetupStep>();
             var webConfigPath = Path.Combine(webRootPath, "web.config");
 
-            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogProcessorSettings, webRootPath, environment, webConfigPath);
+            var itsConfigSteps = this.GetItsConfigSteps(itsConfigOverrides, defaultLogWritingSettings, webRootPath, environment, webConfigPath);
             webSteps.AddRange(itsConfigSteps);
 
             var certificateNameToThumbprintMap = new Dictionary<string, string>();
@@ -111,7 +111,7 @@ namespace Naos.Deployment.Core
                     Description = "Configure website/webservice in IIS.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureIis.ScriptText, configureWebsiteParameters),
+                        machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureIis.ScriptText, configureWebsiteParameters).ToList(),
                 });
 
             return webSteps;

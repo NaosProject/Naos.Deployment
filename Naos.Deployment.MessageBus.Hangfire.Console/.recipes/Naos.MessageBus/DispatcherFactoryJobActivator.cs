@@ -23,8 +23,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
     using Naos.MessageBus.Hangfire.Sender;
 
     using OBeautifulCode.TypeRepresentation;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -57,7 +56,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
         /// <inheritdoc />
         public override object ActivateJob(Type jobType)
         {
-            new { jobType }.Must().NotBeNull().OrThrowFirstFailure();
+            new { jobType }.Must().NotBeNull();
 
             if (this.typeComparer.Equals(jobType, typeof(HangfireDispatcher)))
             {

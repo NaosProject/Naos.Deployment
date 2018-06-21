@@ -10,8 +10,7 @@ namespace Naos.Deployment.Domain
     using System.Collections.Generic;
 
     using OBeautifulCode.DateTime;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Implementation of <see cref="CertificateDescription"/> that also contains a PFX payload and a clear text password.
@@ -33,8 +32,8 @@ namespace Naos.Deployment.Domain
         public CertificateDescriptionWithClearPfxPayload(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
             : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {
-            new { pfxPasswordInClearText }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { pfxBytes }.Must().NotBeNull().OrThrowFirstFailure();
+            new { pfxPasswordInClearText }.Must().NotBeNullNorWhiteSpace();
+            new { pfxBytes }.Must().NotBeNull();
 
             this.PfxBytes = pfxBytes;
             this.PfxPasswordInClearText = pfxPasswordInClearText;

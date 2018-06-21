@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Additional behavior to add on IHaveInitializationStrategies.
@@ -28,7 +28,7 @@ namespace Naos.Deployment.Core
             this IHaveInitializationStrategies objectWithInitializationStrategies)
             where T : InitializationStrategyBase
         {
-            new { objectWithInitializationStrategies }.Must().NotBeNull().OrThrowFirstFailure();
+            new { objectWithInitializationStrategies }.Must().NotBeNull();
 
             var ret =
                 (objectWithInitializationStrategies.InitializationStrategies ?? new List<InitializationStrategyBase>())

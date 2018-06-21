@@ -15,7 +15,7 @@
       <dependency id="Naos.Serialization.Factory" version="[1.0.43,)" />
       <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="[1.0.16,)" />
       <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="[1.0.17,)" />
-      <dependency id="Spritely.Recipes.MustValidation" version="[0.6.3,)" />
+      <dependency id="OBeautifulCode.Validation.Recipes.ParameterValidator" version="[1.0.14,)" />
     </dependencies>
   </metadata>
   <files>

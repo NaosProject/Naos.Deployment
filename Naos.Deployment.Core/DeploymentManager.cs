@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core
     using Naos.Serialization.Domain;
     using Naos.Serialization.Json;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -129,7 +129,7 @@ namespace Naos.Deployment.Core
             this.debugAnnouncementFile = debugAnnouncementFile;
             this.configFileManager = configFileManager;
 
-            new { configFileManager }.Must().NotBeNull().OrThrowFirstFailure();
+            new { configFileManager }.Must().NotBeNull();
 
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
@@ -302,7 +302,7 @@ namespace Naos.Deployment.Core
                 var machineManager = new MachineManager(
                     createdInstanceDescription.PrivateIpAddress,
                     this.setupStepFactory.AdministratorAccount,
-                    adminPasswordClear.ToSecureString(),
+                    Naos.Recipes.WinRM.StringExtensions.ToSecureString(adminPasswordClear),
                     true);
 
                 this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);

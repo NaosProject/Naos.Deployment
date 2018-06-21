@@ -14,7 +14,8 @@ namespace Naos.Recipes.RunWithRetry
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
+
     using Spritely.Redo;
 
     using static System.FormattableString;
@@ -53,7 +54,7 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task WithRetryAsync(this Func<Task> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.Must().NotBeNull().OrThrow();
+            new { operation }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -76,7 +77,7 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task<T> WithRetryAsync<T>(this Func<Task<T>> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.Must().NotBeNull().OrThrow();
+            new { operation }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -105,9 +106,9 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task WithRetryAsync(this Func<Task> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.Must().NotBeNull().OrThrow();
-            new { reporter }.Must().NotBeNull().OrThrow();
-            new { messageBuilder }.Must().NotBeNull().OrThrow();
+            new { operation }.Must().NotBeNull();
+            new { reporter }.Must().NotBeNull();
+            new { messageBuilder }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -137,9 +138,9 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task<T> WithRetryAsync<T>(this Func<Task<T>> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.Must().NotBeNull().OrThrow();
-            new { reporter }.Must().NotBeNull().OrThrow();
-            new { messageBuilder }.Must().NotBeNull().OrThrow();
+            new { operation }.Must().NotBeNull();
+            new { reporter }.Must().NotBeNull();
+            new { messageBuilder }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -160,7 +161,7 @@ namespace Naos.Recipes.RunWithRetry
         /// <param name="taskWaitingStrategy">Optional strategy on how to wait; DEFAULT is <see cref="TaskWaitingStrategy.Sleep" />.</param>
         public static void TaskUntilCompletion(Task task, TimeSpan pollingInterval = default(TimeSpan), TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
         {
-            new { task }.Must().NotBeNull().OrThrowFirstFailure();
+            new { task }.Must().NotBeNull();
 
             async Task<string> UnnecessaryReturnTask()
             {
@@ -180,7 +181,7 @@ namespace Naos.Recipes.RunWithRetry
         /// <returns>Return value of task provided.</returns>
         public static T TaskUntilCompletion<T>(Task<T> task, TimeSpan pollingInterval = default(TimeSpan), TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
         {
-            new { task }.Must().NotBeNull().OrThrowFirstFailure();
+            new { task }.Must().NotBeNull();
 
             var localPollingTime = pollingInterval == default(TimeSpan) ? TimeSpan.FromMilliseconds(10) : pollingInterval;
 

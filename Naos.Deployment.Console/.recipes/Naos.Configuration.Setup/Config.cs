@@ -20,8 +20,7 @@ namespace Naos.Recipes.Configuration.Setup
     using Naos.Serialization.Json;
 
     using OBeautifulCode.Collection.Recipes;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -87,7 +86,7 @@ namespace Naos.Recipes.Configuration.Setup
         /// <param name="announcer">Optional announcer to communicate setup state; DEFAULT is null.</param>
         public static void ResetConfigureSerializationAndSetValues(IReadOnlyList<string> precedenceValues, bool includeCommonPrecedenceAtEnd = true, string settingsDirectory = null, Action<string> announcer = null)
         {
-            new { precedenceValues }.Must().NotBeNull().And().NotBeEmptyEnumerable<string>().OrThrowFirstFailure();
+            new { precedenceValues }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             void NullAnnouncer(string message)
             {
@@ -103,7 +102,7 @@ namespace Naos.Recipes.Configuration.Setup
 
             if (!string.IsNullOrWhiteSpace(settingsDirectory))
             {
-                Directory.Exists(settingsDirectory).Named(Invariant($"{nameof(settingsDirectory)}-{settingsDirectory}-MustExistToUse")).Must().BeTrue().OrThrowFirstFailure();
+                Directory.Exists(settingsDirectory).Named(Invariant($"{nameof(settingsDirectory)}-{settingsDirectory}-MustExistToUse")).Must().BeTrue();
                 Settings.SettingsDirectory = settingsDirectory;
                 localAnnouncer(Invariant($"Set {nameof(Settings)}.{nameof(Settings.SettingsDirectory)} to {settingsDirectory}"));
             }

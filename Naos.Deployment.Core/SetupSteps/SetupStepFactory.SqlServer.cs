@@ -18,8 +18,7 @@ namespace Naos.Deployment.Core
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Reflection.Recipes;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
 
@@ -50,7 +49,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Create{backupDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
+                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams).ToList(),
                     });
             var backupProcessAccount = this.Settings.DatabaseServerSettings.BackupProcessServiceAccount;
             var addBackupProcessAclsToBackupDirScript = this.Settings.DeploymentScriptBlocks.CreateDirectoryWithFullControl;
@@ -61,7 +60,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Add rights to {backupDirectory} for backup process account for '{package.PackageDescription.Id}'."),
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams),
+                            machineManager.RunScript(addBackupProcessAclsToBackupDirScript.ScriptText, addBackupProcessAclsToBackupDirParams).ToList(),
                     });
 
             var dataDirectory = sqlServerStrategy.DataDirectory ?? this.Settings.DatabaseServerSettings.DefaultDataDirectory;
@@ -73,7 +72,7 @@ namespace Naos.Deployment.Core
                     Description = Invariant($"Create {dataDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams),
+                        machineManager.RunScript(createDatabaseDirScript.ScriptText, createDatabaseDirParams).ToList(),
                 });
 
             var enableSaSetPasswordScript = this.Settings.DeploymentScriptBlocks.EnableSaAccountAndSetPassword;
@@ -84,7 +83,7 @@ namespace Naos.Deployment.Core
                     Description = Invariant($"Turn on Mixed Mode Auth, enable SA account, and set password for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams),
+                        machineManager.RunScript(enableSaSetPasswordScript.ScriptText, enableSaSetPasswordParams).ToList(),
                 });
 
             var updateDefaultInstancePathsScript = this.Settings.DeploymentScriptBlocks.SetDefaultDirectories;
@@ -96,7 +95,7 @@ namespace Naos.Deployment.Core
                     Description = Invariant($"Update default instance paths on database for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams),
+                        machineManager.RunScript(updateDefaultInstancePathsScript.ScriptText, updateDefaultInstancePathsParams).ToList(),
                 });
 
             var restartSqlServerScript = this.Settings.DeploymentScriptBlocks.RestartWindowsService;
@@ -107,7 +106,7 @@ namespace Naos.Deployment.Core
                     Description = Invariant($"Restart SQL server for account change(s) to take effect for '{package.PackageDescription.Id}'."),
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams),
+                        machineManager.RunScript(restartSqlServerScript.ScriptText, restartSqlServerParams).ToList(),
                 });
 
             var connectionString = sqlServerStrategy.CreateLocalhostConnectionString();
@@ -207,10 +206,8 @@ namespace Naos.Deployment.Core
                                         allFilePaths.Where(_ => Path.GetFileNameWithoutExtension(_) == package.PackageDescription.Id)
                                             .SingleOrDefault(_ => _.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || _.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase));
 
-                                    new { migrationAssemblyFilePath }.Must()
-                                        .NotBeNull()
-                                        .Because(Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"))
-                                        .OrThrow();
+                                    new { migrationAssemblyFilePath }.Must().NotBeNull(
+                                        Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"));
 
                                     // Need to run loose because FluentMigrator doesn't play nice...
                                     using (var loader = AssemblyLoader.CreateAndLoadFromDirectory(

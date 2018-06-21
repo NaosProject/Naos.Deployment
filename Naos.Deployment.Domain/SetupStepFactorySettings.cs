@@ -62,7 +62,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets or sets the default log processor settings to inject with Its.Config updates.
         /// </summary>
-        public LogProcessorSettings DefaultLogProcessorSettings { get; set; }
+        public LogWritingSettings DefaultLogWritingSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the prcedence order to use when identifying the deployment volume.

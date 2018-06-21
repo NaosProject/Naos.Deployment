@@ -35,7 +35,7 @@ namespace Naos.Deployment.Core
                         Description = "Install Mongo Server and Client.",
                         SetupFunc =
                             machineManager =>
-                                machineManager.RunScript(installMongoScript.ScriptText, installMongoParams),
+                                machineManager.RunScript(installMongoScript.ScriptText, installMongoParams).ToList(),
                     });
 
             var openPortParamsOne = new[] { "27017", "Allow TCP 27017 IN for Mongo" };
@@ -45,7 +45,7 @@ namespace Naos.Deployment.Core
                         Description = $"Open port 27017 for Mongo.",
                         SetupFunc =
                             machineManager =>
-                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne),
+                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsOne).ToList(),
                     });
 
             var openPortParamsTwo = new[] { "27018", "Allow TCP 27018 IN for Mongo" };
@@ -55,7 +55,7 @@ namespace Naos.Deployment.Core
                         Description = $"Open port 27018 for Mongo.",
                         SetupFunc =
                             machineManager =>
-                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo),
+                                machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParamsTwo).ToList(),
                     });
 
             return mongoInstallSteps;
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core
                             machineManager =>
                             machineManager.RunScript(
                                 createDatabaseDirScript.ScriptText,
-                                createDatabaseDirParams),
+                                createDatabaseDirParams).ToList(),
                     });
 
             var logDirectory = mongoStrategy.LogDirectory ?? this.Settings.MongoServerSettings.DefaultLogDirectory;
@@ -89,7 +89,7 @@ namespace Naos.Deployment.Core
                         Description = "Create " + logDirectory + " and grant rights to Mongo service account.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams),
+                            machineManager.RunScript(createLogDirScript.ScriptText, createLogDirParams).ToList(),
                     });
 
             var backupDirectory = mongoStrategy.BackupDirectory ?? this.Settings.MongoServerSettings.DefaultBackupDirectory;
@@ -101,7 +101,7 @@ namespace Naos.Deployment.Core
                         Description = "Create " + backupDirectory + " and grant rights to Mongo service account.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams),
+                            machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams).ToList(),
                     });
 
             var configureMongoScript = this.Settings.DeploymentScriptBlocks.ConfigureMongo;
@@ -112,7 +112,7 @@ namespace Naos.Deployment.Core
                     Description = "Configure Mongo.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(configureMongoScript.ScriptText, configureMongoParams),
+                        machineManager.RunScript(configureMongoScript.ScriptText, configureMongoParams).ToList(),
                 });
 
             var restartMongoServerScript = this.Settings.DeploymentScriptBlocks.RestartWindowsService;
@@ -123,7 +123,7 @@ namespace Naos.Deployment.Core
                     Description = "Restart Mongo service for change(s) to take effect.",
                     SetupFunc =
                         machineManager =>
-                        machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams),
+                        machineManager.RunScript(restartMongoServerScript.ScriptText, restartMongoServerParams).ToList(),
                 });
 
             return mongoSteps;

@@ -17,8 +17,9 @@ namespace Naos.Deployment.Tracking
     using Naos.Packaging.Domain;
     using Naos.Serialization.Bson;
 
+    using OBeautifulCode.Validation.Recipes;
+
     using Spritely.ReadModel;
-    using Spritely.Recipes;
 
     using static System.FormattableString;
 
@@ -342,7 +343,7 @@ namespace Naos.Deployment.Tracking
         /// <returns>Prepared instance container.</returns>
         public static InstanceContainer CreateInstanceContainerFromInstance(DeployedInstance deployedInstance)
         {
-            new { deployedInstance }.Must().NotBeNull().OrThrowFirstFailure();
+            new { deployedInstance }.Must().NotBeNull();
 
             var environment = deployedInstance.InstanceDescription.Environment;
 

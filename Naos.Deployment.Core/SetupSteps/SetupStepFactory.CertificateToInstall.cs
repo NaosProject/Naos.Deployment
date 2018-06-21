@@ -65,7 +65,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Installing certificate  '{certificateName}' for [{tokenAppliedUsersString}] for '{packageId}'."),
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallCertificate.ScriptText, installCertificateParams).ToList(),
                     });
 
             return certSteps;

@@ -104,45 +104,45 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void BuildDefaultLogProcessorSettings___Not_file_based___Throws()
+        public static void BuildDefaultLogWritingSettings___Not_file_based___Throws()
         {
             // Arrange
             var settingsConsole = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new ConsoleLogConfiguration(LogContexts.All, LogContexts.AllErrors), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new ConsoleLogConfig(LogItemOrigins.All, LogItemOrigins.AllErrors), }),
                                };
             var settingsEvent = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new EventLogConfiguration(LogContexts.All), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new EventLogConfig(LogItemOrigins.All), }),
                                };
             var settingsMemory = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new InMemoryLogConfiguration(LogContexts.All), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new InMemoryLogConfig(LogItemOrigins.All), }),
                                };
 
             // Act
-            var exceptionConsole = Record.Exception(() => settingsConsole.BuildDefaultLogProcessorSettings("path", "package"));
-            var exceptionEvent = Record.Exception(() => settingsEvent.BuildDefaultLogProcessorSettings("path", "package"));
-            var exceptionMemory = Record.Exception(() => settingsMemory.BuildDefaultLogProcessorSettings("path", "package"));
+            var exceptionConsole = Record.Exception(() => settingsConsole.BuildDefaultLogWritingSettings("path", "package"));
+            var exceptionEvent = Record.Exception(() => settingsEvent.BuildDefaultLogWritingSettings("path", "package"));
+            var exceptionMemory = Record.Exception(() => settingsMemory.BuildDefaultLogWritingSettings("path", "package"));
 
             // Assert
-            exceptionConsole.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogConfigurationBase in SetupStepFactorySettings.DefaultLogProcessorSettings; Naos.Logging.Domain.ConsoleLogConfiguration");
-            exceptionEvent.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogConfigurationBase in SetupStepFactorySettings.DefaultLogProcessorSettings; Naos.Logging.Domain.EventLogConfiguration");
-            exceptionMemory.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogConfigurationBase in SetupStepFactorySettings.DefaultLogProcessorSettings; Naos.Logging.Domain.InMemoryLogConfiguration");
+            exceptionConsole.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.ConsoleLogConfig");
+            exceptionEvent.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.EventLogConfig");
+            exceptionMemory.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.InMemoryLogConfig");
         }
 
         [Fact]
-        public static void BuildDefaultLogProcessorSettings___File_with_file_name___Prefixes_with_path_and_provided_name()
+        public static void BuildDefaultLogWritingSettings___File_with_file_name___Prefixes_with_path_and_provided_name()
         {
             // Arrange
             const bool CreateDirectoryStructureIfMissing = false;
             var settings = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new FileLogConfiguration(LogContexts.All, "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new FileLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -150,24 +150,24 @@ namespace Naos.Deployment.Core.Test
             var expected = "C:\\Logs\\Naos.Something.Awesome-MyLog.txt";
 
             // Act
-            var actual = settings.BuildDefaultLogProcessorSettings(deploymentDriveLetter, packageName);
+            var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configurations.Single().As<FileLogConfiguration>().ContextsToLog.Should().Be(settings.DefaultLogProcessorSettings.Configurations.Single().ContextsToLog);
-            actual.Configurations.Single().As<FileLogConfiguration>().LogFilePath.Should().Be(expected);
-            actual.Configurations.Single().As<FileLogConfiguration>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
+            actual.Configs.Single().As<FileLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<FileLogConfig>().LogFilePath.Should().Be(expected);
+            actual.Configs.Single().As<FileLogConfig>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "subpath", Justification = "Spelling/name is correct.")]
         [Fact]
-        public static void BuildDefaultLogProcessorSettings___File_with_sub_path_with_slash_and_file_name___Prefixes_with_path_and_then_file_with_name()
+        public static void BuildDefaultLogWritingSettings___File_with_sub_path_with_slash_and_file_name___Prefixes_with_path_and_then_file_with_name()
         {
             // Arrange
             const bool CreateDirectoryStructureIfMissing = false;
             var settings = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new FileLogConfiguration(LogContexts.All, "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new FileLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -175,24 +175,24 @@ namespace Naos.Deployment.Core.Test
             var expected = "C:\\Logs\\Path\\Naos.Something.Awesome-MyLog.txt";
 
             // Act
-            var actual = settings.BuildDefaultLogProcessorSettings(deploymentDriveLetter, packageName);
+            var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configurations.Single().As<FileLogConfiguration>().ContextsToLog.Should().Be(settings.DefaultLogProcessorSettings.Configurations.Single().ContextsToLog);
-            actual.Configurations.Single().As<FileLogConfiguration>().LogFilePath.Should().Be(expected);
-            actual.Configurations.Single().As<FileLogConfiguration>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
+            actual.Configs.Single().As<FileLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<FileLogConfig>().LogFilePath.Should().Be(expected);
+            actual.Configs.Single().As<FileLogConfig>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
         }
 
         [Fact]
-        public static void BuildDefaultLogProcessorSettings___Sliced_with_file_name___Prefixes_with_path_and_provided_name()
+        public static void BuildDefaultLogWritingSettings___Sliced_with_file_name___Prefixes_with_path_and_provided_name()
         {
             // Arrange
             const bool CreateDirectoryStructureIfMissing = false;
             var time = TimeSpan.FromMinutes(10);
             var settings = new SetupStepFactorySettings
                                {
-                                   DefaultLogProcessorSettings = new LogProcessorSettings(
-                                       new[] { new TimeSlicedFilesLogConfiguration(LogContexts.All, "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
+                                   DefaultLogWritingSettings = new LogWritingSettings(
+                                       new[] { new TimeSlicedFilesLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -201,14 +201,14 @@ namespace Naos.Deployment.Core.Test
             var expectedPrefix = "Naos.Something.Awesome-Prefix";
 
             // Act
-            var actual = settings.BuildDefaultLogProcessorSettings(deploymentDriveLetter, packageName);
+            var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configurations.Single().As<TimeSlicedFilesLogConfiguration>().ContextsToLog.Should().Be(settings.DefaultLogProcessorSettings.Configurations.Single().ContextsToLog);
-            actual.Configurations.Single().As<TimeSlicedFilesLogConfiguration>().LogFileDirectoryPath.Should().Be(expectedPath);
-            actual.Configurations.Single().As<TimeSlicedFilesLogConfiguration>().FileNamePrefix.Should().Be(expectedPrefix);
-            actual.Configurations.Single().As<TimeSlicedFilesLogConfiguration>().TimeSlicePerFile.Should().Be(time);
-            actual.Configurations.Single().As<TimeSlicedFilesLogConfiguration>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().LogFileDirectoryPath.Should().Be(expectedPath);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().FileNamePrefix.Should().Be(expectedPrefix);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().TimeSlicePerFile.Should().Be(time);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
         }
     }
 }

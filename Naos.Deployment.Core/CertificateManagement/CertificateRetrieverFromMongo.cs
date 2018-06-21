@@ -6,7 +6,6 @@
 
 namespace Naos.Deployment.Core.CertificateManagement
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -15,8 +14,9 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.Deployment.Persistence;
     using Naos.Serialization.Bson;
 
+    using OBeautifulCode.Validation.Recipes;
+
     using Spritely.ReadModel;
-    using Spritely.Recipes;
 
     /// <summary>
     /// Implementation using Mongo of <see cref="IGetCertificates"/>.
@@ -31,7 +31,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <param name="certificateContainerQueries">Query interface for retrieving the certificates.</param>
         public CertificateRetrieverFromMongo(IQueries<CertificateContainer> certificateContainerQueries)
         {
-            new { certificateContainerQueries }.Must().NotBeNull().OrThrowFirstFailure();
+            new { certificateContainerQueries }.Must().NotBeNull();
 
             this.certificateContainerQueries = certificateContainerQueries;
 
@@ -41,7 +41,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <inheritdoc />
         public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            new { name }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { name }.Must().NotBeNullNorWhiteSpace();
 
             // ReSharper disable once SpecifyStringComparison - can't because the expression tree it converts to isn't supported by Mongo...
             var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => _.Id.ToUpperInvariant() == name.ToUpperInvariant());
@@ -68,7 +68,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <returns>Built reader.</returns>
         public static CertificateRetrieverFromMongo Build(DeploymentDatabase database)
         {
-            new { database }.Must().NotBeNull().OrThrowFirstFailure();
+            new { database }.Must().NotBeNull();
 
             var ret = new CertificateRetrieverFromMongo(database.GetQueriesInterface<CertificateContainer>());
             return ret;

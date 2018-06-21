@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, LogProcessorSettings defaultLogProcessorSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
             var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
@@ -48,7 +48,7 @@ namespace Naos.Deployment.Core
                             machineManager =>
                             machineManager.RunScript(
                                 this.Settings.DeploymentScriptBlocks.ConfigureSslCertificateForHosting.ScriptText,
-                                configureCertParams),
+                                configureCertParams).ToList(),
                     });
 
             var configureUserParams = new object[] { scheduledTaskAccount, selfHostDnsEntries };
@@ -58,7 +58,7 @@ namespace Naos.Deployment.Core
                         Description = $"Configure user {scheduledTaskAccount} for Self Hosting.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.ConfigureUserForHosting.ScriptText, configureUserParams).ToList(),
                     });
 
             var openPortParams = new[] { "443", "Allow TCP 443 IN for Self Hosting" };
@@ -68,7 +68,7 @@ namespace Naos.Deployment.Core
                         Description = $"Open port 443 for Self Hosting.",
                         SetupFunc =
                             machineManager =>
-                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams),
+                            machineManager.RunScript(this.Settings.DeploymentScriptBlocks.OpenPort.ScriptText, openPortParams).ToList(),
                     });
 
             // task steps to keep the console exe alive
@@ -78,7 +78,7 @@ namespace Naos.Deployment.Core
             var name = "SelfHostKeepAliveFor" + exeFilePathRelativeToPackageRoot;
             var description = $"Task to ensure that the self host {exeFilePathRelativeToPackageRoot} is always running.";
             var scheduledTaskStesps = this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(
-                defaultLogProcessorSettings,
+                defaultLogWritingSettings,
                 itsConfigOverrides,
                 packageDirectoryPath,
                 environment,

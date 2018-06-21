@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Additional behavior to add the initialization strategies.
@@ -29,7 +29,7 @@ namespace Naos.Deployment.Core
             this IReadOnlyCollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)
         {
-            new { packagedConfigs }.Must().NotBeNull().OrThrowFirstFailure();
+            new { packagedConfigs }.Must().NotBeNull();
 
             if (packagedConfigs.Count == 0)
             {

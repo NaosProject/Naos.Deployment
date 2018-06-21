@@ -22,7 +22,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "applicationRootPath", Justification = "Keeping in signature for availability.")]
         private List<SetupStep> GetItsConfigSteps(
             IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides,
-            LogProcessorSettings logProcessorSettings,
+            LogWritingSettings logWritingSettings,
             string applicationRootPath,
             string environment,
             string configFilePath)
@@ -37,19 +37,19 @@ namespace Naos.Deployment.Core
                 new SetupStep
                     {
                         Description = Invariant($"Update Its.Config precedence: {string.Join("|", precedenceChain)}."),
-                        SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams),
+                        SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams).ToList(),
                     });
 
-            var logProcessorSettingsFilePath = this.configFileManager.BuildConfigPath(applicationRootPath, fileNameWithExtension: Invariant($"{nameof(LogProcessorSettings)}.json"));
-            var logProcessorSettingsFileContents = this.configFileManager.SerializeConfigToFileText(logProcessorSettings);
-            var logProcessorSettingsBytes = this.configFileManager.ConvertConfigFileTextToFileBytes(logProcessorSettingsFileContents);
+            var logWritingSettingsFilePath = this.configFileManager.BuildConfigPath(applicationRootPath, fileNameWithExtension: Invariant($"{nameof(logWritingSettings)}.json"));
+            var logWritingSettingsFileContents = this.configFileManager.SerializeConfigToFileText(logWritingSettings);
+            var logWritingSettingsBytes = this.configFileManager.ConvertConfigFileTextToFileBytes(logWritingSettingsFileContents);
             itsConfigSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"(Over)write default Its.Config logging file: {nameof(LogProcessorSettings)}."),
+                        Description = Invariant($"(Over)write default Its.Config logging file: {nameof(logWritingSettings)}."),
                         SetupFunc = machineManager =>
                             {
-                                machineManager.SendFile(logProcessorSettingsFilePath, logProcessorSettingsBytes, false, true);
+                                machineManager.SendFile(logWritingSettingsFilePath, logWritingSettingsBytes, false, true);
                                 return new dynamic[0];
                             },
                     });

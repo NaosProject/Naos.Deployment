@@ -10,8 +10,7 @@ namespace Naos.Deployment.Domain
     using System.Collections.Generic;
 
     using OBeautifulCode.DateTime;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Implementation of <see cref="CertificateDescription"/> that also contains an encrypted PFX payload and an encrypted password with the certificate details used to encrypt.
@@ -41,9 +40,9 @@ namespace Naos.Deployment.Domain
             string certificateSigningRequestPemEncoded = null)
             : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {
-            new { encryptedBase64EncodedPfxBytes, encryptedPfxPassword }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { encryptedPfxPassword }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { encryptingCertificateLocator }.Must().NotBeNull().OrThrowFirstFailure();
+            new { encryptedBase64EncodedPfxBytes }.Must().NotBeNullNorWhiteSpace();
+            new { encryptedPfxPassword }.Must().NotBeNullNorWhiteSpace();
+            new { encryptingCertificateLocator }.Must().NotBeNull();
 
             this.EncryptingCertificateLocator = encryptingCertificateLocator;
             this.EncryptedBase64EncodedPfxBytes = encryptedBase64EncodedPfxBytes;

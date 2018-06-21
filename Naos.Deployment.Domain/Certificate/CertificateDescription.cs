@@ -10,8 +10,7 @@ namespace Naos.Deployment.Domain
     using System.ComponentModel;
 
     using OBeautifulCode.DateTime;
-
-    using Spritely.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Model object to hold necessary information to inflate a certificate on a machine.
@@ -30,8 +29,10 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         protected CertificateDescription(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
         {
-            new { friendlyName, thumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { validityWindowInUtc, certificateAttributes }.Must().NotBeNull().OrThrowFirstFailure();
+            new { friendlyName }.Must().NotBeNullNorWhiteSpace();
+            new { thumbprint }.Must().NotBeNullNorWhiteSpace();
+            new { validityWindowInUtc }.Must().NotBeNull();
+            new { certificateAttributes }.Must().NotBeNull();
 
             this.FriendlyName = friendlyName;
             this.Thumbprint = thumbprint;

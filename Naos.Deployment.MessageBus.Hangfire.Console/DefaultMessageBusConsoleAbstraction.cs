@@ -51,6 +51,11 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
             CommonSetup(debug, environment);
 
             /*---------------------------------------------------------------------------*
+             * Any method should run this logic to write telemetry info to the log.      *
+             *---------------------------------------------------------------------------*/
+            WriteStandardTelemetry();
+
+            /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
             var messageBusConnectionConfiguration = Settings.Get<MessageBusConnectionConfiguration>();

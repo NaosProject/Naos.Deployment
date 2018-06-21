@@ -19,6 +19,8 @@ namespace Naos.Deployment.Core
     using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
 
+    using OBeautifulCode.Validation.Recipes;
+
     using Spritely.Recipes;
 
     using static System.FormattableString;
@@ -158,7 +160,7 @@ namespace Naos.Deployment.Core
             var package = packagedConfig.PackageWithBundleIdentifier.Package;
             var packageId = package.PackageDescription.Id;
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
-            var defaultLogProcessorSettings = this.GetDefaultLogProcessorSettings(packagedConfig);
+            var defaultLogWritingSettings = this.GetDefaultLogWritingSettings(packagedConfig);
 
             if (strategy is InitializationStrategyReplaceTokenInFiles replaceTokenStrategy)
             {
@@ -265,7 +267,7 @@ namespace Naos.Deployment.Core
                 var scheduledTaskSteps =
                     this.GetScheduledTaskSpecificSteps(
                         scheduledTaskStrategy,
-                        defaultLogProcessorSettings,
+                        defaultLogWritingSettings,
                         packagedConfig.ItsConfigOverrides,
                         packageDirectoryPath,
                         environment,
@@ -284,7 +286,7 @@ namespace Naos.Deployment.Core
             {
                 var onetimeCallSteps = this.GetOnetimeCallSpecificSteps(
                     onetimeCallStrategy,
-                    defaultLogProcessorSettings,
+                    defaultLogWritingSettings,
                     packagedConfig.ItsConfigOverrides,
                     packageDirectoryPath,
                     environment);
@@ -305,7 +307,7 @@ namespace Naos.Deployment.Core
                     await
                     this.GetSelfHostSpecificSteps(
                         selfHostStrategy,
-                        defaultLogProcessorSettings,
+                        defaultLogWritingSettings,
                         packagedConfig.ItsConfigOverrides,
                         packageDirectoryPath,
                         environment,
@@ -327,7 +329,7 @@ namespace Naos.Deployment.Core
 
                 var webStepsAfterReboot = await this.GetIisSpecificSetupStepsAsync(
                                    iisStrategy,
-                                   defaultLogProcessorSettings,
+                                   defaultLogWritingSettings,
                                    packagedConfig.ItsConfigOverrides,
                                    webRootPath,
                                    environment,
@@ -389,7 +391,7 @@ namespace Naos.Deployment.Core
                                                              packagedConfig.PackageWithBundleIdentifier.Package.PackageFileBytes,
                                                              false,
                                                              Overwrite);
-                                                         return machineManager.RunScript(unzipScript, unzipParams);
+                                                         return machineManager.RunScript(unzipScript, unzipParams).ToList();
                                                      },
                                              };
 
@@ -403,12 +405,12 @@ namespace Naos.Deployment.Core
             return Path.Combine(rootDeploymentPath, packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id);
         }
 
-        private LogProcessorSettings GetDefaultLogProcessorSettings(PackagedDeploymentConfiguration packagedConfig)
+        private LogWritingSettings GetDefaultLogWritingSettings(PackagedDeploymentConfiguration packagedConfig)
         {
             var volumes = packagedConfig.DeploymentConfiguration.Volumes;
             var deploymentDriveLetter = this.Settings.GetDeploymentDriveLetter(volumes);
             var packageName = packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription.Id;
-            return this.Settings.BuildDefaultLogProcessorSettings(deploymentDriveLetter, packageName);
+            return this.Settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
         }
 
         private static void ThrowIfMissingNecessaryVolumes(IReadOnlyCollection<Volume> volumes, IReadOnlyCollection<InitializationStrategySqlServer> initializationStrategiesSql, IReadOnlyCollection<InitializationStrategyMongo> initializationStrategiesMongo)
@@ -474,7 +476,7 @@ namespace Naos.Deployment.Core
         /// <returns>Root deployment path to use.</returns>
         public static string BuildRootDeploymentPath(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
         {
-            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
+            new { settings }.Must().NotBeNull();
 
             var deploymentDriveLetter = settings.GetDeploymentDriveLetter(volumes);
 
@@ -490,8 +492,8 @@ namespace Naos.Deployment.Core
         /// <returns>Deployment drive letter to use.</returns>
         public static string GetDeploymentDriveLetter(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
         {
-            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
-            new { volumes }.Must().NotBeNull().And().NotBeEmptyEnumerable<Volume>().OrThrowFirstFailure();
+            new { settings }.Must().NotBeNull();
+            new { volumes }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             var driveLetters = volumes.Select(_ => _.DriveLetter).ToList();
             string deploymentDriveLetter = null;
@@ -515,46 +517,46 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
-        /// Build a default <see cref="LogProcessorSettings" /> to add to deployments.
+        /// Build a default <see cref="LogWritingSettings" /> to add to deployments.
         /// </summary>
         /// <param name="settings">Settings to use.</param>
         /// <param name="deploymentDriveLetter">Path to use.</param>
         /// <param name="packageName">Name to use.</param>
-        /// <returns>Configured <see cref="LogProcessorSettings" />.</returns>
+        /// <returns>Configured <see cref="LogWritingSettings" />.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "logfile", Justification = "Spelling/name is correct.")]
-        public static LogProcessorSettings BuildDefaultLogProcessorSettings(this SetupStepFactorySettings settings, string deploymentDriveLetter, string packageName)
+        public static LogWritingSettings BuildDefaultLogWritingSettings(this SetupStepFactorySettings settings, string deploymentDriveLetter, string packageName)
         {
-            new { settings }.Must().NotBeNull().OrThrowFirstFailure();
-            new { deploymentDriveLetter }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { packageName }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { settings }.Must().NotBeNull();
+            new { deploymentDriveLetter }.Must().NotBeNullNorWhiteSpace();
+            new { packageName }.Must().NotBeNullNorWhiteSpace();
 
-            var template = settings.DefaultLogProcessorSettings;
-            var updatedConfigurations = template.Configurations.Select(_ => UpdateFilePathInfoOnLoggingConfigurations(_, deploymentDriveLetter, packageName)).ToList();
-            var ret = new LogProcessorSettings(updatedConfigurations);
+            var template = settings.DefaultLogWritingSettings;
+            var updatedConfigurations = template.Configs.Select(_ => UpdateFilePathInfoOnLoggingConfigurations(_, deploymentDriveLetter, packageName)).ToList();
+            var ret = new LogWritingSettings(updatedConfigurations);
             return ret;
         }
 
-        private static LogConfigurationBase UpdateFilePathInfoOnLoggingConfigurations(LogConfigurationBase logConfiguration, string deploymentDriveLetter, string packageName)
+        private static LogWriterConfigBase UpdateFilePathInfoOnLoggingConfigurations(LogWriterConfigBase logConfiguration, string deploymentDriveLetter, string packageName)
         {
-            LogConfigurationBase ret;
-            if (logConfiguration is FileLogConfiguration file)
+            LogWriterConfigBase ret;
+            if (logConfiguration is FileLogConfig file)
             {
                 var path = Path.GetDirectoryName(file.LogFilePath) ?? string.Empty;
                 var detokenedPath = TokenSubstitutions.GetSubstitutedStringForPath(path, deploymentDriveLetter);
                 var fileName = Path.GetFileName(file.LogFilePath) ?? string.Empty;
                 var updatedLogPath = Path.Combine(detokenedPath, packageName + "-" + fileName);
-                ret = new FileLogConfiguration(file.ContextsToLog, updatedLogPath, file.CreateDirectoryStructureIfMissing);
+                ret = new FileLogConfig(file.OriginsToLog, updatedLogPath, file.CreateDirectoryStructureIfMissing);
             }
-            else if (logConfiguration is TimeSlicedFilesLogConfiguration sliced)
+            else if (logConfiguration is TimeSlicedFilesLogConfig sliced)
             {
                 var detokenedPath = TokenSubstitutions.GetSubstitutedStringForPath(sliced.LogFileDirectoryPath, deploymentDriveLetter);
                 var updatedLogDirectoryPath = Path.Combine(detokenedPath, packageName);
                 var updatedFileNamePrefix = packageName + "-" + sliced.FileNamePrefix;
-                ret = new TimeSlicedFilesLogConfiguration(sliced.ContextsToLog, updatedLogDirectoryPath, updatedFileNamePrefix, sliced.TimeSlicePerFile, sliced.CreateDirectoryStructureIfMissing);
+                ret = new TimeSlicedFilesLogConfig(sliced.OriginsToLog, updatedLogDirectoryPath, updatedFileNamePrefix, sliced.TimeSlicePerFile, sliced.CreateDirectoryStructureIfMissing);
             }
             else
             {
-                throw new NotSupportedException(Invariant($"Unsupported {nameof(LogConfigurationBase)} in {nameof(SetupStepFactorySettings)}.{nameof(SetupStepFactorySettings.DefaultLogProcessorSettings)}; {logConfiguration.GetType()}"));
+                throw new NotSupportedException(Invariant($"Unsupported {nameof(LogWriterConfigBase)} in {nameof(SetupStepFactorySettings)}.{nameof(SetupStepFactorySettings.DefaultLogWritingSettings)}; {logConfiguration.GetType()}"));
             }
 
             return ret;

@@ -33,7 +33,7 @@ namespace Naos.Deployment.Core
                                           Description = Invariant($"Replacing token '{token}' with '{replacementValue}' in files matching pattern '{fileSearchPattern}' for '{packageId}'."),
                                           SetupFunc = machineManager => machineManager.RunScript(
                                               this.Settings.DeploymentScriptBlocks.ReplaceTokenInFiles.ScriptText,
-                                              replaceTokenParams),
+                                              replaceTokenParams).ToList(),
                                       };
 
             return new[] { replaceTokenStep }.ToList();

@@ -1,0 +1,8 @@
+﻿{
+    "configs": [
+        {
+            "originsToLogConsoleOut": "all",
+            "originsToLogConsoleError": "none"
+        }
+    ]
+}

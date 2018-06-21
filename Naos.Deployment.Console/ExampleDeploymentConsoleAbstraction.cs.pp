@@ -44,6 +44,7 @@ namespace $rootnamespace$
     using Naos.Serialization.Factory;
 
     using OBeautifulCode.Security.Recipes;
+    using OBeautifulCode.Validation.Recipes;
 
     using Spritely.Recipes;
     using Spritely.Redo;
@@ -150,13 +151,13 @@ namespace $rootnamespace$
             void GetPassword(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
-                privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
 
                 var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
-                password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+                password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
 
                 localResultAnnouncer(password);
             }
@@ -193,10 +194,10 @@ namespace $rootnamespace$
             void GetInstanceStatus(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var status = Run.TaskUntilCompletion(manager.GetInstanceStatusAsync(instance.Id, instance.Location));
-                status.Named(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                status.Named(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull();
 
                 localResultAnnouncer(status.ToString());
             }
@@ -445,7 +446,7 @@ namespace $rootnamespace$
             var localAnnouncer = announcer ?? Console.Write;
             var localResultAnnouncer = resultAnnouncer ?? Console.Write;
 
-            new { systemIdOfInstanceToRemove }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { systemIdOfInstanceToRemove }.Must().NotBeNullNorWhiteSpace();
 
             CommonSetup(debug, environment, announcer: localAnnouncer);
 
@@ -508,7 +509,7 @@ namespace $rootnamespace$
             void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var instanceText = configFileManager.SerializeConfigToFileText(instance);
 
@@ -548,11 +549,11 @@ namespace $rootnamespace$
                 {
                     activity.Trace("Starting");
                     var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                    instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                    instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
                     activity.Trace(Invariant($"Found instance: {instance.Id}"));
 
                     var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
-                    privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull().OrThrowFirstFailure();
+                    privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
                     activity.Trace(Invariant($"Found key for password decryption."));
 
                     var address = instance.PrivateIpAddress;
@@ -572,7 +573,7 @@ namespace $rootnamespace$
 
                     var user = "administrator";
                     var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
-                    password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+                    password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
                     activity.Trace(Invariant($"Found password."));
 
                     // Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
@@ -588,7 +589,7 @@ namespace $rootnamespace$
                         },
                     })
                     {
-                        cmdKeyInitProcess.Start().Named(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                        cmdKeyInitProcess.Start().Named(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true")).Must().BeTrue();
                         cmdKeyInitProcess.WaitForExit();
                         var cmdKeyInitOutput = cmdKeyInitProcess.StandardOutput.ReadToEnd();
                         var cmdKeyInitError = cmdKeyInitProcess.StandardError.ReadToEnd();
@@ -605,7 +606,7 @@ namespace $rootnamespace$
                     var rdpProcess = new Process();
                     rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
                     rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
-                    rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                    rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true")).Must().BeTrue();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
                     System.Threading.Thread.Sleep(TimeSpan.FromSeconds(5)); // dirty way to make sure that MSTSC launches before cleaning the credentials...
@@ -622,7 +623,7 @@ namespace $rootnamespace$
                         },
                     })
                     {
-                        cmdKeyCleanupProcess.Start().Named(Invariant($"{nameof(cmdKeyCleanupProcess)}.{nameof(cmdKeyCleanupProcess.Start)}-must-return-true")).Must().BeTrue().OrThrow();
+                        cmdKeyCleanupProcess.Start().Named(Invariant($"{nameof(cmdKeyCleanupProcess)}.{nameof(cmdKeyCleanupProcess.Start)}-must-return-true")).Must().BeTrue();
                         cmdKeyCleanupProcess.WaitForExit();
                         var cmdKeyCleanupOutput = cmdKeyCleanupProcess.StandardOutput.ReadToEnd();
                         var cmdKeyCleanupError = cmdKeyCleanupProcess.StandardError.ReadToEnd();
@@ -669,7 +670,7 @@ namespace $rootnamespace$
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -710,7 +711,7 @@ namespace $rootnamespace$
             void StopInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -751,7 +752,7 @@ namespace $rootnamespace$
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull().OrThrowFirstFailure();
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -774,9 +775,9 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Tracker JSON.</param>
         public static void RunComputingManagerOperation(Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
         {
-            new { action }.Must().NotBeNull().OrThrowFirstFailure();
-            new { credentialsJson }.Must().NotBeNull().OrThrowFirstFailure();
-            new { infrastructureTrackerJson }.Must().NotBeNull().OrThrowFirstFailure();
+            new { action }.Must().NotBeNull();
+            new { credentialsJson }.Must().NotBeNull();
+            new { infrastructureTrackerJson }.Must().NotBeNull();
 
             var credentials = (CredentialContainer)Settings.Deserialize(typeof(CredentialContainer), credentialsJson);
 
@@ -811,7 +812,7 @@ namespace $rootnamespace$
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
-        /// <param name="logProcessorSettings">Optional log processor settings for use by other class instead of via command line; DEFAULT is Settings based.</param>
+        /// <param name="logWritingSettings">Optional log processor settings for use by other class instead of via command line; DEFAULT is Settings based.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "telemetryFilePath", Justification = "Spelling/name is correct.")]
@@ -847,9 +848,9 @@ namespace $rootnamespace$
             [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
-            [Description("FOR INTERNAL USE ONLY.")] LogProcessorSettings logProcessorSettings = null)
+            [Description("FOR INTERNAL USE ONLY.")] LogWritingSettings logWritingSettings = null)
         {
-            CommonSetup(debug, environment, logProcessorSettings);
+            CommonSetup(debug, environment, logWritingSettings);
 
             PrintArguments(
                 new
@@ -1001,7 +1002,10 @@ namespace $rootnamespace$
                     certificateWriterJson,
                 });
 
-            new { name, pfxFilePath, clearTextPassword, encryptingCertificateThumbprint }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { name }.Must().NotBeNullNorWhiteSpace();
+            new { pfxFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { clearTextPassword }.Must().NotBeNullNorWhiteSpace();
+            new { encryptingCertificateThumbprint }.Must().NotBeNullNorWhiteSpace();
 
             if (!File.Exists(pfxFilePath))
             {
@@ -1077,19 +1081,16 @@ namespace $rootnamespace$
         {
             CommonSetup(debug, environment);
 
-            new
-            {
-                credentialsJson,
-                configFilePath,
-                outputArcologyPath,
-                computingPlatformKeyFilePath,
-                environmentCertificateFilePath = environmentCertificateFilePath,
-                environmentCertificatePassword = environmentCertificatePassword,
-                deploymentCertificateFilePath = deploymentCertificateFilePath,
-                deploymentCertificatePassword = deploymentCertificatePassword,
-                windowsSkuSearchPatternMapJson,
-                rootDomainHostingIdMapJson,
-            }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { credentialsJson }.Must().NotBeNullNorWhiteSpace();
+            new { configFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { outputArcologyPath }.Must().NotBeNullNorWhiteSpace();
+            new { computingPlatformKeyFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { environmentCertificateFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { environmentCertificatePassword }.Must().NotBeNullNorWhiteSpace();
+            new { deploymentCertificateFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { deploymentCertificatePassword }.Must().NotBeNullNorWhiteSpace();
+            new { windowsSkuSearchPatternMapJson }.Must().NotBeNullNorWhiteSpace();
+            new { rootDomainHostingIdMapJson }.Must().NotBeNullNorWhiteSpace();
 
             var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
 
@@ -1248,8 +1249,8 @@ namespace $rootnamespace$
         {
             CommonSetup(debug, environment);
 
-            new { credentialsJson }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
-            new { configFilePath }.Must().NotBeNull().And().NotBeWhiteSpace().OrThrowFirstFailure();
+            new { credentialsJson }.Must().NotBeNullNorWhiteSpace();
+            new { configFilePath }.Must().NotBeNullNorWhiteSpace();
 
             var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
             var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
