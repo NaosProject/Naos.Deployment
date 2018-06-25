@@ -132,8 +132,8 @@
     <Reference Include="Naos.Database.SqlServer, Version=1.1.183.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Database.SqlServer.1.1.183\lib\net462\Naos.Database.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.2.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.2.11\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.2.13.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.2.13\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Logging.Domain, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.26\lib\net462\Naos.Logging.Domain.dll</HintPath>

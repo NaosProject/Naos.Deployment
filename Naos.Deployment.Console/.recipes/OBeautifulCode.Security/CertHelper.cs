@@ -148,11 +148,15 @@ namespace OBeautifulCode.Security.Recipes
             {
                 var certEntry = new X509CertificateEntry(cert);
                 certEntries.Add(certEntry);
-                store.SetCertificateEntry(cert.GetX509SubjectAttributes()[X509SubjectAttributeKind.CommonName], certEntry);
+                var certSubjectAttributes = cert.GetX509SubjectAttributes();
+                var certStoreKey = certSubjectAttributes[X509SubjectAttributeKind.CommonName];
+                store.SetCertificateEntry(certStoreKey, certEntry);
             }
 
             var keyEntry = new AsymmetricKeyEntry(privateKey);
-            store.SetKeyEntry(certChain.First().GetX509SubjectAttributes()[X509SubjectAttributeKind.CommonName], keyEntry, certEntries.ToArray());
+            var firstCert = certChain.First();
+            var firstCertSubjectAttributes = firstCert.GetX509SubjectAttributes();
+            store.SetKeyEntry(firstCertSubjectAttributes[X509SubjectAttributeKind.CommonName], keyEntry, certEntries.ToArray());
             store.Save(output, unsecurePassword.ToCharArray(), new SecureRandom());
         }
 
@@ -279,7 +283,9 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             var endUserCertificate = certificateChain.GetEndUserCertFromCertChain();
-            var privateKey = store.GetKey(endUserCertificate.GetX509SubjectAttributes()[X509SubjectAttributeKind.CommonName]).Key;
+            var subjectAttributes = endUserCertificate.GetX509SubjectAttributes();
+            var storeKey = store.GetKey(subjectAttributes[X509SubjectAttributeKind.CommonName]);
+            var privateKey = storeKey.Key;
 
             var result = new ExtractedPfxFile(certificateChain, privateKey);
             return result;

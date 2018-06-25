@@ -59,8 +59,8 @@
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.2.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.2.11\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.2.13.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.2.13\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.Domain, Version=1.1.45.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.1.45\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
