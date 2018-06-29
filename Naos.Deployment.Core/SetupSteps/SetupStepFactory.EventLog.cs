@@ -25,17 +25,17 @@ namespace Naos.Deployment.Core
             var eventLogSteps = new List<SetupStep>();
 
             var logName = eventLogToCreateStrategy.LogName;
-            var sources = eventLogToCreateStrategy.Source;
+            var source = eventLogToCreateStrategy.Source;
 
             new { logName }.Must().NotBeNullNorWhiteSpace();
-            new { sources }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            new { source }.Must().NotBeNullNorWhiteSpace();
 
-            var createEventLogParams = new object[] { logName, sources };
+            var createEventLogParams = new object[] { logName, source };
 
             eventLogSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Creating EventLog '{logName}' for Source '{sources}' for '{packageId}'."),
+                        Description = Invariant($"Creating EventLog '{logName}' for Source '{source}' for '{packageId}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(this.Settings.DeploymentScriptBlocks.CreateEventLog.ScriptText, createEventLogParams).ToList(),
