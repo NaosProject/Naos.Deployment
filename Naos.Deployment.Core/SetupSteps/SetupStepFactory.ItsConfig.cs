@@ -40,7 +40,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager => machineManager.RunScript(updateExeConfigScriptBlock.ScriptText, updateExeConfigScriptParams).ToList(),
                     });
 
-            var logWritingSettingsFilePath = this.configFileManager.BuildConfigPath(applicationRootPath, fileNameWithExtension: Invariant($"{nameof(logWritingSettings)}.json"));
+            var logWritingSettingsFilePath = this.configFileManager.BuildConfigPath(applicationRootPath, fileNameWithExtension: Invariant($"{nameof(LogWritingSettings)}.json"));
             var logWritingSettingsFileContents = this.configFileManager.SerializeConfigToFileText(logWritingSettings);
             var logWritingSettingsBytes = this.configFileManager.ConvertConfigFileTextToFileBytes(logWritingSettingsFileContents);
             itsConfigSteps.Add(

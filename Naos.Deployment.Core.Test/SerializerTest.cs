@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Cron;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
     using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Bson;
@@ -37,6 +38,44 @@ namespace Naos.Deployment.Core.Test
         }
 
         private static readonly NaosJsonSerializer JsonSerializerToUse;
+
+        [Fact]
+        public static void Serializing_Logging_Config___Roundtrips()
+        {
+            // Arrange
+            var expected = new[]
+                              {
+                                  new TimeSlicedFilesLogConfig(
+                                      LogItemOrigins.All,
+                                      "{deploymentDriveLetter}:\\Logs",
+                                      "All",
+                                      TimeSpan.FromMinutes(10),
+                                      true,
+                                      LogItemPropertiesToIncludeInLogMessage.Default),
+                                  new TimeSlicedFilesLogConfig(
+                                      LogItemOrigins.All,
+                                      "{deploymentDriveLetter}:\\SerializedLogs",
+                                      "SerializedLog",
+                                      TimeSpan.FromMinutes(10),
+                                      true,
+                                      LogItemPropertiesToIncludeInLogMessage.LogItemSerialization),
+                                  new TimeSlicedFilesLogConfig(
+                                      LogItemOrigins.ItsLogEntryPostedTelemetry,
+                                      "{deploymentDriveLetter}:\\SerializedTelemetry",
+                                      "SerializedTelemetry",
+                                      TimeSpan.FromMinutes(10),
+                                      true,
+                                      LogItemPropertiesToIncludeInLogMessage.LogItemSerialization),
+                              };
+
+            // Act
+            var actualJson = JsonSerializerToUse.SerializeToString(expected);
+            var actualObject = JsonSerializerToUse.Deserialize<IReadOnlyCollection<LogWriterConfigBase>>(actualJson);
+
+            // Assert
+            actualJson.Should().NotBeNull();
+            actualObject.Should().NotBeNull();
+        }
 
         [Fact]
         public static void RoundtripSerializeDeserialize___Using_SerializationDescription___Works()

@@ -237,7 +237,17 @@ namespace Naos.Deployment.Console
 
             var processDirectory = Path.GetDirectoryName(processDetails.FilePath) ?? throw new InvalidOperationException("Could not get directory from process file path: " + processDetails.FilePath);
             var processSiblingAssemblies = Directory.GetFiles(processDirectory, "*", SearchOption.AllDirectories)
-                .Where(_ => _.ToLowerInvariant().EndsWith(".exe") || _.ToLowerInvariant().EndsWith(".dll")).Select(_ => AssemblyDetails.CreateFromFile(_))
+                .Where(_ => _.ToLowerInvariant().EndsWith(".exe") || _.ToLowerInvariant().EndsWith(".dll")).Select(_ =>
+                    {
+                        try
+                        {
+                            return AssemblyDetails.CreateFromFile(_);
+                        }
+                        catch (Exception)
+                        {
+                            return new AssemblyDetails(Path.ChangeExtension(Path.GetFileName(_), string.Empty), Version.Parse("1.0.0.0"), _, "UNKNOWN");
+                        }
+                    })
                 .ToList();
 
             var diagnosticsTelemetry = new DiagnosticsTelemetry(dateTimeOfSampleInUtc, machineDetails, processDetails, processSiblingAssemblies);

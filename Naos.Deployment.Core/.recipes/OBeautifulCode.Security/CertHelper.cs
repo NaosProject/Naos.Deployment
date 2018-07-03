@@ -15,6 +15,7 @@ namespace OBeautifulCode.Security.Recipes
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
+    using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
 
     using Naos.Recipes.TupleInitializers;
@@ -34,6 +35,9 @@ namespace OBeautifulCode.Security.Recipes
     using Org.BouncyCastle.Security;
     using Org.BouncyCastle.X509;
     using Org.BouncyCastle.X509.Extension;
+
+    using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
+    using X509Extension = Org.BouncyCastle.Asn1.X509.X509Extension;
 
     /// <summary>
     /// Provides helpers methods for dealing with certificates.
@@ -289,6 +293,56 @@ namespace OBeautifulCode.Security.Recipes
 
             var result = new ExtractedPfxFile(certificateChain, privateKey);
             return result;
+        }
+
+        /// <summary>
+        /// Finds a certificate in the specificed store.
+        /// </summary>
+        /// <param name="storeLocation">Store location (eg. LocalMachine).</param>
+        /// <param name="storeName">Store name to search for certificate (eg: My).</param>
+        /// <param name="thumbprint">Thumbprint of the certificate to search for.</param>
+        /// <param name="unsecuredPassword">Password to use for PFX file.</param>
+        /// <param name="filePath">PFX file path to write to.</param>
+        /// <returns>Certificate if found, null otherwise.</returns>
+        public static void ExportPfxFromCertificateStoreToFile(this StoreLocation storeLocation, StoreName storeName, string thumbprint, string unsecuredPassword, string filePath)
+        {
+            new { thumbprint }.Must().NotBeNullNorWhiteSpace();
+            new { unsecuredPassword }.Must().NotBeNullNorWhiteSpace();
+
+            using (var store = new X509Store(storeName, storeLocation))
+            {
+                store.Open(OpenFlags.ReadOnly);
+                var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
+                if (certs.Count != 1)
+                {
+                    throw new ArgumentException("Expected a single cert; found: " + certs.Count);
+                }
+
+                var cert = certs[0];
+                if (!cert.HasPrivateKey)
+                {
+                    throw new ArgumentException("Doesn't have private key for cert to export.");
+                }
+
+                var rsa = (RSACryptoServiceProvider)cert.PrivateKey;
+                var keyPair = DotNetUtilities.GetRsaKeyPair(rsa);
+                var privateKey = keyPair.Private;
+
+                var parser = new X509CertificateParser();
+                var bouncyCerts = new List<X509Certificate>();
+
+                using (var chain = new X509Chain())
+                {
+                    chain.Build(cert);
+                    foreach (var chainElement in chain.ChainElements)
+                    {
+                        var bouncyCert = parser.ReadCertificate(chainElement.Certificate.Export(X509ContentType.Cert));
+                        bouncyCerts.Add(bouncyCert);
+                    }
+
+                    CreatePfxFile(bouncyCerts, privateKey, unsecuredPassword, filePath, true);
+                }
+            }
         }
 
         /// <summary>

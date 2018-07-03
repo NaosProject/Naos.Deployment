@@ -22,11 +22,27 @@
         "configs": [
             {
                 "timeSlicePerFile": "00:10:00",
-                "fileNamePrefix": "All",
+                "fileNamePrefix": "Plain",
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\Logs",
                 "createDirectoryStructureIfMissing": true,
                 "originsToLog": "all",
                 "logItemPropertiesToIncludeInLogMessage": "default"
+            },
+            {
+                "timeSlicePerFile": "00:10:00",
+                "fileNamePrefix": "Serialized",
+                "logFileDirectoryPath": "{deploymentDriveLetter}:\\SerializedLogs",
+                "createDirectoryStructureIfMissing": true,
+                "originsToLog": "all",
+                "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
+            },
+            {
+                "timeSlicePerFile": "00:10:00",
+                "fileNamePrefix": "Telemetry",
+                "logFileDirectoryPath": "{deploymentDriveLetter}:\\SerializedTelemetry",
+                "createDirectoryStructureIfMissing": true,
+                "originsToLog": "itsLogEntryPostedTelemetry",
+                "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
             }
         ]
     },
