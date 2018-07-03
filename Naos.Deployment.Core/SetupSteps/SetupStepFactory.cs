@@ -545,14 +545,14 @@ namespace Naos.Deployment.Core
                 var detokenedPath = TokenSubstitutions.GetSubstitutedStringForPath(path, deploymentDriveLetter);
                 var fileName = Path.GetFileName(file.LogFilePath) ?? string.Empty;
                 var updatedLogPath = Path.Combine(detokenedPath, packageName + "-" + fileName);
-                ret = new FileLogConfig(file.OriginsToLog, updatedLogPath, file.CreateDirectoryStructureIfMissing);
+                ret = new FileLogConfig(file.OriginsToLog, updatedLogPath, file.CreateDirectoryStructureIfMissing, file.LogItemPropertiesToIncludeInLogMessage);
             }
             else if (logConfiguration is TimeSlicedFilesLogConfig sliced)
             {
                 var detokenedPath = TokenSubstitutions.GetSubstitutedStringForPath(sliced.LogFileDirectoryPath, deploymentDriveLetter);
                 var updatedLogDirectoryPath = Path.Combine(detokenedPath, packageName);
                 var updatedFileNamePrefix = packageName + "-" + sliced.FileNamePrefix;
-                ret = new TimeSlicedFilesLogConfig(sliced.OriginsToLog, updatedLogDirectoryPath, updatedFileNamePrefix, sliced.TimeSlicePerFile, sliced.CreateDirectoryStructureIfMissing);
+                ret = new TimeSlicedFilesLogConfig(sliced.OriginsToLog, updatedLogDirectoryPath, updatedFileNamePrefix, sliced.TimeSlicePerFile, sliced.CreateDirectoryStructureIfMissing, sliced.LogItemPropertiesToIncludeInLogMessage);
             }
             else
             {
