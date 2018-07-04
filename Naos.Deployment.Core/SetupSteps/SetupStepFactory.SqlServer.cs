@@ -46,7 +46,7 @@ namespace Naos.Deployment.Core
             databaseSteps.Add(
                 new SetupStep
                     {
-                        Description = Invariant($"Create{backupDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
+                        Description = Invariant($"Create {backupDirectory} and grant rights to SQL service account for '{package.PackageDescription.Id}'."),
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(createBackupDirScript.ScriptText, createBackupDirParams).ToList(),
@@ -193,7 +193,7 @@ namespace Naos.Deployment.Core
                 databaseSteps.Add(
                     new SetupStep
                         {
-                            Description = Invariant($"Run Database Fluent Migration to Version: {fluentMigration.Version}."),
+                            Description = Invariant($"Run Fluent Migration on Database: {sqlServerStrategy.Name} to Version: {fluentMigration.Version}."),
                             SetupFunc = machineManager =>
                                 {
                                     var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);

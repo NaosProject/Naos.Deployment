@@ -22,6 +22,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Bson;
     using Naos.Serialization.Domain;
+    using Naos.Serialization.Factory;
     using Naos.Serialization.Json;
 
     using Xunit;
@@ -43,6 +44,8 @@ namespace Naos.Deployment.Core.Test
         public static void Serializing_Logging_Config___Roundtrips()
         {
             // Arrange
+            var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+
             var expected = new[]
                               {
                                   new TimeSlicedFilesLogConfig(
@@ -69,12 +72,14 @@ namespace Naos.Deployment.Core.Test
                               };
 
             // Act
-            var actualJson = JsonSerializerToUse.SerializeToString(expected);
-            var actualObject = JsonSerializerToUse.Deserialize<IReadOnlyCollection<LogWriterConfigBase>>(actualJson);
+            var actualJson = configFileManager.SerializeConfigToFileText(expected);
+            var actualObject = configFileManager.DeserializeConfigFileText<IReadOnlyCollection<LogWriterConfigBase>>(actualJson);
+            var roundJson = configFileManager.SerializeConfigToFileText(actualObject);
 
             // Assert
             actualJson.Should().NotBeNull();
             actualObject.Should().NotBeNull();
+            roundJson.Should().Be(actualJson);
         }
 
         [Fact]
