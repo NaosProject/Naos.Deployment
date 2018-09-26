@@ -150,7 +150,7 @@ namespace Naos.Deployment.Core
             return ret;
         }
 
-        private async Task<IReadOnlyCollection<SetupStepBatch>> GetStrategySpecificSetupStepBatchesAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private async Task<IReadOnlyCollection<SetupStepBatch>> GetStrategySpecificSetupStepBatchesAsync(InitializationStrategyBase strategy, PackagedDeploymentConfiguration packagedConfig, string environment, string adminPassword, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
             IReadOnlyCollection<SetupStepBatch> ret = new SetupStepBatch[0];
             var package = packagedConfig.PackageWithBundleIdentifier.Package;
@@ -160,7 +160,7 @@ namespace Naos.Deployment.Core
 
             if (strategy is InitializationStrategyReplaceTokenInFiles replaceTokenStrategy)
             {
-                var tokenSteps = this.GetReplaceTokenInFilesSpecificSteps(replaceTokenStrategy, packageId, packageDirectoryPath, funcToCreateNewDnsWithTokensReplaced);
+                var tokenSteps = this.GetReplaceTokenInFilesSpecificSteps(replaceTokenStrategy, packageId, packageDirectoryPath, funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
                           {
@@ -176,8 +176,7 @@ namespace Naos.Deployment.Core
                 var dirSteps = this.GetDirectoryToCreateSpecificSteps(
                     directoryToCreateStrategy,
                     packageId,
-                    this.Settings.HarnessSettings.HarnessAccount,
-                    this.Settings.WebServerSettings.IisAccount);
+                    funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
                           {
@@ -208,8 +207,7 @@ namespace Naos.Deployment.Core
                             certToInstallStrategy,
                             packageId,
                             packageDirectoryPath,
-                            this.Settings.HarnessSettings.HarnessAccount,
-                            this.Settings.WebServerSettings.IisAccount);
+                            funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
                           {
@@ -308,7 +306,7 @@ namespace Naos.Deployment.Core
                         packageDirectoryPath,
                         environment,
                         adminPassword,
-                        funcToCreateNewDnsWithTokensReplaced);
+                        funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
                           {
@@ -330,7 +328,7 @@ namespace Naos.Deployment.Core
                                    webRootPath,
                                    environment,
                                    adminPassword,
-                                   funcToCreateNewDnsWithTokensReplaced);
+                                   funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
                           {

@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -18,14 +19,16 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string packageId, string harnessAccount, string iisAccount)
+        private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string packageId, Func<string, string> funcToReplaceTokensInReplacementValue)
         {
             var dir = directoryToCreateStrategy.DirectoryToCreate;
-            var fullControlAccount = TokenSubstitutions.GetSubstitutedStringForAccounts(dir.FullControlAccount, harnessAccount, iisAccount);
-            var dirParams = new object[] { dir.FullPath, fullControlAccount };
+            var fullControlAccount = funcToReplaceTokensInReplacementValue(dir.FullControlAccount);
+            var fullPath = funcToReplaceTokensInReplacementValue(dir.FullPath);
+
+            var dirParams = new object[] { fullPath, fullControlAccount };
             var ret = new SetupStep
             {
-                Description = Invariant($"Creating directory '{dir.FullPath}' with full control granted to '{fullControlAccount}' for '{packageId}'."),
+                Description = Invariant($"Creating directory '{fullPath}' with full control granted to '{fullControlAccount}' for '{packageId}'."),
                 SetupFunc =
                     machineManager =>
                     machineManager.RunScript(

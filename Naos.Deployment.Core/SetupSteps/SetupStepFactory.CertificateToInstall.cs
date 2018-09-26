@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -22,21 +23,20 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageId, string packageDirectoryPath, string harnessAccount, string iisAccount)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsAsync(InitializationStrategyCertificateToInstall certToInstallStrategy, string packageId, string packageDirectoryPath, Func<string, string> funcToReplaceTokensInReplacementValue)
         {
             var usersToGrantPrivateKeyAccess = new[] { certToInstallStrategy.AccountToGrantPrivateKeyAccess };
             var certificateName = certToInstallStrategy.CertificateToInstall;
             var installExportable = certToInstallStrategy.InstallExportable;
 
-            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageId, packageDirectoryPath, harnessAccount, iisAccount, usersToGrantPrivateKeyAccess, certificateName, installExportable);
+            return await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(packageId, packageDirectoryPath, funcToReplaceTokensInReplacementValue, usersToGrantPrivateKeyAccess, certificateName, installExportable);
         }
 
-        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string packageId, string tempPathToStoreFileWhileInstalling, string harnessAccount, string iisAccount, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
+        private async Task<List<SetupStep>> GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(string packageId, string tempPathToStoreFileWhileInstalling, Func<string, string> funcToReplaceTokensInReplacementValue, ICollection<string> usersToGrantPrivateKeyAccess, string certificateName, bool installExportable)
         {
             var certSteps = new List<SetupStep>();
 
-            var tokenAppliedUsers =
-                usersToGrantPrivateKeyAccess.Select(_ => TokenSubstitutions.GetSubstitutedStringForAccounts(_, harnessAccount, iisAccount)).ToArray();
+            var tokenAppliedUsers = usersToGrantPrivateKeyAccess.Select(funcToReplaceTokensInReplacementValue).ToArray();
             var tokenAppliedUsersString = string.Join(",", tokenAppliedUsers);
 
             var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(certificateName);

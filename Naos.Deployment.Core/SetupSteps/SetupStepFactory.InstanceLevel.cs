@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.Core
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -28,8 +29,9 @@ namespace Naos.Deployment.Core
         /// <param name="environment">Environment the instance is in.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <param name="workingDirectoryForFileCopyDuringInstanceSetup">Path to store files temporarily.</param>
+        /// <param name="funcToReplaceKnownTokensWithValues">Function to replace well known tokens with values.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
             var steps = new List<SetupStep>();
 
@@ -180,8 +182,7 @@ namespace Naos.Deployment.Core
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
                                                    "Instance",
                                                    workingDirectoryForFileCopyDuringInstanceSetup,
-                                                   this.Settings.HarnessSettings.HarnessAccount,
-                                                   this.Settings.WebServerSettings.IisAccount,
+                                                   funcToReplaceKnownTokensWithValues,
                                                    usersToGrantAccessToKey,
                                                    this.environmentCertificateName,
                                                    false);

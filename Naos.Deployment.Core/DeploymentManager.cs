@@ -369,7 +369,8 @@ namespace Naos.Deployment.Core
                         configToCreateWith.InstanceType.WindowsSku,
                         environment,
                         packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),
-                        this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes));
+                        this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes),
+                        FuncToReplaceSupportedTokens);
                 setupSteps.AddRange(instanceLevelSetupSteps);
 
                 var chocoSetupSteps = this.setupStepFactory.GetChocolateySetupSteps(configToCreateWith.ChocolateyPackages);
