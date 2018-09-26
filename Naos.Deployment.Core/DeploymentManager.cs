@@ -284,7 +284,35 @@ namespace Naos.Deployment.Core
             this.LogAnnouncement("Waiting for status checks to pass.", instanceNumber);
             await this.WaitUntilStatusChecksSucceedAsync(instanceNumber, createdInstanceDescription);
 
-            string FuncToCreateNewDnsWithTokensReplaced(string tokenizedDns) => TokenSubstitutions.GetSubstitutedStringForDns(tokenizedDns, environment, numberedInstanceName, instanceNumber);
+            var deploymentDriveLetter = this.setupStepFactory.Settings.GetDeploymentDriveLetter(configToCreateWith.Volumes);
+            var harnessAccount = this.setupStepFactory.Settings.HarnessSettings.HarnessAccount;
+            var iisAccount = this.setupStepFactory.Settings.WebServerSettings.IisAccount;
+            string FuncToReplaceSupportedTokens(string tokenizedString)
+            {
+                var workingString = tokenizedString;
+                workingString = TokenSubstitutions.GetSubstitutedStringForAccounts(
+                    workingString,
+                    harnessAccount,
+                    iisAccount);
+
+                workingString = TokenSubstitutions.GetSubstitutedStringForChannelName(
+                    workingString,
+                    environment,
+                    numberedInstanceName,
+                    instanceNumber);
+
+                workingString = TokenSubstitutions.GetSubstitutedStringForDns(
+                    workingString,
+                    environment,
+                    numberedInstanceName,
+                    instanceNumber);
+
+                workingString = TokenSubstitutions.GetSubstitutedStringForPath(
+                    workingString,
+                    deploymentDriveLetter);
+
+                return workingString;
+            }
 
             // soft clone the list b/c we don't want to mess up the collection for other threads running different instance numbers
             var packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness = packagedDeploymentConfigsWithDefaultsAndOverrides.Select(_ => _).ToList();
@@ -356,7 +384,7 @@ namespace Naos.Deployment.Core
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
                 {
                     var packageDescription = packagedConfig.PackageWithBundleIdentifier.Package.PackageDescription;
-                    var strategySetupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, FuncToCreateNewDnsWithTokensReplaced);
+                    var strategySetupSteps = await this.setupStepFactory.GetSetupStepsAsync(packagedConfig, environment, adminPasswordClear, FuncToReplaceSupportedTokens);
                     var updateArcologySetupSteps = this.GetSetupStepsToUpdateArcologyAfterPackageIsDeployed(
                         packageDescription,
                         createdInstanceDescription.Id,
@@ -371,7 +399,7 @@ namespace Naos.Deployment.Core
                     environment,
                     packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness,
                     createdInstanceDescription,
-                    FuncToCreateNewDnsWithTokensReplaced);
+                    FuncToReplaceSupportedTokens);
                 setupSteps.AddRange(updateDnsSteps);
 
                 await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);

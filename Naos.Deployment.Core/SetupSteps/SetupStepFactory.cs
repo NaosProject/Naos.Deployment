@@ -13,15 +13,11 @@ namespace Naos.Deployment.Core
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Validation.Recipes;
-
-    using Spritely.Recipes;
 
     using static System.FormattableString;
 
