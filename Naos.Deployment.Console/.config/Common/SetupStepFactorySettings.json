@@ -50,7 +50,8 @@
     "environmentEnvironmentVariableName": "Environment",
     "administratorAccount": "Administrator",
     "harnessSettings": {
-        "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE"
+        "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE",
+        "defaultTaskPriority": 5 
     },
     "mongoServerSettings": {
         "serviceAccount": "SYSTEM",
@@ -136,10 +137,10 @@
             ]
         },
         "setupScheduledTask": {
-            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "RunElevated", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
+            "parameterNames": [ "Name", "Description", "ScheduledTaskAccount", "ScheduledTaskPassword", "RunElevated", "Priority", "ExeFullPath", "Arguments", "DateTime", "RepetitionInterval", "DaysOfWeek" ],
             "scriptTextLines": [
                 "{",
-                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [bool] $RunElevated, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
+                "param([String] $Name, [String] $Description, [String] $ScheduledTaskAccount, [String] $ScheduledTaskPassword, [bool] $RunElevated, [int] $Priority, [String] $ExeFullPath, [String] $Arguments, [DateTime] $DateTime, [TimeSpan] $RepetitionInterval, [Array] $DaysOfWeek)",
                 "   $workingDirectory = Split-Path -Path $ExeFullPath -Parent",
                 "   if ($ExeFullPath.ToUpper().EndsWith('.PS1'))",
                 "   {",
@@ -150,7 +151,7 @@
                 "       $Arguments = $ExeFullPath",
                 "       $ExeFullPath = 'Powershell.exe'",
                 "   }",
-                "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew'",
+                "   $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -MultipleInstances 'IgnoreNew' -Priority $Priority",
                 "   $trigger = $null",
                 "   if ($RepetitionInterval -eq ([TimeSpan]::FromDays(1)))",
                 "   {",

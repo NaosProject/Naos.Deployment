@@ -31,12 +31,13 @@ namespace Naos.Deployment.Core
             var arguments = scheduledTaskStrategy.Arguments;
             var scheduledTaskAccount = this.GetAccountToUse(scheduledTaskStrategy);
             var runElevated = scheduledTaskStrategy.RunElevated;
+            var priority = scheduledTaskStrategy.Priority ?? this.Settings.HarnessSettings.DefaultTaskPriority;
 
-            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(defaultLogWritingSettings, itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, name, description, arguments);
+            return this.GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(defaultLogWritingSettings, itsConfigOverrides, consoleRootPath, environment, exeFilePathRelativeToPackageRoot, schedule, scheduledTaskAccount, adminPassword, runElevated, priority, name, description, arguments);
         }
 
         // No specific strategy is used in params so the logic can be shared.
-        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, string name, string description, string arguments)
+        private List<SetupStep> GetScheduledTaskSpecificStepsParameterizedWithoutStrategy(LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string exeFilePathRelativeToPackageRoot, ScheduleBase schedule, string scheduledTaskAccount, string adminPassword, bool runElevated, int priority, string name, string description, string arguments)
         {
             var scheduledTaskSetupSteps = new List<SetupStep>();
 
@@ -96,7 +97,7 @@ namespace Naos.Deployment.Core
                                             ? null
                                             : scheduledTaskAccount.ToUpperInvariant() == this.AdministratorAccount.ToUpperInvariant() ? adminPassword : null;
 
-            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, runElevated, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
+            var setupScheduledTaskParams = new object[] { name, description, scheduledTaskAccount, scheduledTaskPassword, runElevated, priority, exeFullPath, arguments, dateTimeInUtc, repetitionInterval, daysOfWeek.ToArray() };
             var createScheduledTask = new SetupStep
                                           {
                                               Description = Invariant($"Creating scheduled task to run: {exeFilePathRelativeToPackageRoot} {arguments ?? "<no arguments>"} with schedule: {cronExpression}."),

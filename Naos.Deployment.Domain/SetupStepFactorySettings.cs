@@ -110,6 +110,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets account the message bus handler harness is running as.
         /// </summary>
         public string HarnessAccount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default task priority (see https://docs.microsoft.com/en-us/windows/desktop/taskschd/tasksettings-priority for recommendations).
+        /// </summary>
+        public int DefaultTaskPriority { get; set; }
     }
 
     /// <summary>

@@ -31,6 +31,7 @@ namespace Naos.Deployment.Core
             var selfHostExeArguments = selfHostStrategy.SelfHostArguments;
             var applicationId = Guid.NewGuid().ToString().ToUpper();
             var runElevated = selfHostStrategy.RunElevated;
+            var priority = selfHostStrategy.Priority ?? this.Settings.HarnessSettings.DefaultTaskPriority;
 
             // specific steps to support self hosting
             var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(sslCertificateName);
@@ -87,6 +88,7 @@ namespace Naos.Deployment.Core
                 scheduledTaskAccount,
                 adminPassword,
                 runElevated,
+                priority,
                 name,
                 description,
                 arguments);

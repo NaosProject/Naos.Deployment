@@ -48,6 +48,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public bool RunElevated { get; set; }
 
+        /// <summary>
+        /// Gets or sets the priority of the task; default will be 5; acceptable values are 0-7 see https://docs.microsoft.com/en-us/windows/desktop/taskschd/tasksettings-priority.
+        /// </summary>
+        public int? Priority { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
@@ -61,6 +66,7 @@ namespace Naos.Deployment.Domain
                               Schedule = schedule,
                               ScheduledTaskAccount = this.ScheduledTaskAccount,
                               RunElevated = this.RunElevated,
+                              Priority = this.Priority,
                           };
             return ret;
         }
