@@ -7,11 +7,7 @@
 // </auto-generated>
 // --------------------------------------------------------------------------------------------------------------------
 
-#if NaosMessageBusHangfireConsole
-namespace Naos.MessageBus.Hangfire.Console
-#else
 namespace Naos.Deployment.MessageBus.Hangfire.Console
-#endif
 {
     using CLAP;
 
@@ -19,10 +15,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
 
     using Naos.Cron;
     using Naos.MessageBus.Domain;
-
-#if !NaosMessageBusHangfireConsole
     using Naos.MessageBus.Hangfire.Bootstrapper;
-#endif
 
     /// <summary>
     /// Abstraction for use with <see cref="CLAP" /> to provide basic command line interaction.
@@ -33,15 +26,15 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Naos.MessageBus.Hangfire.Bootstrapper", "See package version number")]
 #endif
-    public class DefaultMessageBusConsoleAbstraction : ConsoleAbstractionBase
+    public class ConsoleAbstraction : ConsoleAbstractionBase
     {
         /// <summary>
         /// Monitor for items in Hangfire.
         /// </summary>
         /// <param name="debug">Optional indication to launch the debugger from inside the application (default is false).</param>
         /// <param name="environment">Optional value to use when setting the Its.Configuration precedence to use specific settings.</param>
-        [Verb(Aliases = nameof(WellKnownConsoleVerb.Listen), IsDefault = false, Description = "Runs the Hangfire Harness listening on configured channels until it's triggered to end or fails;\r\n            example usage: [Harness].exe listen\r\n                           [Harness].exe listen /debug=true\r\n                           [Harness].exe listen /environment=ExampleDevelopment\r\n                           [Harness].exe listen /environment=ExampleDevelopment /debug=true\r\n")]
-        public static void Listen(
+        [Verb(Aliases = nameof(WellKnownConsoleVerb.Monitor), IsDefault = false, Description = "Runs the Hangfire Harness listening on configured channels until it's triggered to end or fails;\r\n            example usage: [Harness].exe monitor\r\n                           [Harness].exe monitor /debug=true\r\n                           [Harness].exe monitor /environment=ExampleDevelopment\r\n                           [Harness].exe monitor /environment=ExampleDevelopment /debug=true\r\n")]
+        public static void Monitor(
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment)
         {

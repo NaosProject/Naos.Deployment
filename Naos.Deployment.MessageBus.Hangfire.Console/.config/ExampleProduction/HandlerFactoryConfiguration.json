@@ -1,0 +1,4 @@
+﻿{
+    "typeMatchStrategyForMessageResolution": "namespaceAndName",
+    "handlerAssemblyPath": "I:\\am\\an\\optional\\path\\to\\assemblies\\to\\load\\and\\reflect\\on\\in\\Production"
+}

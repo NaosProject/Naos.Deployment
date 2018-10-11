@@ -1,0 +1,27 @@
+﻿{
+    "configurations": [
+        {
+            "timeSlicePerFile": "00:01:00",
+            "fileNamePrefix": "NaosMessageBusHangfireConsole",
+            "logFileDirectoryPath": "D:\\Logs",
+            "createDirectoryStructureIfMissing": true,
+            "logInclusionKindToOriginsMap": {
+                "String": [ "ItsLogEntryPosted" ],
+                "Object": [ "ItsLogEntryPosted" ],
+                "Exception": null
+            },
+            "logItemPropertiesToIncludeInLogMessage": "default"
+        },
+        {
+            "logInclusionKindToOriginsMap": {},
+            "logInclusionKindToOriginsMapForConsoleOut": {
+                "String": null,
+                "Object": null
+            },
+            "logInclusionKindToOriginsMapForConsoleError": {
+                "Exception": null
+            },
+            "logItemPropertiesToIncludeInLogMessage": "default"
+        }
+    ]
+}

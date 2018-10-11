@@ -16,7 +16,6 @@ namespace Naos.Recipes.TupleInitializers
     /// Tuple initializers.
     /// </summary>
     #if !NaosRecipesTupleInitializers
-        [System.Diagnostics.DebuggerStepThrough]
         [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
         [System.CodeDom.Compiler.GeneratedCode("Naos.Recipes.TupleInitializers", "See package version number")]
     #endif

@@ -7,11 +7,7 @@
 // </auto-generated>
 // --------------------------------------------------------------------------------------------------------------------
 
-#if NaosDeploymentConsole
 namespace Naos.Deployment.Console
-#else
-namespace $rootnamespace$
-#endif
 {
     using System;
     using System.Collections.Generic;
@@ -57,11 +53,7 @@ namespace $rootnamespace$
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Deployer", Justification = "Spelling/name is correct.")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1053:StaticHolderTypesShouldNotHaveConstructors", Justification = "Used by CLAP.")]
-#if !NaosDeploymentConsole
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("Naos.Deployment.Bootstrapper", "See package version number")]
-#endif
-    public class ExampleDeploymentConsoleAbstraction : ConsoleAbstractionBase
+    public class ConsoleAbstraction : ConsoleAbstractionBase
     {
         private static readonly object NugetAnnouncementFileLock = new object();
 

@@ -207,20 +207,20 @@
       <HintPath>..\packages\Naos.Cron.1.0.15\lib\net45\Naos.Cron.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.Database.Domain, Version=1.1.188.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Domain.1.1.188\lib\net462\Naos.Database.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Domain, Version=1.1.189.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Domain.1.1.189\lib\net462\Naos.Database.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer, Version=1.1.188.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.1.1.188\lib\net462\Naos.Database.SqlServer.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer, Version=1.1.189.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.1.1.189\lib\net462\Naos.Database.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.2.13.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.2.13\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Domain, Version=1.0.28.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Domain.1.0.28\lib\net462\Naos.Logging.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.30\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.1.51.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.1.51\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.2.3\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>
@@ -228,23 +228,23 @@
     <Reference Include="Naos.Packaging.NuGet, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.NuGet.1.0.41\lib\net461\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Bson, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Bson.1.0.54\lib\net462\Naos.Serialization.Bson.dll</HintPath>
+    <Reference Include="Naos.Serialization.Bson, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Bson.1.0.55\lib\net462\Naos.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Domain, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Domain.1.0.54\lib\net462\Naos.Serialization.Domain.dll</HintPath>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.55\lib\net462\Naos.Serialization.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Factory, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Factory.1.0.54\lib\net462\Naos.Serialization.Factory.dll</HintPath>
+    <Reference Include="Naos.Serialization.Factory, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Factory.1.0.55\lib\net462\Naos.Serialization.Factory.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Json, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Json.1.0.54\lib\net462\Naos.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Serialization.Json, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Json.1.0.55\lib\net462\Naos.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.PropertyBag, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.PropertyBag.1.0.54\lib\net462\Naos.Serialization.PropertyBag.dll</HintPath>
+    <Reference Include="Naos.Serialization.PropertyBag, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.PropertyBag.1.0.55\lib\net462\Naos.Serialization.PropertyBag.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Telemetry.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.9\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
+    <Reference Include="Naos.Telemetry.Domain, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.12\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -282,8 +282,10 @@
   <ItemGroup>
     <Compile Include=".recipes\Naos.Configuration.Setup\Config.cs" />
     <Compile Include=".recipes\Naos.Configuration.Setup\ConfigRequiredTest.cs" />
-    <Compile Include=".recipes\Naos.Console.Bootstrapper\ConsoleAbstractionBase.cs" />
-    <Compile Include=".recipes\Naos.Console.Domain\WellKnownConsoleVerb.cs" />
+    <Compile Include=".recipes\Naos.Configuration\Config.cs" />
+    <Compile Include=".recipes\Naos.Configuration\ConfigRequiredTest.cs" />
+    <Compile Include=".recipes\Naos.Console\ConsoleAbstractionBase.cs" />
+    <Compile Include=".recipes\Naos.Console\WellKnownConsoleVerb.cs" />
     <Compile Include=".recipes\Naos.Diagnostics\DomainFactory.cs" />
     <Compile Include=".recipes\Naos.Diagnostics\MachineMemory.cs" />
     <Compile Include=".recipes\Naos.Diagnostics\MachineMemoryKind.cs" />
@@ -327,8 +329,8 @@
     <Compile Include=".recipes\Spritely.Redo\RetriableFunction.cs" />
     <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".recipes\Spritely.Redo\Using.cs" />
-    <Compile Include="ExampleDeploymentConsoleAbstraction.cs.pp" />
-    <Compile Include="ExampleDeploymentProgram.cs.pp" />
+    <Compile Include="ConsoleAbstraction.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

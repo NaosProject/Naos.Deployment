@@ -7,11 +7,7 @@
 // </auto-generated>
 // --------------------------------------------------------------------------------------------------------------------
 
-#if NaosMessageBusHangfireConsole
-namespace Naos.MessageBus.Hangfire.Console
-#else
 namespace Naos.MessageBus.Hangfire.Bootstrapper
-#endif
 {
     using System;
 

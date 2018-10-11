@@ -17,14 +17,18 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading.Tasks;
 
     using Its.Configuration;
+    using Its.Log.Instrumentation;
 
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.TypeRepresentation;
     using OBeautifulCode.Validation.Recipes;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Factory builder to provide logic to resolve the appropriate <see cref="IHandleMessages" /> for a dispatched <see cref="IMessage" /> implementation.
@@ -100,6 +104,34 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
                           : new ReflectionHandlerFactory(configuration.TypeMatchStrategyForMessageResolution);
 
             return ret;
+        }
+    }
+
+    /// <summary>
+    /// Example of an <see cref="IMessage" />.
+    /// </summary>
+    public class ExampleMessage : IMessage
+    {
+        /// <inheritdoc cref="IMessage" />
+        public string Description { get; set; }
+
+        /// <summary>
+        /// Gets or sets an example of a group of work to process.
+        /// </summary>
+        public string GroupToProcess { get; set; }
+    }
+
+    /// <summary>
+    /// Handler for <see cref="ExampleMessage" />.
+    /// </summary>
+    public class ExampleMessageHandler : MessageHandlerBase<ExampleMessage>
+    {
+        /// <inheritdoc cref="MessageHandlerBase{T}" />
+        public override async Task HandleAsync(ExampleMessage message)
+        {
+            await Task.Run(() => { });
+
+            Log.Write(() => Invariant($"Finished processing group: {message.GroupToProcess}"));
         }
     }
 }

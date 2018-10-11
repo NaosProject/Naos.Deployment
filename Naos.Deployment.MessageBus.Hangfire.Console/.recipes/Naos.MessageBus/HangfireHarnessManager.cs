@@ -7,11 +7,7 @@
 // </auto-generated>
 // --------------------------------------------------------------------------------------------------------------------
 
-#if NaosMessageBusHangfireConsole
-namespace Naos.MessageBus.Hangfire.Console
-#else
 namespace Naos.MessageBus.Hangfire.Bootstrapper
-#endif
 {
     using System;
     using System.Collections.Concurrent;
@@ -90,7 +86,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             var serializerFactory = SerializerFactory.Instance;
             var compressorFactory = CompressorFactory.Instance;
 
-            var logProvider = new ItsLogPassThroughProvider();
+            var logProvider = new HangfireLogProviderToNaosLogWritingAdapter();
             LogProvider.SetCurrentLogProvider(logProvider);
 
             var activeMessageTracker = new InMemoryActiveMessageTracker();

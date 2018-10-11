@@ -49,21 +49,21 @@ namespace Naos.Deployment.Core.Test
             var expected = new[]
                               {
                                   new TimeSlicedFilesLogConfig(
-                                      LogItemOrigins.All,
+                                      new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(),
                                       "{deploymentDriveLetter}:\\Logs",
                                       "All",
                                       TimeSpan.FromMinutes(10),
                                       true,
                                       LogItemPropertiesToIncludeInLogMessage.Default),
                                   new TimeSlicedFilesLogConfig(
-                                      LogItemOrigins.All,
+                                      new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(),
                                       "{deploymentDriveLetter}:\\SerializedLogs",
                                       "SerializedLog",
                                       TimeSpan.FromMinutes(10),
                                       true,
                                       LogItemPropertiesToIncludeInLogMessage.LogItemSerialization),
                                   new TimeSlicedFilesLogConfig(
-                                      LogItemOrigins.ItsLogEntryPostedTelemetry,
+                                      new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(),
                                       "{deploymentDriveLetter}:\\SerializedTelemetry",
                                       "SerializedTelemetry",
                                       TimeSpan.FromMinutes(10),

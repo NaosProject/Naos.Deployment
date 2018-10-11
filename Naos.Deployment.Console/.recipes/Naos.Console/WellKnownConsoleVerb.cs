@@ -18,7 +18,12 @@ namespace Naos.Deployment.Console
         /// Print help.
         /// </summary>
         Help,
-
+		
+        /// <summary>
+        /// Create an example or simulate an action or show interaction.
+        /// </summary>
+        Example,
+		
         /// <summary>
         /// Log a message and exit gracefully.
         /// </summary>
@@ -30,9 +35,14 @@ namespace Naos.Deployment.Console
         Fail,
 
         /// <summary>
-        /// Monitor for items (usually in a message bus/work queue or self-hosted API context).
+        /// Listen for requests (usually for API or request broker).
         /// </summary>
         Listen,
+		
+        /// <summary>
+        /// Monitor for items (usually for message bus/work queue items or database/directory/etc changes).
+        /// </summary>
+		Monitor,
 
         /// <summary>
         /// Send an item (usually in a message bus/work queue or wrapped API context).

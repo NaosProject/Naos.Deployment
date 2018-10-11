@@ -54,10 +54,13 @@ namespace Naos.Deployment.Core.Test
             var logFilePath = @"D:\Deployments\Naos.Deployment\packagedWebsite\DeploymentHandler.txt";
             var eventLogSource = "DeploymentHandler";
             var logConfigurations = new LogWriterConfigBase[]
-                                        {
-                                            new EventLogConfig(LogItemOrigins.AllErrors, eventLogSource, customEventLog),
-                                            new FileLogConfig(LogItemOrigins.All, logFilePath),
-                                        };
+            {
+                new EventLogConfig(
+                    new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>> { { LogItemKind.Exception, null } },
+                    eventLogSource,
+                    customEventLog),
+                new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), logFilePath),
+            };
 
             var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
 
@@ -141,8 +144,8 @@ namespace Naos.Deployment.Core.Test
             var eventLogSource = "HangfireHarness";
             var logConfigurations = new LogWriterConfigBase[]
                                         {
-                                            new EventLogConfig(LogItemOrigins.AllErrors, eventLogSource, customEventLog),
-                                            new FileLogConfig(LogItemOrigins.All, logFilePath),
+                                            new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>> { { LogItemKind.Exception, null } }, eventLogSource, customEventLog),
+                                            new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), logFilePath),
                                         };
 
             var launchConfiguration = new MessageBusLaunchConfiguration(

@@ -1,0 +1,26 @@
+﻿{
+    "courierPersistenceConnectionConfiguration": {
+        "server": "hangfire.database.production.my-company.com",
+        "database": "Hangfire",
+        "credentials": {
+            "user": "sa",
+            "password": "a-good-password"
+        }
+    },
+    "eventPersistenceConnectionConfiguration": {
+        "server": "hangfire.database.production.my-company.com",
+        "database": "ParcelTrackingEvents",
+        "credentials": {
+            "user": "sa",
+            "password": "a-good-password"
+        }
+    },
+    "readModelPersistenceConnectionConfiguration": {
+        "server": "hangfire.database.production.my-company.com",
+        "database": "ParcelTrackingReadModel",
+        "credentials": {
+            "user": "sa",
+            "password": "a-good-password"
+        }
+    }
+}

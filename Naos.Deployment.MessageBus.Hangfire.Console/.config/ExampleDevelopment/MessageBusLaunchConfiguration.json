@@ -1,0 +1,9 @@
+﻿{
+    "timeToLive": "00:10:00",
+    "typeMatchStrategyForMatchingSharingInterfaces": "namespaceAndName",
+    "typeMatchStrategyForMessageResolution": "namespaceAndName",
+    "messageDeliveryRetryCount": 0,
+    "pollingInterval": "00:01:00",
+    "concurrentWorkerCount": 1,
+    "channelsToMonitor": [ { "name": "messages_development" } ]
+}

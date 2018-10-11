@@ -22,7 +22,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.Packaging.NuGet;
     using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
 
     using Xunit;
 
@@ -55,7 +54,7 @@ namespace Naos.Deployment.Core.Test
 
             MessageBusHandlerHarnessConfiguration = new MessageBusHandlerHarnessConfiguration
                                                         {
-                                                            LogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(LogItemOrigins.All), }),
+                                                            LogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
                                                             HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                             PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                             Package = new PackageDescriptionWithOverrides
@@ -69,7 +68,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                   {
                                                                                                       RunElevated = false,
                                                                                                       ScheduledTaskAccount = "Network Service",
-                                                                                                      Arguments = "listen",
+                                                                                                      Arguments = "monitor",
                                                                                                       Description = "Hangfire Harness to reflect over and run on assemblies.",
                                                                                                       ExeFilePathRelativeToPackageRoot = "packagedConsoleApp/Naos.MessageBus.Hangfire.Console.exe",
                                                                                                       Name = "Hangfire Harness",
@@ -81,8 +80,8 @@ namespace Naos.Deployment.Core.Test
 
             DatabaseManagementConfiguration = new DatabaseManagementConfiguration
                                                    {
-                                                       FileSystemManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(LogItemOrigins.All), }),
-                                                       DatabaseManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(LogItemOrigins.All), }),
+                                                       FileSystemManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                                       DatabaseManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
                                                        HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides
@@ -96,7 +95,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                                  {
                                                                                                                      RunElevated = true,
                                                                                                                      ScheduledTaskAccount = "Network Service",
-                                                                                                                     Arguments = "listen",
+                                                                                                                     Arguments = "monitor",
                                                                                                                      Description = "FileJanitor Hangfire Harness to perform requested File System operations.",
                                                                                                                      ExeFilePathRelativeToPackageRoot = "packagedConsoleApp/Naos.FileJanitor.Hangfire.Console.exe",
                                                                                                                      Name = "FileJanitor Hangfire Harness",
@@ -115,7 +114,7 @@ namespace Naos.Deployment.Core.Test
                                                                                                                 {
                                                                                                                     RunElevated = true,
                                                                                                                     ScheduledTaskAccount = "Network Service",
-                                                                                                                    Arguments = "listen",
+                                                                                                                    Arguments = "monitor",
                                                                                                                     Description = "Database Hangfire Harness to perform requested database operations.",
                                                                                                                     ExeFilePathRelativeToPackageRoot = "packagedConsoleApp/Naos.Database.Hangfire.Console.exe",
                                                                                                                     Name = "Database Hangfire Harness",

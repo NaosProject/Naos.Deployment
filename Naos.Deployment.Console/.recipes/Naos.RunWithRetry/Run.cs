@@ -23,7 +23,6 @@ namespace Naos.Recipes.RunWithRetry
     /// <summary>
     /// Provides methods to run code and retry if that code throws.
     /// </summary>
-    [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Naos.Recipes", "See package version number")]
     internal static class Run

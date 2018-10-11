@@ -19,7 +19,6 @@ namespace Spritely.Redo
     ///     for running retriable operations.
     /// </summary>
 #if !SpritelyRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.CodeDom.Compiler.GeneratedCode("Spritely.Recipes", "See package version number")]
 #pragma warning disable 0436

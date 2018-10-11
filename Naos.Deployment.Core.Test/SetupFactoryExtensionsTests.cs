@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Core.Test
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
 
@@ -110,17 +111,17 @@ namespace Naos.Deployment.Core.Test
             var settingsConsole = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new ConsoleLogConfig(LogItemOrigins.All, LogItemOrigins.AllErrors), }),
+                                       new[] { new ConsoleLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
                                };
             var settingsEvent = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new EventLogConfig(LogItemOrigins.All), }),
+                                       new[] { new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
                                };
             var settingsMemory = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new InMemoryLogConfig(LogItemOrigins.All), }),
+                                       new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
                                };
 
             // Act
@@ -142,7 +143,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new FileLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -153,7 +154,7 @@ namespace Naos.Deployment.Core.Test
             var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configs.Single().As<FileLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<FileLogConfig>().LogInclusionKindToOriginsMap.Count.Should().Be(0);
             actual.Configs.Single().As<FileLogConfig>().LogFilePath.Should().Be(expected);
             actual.Configs.Single().As<FileLogConfig>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
         }
@@ -167,7 +168,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new FileLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -178,7 +179,7 @@ namespace Naos.Deployment.Core.Test
             var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configs.Single().As<FileLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<FileLogConfig>().LogInclusionKindToOriginsMap.Count.Should().Be(0);
             actual.Configs.Single().As<FileLogConfig>().LogFilePath.Should().Be(expected);
             actual.Configs.Single().As<FileLogConfig>().CreateDirectoryStructureIfMissing.Should().Be(CreateDirectoryStructureIfMissing);
         }
@@ -192,7 +193,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new TimeSlicedFilesLogConfig(LogItemOrigins.All, "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
+                                       new[] { new TimeSlicedFilesLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -204,7 +205,7 @@ namespace Naos.Deployment.Core.Test
             var actual = settings.BuildDefaultLogWritingSettings(deploymentDriveLetter, packageName);
 
             // Assert
-            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().OriginsToLog.Should().Be(settings.DefaultLogWritingSettings.Configs.Single().OriginsToLog);
+            actual.Configs.Single().As<TimeSlicedFilesLogConfig>().LogInclusionKindToOriginsMap.Count().Should().Be(0);
             actual.Configs.Single().As<TimeSlicedFilesLogConfig>().LogFileDirectoryPath.Should().Be(expectedPath);
             actual.Configs.Single().As<TimeSlicedFilesLogConfig>().FileNamePrefix.Should().Be(expectedPrefix);
             actual.Configs.Single().As<TimeSlicedFilesLogConfig>().TimeSlicePerFile.Should().Be(time);
