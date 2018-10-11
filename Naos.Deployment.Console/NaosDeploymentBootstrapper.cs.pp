@@ -317,7 +317,7 @@ namespace $rootnamespace$
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
-        public static void RemoveTrackedInstancesNotInComputingPlatform(
+        public static void RemoveTrackedInstanceNotInComputingPlatform(
             string credentialsJson,
             string infrastructureTrackerJson,
             string privateIpAddressOfInstanceToRemove,
@@ -1130,7 +1130,7 @@ namespace $rootnamespace$
 
             // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
             var nonTerminatedInstances = instances
-                .Where(_ => _.InstanceStatus.InstanceState != AWS.Domain.InstanceState.Terminated)
+                .Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
                 .Where(_ => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr));
             if (nonTerminatedInstances.Any())
             {

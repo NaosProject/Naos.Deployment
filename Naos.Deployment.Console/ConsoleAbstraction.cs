@@ -206,7 +206,7 @@ namespace Naos.Deployment.Console
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.RemoveTrackedInstancesNotInComputingPlatform(credentialsJson, infrastructureTrackerJson, privateIpAddressOfInstanceToRemove, instanceNameOfInstanceToRemove, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.RemoveTrackedInstanceNotInComputingPlatform(credentialsJson, infrastructureTrackerJson, privateIpAddressOfInstanceToRemove, instanceNameOfInstanceToRemove, environment, Console.WriteLine);
         }
 
         /// <summary>
