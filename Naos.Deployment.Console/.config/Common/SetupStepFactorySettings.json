@@ -25,7 +25,7 @@
                 "fileNamePrefix": "Plain",
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\Logs",
                 "createDirectoryStructureIfMissing": true,
-                "originsToLog": "all",
+                "logInclusionKindToOriginsMap": {},
                 "logItemPropertiesToIncludeInLogMessage": "default"
             },
             {
@@ -33,7 +33,11 @@
                 "fileNamePrefix": "Serialized",
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\SerializedLogs",
                 "createDirectoryStructureIfMissing": true,
-                "originsToLog": "all",
+                "logInclusionKindToOriginsMap": {
+                    "String": [ "ItsLogEntryPosted" ],
+                    "Object": [ "ItsLogEntryPosted" ],
+                    "Exception": null
+                },
                 "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
             },
             {
@@ -41,7 +45,9 @@
                 "fileNamePrefix": "Telemetry",
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\SerializedTelemetry",
                 "createDirectoryStructureIfMissing": true,
-                "originsToLog": "itsLogEntryPostedTelemetry",
+                "logInclusionKindToOriginsMap": {
+                    "Telemetry": null
+                },
                 "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
             }
         ]
