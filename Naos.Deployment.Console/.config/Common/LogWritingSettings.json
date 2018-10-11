@@ -1,8 +1,15 @@
 ﻿{
     "configs": [
         {
-            "originsToLogConsoleOut": "all",
-            "originsToLogConsoleError": "none"
+            "logInclusionKindToOriginsMap": {},
+            "logInclusionKindToOriginsMapForConsoleOut": {
+                "String": null,
+                "Object": null
+            },
+            "logInclusionKindToOriginsMapForConsoleError": {
+                "Exception": null
+            },
+            "logItemPropertiesToIncludeInLogMessage": "default"
         }
     ]
 }

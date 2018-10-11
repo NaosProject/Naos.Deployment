@@ -330,6 +330,7 @@
     <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".recipes\Spritely.Redo\Using.cs" />
     <Compile Include="ConsoleAbstraction.cs" />
+    <Compile Include="NaosDeploymentBootstrapper.cs.pp" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
