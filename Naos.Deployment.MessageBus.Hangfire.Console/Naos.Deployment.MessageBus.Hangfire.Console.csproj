@@ -312,15 +312,6 @@
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\release.ruleset" />
-    <None Include=".config\ExampleDevelopment\HandlerFactoryConfiguration.json" />
-    <None Include=".config\ExampleDevelopment\LogWritingSettings.json" />
-    <None Include=".config\ExampleDevelopment\MessageBusConnectionConfiguration.json" />
-    <None Include=".config\ExampleDevelopment\MessageBusLaunchConfiguration.json" />
-    <None Include=".config\ExampleProduction\HandlerFactoryConfiguration.json" />
-    <None Include=".config\ExampleProduction\LogWritingSettings.json" />
-    <None Include=".config\ExampleProduction\MessageBusConnectionConfiguration.json" />
-    <None Include=".config\ExampleProduction\MessageBusLaunchConfiguration.json" />
-    <None Include=".recipes\Naos.MessageBus\ExampleApp.config" />
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>

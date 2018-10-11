@@ -36,7 +36,9 @@
                 "logInclusionKindToOriginsMap": {
                     "String": [ "ItsLogEntryPosted" ],
                     "Object": [ "ItsLogEntryPosted" ],
-                    "Exception": null
+                    "Exception": null,
+                    "Unknown": [],
+                    "Telemetry": []
                 },
                 "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
             },
@@ -46,6 +48,10 @@
                 "logFileDirectoryPath": "{deploymentDriveLetter}:\\SerializedTelemetry",
                 "createDirectoryStructureIfMissing": true,
                 "logInclusionKindToOriginsMap": {
+                    "String": [],
+                    "Object": [],
+                    "Exception": [],
+                    "Unknown": [],
                     "Telemetry": null
                 },
                 "logItemPropertiesToIncludeInLogMessage": "logItemSerialization"
