@@ -20,7 +20,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
-    using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Factory;
 
     using Xunit;

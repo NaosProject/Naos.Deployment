@@ -11,7 +11,6 @@ namespace Naos.Deployment.Core.Test
     using FluentAssertions;
 
     using Naos.Deployment.Domain;
-    using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Factory;
 
     using Xunit;

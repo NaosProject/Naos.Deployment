@@ -202,17 +202,17 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.30\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Core, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Core.1.2.4\lib\net462\Naos.MessageBus.Core.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Core, Version=1.2.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Core.1.2.7\lib\net462\Naos.MessageBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.2.4\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.2.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.2.7\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Hangfire.Sender, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Hangfire.Sender.1.2.4\lib\net462\Naos.MessageBus.Hangfire.Sender.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Hangfire.Sender, Version=1.2.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Hangfire.Sender.1.2.7\lib\net462\Naos.MessageBus.Hangfire.Sender.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Persistence, Version=1.2.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Persistence.1.2.4\lib\net462\Naos.MessageBus.Persistence.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Persistence, Version=1.2.7.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Persistence.1.2.7\lib\net462\Naos.MessageBus.Persistence.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Bson, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Bson.1.0.55\lib\net462\Naos.Serialization.Bson.dll</HintPath>
@@ -264,8 +264,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include=".recipes\Naos.Configuration.Setup\Config.cs" />
-    <Compile Include=".recipes\Naos.Configuration.Setup\ConfigRequiredTest.cs" />
     <Compile Include=".recipes\Naos.Configuration\Config.cs" />
     <Compile Include=".recipes\Naos.Configuration\ConfigRequiredTest.cs" />
     <Compile Include=".recipes\Naos.Console\ConsoleAbstractionBase.cs" />
@@ -312,6 +310,7 @@
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\release.ruleset" />
+    <None Include=".recipes\Naos.MessageBus\MessageBusLaunchConfiguration.Example.json" />
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>

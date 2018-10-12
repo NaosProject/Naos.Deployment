@@ -17,7 +17,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
-    using Naos.Recipes.Configuration.Setup;
 
     using Newtonsoft.Json;
 

@@ -394,7 +394,9 @@
             "scriptTextLines": [
                 "{",
                 "param()",
-                "   # can't use write-host b/c we're in interactive mode",
+                "   # this is generally a bad idea but recommended on chocolatey's site and needed due to some 7-zip error that was introduced around 2018/10/10.",
+                "   Set-ExecutionPolicy Bypass -Scope Process -Force",
+                "   # can't use write-host b/c we're not in interactive mode when executing remotely via WinRM.",
                 "   iex (((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1') -ireplace 'Write-Host', 'Write-Output'))",
                 "}"
             ]

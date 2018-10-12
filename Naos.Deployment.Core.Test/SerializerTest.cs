@@ -19,7 +19,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Persistence;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-    using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Bson;
     using Naos.Serialization.Domain;
     using Naos.Serialization.Factory;

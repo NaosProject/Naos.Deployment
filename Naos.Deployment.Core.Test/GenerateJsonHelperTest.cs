@@ -16,7 +16,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Tracking;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-    using Naos.Recipes.Configuration.Setup;
     using Naos.Serialization.Factory;
 
     using OBeautifulCode.TypeRepresentation;
