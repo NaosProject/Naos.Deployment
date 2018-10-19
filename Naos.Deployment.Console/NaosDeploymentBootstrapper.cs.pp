@@ -453,13 +453,15 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="shouldConnectInFullScreen">A value indicating whether or not to connect in full screen mode.</param>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Weird logic to get terminal services to automatically connect, coupling not a problem here.")]
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Object is disposed correctly.")]
         public static void ConnectToInstance(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
-            string environment)
+            string environment,
+			bool shouldConnectInFullScreen)
         {
             void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -528,9 +530,10 @@ namespace $rootnamespace$
                         activity.Trace(Invariant($"Stored credentials temporarily stored using CMDKEY."));
                     }
 
+					var rdpArgs = shouldConnectInFullScreen ? Invariant($"/f /v {address}") : Invariant($"/v {address}");
                     var rdpProcess = new Process();
                     rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
-                    rdpProcess.StartInfo.Arguments = Invariant($"/v {address}");
+                    rdpProcess.StartInfo.Arguments = rdpArgs;
                     rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true"))
                         .Must().BeTrue();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));

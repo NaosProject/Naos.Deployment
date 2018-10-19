@@ -987,6 +987,20 @@
                 "}"
             ]
         },
+        "pinTaskSchedulerToBarScript": {
+            "parameterNames": [ ],
+            "scriptTextLines": [
+                "{",
+                "param()",
+                "   $taskSchedulerShortcutDirectoryPath = 'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Administrative Tools'",
+                "   $taskSchedulerShortcutFileName = 'Task Scheduler.lnk'",
+                "   $shell = new-object -ComObject Shell.Application",
+                "   $ns = $shell.NameSpace($taskSchedulerShortcutDirectoryPath)",
+                "   $verbs = $ns.ParseName($taskSchedulerShortcutFileName).Verbs()",
+                "   $verbs | ?{$_.Name -eq 'Pin to Tas&kbar'} | %{$_.Doit()}",
+                "}"
+            ]
+        },
         "renameComputerScript": {
             "parameterNames": [ "ComputerName" ],
             "scriptTextLines": [

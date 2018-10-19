@@ -82,6 +82,17 @@ namespace Naos.Deployment.Core
 
             steps.Add(execScripts);
 
+            var pinTaskSchedulerToBarStep = new SetupStep
+            {
+                Description = "Pin Task Scheduler to Bar.",
+                SetupFunc = machineManager =>
+                    machineManager
+                        .RunScript(this.Settings.DeploymentScriptBlocks.PinTaskSchedulerToBarScript.ScriptText)
+                        .ToList(),
+            };
+
+            steps.Add(pinTaskSchedulerToBarStep);
+
             var fullComputerNameEnvironmentVariable = "FullComputerName";
             var windowsSkuEnvironmentVariable = "WindowsSku";
             var addEnvironmentVariables = new SetupStep

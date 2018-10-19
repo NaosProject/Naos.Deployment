@@ -249,6 +249,11 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription SetupWinRmScript { get; set; }
 
         /// <summary>
+        /// Gets or sets the script block to pin the task scheduler to the bar.
+        /// </summary>
+        public ScriptBlockDescription PinTaskSchedulerToBarScript { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to replace tokens in files.
         /// </summary>
         public ScriptBlockDescription ReplaceTokenInFiles { get; set; }

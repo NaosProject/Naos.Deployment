@@ -97,11 +97,13 @@
     <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
     <Compile Include="ChangeInstanceTypeMessageHandler.cs" />
+    <Compile Include="InstanceOperationHelper.cs" />
     <Compile Include="DeploymentMessageHandlerSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ComputingManagerHelper.cs" />
     <Compile Include="ShareInstanceTargetersMessageHandler.cs" />
     <Compile Include="StartInstanceMessageHandler.cs" />
+    <Compile Include="StopInstanceWithDelayMessageHandler.cs" />
     <Compile Include="StopInstanceMessageHandler.cs" />
   </ItemGroup>
   <ItemGroup>

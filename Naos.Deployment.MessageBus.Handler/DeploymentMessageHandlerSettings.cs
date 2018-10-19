@@ -6,6 +6,7 @@
 
 namespace Naos.Deployment.MessageBus.Handler
 {
+    using System;
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
 
@@ -53,5 +54,15 @@ namespace Naos.Deployment.MessageBus.Handler
         /// Gets or sets the infrastructure tracker configuration.
         /// </summary>
         public InfrastructureTrackerConfigurationBase InfrastructureTrackerConfiguration { get; set; }
+
+        /// <summary>
+        /// Gets or sets the delay on stopping an instance (can be used for remaining logs to be shipped or other reasons).
+        /// </summary>
+        public TimeSpan StopInstanceDelay { get; set; }
+
+        /// <summary>
+        /// Gets or sets the channel name to use when rescheduling messages.
+        /// </summary>
+        public string ReschedulingChannelName { get; set; }
     }
 }

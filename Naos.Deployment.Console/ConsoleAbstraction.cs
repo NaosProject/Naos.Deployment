@@ -261,6 +261,7 @@ namespace Naos.Deployment.Console
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="shouldConnectInFullScreen">A value indicating whether or not to connect in full screen mode.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is fine.")]
@@ -270,12 +271,13 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
+            [Aliases("fullscreen")] [Description("Connect in fullscreen mode.")] [DefaultValue(true)] bool shouldConnectInFullScreen,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.ConnectToInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment);
+            NaosDeploymentBootstrapper.ConnectToInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, shouldConnectInFullScreen);
         }
 
         /// <summary>

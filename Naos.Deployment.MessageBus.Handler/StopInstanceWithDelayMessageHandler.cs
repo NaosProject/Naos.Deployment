@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="StopInstanceMessageHandler.cs" company="Naos">
+// <copyright file="StopInstanceWithDelayMessageHandler.cs" company="Naos">
 //    Copyright (c) Naos 2017. All Rights Reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -8,6 +8,7 @@ namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Its.Configuration;
@@ -21,7 +22,7 @@ namespace Naos.Deployment.MessageBus.Handler
     /// <summary>
     /// Handler for stop instance messages.
     /// </summary>
-    public class StopInstanceMessageHandler : MessageHandlerBase<StopInstanceMessage>, IShareInstanceTargeters
+    public class StopInstanceWithDelayMessageHandler : MessageHandlerBase<StopInstanceWithDelayMessage>, IShareInstanceTargeters
     {
         private readonly object postOfficeLock = new object();
 
@@ -29,7 +30,7 @@ namespace Naos.Deployment.MessageBus.Handler
         public InstanceTargeterBase[] InstanceTargeters { get; set; }
 
         /// <inheritdoc cref="MessageHandlerBase{T}" />
-        public override async Task HandleAsync(StopInstanceMessage message)
+        public override async Task HandleAsync(StopInstanceWithDelayMessage message)
         {
             var settings = Settings.Get<DeploymentMessageHandlerSettings>();
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
@@ -43,7 +44,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingInfrastructureManagerSettings">Settings for the computing manager.</param>
         /// <returns>Task for async execution.</returns>
-        public async Task HandleAsync(StopInstanceMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
+        public async Task HandleAsync(StopInstanceWithDelayMessage message, DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
             if (message == null)
             {
@@ -55,6 +56,13 @@ namespace Naos.Deployment.MessageBus.Handler
                 throw new ArgumentException("Must specify at least one instance targeter to use for specifying an instance.");
             }
 
+            var utcNow = DateTime.UtcNow;
+            if (message.MinimumDateTimeInUtcBeforeStop > utcNow)
+            {
+                var timeToSleep = message.MinimumDateTimeInUtcBeforeStop.Subtract(utcNow);
+                Thread.Sleep(timeToSleep);
+            }
+
             var tasks =
                 message.InstanceTargeters.Select(
                         instanceTargeter =>
@@ -64,9 +72,7 @@ namespace Naos.Deployment.MessageBus.Handler
                                     computingInfrastructureManagerSettings,
                                     settings,
                                     this.postOfficeLock,
-                                    this.PostOffice,
-                                    settings.StopInstanceDelay,
-                                    message.WaitUntilOff)))
+                                    this.PostOffice)))
                     .ToArray();
 
             await Task.WhenAll(tasks);

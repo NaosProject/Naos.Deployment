@@ -17,7 +17,7 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.AWS.Core;
     using Naos.AWS.Domain;
     using Naos.Deployment.Domain;
-
+    using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
@@ -171,7 +171,7 @@ namespace Naos.Deployment.ComputingManagement
                 }
             }
 
-            var instanceToTerminate = new Instance() { Id = systemId, Region = systemLocation };
+            var instanceToTerminate = new Instance { Id = systemId, Region = systemLocation };
             await instanceToTerminate.TerminateAsync(TimeSpan.FromMinutes(10), this.credentials);
             await this.tracker.ProcessInstanceTerminationAsync(environment, instanceToTerminate.Id);
         }
@@ -179,34 +179,57 @@ namespace Naos.Deployment.ComputingManagement
         /// <inheritdoc />
         public async Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true)
         {
-            var instanceToTurnOff = new Instance() { Id = systemId, Region = systemLocation };
-            await instanceToTurnOff.StopAsync(force, this.credentials);
-            if (waitUntilOff)
+            async Task TurnOffInstance()
             {
-                await WaitUntil.InstanceInState(
-                    instanceToTurnOff,
-                    Naos.AWS.Domain.InstanceState.Stopped,
-                    new[] { Naos.AWS.Domain.InstanceState.Pending, Naos.AWS.Domain.InstanceState.Running, Naos.AWS.Domain.InstanceState.Terminated },
-                    TimeSpan.FromMinutes(10),
-                    this.credentials);
+                var instanceToTurnOff = new Instance { Id = systemId, Region = systemLocation };
+                await instanceToTurnOff.StopAsync(force, this.credentials);
+                if (waitUntilOff)
+                {
+                    await WaitUntil.InstanceInState(
+                        instanceToTurnOff,
+                        Naos.AWS.Domain.InstanceState.Stopped,
+                        new[]
+                        {
+                            Naos.AWS.Domain.InstanceState.Pending,
+                            Naos.AWS.Domain.InstanceState.Running,
+                            Naos.AWS.Domain.InstanceState.Terminated,
+                        },
+                        TimeSpan.FromMinutes(10),
+                        this.credentials);
+                }
             }
+
+            await Run.WithRetryAsync(TurnOffInstance, Log.Write);
         }
 
         /// <inheritdoc />
         public async Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true, int maxRebootAttemptsOnFailedStarts = 2)
         {
-            var instanceToTurnOn = new Instance() { Id = systemId, Region = systemLocation };
-            await instanceToTurnOn.StartAsync(this.credentials);
-            if (waitUntilOn)
+            async Task TurnOnFunction()
             {
-                await WaitUntil.InstanceInState(
-                    instanceToTurnOn,
-                    Naos.AWS.Domain.InstanceState.Running,
-                    new[] { Naos.AWS.Domain.InstanceState.Stopped, Naos.AWS.Domain.InstanceState.Stopping, Naos.AWS.Domain.InstanceState.Terminated },
-                    TimeSpan.FromMinutes(10),
-                    this.credentials);
-                await this.WaitUntilStatusChecksCompleteRebootOnFailures(instanceToTurnOn, maxRebootAttemptsOnFailedStarts);
+                var instanceToTurnOn = new Instance() { Id = systemId, Region = systemLocation };
+                await instanceToTurnOn.StartAsync(this.credentials);
+                if (waitUntilOn)
+                {
+                    await WaitUntil.InstanceInState(
+                        instanceToTurnOn,
+                        Naos.AWS.Domain.InstanceState.Running,
+                        new[]
+                        {
+                            Naos.AWS.Domain.InstanceState.Stopped,
+                            Naos.AWS.Domain.InstanceState.Stopping,
+                            Naos.AWS.Domain.InstanceState.Terminated,
+                        },
+                        TimeSpan.FromMinutes(10),
+                        this.credentials);
+
+                    await this.WaitUntilStatusChecksCompleteRebootOnFailures(
+                        instanceToTurnOn,
+                        maxRebootAttemptsOnFailedStarts);
+                }
             }
+
+            await Run.WithRetryAsync(TurnOnFunction, Log.Write);
         }
 
         private async Task WaitUntilStatusChecksCompleteRebootOnFailures(Instance instanceToTurnOn, int maxRebootAttempts)

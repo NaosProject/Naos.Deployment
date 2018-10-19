@@ -81,6 +81,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include=".recipes\Naos.RunWithRetry\Run.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ApplyBecause.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\Parameter.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ParameterShould.cs" />
@@ -92,6 +93,12 @@
     <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidator.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
+    <Compile Include=".recipes\Spritely.Redo\BackOffStrategy.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableAction.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableActionAsync.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableFunction.cs" />
+    <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
+    <Compile Include=".recipes\Spritely.Redo\Using.cs" />
     <Compile Include="ComputingInfrastructureNamer.cs" />
     <Compile Include="ComputingInfrastructureManagerForAws.cs" />
     <Compile Include="GlobalSuppressions.cs" />
