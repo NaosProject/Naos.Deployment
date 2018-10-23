@@ -109,6 +109,17 @@ namespace OBeautifulCode.Validation.Recipes
             }
         }
 
+        private static void BeNullOrNotWhiteSpaceInternal(
+            Validation validation)
+        {
+            var shouldThrow = !ReferenceEquals(validation.Value, null) && string.IsNullOrWhiteSpace((string)validation.Value);
+            if (shouldThrow)
+            {
+                var exceptionMessage = BuildArgumentExceptionMessage(validation, BeNullOrNotWhiteSpaceExceptionMessageSuffix, Include.FailingValue);
+                throw new ArgumentException(exceptionMessage);
+            }
+        }
+
         private static void BeEmptyGuidInternal(
             Validation validation)
         {

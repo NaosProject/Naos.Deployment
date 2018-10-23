@@ -67,6 +67,8 @@ namespace OBeautifulCode.Validation.Recipes
 
         public const string NotBeNullNorWhiteSpaceExceptionMessageSuffix = "is white space";
 
+        public const string BeNullOrNotWhiteSpaceExceptionMessageSuffix = "is not null and is white space";
+        
         public const string BeEmptyGuidExceptionMessageSuffix = "is not an empty guid";
 
         public const string NotBeEmptyGuidExceptionMessageSuffix = "is an empty guid";

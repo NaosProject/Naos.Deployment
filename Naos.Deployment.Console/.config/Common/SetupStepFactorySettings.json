@@ -65,6 +65,10 @@
         "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE",
         "defaultTaskPriority": 5 
     },
+    "windowsServerSettings": {
+        "taskSchedulerSnapInPath": "C:\\Windows\\System32\\taskschd.msc",
+        "taskManagerExePath": "C:\\Windows\\System32\\Taskmgr.exe"
+    },
     "mongoServerSettings": {
         "serviceAccount": "SYSTEM",
         "serviceName": "MongoDB",
@@ -91,7 +95,8 @@
         "defaultTimeout": "00:01:00"
     },
     "webServerSettings": {
-        "iisAccount": "NT AUTHORITY\\NETWORKSERVICE"
+        "iisAccount": "NT AUTHORITY\\NETWORKSERVICE",
+        "iisManagerExePath": "C:\\Windows\\System32\\inetsrv\\InetMgr.exe"
     },
     "defaultDatabaseFileSizeSettings": {
         "dataFileCurrentSizeInKb": 100000,
@@ -987,17 +992,88 @@
                 "}"
             ]
         },
-        "pinTaskSchedulerToBarScript": {
-            "parameterNames": [ ],
+        "createShortcutOnDesktop": {
+            "parameterNames": [ "ItemPath", "PinToTaskBar" ],
             "scriptTextLines": [
                 "{",
-                "param()",
-                "   $taskSchedulerShortcutDirectoryPath = 'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Administrative Tools'",
-                "   $taskSchedulerShortcutFileName = 'Task Scheduler.lnk'",
-                "   $shell = new-object -ComObject Shell.Application",
-                "   $ns = $shell.NameSpace($taskSchedulerShortcutDirectoryPath)",
-                "   $verbs = $ns.ParseName($taskSchedulerShortcutFileName).Verbs()",
-                "   $verbs | ?{$_.Name -eq 'Pin to Tas&kbar'} | %{$_.Doit()}",
+                "param([string] $ItemPath, [boolean] $PinToTaskBar)",
+                "   [scriptblock] $executeVerbIfPresent = {",
+                "   param([string]$filePathToOperateOn, [string] $verbName)",
+                "      $directoryContext = Split-Path $filePathToOperateOn",
+                "      $fileContext = Split-Path $filePathToOperateOn -Leaf",
+                "      $shell = New-Object -ComObject Shell.Application",
+                "      $namespace = $shell.NameSpace($directoryContext)",
+                "      $allVerbs = $namespace.ParseName($fileContext).Verbs()",
+                "      $specificVerb = $allVerbs | ?{$_.Name -eq $verbName}",
+                "      if ($specificVerb -eq $null)",
+                "      {",
+                "         return $false",
+                "      }",
+                "      else",
+                "      {",
+                "         $specificVerb.Doit()",
+                "         return $true",
+                "      }",
+                "   }",
+                "   $pinToTaskBarVerbName = 'Pin to Tas&kbar'",
+                "   $createShortcutVerbName = 'Create &shortcut'",
+                "   $desktopDirectoryPath = Resolve-Path '~\\Desktop\\'",
+                "   $defaultShortcutDirectoryPath = Split-Path $ItemPath",
+                "   $itemFileName = Split-Path $ItemPath -Leaf",
+                "   $didCreateShortcut = &$executeVerbIfPresent -filePathToOperateOn $ItemPath -verbName $createShortcutVerbName",
+                "   if (-not $didCreateShortcut)",
+                "   {",
+                "      throw \"Could not find the '$createShortcutVerbName' option (verb in application shell context) on provided file '$ItemPath'.\"",
+                "   }",
+                "   $createdShortcutFileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($itemFileName) + ' - Shortcut.lnk'",
+                "   $createdShortcutFileNameWithExtention = $itemFileName + ' - Shortcut.lnk'",
+                "   $createdShortcutFileName = $createdShortcutFileNameWithoutExtension",
+                "   if (-not (Test-Path $createdShortcutFileNameWithoutExtension))",
+                "   {",
+                "      $createdShortcutFileName = $createdShortcutFileNameWithExtention",
+                "   }",
+                "   $createdItemPath = Join-Path $desktopDirectoryPath $createdShortcutFileName",
+                "   $defaultCreatedShortCutFilePath = Join-Path $defaultShortcutDirectoryPath $createdShortcutFileName",
+                "   Move-Item $defaultCreatedShortCutFilePath $createdItemPath -Force",
+                "   if ($PinToTaskBar)",
+                "   {",
+                "       if (Test-Path -Path $ItemPath -PathType Container) # If it's a directory then we need to add the launching logic.",
+                "       {",
+                "          Remove-Item $createdItemPath",
+                "          $wsshell = New-Object -ComObject WScript.Shell",
+                "          $lnk = $wsshell.CreateShortcut($createdItemPath)",
+                "          $lnk.WindowStyle = 1",
+                "          $lnk.TargetPath = \"explorer.exe\"",
+                "          $lnk.Arguments = $ItemPath",
+                "          $lnk.IconLocation = \"explorer.exe,0\"",
+                "          $lnk.save() # This will overwrite the previous shortcut.",
+                "       }",
+                "       $didPinItem = &$executeVerbIfPresent -filePathToOperateOn $ItemPath -verbName $pinToTaskBarVerbName",
+                "       if (-not $didPinItem)",
+                "       {",
+                "          $didPinShortcut = &$executeVerbIfPresent -filePathToOperateOn $createdItemPath -verbName $pinToTaskBarVerbName",
+                "          if (-not $didPinShortcut)",
+                "          {",
+                "             throw \"Could not find the '$pinToTaskBarVerbName' option (verb in application shell context) on provided file '$createdItemPath'.\"",
+                "          }",
+                "       }",
+                "   }",
+                "}"
+            ]
+        },
+        "copyFileScript": {
+            "parameterNames": [ "SourceFilePath", "TargetFilePath" ],
+            "scriptTextLines": [
+                "{",
+                "param([string] $SourceFilePath, [string] $TargetFilePath, [boolean] $Force)",
+                "    if ($Force)",
+                "    {",
+                "       Copy-Item $SourceFilePath $TargetFilePath -Force",
+                "    }",
+                "    else",
+                "    {",
+                "       Copy-Item $SourceFilePath $TargetFilePath",
+                "    }",
                 "}"
             ]
         },

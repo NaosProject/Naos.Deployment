@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
 
     using static System.FormattableString;
@@ -82,16 +83,78 @@ namespace Naos.Deployment.Core
 
             steps.Add(execScripts);
 
-            var pinTaskSchedulerToBarStep = new SetupStep
+            var shortcutTaskManagerStep = new SetupStep
             {
-                Description = "Pin Task Scheduler to Bar.",
-                SetupFunc = machineManager =>
-                    machineManager
-                        .RunScript(this.Settings.DeploymentScriptBlocks.PinTaskSchedulerToBarScript.ScriptText)
-                        .ToList(),
+                Description = "Pin Task Manager to Bar.",
+                SetupFunc = machineManager => machineManager
+                    .RunScript(
+                        this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                        new object[] { this.Settings.WindowsServerSettings.TaskManagerExePath, true })
+                    .ToList(),
             };
 
-            steps.Add(pinTaskSchedulerToBarStep);
+            steps.Add(shortcutTaskManagerStep);
+
+            var shortcutTaskSchedulerStep = new SetupStep
+            {
+                Description = "Pin Task Scheduler to Bar.",
+                SetupFunc = machineManager => machineManager
+                    .RunScript(
+                        this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                        new object[] { this.Settings.WindowsServerSettings.TaskSchedulerSnapInPath, true })
+                    .ToList(),
+            };
+
+            steps.Add(shortcutTaskSchedulerStep);
+
+            var shortcutDeploymentDirectory = new SetupStep
+            {
+                Description = Invariant($"Pin {workingDirectoryForFileCopyDuringInstanceSetup} to Bar."),
+                SetupFunc = machineManager => machineManager
+                    .RunScript(
+                        this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                        new object[] { workingDirectoryForFileCopyDuringInstanceSetup, false })
+                    .ToList(),
+            };
+
+            steps.Add(shortcutDeploymentDirectory);
+
+            var timeSlicedLogPath = this.Settings.DefaultLogWritingSettings.Configs
+                .Where(_ => _.LogItemPropertiesToIncludeInLogMessage !=
+                            LogItemPropertiesToIncludeInLogMessage.LogItemSerialization &&
+                            _ is TimeSlicedFilesLogConfig).Cast<TimeSlicedFilesLogConfig>().FirstOrDefault()
+                ?.LogFileDirectoryPath;
+            if (!string.IsNullOrWhiteSpace(timeSlicedLogPath))
+            {
+                var adjustedLogPath = funcToReplaceKnownTokensWithValues(timeSlicedLogPath);
+                var shortcutLogPath = new SetupStep
+                {
+                    Description = Invariant($"Pin {adjustedLogPath} to Bar."),
+                    SetupFunc = machineManager => machineManager
+                        .RunScript(
+                            this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                            new object[] { adjustedLogPath, false })
+                        .ToList(),
+                };
+
+                steps.Add(shortcutLogPath);
+            }
+
+            if (allInitializationStrategies.Any(_ => _ is InitializationStrategyIis))
+            {
+                var pinIisManagerArguments = new object[] { this.Settings.WebServerSettings.IisManagerExePath, true };
+                var pinIisManagerToBarStep = new SetupStep
+                {
+                    Description = Invariant($"Pin {workingDirectoryForFileCopyDuringInstanceSetup} to Bar."),
+                    SetupFunc = machineManager => machineManager
+                        .RunScript(
+                            this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                            pinIisManagerArguments)
+                        .ToList(),
+                };
+
+                steps.Add(pinIisManagerToBarStep);
+            }
 
             var fullComputerNameEnvironmentVariable = "FullComputerName";
             var windowsSkuEnvironmentVariable = "WindowsSku";

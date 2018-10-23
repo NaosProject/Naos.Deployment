@@ -39,6 +39,11 @@ namespace Naos.Deployment.Domain
         public DeploymentScriptBlockSet DeploymentScriptBlocks { get; set; }
 
         /// <summary>
+        /// Gets or sets the server settings for windows.
+        /// </summary>
+        public WindowsServerSettings WindowsServerSettings { get; set; }
+
+        /// <summary>
         /// Gets or sets the server settings of the database setup.
         /// </summary>
         public DatabaseServerSettings DatabaseServerSettings { get; set; }
@@ -55,6 +60,11 @@ namespace Naos.Deployment.Domain
         public HarnessSettings HarnessSettings { get; set; }
 
         /// <summary>
+        /// Gets or sets the server settings of the mongo setup.
+        /// </summary>
+        public MongoServerSettings MongoServerSettings { get; set; }
+
+        /// <summary>
         /// Gets or sets the root deployment path but will need substitutions applied.
         /// </summary>
         public string RootDeploymentPathTemplate { get; set; }
@@ -69,11 +79,6 @@ namespace Naos.Deployment.Domain
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays", Justification = "Order matters and collection is small, keeping an array for clarity.")]
         public string[] DeploymentDriveLetterPrecedence { get; set; }
-
-        /// <summary>
-        /// Gets or sets the server settings of the mongo setup.
-        /// </summary>
-        public MongoServerSettings MongoServerSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the max number of times to execute a setup step before throwing.
@@ -102,6 +107,22 @@ namespace Naos.Deployment.Domain
     }
 
     /// <summary>
+    /// Settings class to provide information about servers in general.
+    /// </summary>
+    public class WindowsServerSettings
+    {
+        /// <summary>
+        /// Gets or sets the path to the task scheduler MMC snap-in.
+        /// </summary>
+        public string TaskSchedulerSnapInPath { get; set; }
+
+        /// <summary>
+        /// Gets or sets the path of the task manager.
+        /// </summary>
+        public string TaskManagerExePath { get; set; }
+    }
+
+    /// <summary>
     /// Settings class to provide information about the harness
     /// </summary>
     public class HarnessSettings
@@ -127,6 +148,11 @@ namespace Naos.Deployment.Domain
         /// Gets or sets account the IIS AppPool is running as.
         /// </summary>
         public string IisAccount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the path of the IIS Manager.
+        /// </summary>
+        public string IisManagerExePath { get; set; }
     }
 
     /// <summary>
@@ -249,9 +275,14 @@ namespace Naos.Deployment.Domain
         public ScriptBlockDescription SetupWinRmScript { get; set; }
 
         /// <summary>
-        /// Gets or sets the script block to pin the task scheduler to the bar.
+        /// Gets or sets the script block to pin a shortcut to the task bar.
         /// </summary>
-        public ScriptBlockDescription PinTaskSchedulerToBarScript { get; set; }
+        public ScriptBlockDescription CreateShortcutOnDesktop { get; set; }
+
+        /// <summary>
+        /// Gets or sets the script block to copy a file.
+        /// </summary>
+        public ScriptBlockDescription CopyFileScript { get; set; }
 
         /// <summary>
         /// Gets or sets the script block to replace tokens in files.

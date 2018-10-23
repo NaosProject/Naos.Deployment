@@ -43,7 +43,115 @@ namespace Naos.Recipes.RunWithRetry
         public static readonly TimeSpan DefaultPollingInterval = TimeSpan.FromMilliseconds(10);
 
         /// <summary>
-        /// Runs a function and retries if any exception is thrown, using a linear-delay backoff strategy.
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
+        /// </summary>
+        /// <param name="operation">The operation to execute.</param>
+        /// <param name="retryCount">Optional number of retries; DEFAULT is <see cref="DefaultRetryCount" />.</param>
+        /// <param name="backOffDelay">Optional backoff delay; DEFAULT is <see cref="DefaultLinearBackoffDelay" />.</param>
+        /// <returns>
+        /// A task.
+        /// </returns>
+        public static void WithRetry(this Action operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
+        {
+            new { operation }.Must().NotBeNull();
+
+            var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
+
+            Using
+                .LinearBackOff(localBackOff)
+                .WithMaxRetries(retryCount)
+                .Run(operation)
+                .Now();
+        }
+
+        /// <summary>
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
+        /// </summary>
+        /// <typeparam name="T">The type of task returned by the operation.</typeparam>
+        /// <param name="operation">The operation to execute.</param>
+        /// <param name="retryCount">Optional number of retries; DEFAULT is <see cref="DefaultRetryCount" />.</param>
+        /// <param name="backOffDelay">Optional backoff delay; DEFAULT is <see cref="DefaultLinearBackoffDelay" />.</param>
+        /// <returns>
+        /// A task of type returned by the operation.
+        /// </returns>
+        public static T WithRetry<T>(this Func<T> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
+        {
+            new { operation }.Must().NotBeNull();
+
+            var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
+
+            var result = Using
+                             .LinearBackOff(localBackOff)
+                             .WithMaxRetries(retryCount)
+                             .Run(operation)
+                             .Now();
+            return result;
+        }
+
+        /// <summary>
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
+        /// </summary>
+        /// <param name="operation">The operation to execute.</param>
+        /// <param name="reporter">Action to call to report exceptions as they occur.</param>
+        /// <param name="messageBuilder">
+        /// Optional.  Transforms the exception message and uses that as the Message property of the 
+        /// anonymous object that's sent to the <paramref name="reporter"/>.  If null, then the exception's
+        /// Message is used.
+        /// </param>
+        /// <param name="retryCount">Optional number of retries; DEFAULT is <see cref="DefaultRetryCount" />.</param>
+        /// <param name="backOffDelay">Optional backoff delay; DEFAULT is <see cref="DefaultLinearBackoffDelay" />.</param>
+        /// <returns>
+        /// A task.
+        /// </returns>
+        public static void WithRetry(this Action operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
+        {
+            new { operation }.Must().NotBeNull();
+            new { reporter }.Must().NotBeNull();
+
+            var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
+
+            Using
+                .LinearBackOff(localBackOff)
+                .WithReporter(_ => reporter(new { Message = messageBuilder == null ? _.Message : messageBuilder(_), Exception = _ }))
+                .WithMaxRetries(retryCount)
+                .Run(operation)
+                .Now();
+        }
+
+        /// <summary>
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
+        /// </summary>
+        /// <typeparam name="T">The type of task returned by the operation.</typeparam>
+        /// <param name="operation">The operation to execute.</param>
+        /// <param name="reporter">Action to call to report exceptions as they occur.</param>
+        /// <param name="messageBuilder">
+        /// Optional.  Transforms the exception message and uses that as the Message property of the 
+        /// anonymous object that's sent to the <paramref name="reporter"/>.  If null, then the exception's
+        /// Message is used.
+        /// </param>
+        /// <param name="retryCount">Optional number of retries; DEFAULT is <see cref="DefaultRetryCount" />.</param>
+        /// <param name="backOffDelay">Optional backoff delay; DEFAULT is <see cref="DefaultLinearBackoffDelay" />.</param>
+        /// <returns>
+        /// A task of type returned by the operation.
+        /// </returns>
+        public static T WithRetry<T>(this Func<T> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
+        {
+            new { operation }.Must().NotBeNull();
+            new { reporter }.Must().NotBeNull();
+
+            var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
+
+            var result = Using
+                             .LinearBackOff(localBackOff)
+                             .WithReporter(_ => reporter(new { Message = messageBuilder == null ? _.Message : messageBuilder(_), Exception = _ }))
+                             .WithMaxRetries(retryCount)
+                             .Run(operation)
+                             .Now();
+            return result;
+        }
+
+        /// <summary>
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
         /// </summary>
         /// <param name="operation">The operation to execute.</param>
         /// <param name="retryCount">Optional number of retries; DEFAULT is <see cref="DefaultRetryCount" />.</param>
@@ -65,7 +173,7 @@ namespace Naos.Recipes.RunWithRetry
         }
 
         /// <summary>
-        /// Runs a function and retries if any exception is thrown, using a linear-delay backoff strategy.
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
         /// </summary>
         /// <typeparam name="T">The type of task returned by the operation.</typeparam>
         /// <param name="operation">The operation to execute.</param>
@@ -89,7 +197,7 @@ namespace Naos.Recipes.RunWithRetry
         }
 
         /// <summary>
-        /// Runs a function and retries if any exception is thrown, using a linear-delay backoff strategy.
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
         /// </summary>
         /// <param name="operation">The operation to execute.</param>
         /// <param name="reporter">Action to call to report exceptions as they occur.</param>
@@ -107,7 +215,6 @@ namespace Naos.Recipes.RunWithRetry
         {
             new { operation }.Must().NotBeNull();
             new { reporter }.Must().NotBeNull();
-            new { messageBuilder }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -120,7 +227,7 @@ namespace Naos.Recipes.RunWithRetry
         }
 
         /// <summary>
-        /// Runs a function and retries if any exception is thrown, using a linear-delay backoff strategy.
+        /// Runs a function and retries if any exception is thrown, using a linear backoff strategy.
         /// </summary>
         /// <typeparam name="T">The type of task returned by the operation.</typeparam>
         /// <param name="operation">The operation to execute.</param>
@@ -139,7 +246,6 @@ namespace Naos.Recipes.RunWithRetry
         {
             new { operation }.Must().NotBeNull();
             new { reporter }.Must().NotBeNull();
-            new { messageBuilder }.Must().NotBeNull();
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -225,7 +331,6 @@ namespace Naos.Recipes.RunWithRetry
             return task.Result;
         }
     }
-
 
     /// <summary>
     /// Strategy on how to wait until a <see cref="Task" /> is complete.
