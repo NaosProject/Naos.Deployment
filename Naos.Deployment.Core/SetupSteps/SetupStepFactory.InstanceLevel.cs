@@ -29,10 +29,10 @@ namespace Naos.Deployment.Core
         /// <param name="windowsSku">The windows SKU used to create the instance.</param>
         /// <param name="environment">Environment the instance is in.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
-        /// <param name="workingDirectoryForFileCopyDuringInstanceSetup">Path to store files temporarily.</param>
+        /// <param name="deploymentDirectory">Path used to store deployments and associated temporal information.</param>
         /// <param name="funcToReplaceKnownTokensWithValues">Function to replace well known tokens with values.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string workingDirectoryForFileCopyDuringInstanceSetup, Func<string, string> funcToReplaceKnownTokensWithValues)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
             var steps = new List<SetupStep>();
 
@@ -83,6 +83,18 @@ namespace Naos.Deployment.Core
 
             steps.Add(execScripts);
 
+            var createDeploymentDirectoryScripts = new SetupStep
+                                  {
+                                      Description = Invariant($"Create Deployments directory ({deploymentDirectory})."),
+                                      SetupFunc =
+                                          machineManager =>
+                                          machineManager.RunScript(
+                                              this.Settings.DeploymentScriptBlocks
+                                              .CreateDirectoryWithFullControl.ScriptText, new[] { deploymentDirectory, this.Settings.AdministratorAccount }).ToList(),
+                                  };
+
+            steps.Add(createDeploymentDirectoryScripts);
+
             var shortcutTaskManagerStep = new SetupStep
             {
                 Description = "Pin Task Manager to Bar.",
@@ -109,11 +121,11 @@ namespace Naos.Deployment.Core
 
             var shortcutDeploymentDirectory = new SetupStep
             {
-                Description = Invariant($"Pin {workingDirectoryForFileCopyDuringInstanceSetup} to Bar."),
+                Description = Invariant($"Pin {deploymentDirectory} to Bar."),
                 SetupFunc = machineManager => machineManager
                     .RunScript(
                         this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
-                        new object[] { workingDirectoryForFileCopyDuringInstanceSetup, false })
+                        new object[] { deploymentDirectory, false })
                     .ToList(),
             };
 
@@ -145,7 +157,7 @@ namespace Naos.Deployment.Core
                 var pinIisManagerArguments = new object[] { this.Settings.WebServerSettings.IisManagerExePath, true };
                 var pinIisManagerToBarStep = new SetupStep
                 {
-                    Description = Invariant($"Pin {workingDirectoryForFileCopyDuringInstanceSetup} to Bar."),
+                    Description = Invariant($"Pin IIS Manager to Bar."),
                     SetupFunc = machineManager => machineManager
                         .RunScript(
                             this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
@@ -255,7 +267,7 @@ namespace Naos.Deployment.Core
 
                     var environmentCertSteps = await this.GetCertificateToInstallSpecificStepsParameterizedWithoutStrategyAsync(
                                                    "Instance",
-                                                   workingDirectoryForFileCopyDuringInstanceSetup,
+                                                   deploymentDirectory,
                                                    funcToReplaceKnownTokensWithValues,
                                                    usersToGrantAccessToKey,
                                                    this.environmentCertificateName,
