@@ -97,7 +97,7 @@ namespace Naos.Deployment.Core
 
             var shortcutTaskManagerStep = new SetupStep
             {
-                Description = "Pin Task Manager to Bar.",
+                Description = Invariant($"Create desktop shortcut for Task Manager and pin to Task Bar."),
                 SetupFunc = machineManager => machineManager
                     .RunScript(
                         this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
@@ -109,7 +109,7 @@ namespace Naos.Deployment.Core
 
             var shortcutTaskSchedulerStep = new SetupStep
             {
-                Description = "Pin Task Scheduler to Bar.",
+                Description = Invariant($"Create desktop shortcut for Task Scheduler and pin to Task Bar."),
                 SetupFunc = machineManager => machineManager
                     .RunScript(
                         this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
@@ -121,7 +121,7 @@ namespace Naos.Deployment.Core
 
             var shortcutDeploymentDirectory = new SetupStep
             {
-                Description = Invariant($"Pin {deploymentDirectory} to Bar."),
+                Description = Invariant($"Create desktop shortcut for {deploymentDirectory}."),
                 SetupFunc = machineManager => machineManager
                     .RunScript(
                         this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
@@ -139,9 +139,22 @@ namespace Naos.Deployment.Core
             if (!string.IsNullOrWhiteSpace(timeSlicedLogPath))
             {
                 var adjustedLogPath = funcToReplaceKnownTokensWithValues(timeSlicedLogPath);
+
+                var createLogDirectoryScripts = new SetupStep
+                {
+                    Description = Invariant($"Create Log directory ({adjustedLogPath})."),
+                    SetupFunc =
+                        machineManager =>
+                            machineManager.RunScript(
+                                this.Settings.DeploymentScriptBlocks
+                                    .CreateDirectoryWithFullControl.ScriptText, new[] { adjustedLogPath, this.Settings.AdministratorAccount }).ToList(),
+                };
+
+                steps.Add(createLogDirectoryScripts);
+
                 var shortcutLogPath = new SetupStep
                 {
-                    Description = Invariant($"Pin {adjustedLogPath} to Bar."),
+                    Description = Invariant($"Create desktop shortcut for {adjustedLogPath}."),
                     SetupFunc = machineManager => machineManager
                         .RunScript(
                             this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
@@ -157,7 +170,7 @@ namespace Naos.Deployment.Core
                 var pinIisManagerArguments = new object[] { this.Settings.WebServerSettings.IisManagerExePath, true };
                 var pinIisManagerToBarStep = new SetupStep
                 {
-                    Description = Invariant($"Pin IIS Manager to Bar."),
+                    Description = Invariant($"Create desktop shortcut for IIS Manager and pin to Task Bar."),
                     SetupFunc = machineManager => machineManager
                         .RunScript(
                             this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
