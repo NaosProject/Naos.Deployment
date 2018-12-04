@@ -127,13 +127,6 @@ namespace Naos.Deployment.Core
                 ret.Add(batch);
             }
 
-            if (distinctInitializationStrategyTypes.Any(_ => _ == typeof(InitializationStrategyIis)))
-            {
-                var installIisSteps = this.GetIisInstallSteps();
-                var batch = new SetupStepBatch { ExecutionOrder = ExecutionOrder.InstallIis, Steps = installIisSteps, };
-                ret.Add(batch);
-            }
-
             if (distinctInitializationStrategyTypes.Any(_ => _ == typeof(InitializationStrategyMongo)))
             {
                 var installMongoSteps = this.GetInstallMongoSteps();

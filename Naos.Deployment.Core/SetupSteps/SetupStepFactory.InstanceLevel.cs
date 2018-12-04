@@ -167,6 +167,17 @@ namespace Naos.Deployment.Core
 
             if (allInitializationStrategies.Any(_ => _ is InitializationStrategyIis))
             {
+                var installIisStep = new SetupStep
+                {
+                    Description = Invariant($"Install IIS."),
+                    SetupFunc = machineManager => machineManager
+                        .RunScript(
+                            this.Settings.DeploymentScriptBlocks.InstallIis.ScriptText)
+                        .ToList(),
+                };
+
+                steps.Add(installIisStep);
+
                 var pinIisManagerArguments = new object[] { this.Settings.WebServerSettings.IisManagerExePath, true };
                 var pinIisManagerToBarStep = new SetupStep
                 {
@@ -179,6 +190,22 @@ namespace Naos.Deployment.Core
                 };
 
                 steps.Add(pinIisManagerToBarStep);
+            }
+
+            if (allInitializationStrategies.Any(_ => _ is InitializationStrategySqlServer))
+            {
+                var pinSsmsArguments = new object[] { this.Settings.DatabaseServerSettings.SsmsExePath, true };
+                var pinSsmsToBarStep = new SetupStep
+                {
+                    Description = Invariant($"Create desktop shortcut for SQL Server Management Services and pin to Task Bar."),
+                    SetupFunc = machineManager => machineManager
+                        .RunScript(
+                            this.Settings.DeploymentScriptBlocks.CreateShortcutOnDesktop.ScriptText,
+                            pinSsmsArguments)
+                        .ToList(),
+                };
+
+                steps.Add(pinSsmsToBarStep);
             }
 
             var fullComputerNameEnvironmentVariable = "FullComputerName";

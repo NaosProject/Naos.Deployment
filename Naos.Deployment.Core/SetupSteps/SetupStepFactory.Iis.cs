@@ -23,19 +23,6 @@ namespace Naos.Deployment.Core
     /// </summary>
     internal partial class SetupStepFactory
     {
-        private IReadOnlyCollection<SetupStep> GetIisInstallSteps()
-        {
-            return new[]
-                       {
-                           new SetupStep
-                               {
-                                   Description = "Install IIS.",
-                                   SetupFunc = machineManager =>
-                                       machineManager.RunScript(this.Settings.DeploymentScriptBlocks.InstallIis.ScriptText).ToList(),
-                               },
-                       };
-        }
-
         private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];

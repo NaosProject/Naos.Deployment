@@ -25,8 +25,6 @@ namespace Naos.Deployment.Core
 
         InstanceLevel = 0,
 
-        InstallIis,
-
         CopyPackages,
 
         ReplaceTokenInFiles,

@@ -171,6 +171,12 @@ namespace Naos.Deployment.Domain
         public string SqlServiceAccount { get; set; }
 
         /// <summary>
+        /// Gets or sets the path of the SQL Server Management Services.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ssms", Justification = "Spelling/name is correct.")]
+        public string SsmsExePath { get; set; }
+
+        /// <summary>
         /// Gets or sets the Windows account that is running the backup process.
         /// </summary>
         public string BackupProcessServiceAccount { get; set; }
