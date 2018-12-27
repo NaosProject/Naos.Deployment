@@ -401,7 +401,7 @@ namespace Naos.Deployment.Core
                 var rebootSetupSteps = this.GetRebootSteps();
                 setupSteps.AddRange(rebootSetupSteps);
 
-                var blockUntilRebooted = this.GetBlockeUntilRebootedSteps();
+                var blockUntilRebooted = this.GetBlockedUntilRebootedSteps();
                 setupSteps.AddRange(blockUntilRebooted);
 
                 foreach (var packagedConfig in packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness)
@@ -492,7 +492,7 @@ namespace Naos.Deployment.Core
                        };
         }
 
-        private SetupStepBatch[] GetBlockeUntilRebootedSteps()
+        private SetupStepBatch[] GetBlockedUntilRebootedSteps()
         {
             return new[]
                        {
@@ -647,14 +647,14 @@ namespace Naos.Deployment.Core
         }
 
         /// <summary>
-        /// Get deployment configuration from package along with package itself.
+        /// Get packages and extract any deployment configuration present.
         /// </summary>
-        /// <param name="environment"></param>
-        /// <param name="packageManager"></param>
-        /// <param name="packageHelper"></param>
-        /// <param name="configFileManager"></param>
-        /// <param name="packagesToDeploy"></param>
-        /// <returns></returns>
+        /// <param name="environment">Environment from Its.Config to use.</param>
+        /// <param name="packageManager">Interface to fetch packages from their galleries.</param>
+        /// <param name="packageHelper">Helper logic to extract information from packages.</param>
+        /// <param name="configFileManager">Interface to manage configuration file creation.</param>
+        /// <param name="packagesToDeploy">Packages to deploy.</param>
+        /// <returns>List of packages with bytes downloaded and any deployment configuration extracted.</returns>
         public static IReadOnlyCollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
             string environment,
             IGetPackages packageManager,
