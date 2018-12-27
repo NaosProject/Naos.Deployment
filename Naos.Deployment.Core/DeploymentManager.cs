@@ -183,11 +183,14 @@ namespace Naos.Deployment.Core
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
             this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
 
-            // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = this.configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
-
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
-            var packagedDeploymentConfigs = this.GetPackagedDeploymentConfigurations(packagesToDeploy, deploymentFileSearchPattern);
+            var packagedDeploymentConfigs = GetPackagedDeploymentConfigurations(
+                environment,
+                this.packageManager,
+                this.packageHelper,
+                this.configFileManager,
+                packagesToDeploy);
+
             foreach (var config in packagedDeploymentConfigs)
             {
                 if (config.DeploymentConfiguration == null)
@@ -200,24 +203,10 @@ namespace Naos.Deployment.Core
                 }
             }
 
-            // apply default values to any nulls
-            this.LogAnnouncement("Applying default deployment configuration options.");
-            var packagedConfigsWithDefaults = packagedDeploymentConfigs.ApplyDefaults(this.defaultDeploymentConfiguration);
-
-            // flatten configs into a single config to deploy onto an instance
-            this.LogAnnouncement("Flattening multiple deployment configurations.");
-            var flattenedConfig = packagedConfigsWithDefaults.Select(_ => _.DeploymentConfiguration).ToList().Flatten();
-
-            // apply overrides
-            this.LogAnnouncement("Applying applicable overrides to the flattened deployment configuration.");
-            var overriddenConfig = flattenedConfig.ApplyOverrides(deploymentConfigOverride);
-
-            // set config to use for creation
-            var configToCreateWith = overriddenConfig;
+            var configToCreateWith = PrepareAndConsolidateConfigs(this.defaultDeploymentConfiguration, deploymentConfigOverride, packagedDeploymentConfigs, input => this.LogAnnouncement(input));
 
             // apply newly constructed configs across all configs
-            var packagedDeploymentConfigsWithDefaultsAndOverrides =
-                packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
+            var packagedDeploymentConfigsWithDefaultsAndOverrides = packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
             // terminate existing instances...
             await
@@ -247,6 +236,39 @@ namespace Naos.Deployment.Core
             await Task.WhenAll(tasks);
 
             this.LogAnnouncement("Finished deployment.");
+        }
+
+        /// <summary>
+        /// Prepare configurations then consolidate and finish any preparation.
+        /// </summary>
+        /// <param name="defaultDeploymentConfig">Default config.</param>
+        /// <param name="overrideDeploymentConfig">Override config.</param>
+        /// <param name="packagedDeploymentConfigs">Packages with deployment configuration extracted.</param>
+        /// <param name="announcer">Optional announcer for logic applied.</param>
+        /// <returns>Prepared and consolidated deployment configuration.</returns>
+        public static DeploymentConfiguration PrepareAndConsolidateConfigs(
+            DeploymentConfiguration defaultDeploymentConfig,
+            DeploymentConfiguration overrideDeploymentConfig,
+            IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigs,
+            Action<string> announcer = null)
+        {
+            var localAnnouncer = announcer ?? (s => { /* no-op */ });
+
+            // apply default values to any nulls
+            localAnnouncer("Applying default deployment configuration options.");
+            var packagedConfigsWithDefaults = packagedDeploymentConfigs.ApplyDefaults(defaultDeploymentConfig);
+
+            // flatten configs into a single config to deploy onto an instance
+            localAnnouncer("Flattening multiple deployment configurations.");
+            var flattenedConfig = packagedConfigsWithDefaults.Select(_ => _.DeploymentConfiguration).ToList().Flatten();
+
+            // apply overrides
+            localAnnouncer("Applying applicable overrides to the flattened deployment configuration.");
+            var overriddenConfig = flattenedConfig.ApplyOverrides(overrideDeploymentConfig);
+
+            // set config to use for creation
+            var configToCreateWith = overriddenConfig;
+            return configToCreateWith;
         }
 
         private async Task CreateNumberedInstanceAsync(
@@ -624,10 +646,25 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private IReadOnlyCollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
-            IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy,
-            string deploymentFileSearchPattern)
+        /// <summary>
+        /// Get deployment configuration from package along with package itself.
+        /// </summary>
+        /// <param name="environment"></param>
+        /// <param name="packageManager"></param>
+        /// <param name="packageHelper"></param>
+        /// <param name="configFileManager"></param>
+        /// <param name="packagesToDeploy"></param>
+        /// <returns></returns>
+        public static IReadOnlyCollection<PackagedDeploymentConfiguration> GetPackagedDeploymentConfigurations(
+            string environment,
+            IGetPackages packageManager,
+            PackageHelper packageHelper,
+            IManageConfigFiles configFileManager,
+            IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy)
         {
+            // get deployment details from Its.Config in the package
+            var deploymentFileSearchPattern = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
+
             bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) =>
                 hasStrategies != null && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
                                           || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any(_ => _.BundleDependencies));
@@ -638,17 +675,17 @@ namespace Naos.Deployment.Core
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = FigureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
-                        var package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
-                        var actualVersion = this.packageHelper.GetActualVersionFromPackage(package.Package);
+                        var package = packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var actualVersion = packageHelper.GetActualVersionFromPackage(package.Package);
 
                         var deploymentConfigJson =
-                            this.packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                            packageManager.GetMultipleFileContentsFromPackageAsStrings(
                                 package.Package,
                                 deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
 
                         // strip the BOM (Byte Order Mark) since the characters are stored in a string now and encoding should be fine; presence of this will fail many serializers...
                         var deploymentConfigJsonWithoutBom = (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty);
-                        var deploymentConfig = this.configFileManager.DeserializeConfigFileText<DeploymentConfigurationWithStrategies>(deploymentConfigJsonWithoutBom);
+                        var deploymentConfig = configFileManager.DeserializeConfigFileText<DeploymentConfigurationWithStrategies>(deploymentConfigJsonWithoutBom);
 
                         // re-check the extracted config to make sure it doesn't change the decision about bundling...
                         var bundleAllDependenciesReCheck = FigureOutIfNeedToBundleDependencies(deploymentConfig);
@@ -658,7 +695,7 @@ namespace Naos.Deployment.Core
                             // since we previously didn't bundle the packages dependencies
                             //        AND found in the extraced config that we need to
                             //       THEN we need to re-download with dependencies bundled...
-                            package = this.packageHelper.GetPackage(packageDescriptionWithOverrides, true);
+                            package = packageHelper.GetPackage(packageDescriptionWithOverrides, true);
                         }
 
                         // take overrides if present, otherwise take existing, otherwise take empty
