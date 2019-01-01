@@ -240,7 +240,7 @@ namespace OBeautifulCode.Validation.Recipes
             var valueType = validation.ValueType;
             var validTypes = typeValidation.ReferenceTypes;
 
-            if (!validTypes.Any(_ => valueType.IsOfType(_)))
+            if (!validTypes.Any(_ => valueType.IsAssignableTo(_, treatUnboundGenericAsAssignableTo: true)))
             {
                 ThrowParameterUnexpectedType(validation, validTypes);
             }

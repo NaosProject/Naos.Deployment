@@ -58,17 +58,20 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.30\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
+    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.2\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.MessageBus.Domain, Version=1.2.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.2.8\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.41.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.41\lib\net461\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Domain, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Domain.1.0.55\lib\net462\Naos.Serialization.Domain.dll</HintPath>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.57\lib\net462\Naos.Serialization.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Serialization.Json, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Serialization.Json.1.0.55\lib\net462\Naos.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Serialization.Json, Version=1.0.57.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Json.1.0.57\lib\net462\Naos.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Telemetry.Domain, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Telemetry.Domain.1.0.12\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
@@ -155,6 +158,7 @@
     <Compile Include="InstanceType.cs" />
     <Compile Include="ITrackComputingInfrastructure.cs" />
     <Compile Include="ItsConfigOverride.cs" />
+    <Compile Include="OperatingSystemDescriptionBase.cs" />
     <Compile Include="PackageDescriptionWithDeploymentStatus.cs" />
     <Compile Include="PackageDescriptionWithOverrides.cs" />
     <Compile Include="PostDeploymentStrategy.cs" />
