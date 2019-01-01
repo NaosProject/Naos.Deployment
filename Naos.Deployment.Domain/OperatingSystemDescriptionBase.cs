@@ -7,6 +7,7 @@
 namespace Naos.Deployment.Domain
 {
     using System;
+    using System.ComponentModel;
     using Naos.MachineManagement.Domain;
     using OBeautifulCode.Math.Recipes;
 
@@ -15,6 +16,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Model to represent information about an operating system choice.
     /// </summary>
+    [Bindable(true)]
     public abstract class OperatingSystemDescriptionBase
     {
         /// <summary>
