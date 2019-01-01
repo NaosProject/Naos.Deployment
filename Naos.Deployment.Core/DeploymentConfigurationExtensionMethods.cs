@@ -223,13 +223,7 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException("Must specify operating system in either default or specific config.");
             }
 
-            var operatingSystem = initialOperatingSystem;
-            if (operatingSystem == null ||
-                (operatingSystem as OperatingSystemDescriptionWindows)?.Sku == WindowsSku.DoesNotMatter ||
-                (operatingSystem as OperatingSystemDescriptionLinux)?.Distribution == LinuxDistribution.DoesNotMatter)
-            {
-                operatingSystem = overrideOperatingSystem;
-            }
+            var operatingSystem = overrideOperatingSystem ?? initialOperatingSystem;
 
             var instanceCount = deploymentConfigOverride.InstanceCount == 0
                                     ? deploymentConfigInitial.InstanceCount
