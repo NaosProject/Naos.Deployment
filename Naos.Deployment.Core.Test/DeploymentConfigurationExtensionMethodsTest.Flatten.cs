@@ -206,7 +206,11 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Flatten_Tags_Merged()
         {
-            var a = new DeploymentConfiguration() { TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } }, };
+            var a = new DeploymentConfiguration()
+            {
+                InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
+                TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            };
 
             var b = new DeploymentConfiguration() { TagNameToValueMap = new Dictionary<string, string> { { "world", "hello" } }, };
 
@@ -221,6 +225,7 @@ namespace Naos.Deployment.Core.Test
         {
             var a = new DeploymentConfiguration()
                         {
+                            InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
@@ -274,6 +279,7 @@ namespace Naos.Deployment.Core.Test
         {
             var a = new DeploymentConfiguration()
                         {
+                            InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                             PostDeploymentStrategy =
                                 new PostDeploymentStrategy
                                     {
@@ -293,6 +299,7 @@ namespace Naos.Deployment.Core.Test
         {
             var first = new DeploymentConfiguration()
                             {
+                                InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } },
                             };
 
@@ -312,6 +319,7 @@ namespace Naos.Deployment.Core.Test
         {
             var first = new DeploymentConfiguration()
                             {
+                                InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } },
                             };
 
@@ -332,6 +340,7 @@ namespace Naos.Deployment.Core.Test
         {
             var first = new DeploymentConfiguration()
                             {
+                                InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                                 Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100 } },
                             };
 
@@ -493,6 +502,7 @@ namespace Naos.Deployment.Core.Test
                                         {
                                             new DeploymentConfiguration()
                                                 {
+                                                    InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                                                     ChocolateyPackages =
                                                         new[]
                                                             {
