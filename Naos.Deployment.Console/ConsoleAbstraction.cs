@@ -65,6 +65,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance to get password is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "password", Description = "Gets the password of an instance from the provided tracker.")]
         public static void GetPassword(
@@ -72,11 +73,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetPassword(credentialsJson, infrastructureTrackerJson, instanceName, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetPassword(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -87,6 +89,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "status", Description = "Gets the status of the instance found by name in provided tracker.")]
         public static void GetInstanceStatus(
@@ -94,11 +97,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetInstanceStatus(credentialsJson, infrastructureTrackerJson, instanceName, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetInstanceStatus(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -108,17 +112,19 @@ namespace Naos.Deployment.Console
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "query", Description = "Gets the instances that are active (not terminated) from the underlying computing provider.")]
         public static void GetActiveInstancesFromProvider(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetActiveInstancesFromProvider(credentialsJson, infrastructureTrackerJson, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetActiveInstancesFromProvider(credentialsJson, infrastructureTrackerJson, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -128,17 +134,19 @@ namespace Naos.Deployment.Console
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "list", Description = "Gets the instance names (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a') in provided tracker.")]
         public static void GetInstanceNames(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetInstanceNames(credentialsJson, infrastructureTrackerJson, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetInstanceNames(credentialsJson, infrastructureTrackerJson, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -148,17 +156,19 @@ namespace Naos.Deployment.Console
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name to check.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "diff", Description = "Gets the instances only in either tracking or computer platform.")]
         public static void GetInstancesInTrackingAndNotProviderOrReverse(
             [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetInstancesInTrackingAndNotProviderOrReverse(credentialsJson, infrastructureTrackerJson, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetInstancesInTrackingAndNotProviderOrReverse(credentialsJson, infrastructureTrackerJson, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -169,6 +179,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Name of instance to remove.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance should be removed.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "retire", Description = "Gets the instances only in either tracking or computer platform.")]
         public static void RemoveTrackedInstance(
@@ -176,11 +187,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("name")] [Required] [Description("Name of instance to remove.")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.RemoveTrackedInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.RemoveTrackedInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -192,6 +204,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceNameOfInstanceToRemove">Name of instance to remove (cannot be used with <paramref name="privateIpAddressOfInstanceToRemove" />).</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name with un-deployed instance.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
@@ -202,11 +215,12 @@ namespace Naos.Deployment.Console
             [Aliases("ip")] [Description("IP Address of instance to remove.")] string privateIpAddressOfInstanceToRemove,
             [Aliases("name")] [Description("Name of instance to remove.")] string instanceNameOfInstanceToRemove,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.RemoveTrackedInstanceNotInComputingPlatform(credentialsJson, infrastructureTrackerJson, privateIpAddressOfInstanceToRemove, instanceNameOfInstanceToRemove, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.RemoveTrackedInstanceNotInComputingPlatform(credentialsJson, infrastructureTrackerJson, privateIpAddressOfInstanceToRemove, instanceNameOfInstanceToRemove, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -217,6 +231,7 @@ namespace Naos.Deployment.Console
         /// <param name="systemIdOfInstanceToRemove">ID of instance to remove (ID from the computing platform).</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name with un-tracked instance.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "kill", Description = "Removes an instance from the computing platform that is not in tracking.")]
         public static void RemoveInstanceInComputingPlatformNotTracked(
@@ -224,13 +239,14 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("id")] [Required] [Description("ID of instance to remove (ID from the computing platform).")] string systemIdOfInstanceToRemove,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             new { systemIdOfInstanceToRemove }.Must().NotBeNullNorWhiteSpace();
 
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.RemoveInstanceInComputingPlatformNotTracked(credentialsJson, infrastructureTrackerJson, systemIdOfInstanceToRemove, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.RemoveInstanceInComputingPlatformNotTracked(credentialsJson, infrastructureTrackerJson, systemIdOfInstanceToRemove, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -241,6 +257,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "details", Description = "Gets the details of the instance found by name in provided tracker.")]
         public static void GetInstanceDetails(
@@ -248,11 +265,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.GetInstanceDetails(credentialsJson, infrastructureTrackerJson, instanceName, environment, Console.WriteLine);
+            NaosDeploymentBootstrapper.GetInstanceDetails(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType, Console.WriteLine);
         }
 
         /// <summary>
@@ -264,6 +282,7 @@ namespace Naos.Deployment.Console
         /// <param name="shouldConnectInFullScreen">A value indicating whether or not to connect in full screen mode.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "This is fine.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "connect", Description = "Starts a remote session instance found by name in provided tracker.")]
@@ -273,11 +292,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("fullscreen")] [Description("Connect in fullscreen mode.")] [DefaultValue(true)] bool shouldConnectInFullScreen,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.ConnectToInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, shouldConnectInFullScreen);
+            NaosDeploymentBootstrapper.ConnectToInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType, shouldConnectInFullScreen);
         }
 
         /// <summary>
@@ -288,6 +308,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "start", Description = "Starts the instance found by name in provided tracker.")]
         public static void StartInstance(
@@ -295,11 +316,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.StartInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment);
+            NaosDeploymentBootstrapper.StartInstance(credentialsJson, infrastructureTrackerJson, instanceName, environment, environmentType);
         }
 
         /// <summary>
@@ -311,6 +333,7 @@ namespace Naos.Deployment.Console
         /// <param name="force">Force the shutdown.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "stop", Description = "Stops the instance found by name in provided tracker.")]
         public static void StopInstance(
@@ -319,11 +342,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.StopInstance(credentialsJson, infrastructureTrackerJson, instanceName, force, environment);
+            NaosDeploymentBootstrapper.StopInstance(credentialsJson, infrastructureTrackerJson, instanceName, force, environment, environmentType);
         }
 
         /// <summary>
@@ -335,6 +359,7 @@ namespace Naos.Deployment.Console
         /// <param name="force">Force the shutdown.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "bounce", Description = "Stops then starts the instance found by name in provided tracker.")]
         public static void StopThenStartInstance(
@@ -343,11 +368,12 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Required] [Description("Name of the instance to start (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').")] string instanceName,
             [Aliases("")] [Description("Force the shutdown.")] [DefaultValue(false)] bool force,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.StopThenStartInstance(credentialsJson, infrastructureTrackerJson, instanceName, force, environment);
+            NaosDeploymentBootstrapper.StopThenStartInstance(credentialsJson, infrastructureTrackerJson, instanceName, force, environment, environmentType);
         }
 
         /// <summary>
@@ -369,6 +395,7 @@ namespace Naos.Deployment.Console
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Optional <see cref="EnvironmentType" />; DEFAULT is AWS.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "telemetryFilePath", Justification = "Spelling/name is correct.")]
@@ -403,7 +430,8 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] [DefaultValue("[]")] string packagesToDeployJson,
             [Aliases("")] [Description("Optional deployment adjustment strategies to use.")] [DefaultValue("[]")] string deploymentAdjustmentApplicatorJson,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment)
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
             PrintArguments(
                 new
@@ -427,7 +455,7 @@ namespace Naos.Deployment.Console
 
             CommonSetup(debug, environment);
 
-            NaosDeploymentBootstrapper.Deploy(credentialsJson, nugetPackageRepositoryConfigurationsJson, certificateRetrieverJson, infrastructureTrackerJson, overrideDeploymentConfigJson, environmentCertificateName, announcementFilePath, debugAnnouncementFilePath, telemetryFilePath, nugetAnnouncementFilePath, instanceName, workingPath, packagesToDeployJson, deploymentAdjustmentApplicatorJson, environment);
+            NaosDeploymentBootstrapper.Deploy(credentialsJson, nugetPackageRepositoryConfigurationsJson, certificateRetrieverJson, infrastructureTrackerJson, overrideDeploymentConfigJson, environmentCertificateName, announcementFilePath, debugAnnouncementFilePath, telemetryFilePath, nugetAnnouncementFilePath, instanceName, workingPath, packagesToDeployJson, deploymentAdjustmentApplicatorJson, environment, environmentType);
         }
 
         /// <summary>
@@ -466,7 +494,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [DefaultValue(null)] [Description("Store name to find the encrypting certificate.")] string encryptingCertificateStoreName,
             [Aliases("")] [DefaultValue(null)] [Description("Store location to find the encrypting certificate.")] string encryptingCertificateStoreLocation,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment)
+            [Aliases("env")] [Description("Sets the Its.Configuration precedence to use specific settings.")] [DefaultValue(null)] string environment)
         {
             CommonSetup(debug, environment);
 

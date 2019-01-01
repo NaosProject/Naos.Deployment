@@ -7,6 +7,40 @@
 namespace Naos.Deployment.Domain
 {
     /// <summary>
+    /// Enumeration of the various types of environments.
+    /// </summary>
+    public enum EnvironmentType
+    {
+        /// <summary>
+        /// Amazon Web Services.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
+        Aws,
+
+        /// <summary>
+        /// Microsoft Azure
+        /// </summary>
+        Azure,
+
+        /// <summary>
+        /// Microsoft Windows Server Hyper-V.
+        /// </summary>
+        Hypervisor,
+
+        /// <summary>
+        /// Manual deployment to server, builds a deployment package.
+        /// </summary>
+        Manual,
+
+        /// <summary>
+        /// VM Ware.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Vm", Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vm", Justification = "Spelling/name is correct.")]
+        VmWare,
+    }
+
+    /// <summary>
     /// Enumeration of the types of deployed status of a package.
     /// </summary>
     public enum PackageDeploymentStatus

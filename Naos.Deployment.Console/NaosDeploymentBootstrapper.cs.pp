@@ -144,12 +144,14 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name where instance to get password is located.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         internal static void GetPassword(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void GetPassword(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -166,7 +168,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(password);
             }
 
-            BootRunComputingManagerOperation(GetPassword, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetPassword, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -176,12 +178,14 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void GetInstanceStatus(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void GetInstanceStatus(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -195,7 +199,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(status.ToString());
             }
 
-            BootRunComputingManagerOperation(GetInstanceStatus, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetInstanceStatus, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -204,11 +208,13 @@ namespace $rootnamespace$
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void GetActiveInstancesFromProvider(
             string credentialsJson,
             string infrastructureTrackerJson,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void GetInstancesFromProvider(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -219,7 +225,7 @@ namespace $rootnamespace$
                     localResultAnnouncer(Invariant($"{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
             }
 
-            BootRunComputingManagerOperation(GetInstancesFromProvider, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetInstancesFromProvider, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -228,11 +234,13 @@ namespace $rootnamespace$
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void GetInstanceNames(
             string credentialsJson,
             string infrastructureTrackerJson,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void GetInstances(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -242,7 +250,7 @@ namespace $rootnamespace$
                 instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
             }
 
-            BootRunComputingManagerOperation(GetInstances, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetInstances, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -251,11 +259,13 @@ namespace $rootnamespace$
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="environment">Environment name to check.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void GetInstancesInTrackingAndNotProviderOrReverse(
             string credentialsJson,
             string infrastructureTrackerJson,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void GetInstanceDifferences(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -278,7 +288,7 @@ namespace $rootnamespace$
                     localResultAnnouncer(Invariant($"un-tracked\t{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
             }
 
-            BootRunComputingManagerOperation(GetInstanceDifferences, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetInstanceDifferences, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -288,12 +298,14 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of instance to remove.</param>
         /// <param name="environment">Environment name where instance should be removed.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void RemoveTrackedInstance(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void RemoveTrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -305,7 +317,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(Invariant($"Removed {instanceName}."));
             }
 
-            BootRunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -316,6 +328,7 @@ namespace $rootnamespace$
         /// <param name="privateIpAddressOfInstanceToRemove">IP Address of instance to remove (cannot be used with <paramref name="instanceNameOfInstanceToRemove" />).</param>
         /// <param name="instanceNameOfInstanceToRemove">Name of instance to remove (cannot be used with <paramref name="privateIpAddressOfInstanceToRemove" />).</param>
         /// <param name="environment">Environment name with un-deployed instance.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         [SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
@@ -325,6 +338,7 @@ namespace $rootnamespace$
             string privateIpAddressOfInstanceToRemove,
             string instanceNameOfInstanceToRemove,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             if (string.IsNullOrWhiteSpace(privateIpAddressOfInstanceToRemove) && string.IsNullOrWhiteSpace(instanceNameOfInstanceToRemove))
@@ -364,7 +378,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(Invariant($"Removed {privateIpAddressOfInstanceToRemove} from Tracking."));
             }
 
-            BootRunComputingManagerOperation(RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, RemoveTrackedInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -374,12 +388,14 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="systemIdOfInstanceToRemove">ID of instance to remove (ID from the computing platform).</param>
         /// <param name="environment">Environment name with un-tracked instance.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void RemoveInstanceInComputingPlatformNotTracked(
             string credentialsJson,
             string infrastructureTrackerJson,
             string systemIdOfInstanceToRemove,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             void RemoveUntrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -412,7 +428,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(Invariant($"Removed {systemIdOfInstanceToRemove} from Provider."));
             }
 
-            BootRunComputingManagerOperation(RemoveUntrackedInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, RemoveUntrackedInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -422,12 +438,14 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name where instance exists.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="localResultAnnouncer">Call back action to use with result.</param>
         public static void GetInstanceDetails(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             string environment,
+            EnvironmentType environmentType,
             Action<string> localResultAnnouncer)
         {
             var configFileManager = new ConfigFileManager(
@@ -445,7 +463,7 @@ namespace $rootnamespace$
                 localResultAnnouncer(instanceText);
             }
 
-            BootRunComputingManagerOperation(GetInstanceDetails, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, GetInstanceDetails, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -455,6 +473,7 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Environment type.</param>
         /// <param name="shouldConnectInFullScreen">A value indicating whether or not to connect in full screen mode.</param>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Weird logic to get terminal services to automatically connect, coupling not a problem here.")]
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Object is disposed correctly.")]
@@ -463,6 +482,7 @@ namespace $rootnamespace$
             string infrastructureTrackerJson,
             string instanceName,
             string environment,
+            EnvironmentType environmentType,
 			bool shouldConnectInFullScreen)
         {
             void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
@@ -578,7 +598,7 @@ namespace $rootnamespace$
                 }
             }
 
-            BootRunComputingManagerOperation(Connect, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, Connect, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -588,11 +608,13 @@ namespace $rootnamespace$
         /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Environment type.</param>
         public static void StartInstance(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
-            string environment)
+            string environment,
+            EnvironmentType environmentType)
         {
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -607,7 +629,7 @@ namespace $rootnamespace$
                 }
             }
 
-            BootRunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, StartInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -618,12 +640,14 @@ namespace $rootnamespace$
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="force">Force the shutdown.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Environment type.</param>
         public static void StopInstance(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             bool force,
-            string environment)
+            string environment,
+            EnvironmentType environmentType)
         {
             void StopInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -638,7 +662,7 @@ namespace $rootnamespace$
                 }
             }
 
-            BootRunComputingManagerOperation(StopInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, StopInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
@@ -649,12 +673,14 @@ namespace $rootnamespace$
         /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
         /// <param name="force">Force the shutdown.</param>
         /// <param name="environment">Environment name where instance is located.</param>
+        /// <param name="environmentType">Environment type.</param>
         public static void StopThenStartInstance(
             string credentialsJson,
             string infrastructureTrackerJson,
             string instanceName,
             bool force,
-            string environment)
+            string environment,
+            EnvironmentType environmentType)
         {
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -671,16 +697,17 @@ namespace $rootnamespace$
                 }
             }
 
-            BootRunComputingManagerOperation(StartInstance, credentialsJson, infrastructureTrackerJson);
+            BootRunComputingManagerOperation(environmentType, StartInstance, credentialsJson, infrastructureTrackerJson);
         }
 
         /// <summary>
         /// Runs provided operation with <see cref="ITrackComputingInfrastructure" /> and <see cref="IManageComputingInfrastructure" /> using provided configs.
         /// </summary>
+        /// <param name="environmentType">Type of environment.</param>
         /// <param name="action">Action to run.</param>
         /// <param name="credentialsJson">Credentials to use.</param>
         /// <param name="infrastructureTrackerJson">Tracker JSON.</param>
-        public static void BootRunComputingManagerOperation(Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
+        public static void BootRunComputingManagerOperation(EnvironmentType environmentType, Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
         {
             new { action }.Must().NotBeNull();
             new { credentialsJson }.Must().NotBeNull();
@@ -692,9 +719,8 @@ namespace $rootnamespace$
             var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
-                using (var computingManager = new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker))
+                using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
                 {
-                    computingManager.InitializeCredentials(credentials);
                     action(infrastructureTracker, computingManager);
                 }
             }
@@ -718,7 +744,7 @@ namespace $rootnamespace$
         /// <param name="packagesToDeployJson">Optional packages descriptions (with overrides) to configure the instance with.</param>
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="environment">Environment name being deployed to.</param>
-        /// <param name="machineManagerFactory">Optional machine manager factory override.</param>
+        /// <param name="environmentType">Environment Type.</param>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Most complicated set of steps, coupling ok here.")]
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         public static void Deploy(
@@ -737,9 +763,9 @@ namespace $rootnamespace$
             string packagesToDeployJson,
             string deploymentAdjustmentApplicatorJson,
             string environment,
-			ICreateMachineManagers machineManagerFactory = null)
+			EnvironmentType environmentType)
         {
-		    var localMachineManagerFactory = machineManagerFactory ?? new MachineManagerFactory();
+		    var machineManagerFactory = GetMachineManagerFactory(environmentType);
             var packagesToDeploy =
                 (IReadOnlyCollection<PackageDescriptionWithOverrides>)Settings.Deserialize(
                     typeof(IReadOnlyCollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
@@ -768,10 +794,8 @@ namespace $rootnamespace$
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
-                using (var computingManager =
-                    new ComputingInfrastructureManagerForAws(computingInfrastructureManagerSettings, infrastructureTracker))
+                using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
                 {
-                    computingManager.InitializeCredentials(credentials);
                     var tempDir = Path.GetTempPath();
                     var unzipDirPath = Path.Combine(tempDir, "Naos.Deployment.Temp");
                     if (!string.IsNullOrEmpty(workingPath))
@@ -831,7 +855,7 @@ namespace $rootnamespace$
                             },
                             unzipDirPath,
                             configFileManager,
-							localMachineManagerFactory,
+							machineManagerFactory,
                             environmentCertificateName,
                             announcementFilePath,
                             debugAnnouncementFilePath,
@@ -1184,5 +1208,41 @@ namespace $rootnamespace$
                 throw new DeploymentException("Unexpected remaining items in arcology after destruction; " + Environment.NewLine + serializedDestroyedEnvironment);
             }
         }
-    }
+
+        [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
+        private static IManageComputingInfrastructure GetComputingManager(
+            EnvironmentType environmentType,
+            ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,
+            ITrackComputingInfrastructure infrastructureTracker,
+            CredentialContainer credentials)
+        {
+            switch (environmentType)
+            {
+                case EnvironmentType.Aws:
+                    var result = new ComputingInfrastructureManagerForAws(
+                        computingInfrastructureManagerSettings,
+                        infrastructureTracker);
+                    result.InitializeCredentials(credentials);
+                    return result;
+                case EnvironmentType.Manual:
+                    return new NullComputingManager();
+                default:
+                    throw new NotSupportedException(Invariant($"Environment type: {environmentType} is not supported."));
+            }
+        }
+
+        private static ICreateMachineManagers GetMachineManagerFactory(
+            EnvironmentType environmentType)
+        {
+            switch (environmentType)
+            {
+                case EnvironmentType.Aws:
+                    return new MachineManagerFactory();
+                case EnvironmentType.Manual:
+                    return new RecordingMachineManagerFactory();
+                default:
+                    throw new NotSupportedException(Invariant($"Environment type: {environmentType} is not supported."));
+            }
+        }
+	}
 }
