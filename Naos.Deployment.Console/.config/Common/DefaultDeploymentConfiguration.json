@@ -1,7 +1,8 @@
 ﻿{
     "instanceType": {
         "virtualCores": 1,
-        "ramInGb": 2
+        "ramInGb": 2,
+        "operatingSystem": { "sku": "doesNotMatter" }
     },
     "instanceAccessibility": "private",
     "volumes": [

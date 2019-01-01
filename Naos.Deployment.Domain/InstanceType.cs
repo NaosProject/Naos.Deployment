@@ -28,6 +28,11 @@ namespace Naos.Deployment.Domain
         public double? RamInGb { get; set; }
 
         /// <summary>
+        /// Gets or sets a description of the intended operating system.
+        /// </summary>
+        public OperatingSystemDescriptionBase OperatingSystem { get; set; }
+
+        /// <summary>
         /// Gets or sets a specific image to use (must be used in conjunction with WindowsSku.SpecificImageSupplied)
         /// </summary>
         public string SpecificImageSystemId { get; set; }
@@ -36,12 +41,6 @@ namespace Naos.Deployment.Domain
         /// Gets or sets a specific instance type to use (will override VirtualCores and RamInGb settings).
         /// </summary>
         public string SpecificInstanceTypeSystemId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Windows SKU to use.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
-        public WindowsSku WindowsSku { get; set; }
 
         /// <summary>
         /// Equal operator.
@@ -61,7 +60,7 @@ namespace Naos.Deployment.Domain
                 return false;
             }
 
-            return (first.VirtualCores == second.VirtualCores) && (first.RamInGb == second.RamInGb) && (first.SpecificImageSystemId == second.SpecificImageSystemId) && (first.SpecificInstanceTypeSystemId == second.SpecificInstanceTypeSystemId) && (first.WindowsSku == second.WindowsSku);
+            return (first.VirtualCores == second.VirtualCores) && (first.RamInGb == second.RamInGb) && (first.SpecificImageSystemId == second.SpecificImageSystemId) && (first.SpecificInstanceTypeSystemId == second.SpecificInstanceTypeSystemId) && (first.OperatingSystem == second.OperatingSystem);
         }
 
         /// <summary>
@@ -79,6 +78,6 @@ namespace Naos.Deployment.Domain
         public override bool Equals(object obj) => this == (obj as InstanceType);
 
         /// <inheritdoc />
-        public override int GetHashCode() => HashCodeHelper.Initialize().Hash(this.VirtualCores).Hash(this.RamInGb).Hash(this.SpecificImageSystemId).Hash(this.SpecificInstanceTypeSystemId).Hash(this.WindowsSku).Value;
+        public override int GetHashCode() => HashCodeHelper.Initialize().Hash(this.VirtualCores).Hash(this.RamInGb).Hash(this.SpecificImageSystemId).Hash(this.SpecificInstanceTypeSystemId).Hash(this.OperatingSystem).Value;
     }
 }

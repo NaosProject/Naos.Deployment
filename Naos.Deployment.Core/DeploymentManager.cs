@@ -15,6 +15,7 @@ namespace Naos.Deployment.Core
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
+    using Naos.MachineManagement.Domain;
     using Naos.Packaging.Domain;
     using Naos.Recipes.RunWithRetry;
     using Naos.Recipes.WinRM;
@@ -22,7 +23,7 @@ namespace Naos.Deployment.Core
     using Naos.Serialization.Json;
 
     using OBeautifulCode.Validation.Recipes;
-
+    using Spritely.Recipes;
     using static System.FormattableString;
 
     /// <inheritdoc />
@@ -79,6 +80,8 @@ namespace Naos.Deployment.Core
 
         private readonly IManageConfigFiles configFileManager;
 
+        private readonly ICreateMachineManagers machineManagerFactory;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentManager"/> class.
         /// </summary>
@@ -94,6 +97,7 @@ namespace Naos.Deployment.Core
         /// <param name="debugAnnouncer">Callback to get more detailed information through process.</param>
         /// <param name="workingDirectory">Directory to perform temp disk operations.</param>
         /// <param name="configFileManager">Config file manager necessary to be able to provide <see cref="Its.Configuration" /> overrides correctly.</param>
+        /// <param name="machineManagerFactory">Machine manager factory.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>
         /// <param name="debugAnnouncementFile">Optional file path to record a JSON file of debug announcements.</param>
@@ -111,11 +115,15 @@ namespace Naos.Deployment.Core
             Action<string> debugAnnouncer,
             string workingDirectory,
             IManageConfigFiles configFileManager,
+            ICreateMachineManagers machineManagerFactory,
             string environmentCertificateName = null,
             string announcementFile = null,
             string debugAnnouncementFile = null,
             string telemetryFile = null)
         {
+            new { configFileManager }.Must().NotBeNull();
+            new { machineManagerFactory }.Must().NotBeNull();
+
             this.tracker = tracker;
             this.computingManager = computingManager;
             this.packageManager = packageManager;
@@ -128,8 +136,7 @@ namespace Naos.Deployment.Core
             this.announcementFile = announcementFile;
             this.debugAnnouncementFile = debugAnnouncementFile;
             this.configFileManager = configFileManager;
-
-            new { configFileManager }.Must().NotBeNull();
+            this.machineManagerFactory = machineManagerFactory;
 
             this.setupStepFactory = new SetupStepFactory(
                 setupStepFactorySettings,
@@ -246,6 +253,7 @@ namespace Naos.Deployment.Core
         /// <param name="packagedDeploymentConfigs">Packages with deployment configuration extracted.</param>
         /// <param name="announcer">Optional announcer for logic applied.</param>
         /// <returns>Prepared and consolidated deployment configuration.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         public static DeploymentConfiguration PrepareAndConsolidateConfigs(
             DeploymentConfiguration defaultDeploymentConfig,
             DeploymentConfiguration overrideDeploymentConfig,
@@ -349,18 +357,11 @@ namespace Naos.Deployment.Core
                         () => this.GetAdminPasswordForInstanceAsync(createdInstanceDescription),
                         instanceNumber);
 
-                var machineManager = new MachineManager(
+                var machineManager = this.machineManagerFactory.CreateMachineManager(
+                    configToCreateWith.InstanceType.OperatingSystem.MachineProtocol,
                     createdInstanceDescription.PrivateIpAddress,
                     this.setupStepFactory.AdministratorAccount,
-                    Naos.Recipes.WinRM.StringExtensions.ToSecureString(adminPasswordClear),
-                    true);
-
-                this.LogAnnouncement("Waiting for machine to be accessible via WinRM (requires connectivity - make sure VPN is up if applicable).", instanceNumber);
-                await
-                    this.RunActionWithTelemetryAsync(
-                        "Wait for WinRM access",
-                        () => Task.Run(() => this.WaitUntilMachineIsAccessible(machineManager)),
-                        instanceNumber);
+                    adminPasswordClear);
 
                 var additionalPackages = this.deploymentAdjustmentStrategiesApplicator.IdentifyAdditionalPackages(
                     environment,
@@ -382,13 +383,13 @@ namespace Naos.Deployment.Core
                             });
                 }
 
-                var setupSteps = new List<SetupStepBatch>();
+                var setupSteps = this.GetWaitUntilMachineIsReachableSteps(machineManager).ToList();
 
                 var instanceLevelSetupSteps =
                     await
                     this.setupStepFactory.GetInstanceLevelSetupSteps(
                         createdInstanceDescription.ComputerName,
-                        configToCreateWith.InstanceType.WindowsSku,
+                        configToCreateWith.InstanceType.OperatingSystem,
                         environment,
                         packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),
                         this.setupStepFactory.Settings.BuildRootDeploymentPath(configToCreateWith.Volumes),
@@ -465,7 +466,7 @@ namespace Naos.Deployment.Core
                         failureCount = failureCount + 1;
                         if (failureCount > MaxFailureCount)
                         {
-                            throw new DeploymentException(Invariant($"Failed to reboot: {machineManager.IpAddress}"), ex);
+                            throw new DeploymentException(Invariant($"Failed to reboot: {machineManager.Address}"), ex);
                         }
                     }
                 }
@@ -484,6 +485,29 @@ namespace Naos.Deployment.Core
                                                            SetupFunc = m =>
                                                                {
                                                                    RebootInstance(m);
+                                                                   return new object[0];
+                                                               },
+                                                       },
+                                               },
+                               },
+                       };
+        }
+
+        private SetupStepBatch[] GetWaitUntilMachineIsReachableSteps(IManageMachines machineManager)
+        {
+            return new[]
+                       {
+                           new SetupStepBatch
+                               {
+                                   ExecutionOrder = ExecutionOrder.WaitUntilReachable,
+                                   Steps = new[]
+                                               {
+                                                   new SetupStep
+                                                       {
+                                                           Description = Invariant($"Waiting for machine to be reachable via {machineManager.MachineProtocol} (confirm VPN connection)."),
+                                                           SetupFunc = m =>
+                                                               {
+                                                                   this.WaitUntilMachineIsAccessible(m);
                                                                    return new object[0];
                                                                },
                                                        },
@@ -628,7 +652,7 @@ namespace Naos.Deployment.Core
             }
         }
 
-        private async Task RunSetupStepsAsync(MachineManager machineManager, IReadOnlyCollection<SetupStepBatch> setupStepBatches, int instanceNumber)
+        private async Task RunSetupStepsAsync(IManageMachines machineManager, IReadOnlyCollection<SetupStepBatch> setupStepBatches, int instanceNumber)
         {
             var maxTries = this.setupStepFactory.MaxSetupStepAttempts;
             var throwOnFailedSetupStep = this.setupStepFactory.ThrowOnFailedSetupStep;
@@ -662,6 +686,8 @@ namespace Naos.Deployment.Core
             IManageConfigFiles configFileManager,
             IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy)
         {
+            new { configFileManager }.Must().NotBeNull();
+
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
 
@@ -726,7 +752,7 @@ namespace Naos.Deployment.Core
         }
 
         private void RunSetupStepWithRetry(
-            MachineManager machineManager,
+            IManageMachines machineManager,
             int instanceNumber,
             SetupStep setupStep,
             int maxTries,

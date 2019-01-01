@@ -96,7 +96,7 @@ namespace Naos.Deployment.Core
             var initializationStrategies =
                 packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToTypeDescription())).ToList();
 
-            var ret = this.MatchCriterion.Where(_ => _.Matches(configToCreateWith.InstanceType.WindowsSku, initializationStrategies));
+            var ret = this.MatchCriterion.Where(_ => _.Matches(configToCreateWith.InstanceType.OperatingSystem, initializationStrategies));
             return ret.ToList();
         }
     }
@@ -111,16 +111,18 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="name">Friendly name for match.</param>
         /// <param name="skusToMatch"><see cref="WindowsSku"/>'s to match on.</param>
+        /// <param name="distributionsToMatch"><see cref="LinuxDistribution"/>'s to match on.</param>
         /// <param name="initializationStrategiesToMatch"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.</param>
         /// <param name="typeMatchStrategy"><see cref="TypeMatchStrategy"/> to use with <see cref="TypeDescription"/>'s.</param>
         /// <param name="criteriaMatchStrategy"><see cref="CriteriaMatchStrategy"/> to use when matching.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "skus", Justification = "Spelling/name is correct.")]
-        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<TypeDescription> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
+        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeDescription> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
         {
             new { name }.Must().NotBeNullNorWhiteSpace();
 
             this.Name = name;
             this.SkusToMatch = skusToMatch;
+            this.DistributionsToMatch = distributionsToMatch;
             this.InitializationStrategiesToMatch = initializationStrategiesToMatch;
             this.TypeMatchStrategy = typeMatchStrategy;
             this.CriteriaMatchStrategy = criteriaMatchStrategy;
@@ -136,6 +138,11 @@ namespace Naos.Deployment.Core
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Skus", Justification = "Spelling/name is correct.")]
         public IReadOnlyCollection<WindowsSku> SkusToMatch { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="LinuxDistribution"/>'s to match on.
+        /// </summary>
+        public IReadOnlyCollection<LinuxDistribution> DistributionsToMatch { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.
@@ -155,19 +162,33 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// A value indicating whether or not there is a match on the criteria.
         /// </summary>
-        /// <param name="windowsSku"><see cref="WindowsSku"/> of the deployment.</param>
+        /// <param name="operatingSystem"><see cref="OperatingSystemDescriptionBase"/> of the deployment.</param>
         /// <param name="initializationStrategies"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> used in the current deployment.</param>
         /// <returns>A value indicating whether or not the criteria is a match.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse", Justification = "Don't care about it.")]
-        public bool Matches(WindowsSku windowsSku, IReadOnlyCollection<TypeDescription> initializationStrategies)
+        public bool Matches(OperatingSystemDescriptionBase operatingSystem, IReadOnlyCollection<TypeDescription> initializationStrategies)
         {
             var match = false;
 
-            match = this.SkusToMatch.Contains(windowsSku);
-            if (this.CriteriaMatchStrategy == CriteriaMatchStrategy.MatchAny && match)
+            var windowsOs = operatingSystem as OperatingSystemDescriptionWindows;
+            if (windowsOs != null)
             {
-                return match;
+                match = this.SkusToMatch.Contains(windowsOs.Sku);
+                if (this.CriteriaMatchStrategy == CriteriaMatchStrategy.MatchAny && match)
+                {
+                    return match;
+                }
+            }
+
+            var linuxOs = operatingSystem as OperatingSystemDescriptionLinux;
+            if (linuxOs != null)
+            {
+                match = this.DistributionsToMatch.Contains(linuxOs.Distribution);
+                if (this.CriteriaMatchStrategy == CriteriaMatchStrategy.MatchAny && match)
+                {
+                    return match;
+                }
             }
 
             var typeComparer = new TypeComparer(this.TypeMatchStrategy);

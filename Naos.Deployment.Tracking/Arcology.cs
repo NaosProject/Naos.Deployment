@@ -16,6 +16,8 @@ namespace Naos.Deployment.Tracking
 
     using OBeautifulCode.Validation.Recipes;
 
+    using static System.FormattableString;
+
     /// <summary>
     /// Container object for storing a single environments entire state.
     /// </summary>
@@ -188,11 +190,13 @@ namespace Naos.Deployment.Tracking
             var keyName = container.KeyName;
 
             ImageDetails imageDetails;
-            if (deploymentConfiguration.InstanceType.WindowsSku == WindowsSku.SpecificImageSupplied)
+            var windowsOs = deploymentConfiguration.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows;
+            var linuxOs = deploymentConfiguration.InstanceType.OperatingSystem as OperatingSystemDescriptionLinux;
+            if ((windowsOs?.Sku == WindowsSku.SpecificImageSupplied) || (linuxOs?.Distribution == LinuxDistribution.SpecificImageSupplied))
             {
                 if (string.IsNullOrEmpty(deploymentConfiguration.InstanceType.SpecificImageSystemId))
                 {
-                    throw new ArgumentException("Cannot specify deploymentConfiguration.InstanceType.WindowsSku.SpecificImageSupplied without specifying a deploymentConfiguration.InstanceType.SpecificImageSystemId");
+                    throw new ArgumentException(Invariant($"Cannot specify an operating system of {deploymentConfiguration.InstanceType.OperatingSystem} without specifying a {nameof(deploymentConfiguration)}.{nameof(deploymentConfiguration.InstanceType)}.{nameof(deploymentConfiguration.InstanceType.SpecificImageSystemId)}"));
                 }
 
                 imageDetails = new ImageDetails()
@@ -293,10 +297,15 @@ namespace Naos.Deployment.Tracking
 
         private string FindImageSearchPattern(DeploymentConfiguration deploymentConfig)
         {
-            var success = this.WindowsSkuSearchPatternMap.TryGetValue(deploymentConfig.InstanceType.WindowsSku, out string searchPattern);
+            if (!(deploymentConfig.InstanceType.OperatingSystem is OperatingSystemDescriptionWindows windowsOs))
+            {
+                throw new DeploymentException("Unsupported Operating System to find image by pattern search: " + deploymentConfig.InstanceType.OperatingSystem);
+            }
+
+            var success = this.WindowsSkuSearchPatternMap.TryGetValue(windowsOs.Sku, out string searchPattern);
             if (!success)
             {
-                throw new DeploymentException("Unsupported Windows SKU: " + deploymentConfig.InstanceType.WindowsSku);
+                throw new DeploymentException("Unsupported Windows SKU: " + windowsOs.Sku);
             }
 
             return searchPattern;

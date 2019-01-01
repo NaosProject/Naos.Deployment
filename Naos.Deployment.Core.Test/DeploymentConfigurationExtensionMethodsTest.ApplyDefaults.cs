@@ -47,7 +47,7 @@ namespace Naos.Deployment.Core.Test
                                         {
                                             VirtualCores = 2,
                                             RamInGb = 4,
-                                            WindowsSku = WindowsSku.SqlStandard,
+                                            OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
                                         },
                                         InstanceAccessibility = InstanceAccessibility.Private,
                                         Volumes =
@@ -74,7 +74,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(defaultConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(defaultConfig.Volumes.Single().Type, appliedConfig.Volumes.Single().Type);
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
-            Assert.Equal(WindowsSku.SqlStandard, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal(WindowsSku.SqlStandard, (appliedConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
             Assert.Equal(true, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(true, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(true, appliedConfig.PostDeploymentStrategy.TurnOffInstance);

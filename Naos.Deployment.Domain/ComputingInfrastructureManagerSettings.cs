@@ -71,10 +71,9 @@ namespace Naos.Deployment.Domain
         public string EnvironmentTagKey { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the key to use when tagging an instance with the type of Windows OS deployed.
+        /// Gets or sets the name of the key to use when tagging an instance with the type of OS deployed.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
-        public string WindowsSkuTagKey { get; set; }
+        public string OperatingSystemTagKey { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the key to use when tagging an instance with whether it's public or private.

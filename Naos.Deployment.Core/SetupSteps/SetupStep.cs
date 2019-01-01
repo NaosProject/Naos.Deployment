@@ -8,8 +8,7 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
-
-    using Naos.Recipes.WinRM;
+    using Naos.MachineManagement.Domain;
 
     /// <summary>
     /// Model object for a setup step when provisioning a box.

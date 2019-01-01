@@ -26,6 +26,7 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="deploymentConfigs">Deployment configurations to operate against.</param>
         /// <returns>Constructed deployment configuration of most accommodating options.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode", Justification = "Prefer this layout.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         public static DeploymentConfiguration Flatten(this IReadOnlyCollection<DeploymentConfiguration> deploymentConfigs)
@@ -125,6 +126,10 @@ namespace Naos.Deployment.Core
 
             var tags = deploymentConfigs.SelectMany(_ => _.TagNameToValueMap ?? new Dictionary<string, string>()).ToDictionary(k => k.Key, v => v.Value);
 
+            var operatingSystem = GetMoreInclusiveOperatingSystem(
+                deploymentConfigs.Where(_ => _.InstanceType != null).Select(_ => _.InstanceType.OperatingSystem)
+                    .Distinct().ToList());
+
             var ret = new DeploymentConfiguration
                           {
                               InstanceCount = instanceCount,
@@ -135,9 +140,8 @@ namespace Naos.Deployment.Core
                                           SpecificImageSystemId = deploymentConfigs.Select(_ => _.InstanceType?.SpecificImageSystemId).Distinct().SingleOrDefault(_ => _ != null),
                                           RamInGb = deploymentConfigs.Max(_ => _.InstanceType == null ? 0 : _.InstanceType.RamInGb),
                                           VirtualCores = deploymentConfigs.Max(_ => _.InstanceType == null ? 0 : _.InstanceType.VirtualCores),
-                                          WindowsSku =
-                                              GetLargestWindowsSku(
-                                                  deploymentConfigs.Where(_ => _.InstanceType != null).Select(_ => _.InstanceType.WindowsSku).Distinct().ToList()),
+                                          OperatingSystem =
+                                              operatingSystem,
                                       },
                               InstanceAccessibility = accessibilityToUse,
                               Volumes = volumes,
@@ -147,9 +151,12 @@ namespace Naos.Deployment.Core
                               TagNameToValueMap = tags,
                           };
 
-            if (!string.IsNullOrWhiteSpace(ret.InstanceType.SpecificImageSystemId) && ret.InstanceType.WindowsSku != WindowsSku.SpecificImageSupplied)
+            if (!string.IsNullOrWhiteSpace(ret.InstanceType.SpecificImageSystemId) &&
+                ((ret.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku != WindowsSku.SpecificImageSupplied) &&
+                ((ret.InstanceType.OperatingSystem as OperatingSystemDescriptionLinux)?.Distribution != LinuxDistribution.SpecificImageSupplied))
             {
-                throw new ArgumentException(Invariant($"The flattened instance type has a SpecificImageSystemId: '{ret.InstanceType.SpecificImageSystemId}' but does not have the corresponding WindowsSku: '{nameof(WindowsSku.SpecificImageSupplied)}', instead it is: '{ret.InstanceType.WindowsSku}'."));
+                throw new ArgumentException(Invariant(
+                    $"The flattened instance type has a SpecificImageSystemId: '{ret.InstanceType.SpecificImageSystemId}' but does not have the corresponding {nameof(WindowsSku)}: '{nameof(WindowsSku.SpecificImageSupplied)}' or {nameof(LinuxDistribution)}: '{nameof(LinuxDistribution.SpecificImageSupplied)}', instead it is: '{ret.InstanceType.OperatingSystem}'."));
             }
 
             return ret;
@@ -209,11 +216,19 @@ namespace Naos.Deployment.Core
                 instanceAccessibility = overrideAccessibility;
             }
 
-            var windowsSku = (deploymentConfigInitial.InstanceType ?? new InstanceType()).WindowsSku;
-            var overrideWindowsSku = (deploymentConfigOverride.InstanceType ?? new InstanceType()).WindowsSku;
-            if (overrideWindowsSku != WindowsSku.DoesNotMatter)
+            var overrideOperatingSystem = deploymentConfigOverride.InstanceType?.OperatingSystem;
+            var initialOperatingSystem = deploymentConfigInitial.InstanceType?.OperatingSystem;
+            if (initialOperatingSystem == null && overrideOperatingSystem == null)
             {
-                windowsSku = overrideWindowsSku;
+                throw new DeploymentException("Must specify operating system in either default or specific config.");
+            }
+
+            var operatingSystem = initialOperatingSystem;
+            if (operatingSystem == null ||
+                (operatingSystem as OperatingSystemDescriptionWindows)?.Sku == WindowsSku.DoesNotMatter ||
+                (operatingSystem as OperatingSystemDescriptionLinux)?.Distribution == LinuxDistribution.DoesNotMatter)
+            {
+                operatingSystem = overrideOperatingSystem;
             }
 
             var instanceCount = deploymentConfigOverride.InstanceCount == 0
@@ -237,7 +252,7 @@ namespace Naos.Deployment.Core
                 ret.InstanceType = new InstanceType();
             }
 
-            ret.InstanceType.WindowsSku = windowsSku;
+            ret.InstanceType.OperatingSystem = operatingSystem;
 
             return ret;
         }
@@ -270,14 +285,8 @@ namespace Naos.Deployment.Core
                 accessibilityValue = InstanceAccessibility.Private;
             }
 
-            var windowsSku = deploymentConfigInitial == null || deploymentConfigInitial.InstanceType == null
-                                 ? WindowsSku.DoesNotMatter
-                                 : deploymentConfigInitial.InstanceType.WindowsSku;
-
-            if (windowsSku == WindowsSku.DoesNotMatter && defaultDeploymentConfig.InstanceType != null)
-            {
-                windowsSku = defaultDeploymentConfig.InstanceType.WindowsSku;
-            }
+            var operatingSystem = deploymentConfigInitial?.InstanceType?.OperatingSystem ??
+                                  defaultDeploymentConfig?.InstanceType?.OperatingSystem;
 
             // if the default isn't actually specifying anything then default to standard drive type (might wanna make configurable eventually...)
             var volumes = deploymentConfigInitial?.Volumes ?? defaultDeploymentConfig.Volumes;
@@ -315,47 +324,82 @@ namespace Naos.Deployment.Core
 
             if (ret.InstanceType != null)
             {
-                ret.InstanceType.WindowsSku = windowsSku;
+                ret.InstanceType.OperatingSystem = operatingSystem;
             }
 
             return ret;
         }
 
-        private static WindowsSku GetLargestWindowsSku(IReadOnlyCollection<WindowsSku> windowsSkus)
+        private static OperatingSystemDescriptionBase GetMoreInclusiveOperatingSystem(IReadOnlyCollection<OperatingSystemDescriptionBase> operatingSystems)
         {
-            if (windowsSkus == null || windowsSkus.Count == 0)
+            if (operatingSystems == null || operatingSystems.Count == 0)
             {
-                return WindowsSku.DoesNotMatter;
+                throw new DeploymentException("Must specify an operating system, check defaults if this is not expected.");
             }
 
-            if (windowsSkus.Count == 1)
+            if (operatingSystems.Count == 1)
             {
-                return windowsSkus.Single();
+                return operatingSystems.Single();
             }
 
-            if (windowsSkus.Contains(WindowsSku.SqlStandard))
+            var distinctOperatingSystemTypes =
+                operatingSystems.Select(_ => _.GetType()).Distinct().ToList();
+            if (distinctOperatingSystemTypes.Count > 1)
             {
-                return WindowsSku.SqlStandard;
+                throw new DeploymentException("Cannot deploy packages with differing requirements of operating system type.");
             }
 
-            if (windowsSkus.Contains(WindowsSku.SqlWeb))
+            if (distinctOperatingSystemTypes.Single() == typeof(OperatingSystemDescriptionLinux))
             {
-                return WindowsSku.SqlWeb;
+                var distributions = operatingSystems.Select(_ => (OperatingSystemDescriptionLinux)_).Select(_ => _.Distribution).ToList();
+                if (distributions.Contains(LinuxDistribution.SpecificImageSupplied))
+                {
+                    return new OperatingSystemDescriptionLinux { Distribution = LinuxDistribution.SpecificImageSupplied };
+                }
+                else
+                {
+                    return new OperatingSystemDescriptionLinux { Distribution = LinuxDistribution.DoesNotMatter };
+                }
             }
 
-            if (windowsSkus.Contains(WindowsSku.Base))
+            if (distinctOperatingSystemTypes.Single() == typeof(OperatingSystemDescriptionWindows))
             {
-                return WindowsSku.Base;
+                var windowsSkus = operatingSystems.Select(_ => (OperatingSystemDescriptionWindows)_).Select(_ => _.Sku).ToList();
+
+                if (windowsSkus.Count == 1)
+                {
+                    return new OperatingSystemDescriptionWindows { Sku = windowsSkus.Single() };
+                }
+
+                if (windowsSkus.Contains(WindowsSku.SqlStandard))
+                {
+                    return new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard };
+                }
+
+                if (windowsSkus.Contains(WindowsSku.SqlWeb))
+                {
+                    return new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlWeb };
+                }
+
+                if (windowsSkus.Contains(WindowsSku.Base))
+                {
+                    return new OperatingSystemDescriptionWindows { Sku = WindowsSku.Base };
+                }
+
+                if (windowsSkus.Contains(WindowsSku.Core))
+                {
+                    return new OperatingSystemDescriptionWindows { Sku = WindowsSku.Core };
+                }
+
+                throw new DeploymentException(
+                    "Could not find the appropriate Windows SKU from the list (perhaps there is an unsupported type in there): "
+                    + string.Join(",", windowsSkus));
             }
 
-            if (windowsSkus.Contains(WindowsSku.Core))
-            {
-                return WindowsSku.Core;
-            }
+            var operatingSystemsStrings = operatingSystems.Select(_ => _.ToString()).ToList();
+            var operatingSystemsAddIn = string.Join(",", operatingSystemsStrings);
 
-            throw new DeploymentException(
-                "Could not find the appropriate Windows SKU from the list (perhaps there is an unsupported type in there): "
-                + string.Join(",", windowsSkus));
+            throw new DeploymentException("Could not determine the correct operating system to use from the list: " + operatingSystemsAddIn);
         }
     }
 }

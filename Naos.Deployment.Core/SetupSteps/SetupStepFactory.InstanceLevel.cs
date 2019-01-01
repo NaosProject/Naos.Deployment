@@ -26,14 +26,20 @@ namespace Naos.Deployment.Core
         /// Gets the instance level setup steps.
         /// </summary>
         /// <param name="computerName">Computer name to use in windows for the instance.</param>
-        /// <param name="windowsSku">The windows SKU used to create the instance.</param>
+        /// <param name="operatingSystem">The operating system of the instance.</param>
         /// <param name="environment">Environment the instance is in.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <param name="deploymentDirectory">Path used to store deployments and associated temporal information.</param>
         /// <param name="funcToReplaceKnownTokensWithValues">Function to replace well known tokens with values.</param>
         /// <returns>List of setup steps </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, WindowsSku windowsSku, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, OperatingSystemDescriptionBase operatingSystem, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
+            var windowsOs = operatingSystem as OperatingSystemDescriptionWindows;
+            if (windowsOs == null)
+            {
+                throw new DeploymentException(Invariant($"{nameof(DeploymentStrategy.RunSetupSteps)} is only supported for {nameof(OperatingSystemDescriptionWindows)} not {operatingSystem}"));
+            }
+
             var steps = new List<SetupStep>();
 
             var setupWinRm = new SetupStep
@@ -209,7 +215,7 @@ namespace Naos.Deployment.Core
             }
 
             var fullComputerNameEnvironmentVariable = "FullComputerName";
-            var windowsSkuEnvironmentVariable = "WindowsSku";
+            var operatingSystemEvironmentVariable = "OperatingSystem";
             var addEnvironmentVariables = new SetupStep
                                               {
                                                   Description = "Add Machine Level Environment Variables.",
@@ -224,8 +230,8 @@ namespace Naos.Deployment.Core
                                                                                                           },
                                                                                                       new
                                                                                                           {
-                                                                                                              Name = windowsSkuEnvironmentVariable,
-                                                                                                              Value = windowsSku.ToString(),
+                                                                                                              Name = operatingSystemEvironmentVariable,
+                                                                                                              Value = operatingSystem.ToString(),
                                                                                                           },
                                                                                                       new
                                                                                                           {
@@ -247,7 +253,7 @@ namespace Naos.Deployment.Core
                                           Description = "Customize Instance Wallpaper.",
                                           SetupFunc = machineManager =>
                                               {
-                                                  var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, windowsSkuEnvironmentVariable, fullComputerNameEnvironmentVariable };
+                                                  var environmentVariablesToAddToWallpaper = new[] { this.Settings.EnvironmentEnvironmentVariableName, operatingSystemEvironmentVariable, fullComputerNameEnvironmentVariable };
                                                   return
                                                       machineManager.RunScript(
                                                           this.Settings.DeploymentScriptBlocks.UpdateInstanceWallpaper.ScriptText,

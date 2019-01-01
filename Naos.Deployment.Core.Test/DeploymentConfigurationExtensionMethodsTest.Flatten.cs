@@ -51,8 +51,8 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Flatten_SameSpecificImage_Uses()
         {
-            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", WindowsSku = WindowsSku.SpecificImageSupplied } };
-            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", WindowsSku = WindowsSku.SpecificImageSupplied } };
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SpecificImageSupplied } } };
+            var deploymentConfigTwo = new DeploymentConfiguration() { InstanceType = new InstanceType { SpecificImageSystemId = "server", OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SpecificImageSupplied } } };
 
             var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
             Assert.Equal(deploymentConfigTwo.InstanceType.SpecificInstanceTypeSystemId, config.InstanceType.SpecificInstanceTypeSystemId);
@@ -61,7 +61,7 @@ namespace Naos.Deployment.Core.Test
         [Fact]
         public static void Flatten_DifferentInstanceCount_TakesMax()
         {
-            var deploymentConfigOne = new DeploymentConfiguration() { InstanceCount = 1 };
+            var deploymentConfigOne = new DeploymentConfiguration() { InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() }, InstanceCount = 1 };
             var deploymentConfigTwo = new DeploymentConfiguration() { InstanceCount = 2 };
 
             var config = new[] { deploymentConfigOne, deploymentConfigTwo }.Flatten();
@@ -129,16 +129,30 @@ namespace Naos.Deployment.Core.Test
 
         [Fact]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
-        public static void Flatten_SpecifiedAmiWithSpecificAmiSku_Throws()
+        public static void Flatten_SpecifiedAmiWithSpecificAmiSku_Windows_Throws()
         {
             var a = new DeploymentConfiguration()
                         {
-                            InstanceType = new InstanceType { SpecificImageSystemId = "ami-something", WindowsSku = WindowsSku.DoesNotMatter },
+                            InstanceType = new InstanceType { SpecificImageSystemId = "ami-something", OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.DoesNotMatter } },
                         };
 
             Action testCode = () => new[] { a }.Flatten();
             var ex = Assert.Throws<ArgumentException>(testCode);
-            Assert.Equal("The flattened instance type has a SpecificImageSystemId: 'ami-something' but does not have the corresponding WindowsSku: 'SpecificImageSupplied', instead it is: 'DoesNotMatter'.", ex.Message);
+            Assert.Equal("The flattened instance type has a SpecificImageSystemId: 'ami-something' but does not have the corresponding WindowsSku: 'SpecificImageSupplied' or LinuxDistribution: 'SpecificImageSupplied', instead it is: 'WindowsSku-DoesNotMatter'.", ex.Message);
+        }
+
+        [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
+        public static void Flatten_SpecifiedAmiWithSpecificAmiSku_Linux_Throws()
+        {
+            var a = new DeploymentConfiguration()
+                        {
+                            InstanceType = new InstanceType { SpecificImageSystemId = "ami-something", OperatingSystem = new OperatingSystemDescriptionLinux { Distribution = LinuxDistribution.DoesNotMatter } },
+                        };
+
+            Action testCode = () => new[] { a }.Flatten();
+            var ex = Assert.Throws<ArgumentException>(testCode);
+            Assert.Equal("The flattened instance type has a SpecificImageSystemId: 'ami-something' but does not have the corresponding WindowsSku: 'SpecificImageSupplied' or LinuxDistribution: 'SpecificImageSupplied', instead it is: 'LinuxDistribution-DoesNotMatter'.", ex.Message);
         }
 
         [Fact]
@@ -164,14 +178,15 @@ namespace Naos.Deployment.Core.Test
         public static void Flatten_DeploymentStrategy_Persisted()
         {
             var a = new DeploymentConfiguration()
-                        {
-                            DeploymentStrategy =
-                                new DeploymentStrategy
-                                    {
-                                        RunSetupSteps = true,
-                                        IncludeInstanceInitializationScript = true,
-                                    },
-                        };
+            {
+                InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
+                DeploymentStrategy =
+                    new DeploymentStrategy
+                    {
+                        RunSetupSteps = true,
+                        IncludeInstanceInitializationScript = true,
+                    },
+            };
 
             var b = new DeploymentConfiguration()
                         {
@@ -348,6 +363,7 @@ namespace Naos.Deployment.Core.Test
 
                 var config = new DeploymentConfiguration()
                 {
+                    InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() },
                     Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = typed } },
                 };
 
@@ -410,6 +426,40 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Configs", Justification = "Spelling/name is correct.")]
+        public static void Flatten_TwoConfigsConflictingOperatingSystemType_Throws()
+        {
+            var deploymentConfigs = new[]
+                                        {
+                                            new DeploymentConfiguration()
+                                                {
+                                                    InstanceType =
+                                                        new InstanceType
+                                                            {
+                                                                VirtualCores = 2,
+                                                                RamInGb = 4,
+                                                                OperatingSystem = new OperatingSystemDescriptionWindows(),
+                                                            },
+                                                    InstanceAccessibility = InstanceAccessibility.Public,
+                                                },
+                                            new DeploymentConfiguration()
+                                                {
+                                                    InstanceType =
+                                                        new InstanceType
+                                                            {
+                                                                VirtualCores = 2,
+                                                                RamInGb = 4,
+                                                                OperatingSystem = new OperatingSystemDescriptionLinux(),
+                                                            },
+                                                    InstanceAccessibility = InstanceAccessibility.Private,
+                                                },
+                                        };
+
+            var ex = Assert.Throws<DeploymentException>(() => deploymentConfigs.Flatten());
+            Assert.Equal("Cannot deploy packages with differing requirements of accessibly.", ex.Message);
+        }
+
+        [Fact]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Skus", Justification = "Spelling/name is correct.")]
         public static void Flatten_DifferentSkus_LargestWins()
         {
@@ -417,12 +467,12 @@ namespace Naos.Deployment.Core.Test
                 {
                     var deploymentConfigs = new[]
                                                 {
-                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { WindowsSku = smallerSku } },
-                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { WindowsSku = largerSku } },
+                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { OperatingSystem = new OperatingSystemDescriptionWindows { Sku = smallerSku } } },
+                                                    new DeploymentConfiguration() { InstanceType = new InstanceType() { OperatingSystem = new OperatingSystemDescriptionWindows { Sku = largerSku } } },
                                                 };
 
                     var flattened = deploymentConfigs.Flatten();
-                    Assert.Equal(largerSku, flattened.InstanceType.WindowsSku);
+                    Assert.Equal(largerSku, (flattened.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
                 };
 
             testSkuCombo(WindowsSku.Base, WindowsSku.Base);

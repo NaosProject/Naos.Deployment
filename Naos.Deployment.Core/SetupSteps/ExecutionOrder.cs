@@ -23,7 +23,9 @@ namespace Naos.Deployment.Core
 
         Invalid = -1,
 
-        InstanceLevel = 0,
+        WaitUntilReachable = 0,
+
+        InstanceLevel,
 
         CopyPackages,
 

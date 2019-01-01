@@ -117,6 +117,22 @@ namespace Naos.Deployment.Domain
     }
 
     /// <summary>
+    /// Enumeration of the different distributions of linux available.
+    /// </summary>
+    public enum LinuxDistribution
+    {
+        /// <summary>
+        /// Indicates that it's irrelevant to this deployment.
+        /// </summary>
+        DoesNotMatter,
+
+        /// <summary>
+        /// Unused because a specific image was supplied.
+        /// </summary>
+        SpecificImageSupplied,
+    }
+
+    /// <summary>
     /// Enumeration of the types of volumes that can be created.
     /// </summary>
     public enum VolumeType

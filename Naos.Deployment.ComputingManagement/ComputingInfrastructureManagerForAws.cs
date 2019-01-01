@@ -488,7 +488,7 @@ namespace Naos.Deployment.ComputingManagement
                            {
                                { Constants.NameTagKey, instanceName },
                                { this.settings.EnvironmentTagKey, environment },
-                               { this.settings.WindowsSkuTagKey, deploymentConfiguration.InstanceType.WindowsSku.ToString() },
+                               { this.settings.OperatingSystemTagKey, deploymentConfiguration.InstanceType.OperatingSystem.ToString() },
                                { this.settings.InstanceAccessibilityTagKey, deploymentConfiguration.InstanceAccessibility.ToString() },
                            };
 
@@ -602,7 +602,8 @@ namespace Naos.Deployment.ComputingManagement
                 return instanceType.SpecificInstanceTypeSystemId;
             }
 
-            if (instanceType.WindowsSku == WindowsSku.SqlWeb)
+            var windowsOs = instanceType.OperatingSystem as OperatingSystemDescriptionWindows;
+            if (windowsOs != null && windowsOs.Sku == WindowsSku.SqlWeb)
             {
                 foreach (var type in this.settings.AwsInstanceTypesForSqlWeb)
                 {
@@ -612,7 +613,7 @@ namespace Naos.Deployment.ComputingManagement
                     }
                 }
             }
-            else if (instanceType.WindowsSku == WindowsSku.SqlStandard)
+            else if (windowsOs != null && windowsOs.Sku == WindowsSku.SqlStandard)
             {
                 foreach (var type in this.settings.AwsInstanceTypesForSqlStandard)
                 {

@@ -131,7 +131,7 @@ namespace Naos.Deployment.Core.Test
                                        DeploymentStrategy = new DeploymentStrategy { RunSetupSteps = true, IncludeInstanceInitializationScript = true },
                                        InstanceAccessibility = InstanceAccessibility.Private,
                                        InstanceCount = 1,
-                                       InstanceType = new InstanceType { VirtualCores = 4, RamInGb = 48, WindowsSku = WindowsSku.Base },
+                                       InstanceType = new InstanceType { VirtualCores = 4, RamInGb = 48, OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.Base } },
                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false },
                                        Volumes = new[] { new Volume { DriveLetter = "C", SizeInGb = 100, Type = VolumeType.HighPerformance } },
                                    };

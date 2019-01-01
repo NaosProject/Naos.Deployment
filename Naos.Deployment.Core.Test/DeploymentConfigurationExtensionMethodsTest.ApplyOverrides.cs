@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core.Test
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Overriden", Justification = "Spelling/name is correct.")]
         public static void ApplyOverrides_InstanceCount_DefaultIsOverriden()
         {
-            var baseConfig = new DeploymentConfiguration();
+            var baseConfig = new DeploymentConfiguration() { InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows() } };
             var overrideConfig = new DeploymentConfiguration() { InstanceCount = 2 };
             var config = baseConfig.ApplyOverrides(overrideConfig);
             Assert.Equal(overrideConfig.InstanceCount, config.InstanceCount);
@@ -37,7 +37,7 @@ namespace Naos.Deployment.Core.Test
                 {
                     VirtualCores = 10,
                     RamInGb = 20,
-                    WindowsSku = WindowsSku.SqlWeb,
+                    OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlWeb },
                 },
                 Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100 }, new Volume() { DriveLetter = "Q", SizeInGb = 1 } },
                 ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
@@ -55,7 +55,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(baseConfig.Volumes.First().DriveLetter, appliedConfig.Volumes.First().DriveLetter);
             Assert.Equal(baseConfig.Volumes.First().SizeInGb, appliedConfig.Volumes.First().SizeInGb);
             Assert.Equal(baseConfig.ChocolateyPackages.First().Id, appliedConfig.ChocolateyPackages.First().Id);
-            Assert.Equal(baseConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal((baseConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku, (appliedConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
             Assert.Equal(
                 baseConfig.DeploymentStrategy.IncludeInstanceInitializationScript,
                 appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
@@ -77,7 +77,7 @@ namespace Naos.Deployment.Core.Test
                                                            {
                                                                VirtualCores = 4,
                                                                RamInGb = 10,
-                                                               WindowsSku = WindowsSku.SqlStandard,
+                                                               OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
@@ -94,7 +94,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.Volumes.Single().DriveLetter, appliedConfig.Volumes.Single().DriveLetter);
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
-            Assert.Equal(overrideConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal((overrideConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku, (appliedConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
             Assert.Equal(overrideConfig.DeploymentStrategy.IncludeInstanceInitializationScript, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(overrideConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(overrideConfig.PostDeploymentStrategy.TurnOffInstance, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
@@ -111,7 +111,7 @@ namespace Naos.Deployment.Core.Test
                                      {
                                          VirtualCores = 10,
                                          RamInGb = 20,
-                                         WindowsSku = WindowsSku.SqlWeb,
+                                         OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlWeb },
                                      },
                                      Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100, Type = VolumeType.LowPerformance }, new Volume() { DriveLetter = "Q", SizeInGb = 1, Type = VolumeType.LowPerformance } },
                                      ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
@@ -127,7 +127,7 @@ namespace Naos.Deployment.Core.Test
                                                            {
                                                                VirtualCores = 4,
                                                                RamInGb = 10,
-                                                               WindowsSku = WindowsSku.SqlStandard,
+                                                               OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
                                                            },
                                         Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30, Type = VolumeType.HighPerformance } },
                                         ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
@@ -144,7 +144,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(overrideConfig.Volumes.Single().SizeInGb, appliedConfig.Volumes.Single().SizeInGb);
             Assert.Equal(overrideConfig.Volumes.Single().Type, appliedConfig.Volumes.Single().Type);
             Assert.Equal(overrideConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
-            Assert.Equal(overrideConfig.InstanceType.WindowsSku, appliedConfig.InstanceType.WindowsSku);
+            Assert.Equal((overrideConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku, (appliedConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
             Assert.Equal(overrideConfig.DeploymentStrategy.IncludeInstanceInitializationScript, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
             Assert.Equal(overrideConfig.DeploymentStrategy.RunSetupSteps, appliedConfig.DeploymentStrategy.RunSetupSteps);
             Assert.Equal(overrideConfig.PostDeploymentStrategy.TurnOffInstance, appliedConfig.PostDeploymentStrategy.TurnOffInstance);

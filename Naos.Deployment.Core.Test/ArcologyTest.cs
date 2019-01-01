@@ -53,7 +53,7 @@ namespace Naos.Deployment.Core.Test
                                                   InstanceType =
                                                       new InstanceType
                                                           {
-                                                              WindowsSku = WindowsSku.Base,
+                                                              OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.Base },
                                                           },
                                               };
 

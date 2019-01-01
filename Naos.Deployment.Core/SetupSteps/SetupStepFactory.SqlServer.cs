@@ -123,7 +123,7 @@ namespace Naos.Deployment.Core
                         Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"} for '{package.PackageDescription.Id}'."),
                         SetupFunc = machineManager =>
                             {
-                                var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
+                                var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
                                 SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
                                 return new dynamic[0];
                             },
@@ -159,7 +159,7 @@ namespace Naos.Deployment.Core
                                                                                };
 
                                     machineManager.RunScript(remoteDownloadBackupScriptBlock, remoteDownloadBackupScriptParams);
-                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
+                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
 
                                     var restoreFileUri = new Uri(restoreFilePath);
                                     var checksumOption = awsRestore.RunChecksum ? ChecksumOption.Checksum : ChecksumOption.NoChecksum;
@@ -196,7 +196,7 @@ namespace Naos.Deployment.Core
                             Description = Invariant($"Run Fluent Migration on Database: {sqlServerStrategy.Name} to Version: {fluentMigration.Version}."),
                             SetupFunc = machineManager =>
                                 {
-                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.IpAddress);
+                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
 
                                     var workingPath = Path.Combine(this.workingDirectory, "DeployMigration-" + Guid.NewGuid().ToString().Substring(0, 4));
                                     this.packageManager.DownloadPackages(new[] { package.PackageDescription }, workingPath, true);

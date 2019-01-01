@@ -34,6 +34,8 @@ namespace $rootnamespace$
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+	using Naos.MachineManagement.Domain;
+	using Naos.MachineManagement.Factory;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
     using Naos.Recipes.RunWithRetry;
@@ -716,6 +718,7 @@ namespace $rootnamespace$
         /// <param name="packagesToDeployJson">Optional packages descriptions (with overrides) to configure the instance with.</param>
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="machineManagerFactory">Optional machine manager factory override.</param>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Most complicated set of steps, coupling ok here.")]
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "nuget", Justification = "Spelling/name is correct.")]
         public static void Deploy(
@@ -733,8 +736,10 @@ namespace $rootnamespace$
             string workingPath,
             string packagesToDeployJson,
             string deploymentAdjustmentApplicatorJson,
-            string environment)
+            string environment,
+			ICreateMachineManagers machineManagerFactory = null)
         {
+		    var localMachineManagerFactory = machineManagerFactory ?? new MachineManagerFactory();
             var packagesToDeploy =
                 (IReadOnlyCollection<PackageDescriptionWithOverrides>)Settings.Deserialize(
                     typeof(IReadOnlyCollection<PackageDescriptionWithOverrides>), packagesToDeployJson);
@@ -826,6 +831,7 @@ namespace $rootnamespace$
                             },
                             unzipDirPath,
                             configFileManager,
+							localMachineManagerFactory,
                             environmentCertificateName,
                             announcementFilePath,
                             debugAnnouncementFilePath,
