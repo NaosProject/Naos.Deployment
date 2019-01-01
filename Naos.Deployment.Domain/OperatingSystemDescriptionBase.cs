@@ -16,7 +16,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Model to represent information about an operating system choice.
     /// </summary>
-    [Bindable(true)]
+    [Bindable(BindableSupport.Default)]
     public abstract class OperatingSystemDescriptionBase
     {
         /// <summary>
