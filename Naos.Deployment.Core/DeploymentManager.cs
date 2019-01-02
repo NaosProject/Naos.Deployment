@@ -306,7 +306,7 @@ namespace Naos.Deployment.Core
 
             var systemSpecificDetailsAsString = string.Join(
                 ",",
-                createdInstanceDescription.SystemSpecificDetails.Select(_ => _.Key + "=" + _.Value).ToArray());
+                (createdInstanceDescription.SystemSpecificDetails ?? new Dictionary<string, string>()).Select(_ => _.Key + "=" + _.Value).ToArray());
             var createdInstanceMessage =
                 $"Instance {instanceNumber} - Created new instance => ComputingName: {createdInstanceDescription.Name}, ID: {createdInstanceDescription.Id}, Private IP: {createdInstanceDescription.PrivateIpAddress}, Public IP: {createdInstanceDescription.PublicIpAddress}, System Specific Details: {systemSpecificDetailsAsString}";
             this.LogAnnouncement(createdInstanceMessage, instanceNumber);
