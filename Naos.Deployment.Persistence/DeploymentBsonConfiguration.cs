@@ -51,6 +51,7 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(InstanceTargeterBase),
                                                                                     typeof(InstanceType),
                                                                                     typeof(ItsConfigOverride),
+                                                                                    typeof(OperatingSystemDescriptionBase),
                                                                                     typeof(PackageDescriptionWithDeploymentStatus),
                                                                                     typeof(PackageDescriptionWithOverrides),
                                                                                     typeof(PostDeploymentStrategy),
