@@ -45,6 +45,10 @@ namespace Naos.Deployment.Tracking
                 var instanceCommands = deploymentDatabase.GetCommandsInterface<string, InstanceContainer>();
                 ret = new MongoInfrastructureTracker(arcologyInfoQueries, arcologyInfoCommands, instanceQueries, instanceCommands);
             }
+            else if (infrastructureTrackerConfigurationBase is InfrastructureTrackerConfigurationNull)
+            {
+                ret = new NullInfrastructureTracker();
+            }
             else
             {
                 throw new NotSupportedException(Invariant($"Configuration is not valid: {infrastructureTrackerConfigurationBase.ToJson()}"));

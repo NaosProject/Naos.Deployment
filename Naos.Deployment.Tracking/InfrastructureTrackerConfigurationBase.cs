@@ -39,4 +39,15 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         public string RootFolderPath { get; set; }
     }
+
+    /// <summary>
+    /// Root folder implementation of <see cref="InfrastructureTrackerConfigurationBase"/>.
+    /// </summary>
+    public class InfrastructureTrackerConfigurationNull : InfrastructureTrackerConfigurationBase
+    {
+        /// <summary>
+        /// Gets or sets context for use.
+        /// </summary>
+        public string NullImplementationContext { get; set; }
+    }
 }
