@@ -71,7 +71,7 @@ namespace Naos.Deployment.ComputingManagement
         public async Task<string> GetAdministratorPasswordForInstanceAsync(InstanceDescription instanceDescription, string privateKey)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
-            return null;
+            return "NullImplementationPassword";
         }
 
         /// <inheritdoc />
