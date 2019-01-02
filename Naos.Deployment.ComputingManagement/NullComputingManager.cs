@@ -44,13 +44,14 @@ namespace Naos.Deployment.ComputingManagement
         public async Task<InstanceStatus> GetInstanceStatusAsync(string systemId, string systemLocation)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));
-            return null;
+            return new InstanceStatus();
         }
 
         /// <inheritdoc />
         public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript)
         {
-            return await Task.FromResult(new InstanceDescription());
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+            return new InstanceDescription();
         }
 
         /// <inheritdoc />

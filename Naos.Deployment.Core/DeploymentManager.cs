@@ -620,9 +620,12 @@ namespace Naos.Deployment.Core
                     createdInstanceDescription.Id,
                     createdInstanceDescription.Location);
 
-                if (status.InstanceChecks.Any(_ => _.Value == CheckState.Failed))
+                var statusInstanceChecks = status.InstanceChecks ?? new Dictionary<string, CheckState>();
+                var statusSystemChecks = status.SystemChecks ?? new Dictionary<string, CheckState>();
+
+                if (statusInstanceChecks.Any(_ => _.Value == CheckState.Failed))
                 {
-                    foreach (var instanceCheck in status.InstanceChecks)
+                    foreach (var instanceCheck in statusInstanceChecks)
                     {
                         this.LogAnnouncement("Instance Check; " + instanceCheck.Key + " = " + instanceCheck.Value, instanceNumber);
                     }
@@ -630,9 +633,9 @@ namespace Naos.Deployment.Core
                     throw new DeploymentException("Failure in an instance check.");
                 }
 
-                if (status.SystemChecks.Any(_ => _.Value == CheckState.Failed))
+                if (statusSystemChecks.Any(_ => _.Value == CheckState.Failed))
                 {
-                    foreach (var systemCheck in status.SystemChecks)
+                    foreach (var systemCheck in statusSystemChecks)
                     {
                         this.LogAnnouncement("System Check; " + systemCheck.Key + " = " + systemCheck.Value, instanceNumber);
                     }
@@ -640,14 +643,14 @@ namespace Naos.Deployment.Core
                     throw new DeploymentException("Failure in a system check.");
                 }
 
-                allChecksPassed = status.InstanceChecks.All(_ => _.Value == CheckState.Passed)
-                                  && status.SystemChecks.All(_ => _.Value == CheckState.Passed);
+                allChecksPassed = statusInstanceChecks.All(_ => _.Value == CheckState.Passed)
+                                  && statusSystemChecks.All(_ => _.Value == CheckState.Passed);
 
                 // ignore failures until they exceed threshold...
                 failureCount = failureCount + 1;
                 if (!allChecksPassed && failureCount > MaxFailureCount)
                 {
-                    throw new DeploymentException(Invariant($"Status checks never fully passed; InstanceChecks: '{string.Join(",", status.InstanceChecks.Select(_ => _.Key + "=" + _.Value))}', SystemChecks: '{string.Join(",", status.SystemChecks.Select(_ => _.Key + "=" + _.Value))}'."));
+                    throw new DeploymentException(Invariant($"Status checks never fully passed; InstanceChecks: '{string.Join(",", statusInstanceChecks.Select(_ => _.Key + "=" + _.Value))}', SystemChecks: '{string.Join(",", statusSystemChecks.Select(_ => _.Key + "=" + _.Value))}'."));
                 }
             }
         }
