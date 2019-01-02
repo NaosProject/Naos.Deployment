@@ -117,17 +117,20 @@ namespace Naos.Deployment.Core
                 sqlServerStrategy.Create?.DatabaseFileNameSettings,
                 sqlServerStrategy.Create?.DatabaseFileSizeSettings);
 
-            databaseSteps.Add(
-                new SetupStep
+            if (!sqlServerStrategy.DatabaseExists)
+            {
+                databaseSteps.Add(
+                    new SetupStep
                     {
                         Description = Invariant($"Create database: {sqlServerStrategy.Name} on instance {sqlServerStrategy.InstanceName ?? "DEFAULT"} for '{package.PackageDescription.Id}'."),
                         SetupFunc = machineManager =>
-                            {
-                                var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
-                                SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
-                                return new dynamic[0];
-                            },
+                        {
+                            var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
+                            SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
+                            return new dynamic[0];
+                        },
                     });
+            }
 
             if (sqlServerStrategy.Restore != null)
             {

@@ -70,6 +70,11 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public bool BundleDependencies { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether or not the database already exists and should NOT be created.
+        /// </summary>
+        public bool DatabaseExists { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
