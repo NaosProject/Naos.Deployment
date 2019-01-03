@@ -126,6 +126,28 @@ namespace Naos.Deployment.Core.Test
             ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new NaosBsonSerializer<DeploymentBsonConfiguration>());
         }
 
+        [Fact]
+        public static void RoundtripSerializeDeserializeDeploymentConfig___Using_SerializationDescription___Works()
+        {
+            // Arrange
+            var expected = new DeploymentConfiguration
+                               {
+                                   InstanceType = new InstanceType { OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.Base } },
+                               };
+
+            void ThrowIfObjectsDiffer(object actualAsObject)
+            {
+                var actual = actualAsObject as DeploymentConfiguration;
+                actual.Should().NotBeNull();
+                var windowsOs = actual.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows;
+                windowsOs.Should().NotBeNull();
+                windowsOs.Should().Be(expected.InstanceType.OperatingSystem);
+            }
+
+            // Act & Assert
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new NaosBsonSerializer<DeploymentBsonConfiguration>());
+        }
+
         private static void ActAndAssertForRoundtripSerialization(object expected, Action<object> throwIfObjectsDiffer, NaosBsonSerializer bsonSerializer, bool testBson = true, bool testJson = true)
         {
             var stringSerializers = new List<IStringSerializeAndDeserialize>();

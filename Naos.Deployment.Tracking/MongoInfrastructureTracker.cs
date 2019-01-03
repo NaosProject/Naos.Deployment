@@ -231,6 +231,13 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <inheritdoc />
+        public async Task<string> GetPrivateKeyOfComputingContainerAsync(string environment, InstanceAccessibility accessibility)
+        {
+            var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);
+            return arcology.GetPrivateKeyOfComputingContainer(accessibility);
+        }
+
+        /// <inheritdoc />
         public async Task<string> GetDomainZoneIdAsync(string environment, string domain)
         {
             var arcology = await this.GetArcologyByEnvironmentNameAsync(environment);

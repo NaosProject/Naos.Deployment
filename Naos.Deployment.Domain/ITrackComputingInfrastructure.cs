@@ -104,6 +104,14 @@ namespace Naos.Deployment.Domain
         Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId);
 
         /// <summary>
+        /// Get private key for computing container of specific accessibility.
+        /// </summary>
+        /// <param name="environment">Environment to scope check to.</param>
+        /// <param name="accessibility">Accessibility to get the private key for.</param>
+        /// <returns>Private key of computing container.</returns>
+        Task<string> GetPrivateKeyOfComputingContainerAsync(string environment, InstanceAccessibility accessibility);
+
+        /// <summary>
         /// Looks up the hosting ID of the specified ROOT domain (null if not found).
         /// </summary>
         /// <param name="environment">Environment to scope check to.</param>
@@ -220,6 +228,12 @@ namespace Naos.Deployment.Domain
 
         /// <inheritdoc />
         public Task<string> GetPrivateKeyOfInstanceByIdAsync(string environment, string systemId)
+        {
+            return Task.FromResult<string>(null);
+        }
+
+        /// <inheritdoc />
+        public Task<string> GetPrivateKeyOfComputingContainerAsync(string environment, InstanceAccessibility accessibility)
         {
             return Task.FromResult<string>(null);
         }

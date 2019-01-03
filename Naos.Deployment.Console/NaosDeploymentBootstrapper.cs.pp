@@ -172,6 +172,33 @@ namespace $rootnamespace$
         }
 
         /// <summary>
+        /// Gets the private key of the computing container with the specified accessibility.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="accessibility">Accessibility of the computing container to get the private key for.</param>
+        /// <param name="environment">Environment name where instance to get password is located.</param>
+        /// <param name="environmentType">Environment type.</param>
+        /// <param name="localResultAnnouncer">Call back action to use with result.</param>
+        internal static void GetComputingContainerPrivateKey(
+            string credentialsJson,
+            string infrastructureTrackerJson,
+            InstanceAccessibility accessibility,
+            string environment,
+            EnvironmentType environmentType,
+            Action<string> localResultAnnouncer)
+        {
+            void GetKey(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfComputingContainerAsync(environment, accessibility));
+
+                localResultAnnouncer(privateKey);
+            }
+
+            BootRunComputingManagerOperation(environmentType, GetKey, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
         /// Gets the status of the instance found by name in provided tracker.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
@@ -1239,7 +1266,13 @@ namespace $rootnamespace$
                 case EnvironmentType.Aws:
                     return new MachineManagerFactory();
                 case EnvironmentType.Manual:
-                    return new RecordingMachineManagerFactory();
+				    // TODO: Need to unify this with config of deployment directory.
+                    var path = @"D:\Deployments\";
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    return new RecordingMachineManagerFactory(path);
                 default:
                     throw new NotSupportedException(Invariant($"Environment type: {environmentType} is not supported."));
             }

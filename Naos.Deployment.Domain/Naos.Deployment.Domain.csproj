@@ -58,8 +58,8 @@
     <Reference Include="Naos.Logging.Domain, Version=1.0.30.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.30\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.2\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.4\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.MessageBus.Domain, Version=1.2.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.2.8\lib\net462\Naos.MessageBus.Domain.dll</HintPath>

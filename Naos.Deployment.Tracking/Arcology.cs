@@ -145,6 +145,24 @@ namespace Naos.Deployment.Tracking
         }
 
         /// <summary>
+        /// Get private key for computing container of specific accessibility.
+        /// </summary>
+        /// <param name="accessibility">Accessibility to get the private key for.</param>
+        /// <returns>Private key of computing container.</returns>
+        public string GetPrivateKeyOfComputingContainer(InstanceAccessibility accessibility)
+        {
+            var container = this.ComputingContainers.SingleOrDefault(_ => _.InstanceAccessibility == accessibility);
+
+            if (container == null)
+            {
+                throw new DeploymentException(Invariant($"Could not find Container with accessibility {accessibility}"));
+            }
+
+            var decryptedKey = Encryptor.Decrypt(container.EncryptedPrivateKey, container.EncryptingCertificateLocator);
+            return decryptedKey;
+        }
+
+        /// <summary>
         /// Gets the instance description by ID.
         /// </summary>
         /// <param name="systemId">ID from the computing platform provider of the instance.</param>

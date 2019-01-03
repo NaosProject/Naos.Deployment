@@ -82,6 +82,30 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
+        /// Gets the private key of the computing container with the specified accessibility.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="accessibility">Accessibility of the computing container to get the private key for.</param>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" /></param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
+        [Verb(Aliases = "privatekey", Description = "Gets the private key of the computing container with the specified accessibility.")]
+        public static void GetComputingContainerPrivateKey(
+            [Aliases("")] [Required] [Description("Credentials for the computing platform provider to use in JSON.")] string credentialsJson,
+            [Aliases("")] [Required] [Description("Configuration for tracking system of computing infrastructure.")] string infrastructureTrackerJson,
+            [Aliases("acc")] [Required] [Description("accessibility of the computing container to get the private key for.")] InstanceAccessibility accessibility,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")] string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
+        {
+            CommonSetup(debug, environment, announcer: NullAnnouncer);
+
+            NaosDeploymentBootstrapper.GetComputingContainerPrivateKey(credentialsJson, infrastructureTrackerJson, accessibility, environment, environmentType, Console.WriteLine);
+        }
+
+        /// <summary>
         /// Gets the status of the instance found by name in provided tracker.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
@@ -583,6 +607,11 @@ namespace Naos.Deployment.Console
             CommonSetup(debug, environment);
 
             NaosDeploymentBootstrapper.DestroyEnvironment(credentialsJson, configFilePath, environment);
+        }
+
+        private static void NullAnnouncer(string obj)
+        {
+            /* no-op */
         }
     }
 }
