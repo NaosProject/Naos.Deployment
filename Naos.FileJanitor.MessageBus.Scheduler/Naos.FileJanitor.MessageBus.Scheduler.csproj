@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Naos.FileJanitor.MessageBus.Scheduler</RootNamespace>
+    <AssemblyName>Naos.FileJanitor.MessageBus.Scheduler</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Naos.FileJanitor.MessageBus.Scheduler.xml</DocumentationFile>
+    <CodeAnalysisRuleSet />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>
+    </DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Naos.FileJanitor.MessageBus.Scheduler.xml</DocumentationFile>
+    <CodeAnalysisRuleSet />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.Compression.Domain, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Compression.Domain.1.0.16\lib\net462\Naos.Compression.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Cron, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.17\lib\net462\Naos.Cron.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Cron.Serialization.Json, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.Serialization.Json.1.0.17\lib\net462\Naos.Cron.Serialization.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.3.23.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.23\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.141.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.141\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.3.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.3.10\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Domain, Version=1.0.125.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Domain.1.0.125\lib\net462\Naos.Serialization.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Serialization.Json, Version=1.0.125.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Serialization.Json.1.0.125\lib\net462\Naos.Serialization.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Telemetry.Domain, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.16\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.4\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include=".recipes\OBeautifulCode.Validation\ApplyBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\DictionaryExtensions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\Parameter.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterShould.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Internal.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Strings.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.TypeValidation.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Utility.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidator.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
+    <Compile Include="FileJanitorMessageHandlerSettings.cs" />
+    <Compile Include="RestoreDirectoryMessage.cs" />
+    <Compile Include="CleanupDirectoryMessage.cs" />
+    <Compile Include="AbortIfNoNewFileLocationForTopicMessage.cs" />
+    <Compile Include="FileLocationAffectedItem.cs" />
+    <Compile Include="FindFileMessage.cs" />
+    <Compile Include="IShareUserDefinedMetadata.cs" />
+    <Compile Include="IShareFileLocation.cs" />
+    <Compile Include="ShareFilePathMessage.cs" />
+    <Compile Include="ShareFileLocationMessage.cs" />
+    <Compile Include="IShareFilePath.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DeleteFileMessage.cs" />
+    <Compile Include="FetchFileMessage.cs" />
+    <Compile Include="ArchiveDirectoryMessage.cs" />
+    <Compile Include="ShareUserDefinedMetadataMessage.cs" />
+    <Compile Include="StoreFileMessage.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <AdditionalFiles Include=".analyzers\stylecop.json" />
+    <None Include=".analyzers\release.ruleset" />
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\packages\StyleCop.Analyzers.Unstable.1.1.0.47\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\packages\StyleCop.Analyzers.Unstable.1.1.0.47\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".analyzers\dictionary.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\Naos.Build.Analyzers.1.55.0\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.55.0\build\Naos.Build.Analyzers.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Naos.Build.Analyzers.1.55.0\build\Naos.Build.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Naos.Build.Analyzers.1.55.0\build\Naos.Build.Analyzers.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

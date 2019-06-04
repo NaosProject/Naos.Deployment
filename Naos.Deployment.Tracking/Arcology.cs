@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="Arcology.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="Arcology.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ namespace Naos.Deployment.Tracking
     /// <summary>
     /// Container object for storing a single environments entire state.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
     public class Arcology : ArcologyInfo
     {
         private readonly List<DeployedInstance> instances;
@@ -31,6 +32,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="environment">Environment of the arcology.</param>
         /// <param name="arcologyInfo">Information about the arcology.</param>
         /// <param name="deployedInstances">Optional deployed instances in the arcology.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public Arcology(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
             new { arcologyInfo }.Must().NotBeNull();
@@ -53,6 +55,7 @@ namespace Naos.Deployment.Tracking
         /// Updates the internal instance list to remove an instance.
         /// </summary>
         /// <param name="instanceToRemove">Instance to remove from collection.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public void MutateInstancesRemove(DeployedInstance instanceToRemove)
         {
             new { instanceToRemove }.Must().NotBeNull();
@@ -111,6 +114,7 @@ namespace Naos.Deployment.Tracking
         /// Gets the system location.
         /// </summary>
         /// <returns>System location.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Want a method.")]
         public string GetSystemLocation()
         {
             var ret = this.Location;

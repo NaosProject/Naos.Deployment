@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="RootFolderEnvironmentFolderInstanceFileTracker.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="RootFolderEnvironmentFolderInstanceFileTracker.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -348,6 +348,7 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         /// <param name="environment">The environment to get an arcology for.</param>
         /// <returns>The arcology for the provided environment.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         public Arcology GetArcologyByEnvironmentName(string environment)
         {
             environment = environment ?? "[NULL VALUE PASSED]";

@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AdjustDeploymentBase.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="AdjustDeploymentBase.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
 
     /// <summary>
-    /// Interface to allow various types of checks on whether or not to add a package
+    /// Interface to allow various types of checks on whether or not to add a package.
     /// </summary>
     [Bindable(BindableSupport.Default)]
     public abstract class AdjustDeploymentBase

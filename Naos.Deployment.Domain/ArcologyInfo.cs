@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ArcologyInfo.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ArcologyInfo.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Container with the description of an arcology (defines things needed to add to the arcology).
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
     public class ArcologyInfo
     {
         /// <summary>
@@ -49,7 +50,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Checks an IP Address against a CIDR range.
         /// </summary>
-        /// <example>bool result = IsInRange("10.50.30.7", "10.0.0.0/8");</example>
+        /// <example>bool result = IsInRange("10.50.30.7", "10.0.0.0/8");.</example>
         /// <param name="ipAddress">IP Address to test.</param>
         /// <param name="cidr">CIDR mask to use as range definition.</param>
         /// <returns>Value indicating whether the provided IP was in the specified range.</returns>
@@ -57,7 +58,9 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "cidr", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
+#pragma warning disable SA1305 // Field names should not use Hungarian notation
         public static bool IsIpAddressInRange(string ipAddress, string cidr)
+#pragma warning restore SA1305 // Field names should not use Hungarian notation
         {
             new { ipAddress }.Must().NotBeNullNorWhiteSpace();
             new { cidr }.Must().NotBeNullNorWhiteSpace();
@@ -69,11 +72,11 @@ namespace Naos.Deployment.Domain
 
             string[] parts = cidr.Split('/');
 
-            var ipAddressNumeric = BitConverter.ToInt32(IPAddress.Parse(parts[0]).GetAddressBytes(), 0);
+            var addressNumeric = BitConverter.ToInt32(IPAddress.Parse(parts[0]).GetAddressBytes(), 0);
             var cidrAddressNumeric = BitConverter.ToInt32(IPAddress.Parse(ipAddress).GetAddressBytes(), 0);
             var cidrNumericMask = IPAddress.HostToNetworkOrder(-1 << (32 - int.Parse(parts[1], CultureInfo.InvariantCulture)));
 
-            return (ipAddressNumeric & cidrNumericMask) == (cidrAddressNumeric & cidrNumericMask);
+            return (addressNumeric & cidrNumericMask) == (cidrAddressNumeric & cidrNumericMask);
         }
     }
 }

@@ -38,8 +38,6 @@ namespace OBeautifulCode.String.Recipes
 
         private static readonly Regex CsvParsingRegex = new Regex("(?:,\"|^\")(\"\"|[\\w\\W]*?)(?=\",|\"$)|(?:,(?!\")|^(?!\"))([^,]*?)(?=$|,)|(\r\n|\n)", RegexOptions.Compiled);
 
-        private static readonly Regex NotAlphaNumericRegex = new Regex("[^a-zA-Z0-9]", RegexOptions.Compiled);
-
         /// <summary>
         /// Appends one string to the another (base) if the base string
         /// doesn't already end with the string to append.
@@ -128,7 +126,33 @@ namespace OBeautifulCode.String.Recipes
         {
             new { value }.Must().NotBeNull();
 
-            var result = !NotAlphaNumericRegex.IsMatch(value);
+            var result = value.All(
+                _ =>
+                    (((int)_ >= 48) && ((int)_ <= 57)) ||
+                    (((int)_ >= 65) && ((int)_ <= 90)) ||
+                    (((int)_ >= 97) && ((int)_ <= 122)));
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if a string is in the ASCII printable character set.
+        /// </summary>
+        /// <param name="value">The string to evaluate.</param>
+        /// <remarks>
+        /// An empty string ("") is considered to be in the printable set.
+        /// </remarks>
+        /// <returns>
+        /// Returns true if all of the characters in the string are printable; otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        public static bool IsAsciiPrintable(
+            this string value)
+        {
+            new { value }.Must().NotBeNull();
+
+            var result = value.All(_ => ((int)_ >= 32) && ((int)_ <= 126));
+
             return result;
         }
 
@@ -245,7 +269,13 @@ namespace OBeautifulCode.String.Recipes
         {
             new { value }.Must().NotBeNull();
 
-            var result = NotAlphaNumericRegex.Replace(value, string.Empty);
+            var result = 
+                string.Concat(
+                    value.Where(
+                        _ =>
+                            (((int)_ >= 48) && ((int)_ <= 57)) ||
+                            (((int)_ >= 65) && ((int)_ <= 90)) ||
+                            (((int)_ >= 97) && ((int)_ <= 122))));
             return result;
         }
 

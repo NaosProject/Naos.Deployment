@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ComputingInfrastructureManagerForAws.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ComputingInfrastructureManagerForAws.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -543,13 +543,13 @@ namespace Naos.Deployment.ComputingManagement
         public async Task<IList<InstanceDetailsFromComputingPlatform>> GetActiveInstancesFromProviderAsync(string environment)
         {
             var systemLocation = await this.tracker.GetSystemLocationAsync(environment);
-            var ipCidrs = await this.tracker.GetIpAddressCidrsAsync(environment);
+            var cidrs = await this.tracker.GetIpAddressCidrsAsync(environment);
 
             var instances = await new List<InstanceWithStatus>().FillFromAwsAsync(systemLocation, this.credentials);
 
             // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
             var ret = instances.Where(_ => _.InstanceStatus.InstanceState != Naos.AWS.Domain.InstanceState.Terminated)
-                .Where(_ => ipCidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr))).Select(
+                .Where(_ => cidrs.Any(cidr => ArcologyInfo.IsIpAddressInRange(_.PrivateIpAddress, cidr))).Select(
                     _ =>
                         {
                             var tags = _.Tags ?? new Dictionary<string, string>();

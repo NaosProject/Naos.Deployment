@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AdjustDeploymentTest.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="AdjustDeploymentTest.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Cron;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
+    using Naos.Logging.Persistence;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
@@ -53,7 +54,7 @@ namespace Naos.Deployment.Core.Test
 
             MessageBusHandlerHarnessConfiguration = new MessageBusHandlerHarnessConfiguration
                                                         {
-                                                            LogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                                            LogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
                                                             HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                             PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                             Package = new PackageDescriptionWithOverrides
@@ -79,8 +80,8 @@ namespace Naos.Deployment.Core.Test
 
             DatabaseManagementConfiguration = new DatabaseManagementConfiguration
                                                    {
-                                                       FileSystemManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
-                                                       DatabaseManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                                       FileSystemManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
+                                                       DatabaseManagementLogWritingSettings = new LogWritingSettings(new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
                                                        HandlerHarnessProcessTimeToLive = TimeSpan.FromMinutes(1),
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides

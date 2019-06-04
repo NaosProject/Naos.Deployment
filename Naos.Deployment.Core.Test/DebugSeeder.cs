@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DebugSeeder.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DebugSeeder.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ namespace Naos.Deployment.Core.Test
 
     public static class DebugSeeder
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
         public static void Debug_CreateArcologyInDatabase()
         {
@@ -69,7 +70,7 @@ namespace Naos.Deployment.Core.Test
                 },
             };
 
-            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
 
             var arcologyInfoCommands = database.GetCommandsInterface<string, ArcologyInfoContainer>();
             var arcologyInfoContainer = new ArcologyInfoContainer

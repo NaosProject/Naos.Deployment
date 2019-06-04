@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IShareInstanceTargeters.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="IShareInstanceTargeters.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -10,7 +10,7 @@ namespace Naos.Deployment.MessageBus.Scheduler
     using Naos.MessageBus.Domain;
 
     /// <summary>
-    /// Interface to support sharing the object being used to target the instance
+    /// Interface to support sharing the object being used to target the instance.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeters", Justification = "Spelling/name is correct.")]
     public interface IShareInstanceTargeters : IShare

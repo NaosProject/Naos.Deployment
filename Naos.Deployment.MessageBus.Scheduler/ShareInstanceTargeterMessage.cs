@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ShareInstanceTargeterMessage.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ShareInstanceTargeterMessage.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,6 +12,7 @@ namespace Naos.Deployment.MessageBus.Scheduler
     /// <summary>
     /// Message to share an instance targeter.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
     public class ShareInstanceTargeterMessage : IMessage
     {
         /// <inheritdoc />

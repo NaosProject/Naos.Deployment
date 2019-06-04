@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ConsoleAbstraction.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ConsoleAbstraction.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ namespace Naos.Deployment.Console
         /// <param name="accessibility">Accessibility of the computing container to get the private key for.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
-        /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" /></param>
+        /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" />.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "privatekey", Description = "Gets the private key of the computing container with the specified accessibility.")]
         public static void GetComputingContainerPrivateKey(
@@ -410,7 +410,7 @@ namespace Naos.Deployment.Console
         /// <param name="overrideDeploymentConfigJson">Optional deployment configuration to use as an override in JSON.</param>
         /// <param name="environmentCertificateName">Optional certificate name for an environment certificate saved in certificate manager being configured.</param>
         /// <param name="announcementFilePath">Optional announcement file path to write a JSON file of announcements (will overwrite if existing).</param>
-        /// <param name="debugAnnouncementFilePath">Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing)</param>
+        /// <param name="debugAnnouncementFilePath">Optional announcement file path to write a JSON file of debug announcements (will overwrite if existing).</param>
         /// <param name="telemetryFilePath">Optional telemetry file path to write a JSON file of certain step timings (will overwrite if existing).</param>
         /// <param name="nugetAnnouncementFilePath">Optional nuget file path to write a JSON file of output from nuget (will overwrite if existing).</param>
         /// <param name="instanceName">Optional name of the instance (one will be generated from the package list if not provided).</param>
@@ -496,6 +496,7 @@ namespace Naos.Deployment.Console
         /// <param name="encryptingCertificateStoreLocation"><see cref="StoreLocation"/> to find the encrypting certificate.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "pfx", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "certificateWriterJson", Justification = "Spelling/name is correct.")]
@@ -553,6 +554,7 @@ namespace Naos.Deployment.Console
         /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "All disposables are disposed, not sure why it's upset about the Creator.CreateEnvironment call.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "This is fine.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]

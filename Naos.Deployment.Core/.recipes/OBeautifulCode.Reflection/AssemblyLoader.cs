@@ -130,7 +130,7 @@ namespace OBeautifulCode.Reflection.Recipes
         {
             try
             {
-                return AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).ToList();
+                return AppDomain.CurrentDomain.GetAssemblies().Where(a => (a != null) && (!a.IsDynamic)).ToList();
             }
             catch (ReflectionTypeLoadException reflectionTypeLoadException)
             {

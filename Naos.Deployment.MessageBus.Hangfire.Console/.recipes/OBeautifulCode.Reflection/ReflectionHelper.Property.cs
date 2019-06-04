@@ -222,21 +222,28 @@ namespace OBeautifulCode.Reflection.Recipes
                 throw new ArgumentException(nameof(PropertyInfo) + " must not be null", nameof(pi));
             }
 
-            Type t = typeof(T);
+            Type returnType = typeof(T);
             try
             {
-                // can't solely rely on the ( T ) cast - if pi.GetValue returns null, then null can be casted to any reference type.
-                if (!pi.PropertyType.IsAssignableFrom(t))
+                var value = pi.GetValue(item, null);
+
+                if (value == null)
                 {
-                    throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{t.FullName}'.");
+                    // can't solely rely on the ( T ) cast - if pi.GetValue returns null, then null can be casted to any reference type.
+                    if (!pi.PropertyType.IsAssignableTo(returnType))
+                    {
+                        throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{returnType.FullName}'.");
+                    }
                 }
 
-                return (T)pi.GetValue(item, null);
+                var result = (T)value;
+
+                return result;
             }
             catch (NullReferenceException)
             {
                 // if result the value is null, then attempt to cast to value type will result in NullReferenceException
-                throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{t.FullName}'.");
+                throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{returnType.FullName}'.");
             }
         }
 

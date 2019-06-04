@@ -216,21 +216,28 @@ namespace OBeautifulCode.Reflection.Recipes
                 throw new ArgumentNullException(nameof(fi));
             }
 
-            Type t = typeof(T);
+            Type returnType = typeof(T);
             try
             {
-                // can't solely rely on the ( T ) cast - if fi.GetValue returns null, then null can be casted to any reference type.
-                if (!fi.FieldType.IsAssignableFrom(t))
+                var value = fi.GetValue(item);
+
+                if (value == null)
                 {
-                    throw new InvalidCastException($"Unable to cast object of type '{fi.FieldType.FullName}' to type '{t.FullName}'.");
+                    // can't solely rely on the ( T ) cast - if fi.GetValue returns null, then null can be casted to any reference type.
+                    if (!fi.FieldType.IsAssignableTo(returnType))
+                    {
+                        throw new InvalidCastException($"Unable to cast object of type '{fi.FieldType.FullName}' to type '{returnType.FullName}'.");
+                    }
                 }
 
-                return (T)fi.GetValue(item);
+                var result = (T)value;
+
+                return result;
             }
             catch (NullReferenceException)
             {
                 // if result of GetValue is null, then attempt to cast to value type will result in NullReferenceException
-                throw new InvalidCastException($"Unable to cast object of type '{fi.FieldType.FullName}' to type '{t.FullName}'.");
+                throw new InvalidCastException($"Unable to cast object of type '{fi.FieldType.FullName}' to type '{returnType.FullName}'.");
             }
         }
 

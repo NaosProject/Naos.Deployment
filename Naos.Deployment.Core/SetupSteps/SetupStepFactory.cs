@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupStepFactory.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="SetupStepFactory.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
+    using Naos.Logging.Persistence;
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Validation.Recipes;

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupStepFactory.SqlServer.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="SetupStepFactory.SqlServer.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,8 +12,8 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Database.Domain;
-    using Naos.Database.Migrator;
-    using Naos.Database.SqlServer;
+    using Naos.Database.SqlServer.Administration;
+    using Naos.Database.SqlServer.Domain;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
@@ -166,7 +166,7 @@ namespace Naos.Deployment.Core
 
                                     var restoreFileUri = new Uri(restoreFilePath);
                                     var checksumOption = awsRestore.RunChecksum ? ChecksumOption.Checksum : ChecksumOption.NoChecksum;
-                                    var restoreDetails = new RestoreDetails
+                                    var restoreDetails = new RestoreSqlServerDatabaseDetails
                                                              {
                                                                  ChecksumOption = checksumOption,
                                                                  Device = Device.Disk,

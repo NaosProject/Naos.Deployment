@@ -112,6 +112,8 @@ namespace OBeautifulCode.Validation.Recipes
         private static Type GetEnumerableGenericType(
             Type enumerableType)
         {
+            // note: this method has a very similar structure to IsAssignableTo()
+            // in the future, look for a way to extract the commonality
             // adapted from: https://stackoverflow.com/a/17713382/356790
             Type result;
             if (enumerableType.IsArray)
@@ -128,7 +130,7 @@ namespace OBeautifulCode.Validation.Recipes
             {
                 // type implements IEnumerable<T> or is a subclass (sub-sub-class, ...)
                 // of a type that implements IEnumerable<T>
-                // note that we are grabing the first implementation.  it is possible, but
+                // note that we are grabbing the first implementation.  it is possible, but
                 // highly unlikely, for a type to have multiple implementations of IEnumerable<T>
                 result = enumerableType
                     .GetInterfaces()
@@ -138,11 +140,8 @@ namespace OBeautifulCode.Validation.Recipes
 
                 if (result == null)
                 {
-                    // here we just assume it's an IEnumerable and return typeof(object),
-                    // however, for completeness, we should recurse through all interface implementations
-                    // and check whether those are IEnumerable<T>.
-                    // see: https://stackoverflow.com/questions/5461295/using-isassignablefrom-with-open-generic-types
-                    result = ObjectType;
+                    var baseType = enumerableType.BaseType;
+                    result = baseType == null ? ObjectType : GetEnumerableGenericType(baseType);
                 }
             }
 
@@ -152,6 +151,8 @@ namespace OBeautifulCode.Validation.Recipes
         private static Type GetDictionaryGenericValueType(
             Type dictionaryType)
         {
+            // note: this method has a very similar structure to IsAssignableTo()
+            // in the future, look for a way to extract the commonality
             Type result;
 
             if (dictionaryType.IsGenericType && (dictionaryType.GetGenericTypeDefinition() == UnboundGenericDictionaryType))
@@ -168,7 +169,7 @@ namespace OBeautifulCode.Validation.Recipes
             {
                 // type implements IDictionary<T,K>/IReadOnlyDictionary<T,K> or is a subclass (sub-sub-class, ...)
                 // of a type that implements those types
-                // note that we are grabing the first implementation.  it is possible, but
+                // note that we are grabbing the first implementation.  it is possible, but
                 // highly unlikely, for a type to have multiple implementations of IDictionary<T,K>
                 result = dictionaryType
                     .GetInterfaces()
@@ -178,21 +179,28 @@ namespace OBeautifulCode.Validation.Recipes
 
                 if (result == null)
                 {
-                    // here we just assume it's a IDictionary and return typeof(object),
-                    // however, for completeness, we should recurse through all interface implementations
-                    // and check whether those are IDictionary<T,K> or IReadOnlyDictionary<T,K>.
-                    // see: https://stackoverflow.com/questions/5461295/using-isassignablefrom-with-open-generic-types
-                    result = ObjectType;
+                    var baseType = dictionaryType.BaseType;
+                    result = baseType == null ? ObjectType : GetEnumerableGenericType(baseType);
                 }
             }
 
             return result;
         }
 
-        private static bool IsOfType(
+        private static bool IsAssignableTo(
             this Type type,
-            Type otherType)
+            Type otherType,
+            bool treatUnboundGenericAsAssignableTo = false)
         {
+            // A copy of this method exists in OBC.Reflection.
+            // Any bug fixes made here should also be applied to OBC.Reflection.
+            // OBC.Reflection cannot take a reference to OBC.Validation because it creates a circular reference
+            // since OBC.Validation itself depends on OBC.Reflection.
+            // We considered converting all usages of OBC.Validation in OBC.Reflection to vanilla if..then..throw
+            // but decided against because it was going to be too much work and we like the way OBC.Validation reads (e.g. Must().NotBeNull()) in OBC.Reflection.
+            // The other option was to create a third package that OBC.Validation and OBC.Reflection could both depend on, but
+            // that didn't feel right because this method naturally fits with TypeHelper.
+            // note that the parameter checks in OBC.Reflection were replaced with the following, single check:
             if (type.IsGenericTypeDefinition)
             {
                 ParameterValidator.ThrowImproperUseOfFramework(Invariant($"The parameter type is an unbounded generic type."));
@@ -211,23 +219,29 @@ namespace OBeautifulCode.Validation.Recipes
             }
 
             // type is generic and other type is an unbounded generic type
-            if (type.IsGenericType && otherType.IsGenericTypeDefinition)
+            if (treatUnboundGenericAsAssignableTo && otherType.IsGenericTypeDefinition)
             {
                 // type's unbounded generic version is the other type
-                if (type.GetGenericTypeDefinition() == otherType)
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == otherType)
                 {
                     return true;
                 }
 
                 // type implements an interface who's unbounded generic version is the other type
-                if (type.GetInterfaces().FirstOrDefault(_ => _.IsGenericType && (_.GetGenericTypeDefinition() == otherType)) != null)
+                if (type.GetInterfaces().Any(_ => _.IsGenericType && (_.GetGenericTypeDefinition() == otherType)))
                 {
                     return true;
                 }
 
-                // note that, for completeness, we should recurse through all interface implementations
-                // and check whether any of those are == otherType
-                // see: https://stackoverflow.com/questions/5461295/using-isassignablefrom-with-open-generic-types
+                var baseType = type.BaseType;
+                if (baseType == null)
+                {
+                    return false;
+                }
+
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                var result = baseType.IsAssignableTo(otherType, treatUnboundGenericAsAssignableTo);
+                return result;
             }
 
             return false;
@@ -252,7 +266,7 @@ namespace OBeautifulCode.Validation.Recipes
             var result = CodeDomProvider.GetTypeOutput(new CodeTypeReference(type.FullName?.Replace(type.Namespace + ".", string.Empty)));
 
             // if type is an unbounded generic type, then the result will something like List<> or IReadOnlyDictionary<, >
-            // whereas we would perfer List<T> or IReadOnlyDictionary<T,K>
+            // whereas we would prefer List<T> or IReadOnlyDictionary<T,K>
             if (type.IsGenericTypeDefinition)
             {
                 var genericArgumentNames = string.Join(",", type.GetGenericArguments().Select(x => x.Name));
@@ -279,7 +293,7 @@ namespace OBeautifulCode.Validation.Recipes
             var enumerableQualifier = validation.IsElementInEnumerable ? " contains an element that" : string.Empty;
             var genericTypeQualifier = include.HasFlag(Include.GenericType) ? ", where T: " + (genericTypeOverride?.GetFriendlyTypeName() ?? validation.ValueType.GetFriendlyTypeName()) : string.Empty;
             var failingValueQualifier = include.HasFlag(Include.FailingValue) ? (validation.IsElementInEnumerable ? "  Element value" : "  Parameter value") + Invariant($" is '{validation.Value?.ToString() ?? NullValueToString}'.") : string.Empty;
-            var validationParameterQualifiers = validation.ValidationParameters == null || !validation.ValidationParameters.Any() ? string.Empty : string.Join(string.Empty, validation.ValidationParameters.Select(_ => Invariant($"  Specified '{_.Name}' is '{_.Value ?? NullValueToString}'.")));
+            var validationParameterQualifiers = validation.ValidationParameters == null || !validation.ValidationParameters.Any() ? string.Empty : string.Join(string.Empty, validation.ValidationParameters.Select(_ => _.ToExceptionMessageComponent()));
             var result = Invariant($"Parameter{parameterNameQualifier}{enumerableQualifier} {exceptionMessageSuffix}{genericTypeQualifier}.{failingValueQualifier}{validationParameterQualifiers}");
 
             if (validation.ApplyBecause == ApplyBecause.PrefixedToDefaultMessage)
@@ -302,6 +316,49 @@ namespace OBeautifulCode.Validation.Recipes
             }
 
             return result;
+        }
+
+        private static string ToExceptionMessageComponent(
+            this ValidationParameter validationParameter)
+        {
+            var result = Invariant($"  Specified '{validationParameter.Name}' is");
+            if (validationParameter.ValueToStringFunc == null)
+            {
+                // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+                if (validationParameter.Value == null)
+                {
+                    result = Invariant($"{result} '{NullValueToString}'");
+                }
+                else
+                {
+                    result = Invariant($"{result} '{validationParameter.Value}'");
+                }
+            }
+            else
+            {
+                result = Invariant($"{result} {validationParameter.ValueToStringFunc()}");
+            }
+
+            result = Invariant($"{result}.");
+
+            return result;
+        }
+
+        private static Exception AddData(
+            this Exception exception,
+            IDictionary data)
+        {
+            if (data != null)
+            {
+                // because the caller is creating a new exception, we know that Data is empty
+                // and we don't have to check for key conflicts (same key exists in both exception.Data and in data)
+                foreach (var dataKey in data.Keys)
+                {
+                    exception.Data[dataKey] = data[dataKey];
+                }
+            }
+
+            return exception;
         }
 
         private static T GetDefaultValue<T>()
@@ -423,6 +480,8 @@ namespace OBeautifulCode.Validation.Recipes
             public bool IsElementInEnumerable { get; set; }
 
             public IReadOnlyCollection<TypeValidation> TypeValidations { get; set; }
+
+            public IDictionary Data { get; set; }
         }
 
         private class ValidationParameter
@@ -432,6 +491,8 @@ namespace OBeautifulCode.Validation.Recipes
             public object Value { get; set; }
 
             public Type ValueType { get; set; }
+
+            public Func<string> ValueToStringFunc { get; set; }
         }
 
         [Flags]

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ComputingInfrastructureNamer.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ComputingInfrastructureNamer.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ namespace Naos.Deployment.ComputingManagement
         /// Gets a name for the instance that is by convention easy to track.
         /// </summary>
         /// <returns>Name to apply to instance.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Want a method.")]
         public string GetInstanceName()
         {
             var name = Invariant($"instance-{this.environment}-{this.baseName}@{this.containerLocation}");

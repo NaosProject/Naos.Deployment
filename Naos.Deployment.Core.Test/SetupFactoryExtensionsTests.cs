@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupFactoryExtensionsTests.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="SetupFactoryExtensionsTests.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ namespace Naos.Deployment.Core.Test
 
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
+    using Naos.Logging.Persistence;
     using Naos.Serialization.Json;
 
     using Xunit;
@@ -111,17 +112,17 @@ namespace Naos.Deployment.Core.Test
             var settingsConsole = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new ConsoleLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                       new[] { new ConsoleLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
                                };
             var settingsEvent = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                       new[] { new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
                                };
             var settingsMemory = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>()), }),
+                                       new[] { new InMemoryLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>()), }),
                                };
 
             // Act
@@ -143,7 +144,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), "{deploymentDriveLetter}:\\Logs\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -168,7 +169,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
+                                       new[] { new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), "{deploymentDriveLetter}:\\Logs\\Path\\MyLog.txt", CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";
@@ -193,7 +194,7 @@ namespace Naos.Deployment.Core.Test
             var settings = new SetupStepFactorySettings
                                {
                                    DefaultLogWritingSettings = new LogWritingSettings(
-                                       new[] { new TimeSlicedFilesLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
+                                       new[] { new TimeSlicedFilesLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), "{deploymentDriveLetter}:\\Logs", "Prefix", time, CreateDirectoryStructureIfMissing), }),
                                };
 
             var deploymentDriveLetter = "C";

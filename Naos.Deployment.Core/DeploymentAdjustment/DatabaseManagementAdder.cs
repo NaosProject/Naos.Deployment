@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DatabaseManagementAdder.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DatabaseManagementAdder.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,14 +9,14 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
+    using Naos.Database.Mongo.Domain;
+    using Naos.Database.SqlServer.Domain;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.TypeRepresentation;
+    using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
@@ -90,8 +90,9 @@ namespace Naos.Deployment.Core
             var mongoInitializations = packagedDeploymentConfigsWithDefaultsAndOverrides
                 .WhereContainsInitializationStrategyOf<InitializationStrategyMongo>().GetInitializationStrategiesOf<InitializationStrategyMongo>();
 
-            var databaseNameToAdminPasswordMap = sqlServerInitializations.ToDictionary(k => k.Name, v => v.AdministratorPassword)
-                .Union(mongoInitializations.ToDictionary(k => k.DocumentDatabaseName, v => v.AdministratorPassword));
+            var sqlServerDatabaseNameToAdminPasswordMap =
+                sqlServerInitializations.ToDictionary(k => k.Name, v => v.AdministratorPassword);
+            var mongoDatabaseNameToAdminPasswordMap = mongoInitializations.ToDictionary(k => k.DocumentDatabaseName, v => v.AdministratorPassword);
 
             var ret = new List<InjectedPackage>();
 
@@ -128,47 +129,34 @@ namespace Naos.Deployment.Core
 
             ret.Add(new InjectedPackage(ReasonStringFile, fileJanitor));
 
-            var databaseKindToDataDirectoryMap =
-                new Dictionary<DatabaseKind, string>
-                    {
-                        {
-                            DatabaseKind.SqlServer,
-                            sqlServerInitializations.Select(_ => _.DataDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
-                            ?? setupStepFactorySettings.DatabaseServerSettings.DefaultDataDirectory
-                        },
-                        {
-                            DatabaseKind.Mongo,
-                            sqlServerInitializations.Select(_ => _.DataDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
-                            ?? setupStepFactorySettings.MongoServerSettings.DefaultDataDirectory
-                        },
-                    };
+            var sqlServerDataDirectory = sqlServerInitializations.Select(_ => _.DataDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
+                        ?? setupStepFactorySettings.DatabaseServerSettings.DefaultDataDirectory;
+            var mongoDataDirectory = mongoInitializations.Select(_ => _.DataDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
+                        ?? setupStepFactorySettings.MongoServerSettings.DefaultDataDirectory;
 
-            var databaseKindToBackupDirectoryMap =
-                new Dictionary<DatabaseKind, string>
-                    {
-                        {
-                            DatabaseKind.SqlServer,
-                            sqlServerInitializations.Select(_ => _.BackupDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
-                            ?? setupStepFactorySettings.DatabaseServerSettings.DefaultBackupDirectory
-                        },
-                        {
-                            DatabaseKind.Mongo,
-                            sqlServerInitializations.Select(_ => _.BackupDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
-                            ?? setupStepFactorySettings.MongoServerSettings.DefaultBackupDirectory
-                        },
-                    };
+            var sqlServerBackupDirectory = sqlServerInitializations.Select(_ => _.BackupDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
+                        ?? setupStepFactorySettings.DatabaseServerSettings.DefaultBackupDirectory;
+            var mongoBackupDirectory = mongoInitializations.Select(_ => _.BackupDirectory).Where(_ => !string.IsNullOrWhiteSpace(_)).Distinct().SingleOrDefault()
+                        ?? setupStepFactorySettings.MongoServerSettings.DefaultBackupDirectory;
 
-            var databaseNameToLocalhostConnectionDefinitionMap = databaseNameToAdminPasswordMap.ToDictionary(
+            var sqlServerDatabaseNameToLocalhostConnectionDefinitionMap = sqlServerDatabaseNameToAdminPasswordMap.ToDictionary(
                 k => k.Key.ToUpperInvariant(),
-                v => new ConnectionDefinition { Server = "localhost", DatabaseName = v.Key, UserName = "sa", Password = v.Value, });
+                v => new SqlServerConnectionDefinition { Server = "localhost", DatabaseName = v.Key, UserName = "sa", Password = v.Value, });
+
+            var mongoDatabaseNameToLocalhostConnectionDefinitionMap = mongoDatabaseNameToAdminPasswordMap.ToDictionary(
+                k => k.Key.ToUpperInvariant(),
+                v => new MongoConnectionDefinition { Server = "localhost", DatabaseName = v.Key, UserName = "sa", Password = v.Value, });
 
             var databaseMessageHandlerSettings =
                 new DatabaseMessageHandlerSettings
                     {
                         DefaultTimeout = setupStepFactorySettings.DatabaseServerSettings.DefaultTimeout,
-                        DatabaseNameToLocalhostConnectionDefinitionMap = databaseNameToLocalhostConnectionDefinitionMap,
-                        DatabaseKindToDataDirectoryMap = databaseKindToDataDirectoryMap,
-                        DatabaseKindToBackupDirectoryMap = databaseKindToBackupDirectoryMap,
+                        SqlServerDatabaseNameToLocalhostConnectionDefinitionMap = sqlServerDatabaseNameToLocalhostConnectionDefinitionMap,
+                        MongoDatabaseNameToLocalhostConnectionDefinitionMap = mongoDatabaseNameToLocalhostConnectionDefinitionMap,
+                        SqlServerDatabaseDataDirectory = sqlServerDataDirectory,
+                        SqlServerDatabaseBackupDirectory = sqlServerBackupDirectory,
+                        MongoDatabaseDataDirectory = mongoDataDirectory,
+                        MongoDatabaseBackupDirectory = mongoBackupDirectory,
                         MongoUtilityDirectory = setupStepFactorySettings.MongoServerSettings.DefaultUtilityDirectory,
                         WorkingDirectoryPath = setupStepFactorySettings.MongoServerSettings.DefaultWorkingDirectory,
                     };

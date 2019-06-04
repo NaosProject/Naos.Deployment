@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="AutoStartProvider.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="AutoStartProvider.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using System;
 
     /// <summary>
-    /// Model object to describe an Auto Start Provider in IIS
+    /// Model object to describe an Auto Start Provider in IIS.
     /// </summary>
     public class AutoStartProvider : ICloneable
     {

@@ -53,6 +53,8 @@ namespace OBeautifulCode.Validation.Recipes
 
         public const string NullValueToString = "<null>";
 
+        public const string EmptyEnumerableToString = "[<empty>]";
+
         public const string BeNullExceptionMessageSuffix = "is not null";
 
         public const string NotBeNullExceptionMessageSuffix = "is null";
@@ -68,7 +70,7 @@ namespace OBeautifulCode.Validation.Recipes
         public const string NotBeNullNorWhiteSpaceExceptionMessageSuffix = "is white space";
 
         public const string BeNullOrNotWhiteSpaceExceptionMessageSuffix = "is not null and is white space";
-        
+
         public const string BeEmptyGuidExceptionMessageSuffix = "is not an empty guid";
 
         public const string NotBeEmptyGuidExceptionMessageSuffix = "is an empty guid";
@@ -129,7 +131,21 @@ namespace OBeautifulCode.Validation.Recipes
 
         public const string NotContainExceptionMessageSuffix = "contains the item to search for using " + DefaultEqualityComparer;
 
+        public const string BeAlphabeticExceptionMessageSuffix = "is not alphabetic";
+
+        public const string BeAlphanumericExceptionMessageSuffix = "is not alphanumeric";
+
+        public const string BeAsciiPrintableExceptionMessageSuffix = "is not ASCII Printable";
+
+        public const string BeMatchedByRegexExceptionMessageSuffix = "is not matched by the specified regex";
+
+        public const string NotBeMatchedByRegexExceptionMessageSuffix = "is matched by the specified regex";
+
         public const string MalformedRangeExceptionMessage = "The specified range is invalid because '{1}' is less than '{0}'.  Specified '{0}' is '{2}'.  Specified '{1}' is '{3}'.";
+
+        public const string StartWithExceptionMessageSuffix = "does not start with the specified comparison value";
+
+        public const string NotStartWithExceptionMessageSuffix = "starts with the specified comparison value";
 
 #pragma warning restore SA1600
 #pragma warning restore 1591

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyDefaults.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -42,28 +42,28 @@ namespace Naos.Deployment.Core.Test
         {
             var baseConfig = new DeploymentConfiguration();
             var defaultConfig = new DeploymentConfiguration()
-                                    {
-                                        InstanceType = new InstanceType
-                                        {
-                                            VirtualCores = 2,
-                                            RamInGb = 4,
-                                            OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
-                                        },
-                                        InstanceAccessibility = InstanceAccessibility.Private,
-                                        Volumes =
-                                            new[]
-                                                {
-                                                    new Volume()
-                                                        {
-                                                            DriveLetter = "C",
-                                                            SizeInGb = 50,
-                                                            Type = VolumeType.HighPerformance,
-                                                        },
-                                                },
-                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
-                                        DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
-                                        TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            {
+                InstanceType = new InstanceType
+                {
+                    VirtualCores = 2,
+                    RamInGb = 4,
+                    OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
+                },
+                InstanceAccessibility = InstanceAccessibility.Private,
+                Volumes =
+                    new[]
+                        {
+                            new Volume()
+                                {
+                                    DriveLetter = "C",
+                                    SizeInGb = 50,
+                                    Type = VolumeType.HighPerformance,
+                                },
+                        },
+                ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
+                PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
+                TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
             };
 
             var appliedConfig = baseConfig.ApplyDefaults(defaultConfig);

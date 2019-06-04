@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -70,20 +70,20 @@ namespace Naos.Deployment.Core.Test
             var baseConfig = new DeploymentConfiguration();
 
             var overrideConfig = new DeploymentConfiguration
-                                    {
-                                        InstanceCount = 4,
-                                        InstanceAccessibility = InstanceAccessibility.Public,
-                                        InstanceType = new InstanceType
-                                                           {
-                                                               VirtualCores = 4,
-                                                               RamInGb = 10,
-                                                               OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
-                                                           },
-                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
-                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
-                                        DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
-                                        TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            {
+                InstanceCount = 4,
+                InstanceAccessibility = InstanceAccessibility.Public,
+                InstanceType = new InstanceType
+                                   {
+                                       VirtualCores = 4,
+                                       RamInGb = 10,
+                                       OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
+                                   },
+                Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30 } },
+                ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
+                PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
+                TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
             };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);
@@ -105,35 +105,35 @@ namespace Naos.Deployment.Core.Test
         public static void ApplyOverrides_AllPropertiesSet_EverythingOverwritten()
         {
             var baseConfig = new DeploymentConfiguration
-                                 {
-                                     InstanceAccessibility = InstanceAccessibility.Private,
-                                     InstanceType = new InstanceType
-                                     {
-                                         VirtualCores = 10,
-                                         RamInGb = 20,
-                                         OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlWeb },
-                                     },
-                                     Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100, Type = VolumeType.LowPerformance }, new Volume() { DriveLetter = "Q", SizeInGb = 1, Type = VolumeType.LowPerformance } },
-                                     ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
-                                     DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
-                                     PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
-                                     TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
-                                 };
+            {
+                 InstanceAccessibility = InstanceAccessibility.Private,
+                 InstanceType = new InstanceType
+                 {
+                     VirtualCores = 10,
+                     RamInGb = 20,
+                     OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlWeb },
+                 },
+                 Volumes = new[] { new Volume() { DriveLetter = "F", SizeInGb = 100, Type = VolumeType.LowPerformance }, new Volume() { DriveLetter = "Q", SizeInGb = 1, Type = VolumeType.LowPerformance } },
+                 ChocolateyPackages = new[] { new PackageDescription { Id = "Monkey" }, new PackageDescription { Id = "AnotherMonkey" } },
+                 DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = true, RunSetupSteps = true },
+                 PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = true },
+                 TagNameToValueMap = new Dictionary<string, string> { { "hello", "world" } },
+            };
 
             var overrideConfig = new DeploymentConfiguration
-                                    {
-                                        InstanceAccessibility = InstanceAccessibility.Public,
-                                        InstanceType = new InstanceType
-                                                           {
-                                                               VirtualCores = 4,
-                                                               RamInGb = 10,
-                                                               OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
-                                                           },
-                                        Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30, Type = VolumeType.HighPerformance } },
-                                        ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
-                                        DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = false, RunSetupSteps = false },
-                                        PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false },
-                                        TagNameToValueMap = new Dictionary<string, string> { { "world", "hello" } },
+            {
+                    InstanceAccessibility = InstanceAccessibility.Public,
+                    InstanceType = new InstanceType
+                                       {
+                                           VirtualCores = 4,
+                                           RamInGb = 10,
+                                           OperatingSystem = new OperatingSystemDescriptionWindows { Sku = WindowsSku.SqlStandard },
+                                       },
+                    Volumes = new[] { new Volume() { DriveLetter = "C", SizeInGb = 30, Type = VolumeType.HighPerformance } },
+                    ChocolateyPackages = new[] { new PackageDescription { Id = "Chrome" } },
+                    DeploymentStrategy = new DeploymentStrategy { IncludeInstanceInitializationScript = false, RunSetupSteps = false },
+                    PostDeploymentStrategy = new PostDeploymentStrategy { TurnOffInstance = false },
+                    TagNameToValueMap = new Dictionary<string, string> { { "world", "hello" } },
             };
 
             var appliedConfig = baseConfig.ApplyOverrides(overrideConfig);

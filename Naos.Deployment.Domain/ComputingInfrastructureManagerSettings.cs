@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ComputingInfrastructureManagerSettings.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ComputingInfrastructureManagerSettings.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -84,6 +84,7 @@ namespace Naos.Deployment.Domain
         /// Combines the lines of user data and replaces the token '{ComputerName}' with the name provided.
         /// </summary>
         /// <returns>User data as an un-encoded string to provide to AWS for creating an instance.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1024:UsePropertiesWhereAppropriate", Justification = "Want a method.")]
         public string GetInstanceCreationUserData()
         {
             var userData = string.Join(Environment.NewLine, this.InstanceCreationUserDataLines);

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceType.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="InstanceType.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ namespace Naos.Deployment.Domain
         public OperatingSystemDescriptionBase OperatingSystem { get; set; }
 
         /// <summary>
-        /// Gets or sets a specific image to use (must be used in conjunction with WindowsSku.SpecificImageSupplied)
+        /// Gets or sets a specific image to use (must be used in conjunction with WindowsSku.SpecificImageSupplied).
         /// </summary>
         public string SpecificImageSystemId { get; set; }
 

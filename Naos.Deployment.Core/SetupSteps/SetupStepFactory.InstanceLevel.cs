@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupStepFactory.InstanceLevel.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="SetupStepFactory.InstanceLevel.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
+    using Naos.Logging.Persistence;
     using Naos.Packaging.Domain;
 
     using static System.FormattableString;
@@ -31,7 +32,7 @@ namespace Naos.Deployment.Core
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <param name="deploymentDirectory">Path used to store deployments and associated temporal information.</param>
         /// <param name="funcToReplaceKnownTokensWithValues">Function to replace well known tokens with values.</param>
-        /// <returns>List of setup steps </returns>
+        /// <returns>List of setup steps. </returns>
         public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, OperatingSystemDescriptionBase operatingSystem, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
             var windowsOs = operatingSystem as OperatingSystemDescriptionWindows;
@@ -343,7 +344,7 @@ namespace Naos.Deployment.Core
         /// Gets the chocolatey setup steps.
         /// </summary>
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
-        /// <returns>List of setup steps </returns>
+        /// <returns>List of setup steps.</returns>
         public IReadOnlyCollection<SetupStepBatch> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
         {
             var chocolateyIndividualSetupSteps = this.GetChocolateyIndividualSetupSteps(chocolateyPackages);

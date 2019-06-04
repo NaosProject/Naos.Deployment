@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InitializationStrategyReplaceTokenInFiles.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="InitializationStrategyReplaceTokenInFiles.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -31,10 +31,11 @@ namespace Naos.Deployment.Domain
         {
             var ret = new InitializationStrategyReplaceTokenInFiles
             {
-                              FileSearchPattern = this.FileSearchPattern,
-                              Token = this.Token,
-                              Replacement = this.Replacement,
-                          };
+                FileSearchPattern = this.FileSearchPattern,
+                Token = this.Token,
+                Replacement = this.Replacement,
+            };
+
             return ret;
         }
     }

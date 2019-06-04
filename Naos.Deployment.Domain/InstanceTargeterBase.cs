@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceTargeterBase.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="InstanceTargeterBase.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Model class to contain information to find an instance.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
     [Bindable(BindableSupport.Default)]
     public class InstanceTargeterBase
     {
@@ -23,6 +24,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Implementation of InstanceTargeterBase that uses a specific ID from the computing platform provider.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
     public class InstanceTargeterSystemId : InstanceTargeterBase
     {
         /// <summary>
@@ -49,6 +51,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Implementation of InstanceTargeterBase that uses a name to be looked.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
     public class InstanceTargeterNameLookup : InstanceTargeterBase
     {
         /// <summary>
@@ -75,6 +78,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// Implementation of InstanceTargeterBase that uses a tag or tags to match.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
     public class InstanceTargeterTagMatch : InstanceTargeterBase
     {
         /// <summary>

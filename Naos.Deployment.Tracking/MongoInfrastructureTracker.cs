@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="MongoInfrastructureTracker.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="MongoInfrastructureTracker.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Persistence;
     using Naos.Packaging.Domain;
     using Naos.Serialization.Bson;
-
+    using Naos.Serialization.Domain;
     using OBeautifulCode.Validation.Recipes;
 
     using Spritely.ReadModel;
@@ -60,7 +60,7 @@ namespace Naos.Deployment.Tracking
             this.instanceQueries = instanceQueries;
             this.instanceCommands = instanceCommands;
 
-            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
         }
 
         /// <inheritdoc />
@@ -322,6 +322,7 @@ namespace Naos.Deployment.Tracking
         /// </summary>
         /// <param name="environment">Environment to get the arcology by.</param>
         /// <returns>Arcology of the specified environment.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         public async Task<Arcology> GetArcologyByEnvironmentNameAsync(string environment)
         {
             environment = environment ?? "[NULL VALUE PASSED]";

@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="InstanceOperationHelper.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="InstanceOperationHelper.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -34,6 +34,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="stopInstanceDelay">Delay for stopping the instance (default is none).</param>
         /// <param name="waitUntilOff">A value indicating to block until the server has shutdown.</param>
         /// <returns>Task for async.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
         public static async Task ParallelOperationForStopInstanceAsync(
             InstanceTargeterBase instanceTargeter,
             ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,

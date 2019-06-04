@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="SetupStepFactorySettings.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="SetupStepFactorySettings.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ namespace Naos.Deployment.Domain
     }
 
     /// <summary>
-    /// Settings class to provide information about the harness
+    /// Settings class to provide information about the harness.
     /// </summary>
     public class HarnessSettings
     {

@@ -1,6 +1,6 @@
 // --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CertificateWriterToMongo.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="CertificateWriterToMongo.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Serialization.Bson;
-
+    using Naos.Serialization.Domain;
     using OBeautifulCode.Validation.Recipes;
 
     using Spritely.ReadModel;
@@ -34,7 +34,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
             this.certificateContainerCommands = certificateContainerCommands;
 
-            BsonConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
         }
 
         /// <inheritdoc />

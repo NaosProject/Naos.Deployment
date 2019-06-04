@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ArcologyInfoContainer.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ArcologyInfoContainer.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -11,6 +11,7 @@ namespace Naos.Deployment.Persistence
     /// <summary>
     /// Container object to hold an arcology info and save it in Mongo.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
     public class ArcologyInfoContainer
     {
         /// <summary>
@@ -26,6 +27,7 @@ namespace Naos.Deployment.Persistence
         /// <summary>
         /// Gets or sets the arcology info.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         public ArcologyInfo ArcologyInfo { get; set; }
     }
 }

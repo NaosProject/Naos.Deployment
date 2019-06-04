@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="GenerateJsonHelperTest.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="GenerateJsonHelperTest.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -15,10 +15,11 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.Logging.Domain;
+    using Naos.Logging.Persistence;
     using Naos.MessageBus.Domain;
     using Naos.Serialization.Factory;
 
-    using OBeautifulCode.TypeRepresentation;
+    using OBeautifulCode.Type;
 
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
@@ -55,10 +56,10 @@ namespace Naos.Deployment.Core.Test
             var logConfigurations = new LogWriterConfigBase[]
             {
                 new EventLogConfig(
-                    new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>> { { LogItemKind.Exception, null } },
+                    new Dictionary<LogItemKind, IReadOnlyCollection<string>> { { LogItemKind.Exception, null } },
                     eventLogSource,
                     customEventLog),
-                new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), logFilePath),
+                new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), logFilePath),
             };
 
             var configFileSerializationDescription = Config.ConfigFileSerializationDescription;
@@ -143,8 +144,8 @@ namespace Naos.Deployment.Core.Test
             var eventLogSource = "HangfireHarness";
             var logConfigurations = new LogWriterConfigBase[]
                                         {
-                                            new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>> { { LogItemKind.Exception, null } }, eventLogSource, customEventLog),
-                                            new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<LogItemOrigin>>(), logFilePath),
+                                            new EventLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>> { { LogItemKind.Exception, null } }, eventLogSource, customEventLog),
+                                            new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), logFilePath),
                                         };
 
             var launchConfiguration = new MessageBusLaunchConfiguration(
@@ -207,9 +208,7 @@ namespace Naos.Deployment.Core.Test
             var hangfireDb = new PackageDescriptionWithOverrides
                                  {
                                      Id = hangfireDatabasePackageId,
-                                     InitializationStrategies =
-                                         new InitializationStrategyBase[]
-                                                 { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, ManagementChannelName = "hangfire" }, },
+                                     InitializationStrategies = new InitializationStrategyBase[] { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, ManagementChannelName = "hangfire" }, },
                                  };
 
             var packages = new List<PackageDescriptionWithOverrides> { hangfireDb };

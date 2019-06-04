@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ITrackComputingInfrastructure.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ITrackComputingInfrastructure.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -26,6 +26,7 @@ namespace Naos.Deployment.Domain
         /// <param name="arcologyInfo"><see cref="ArcologyInfo" /> to use.</param>
         /// <param name="deployedInstances">Optional <see cref="DeployedInstance" />'s that already exist.</param>
         /// <returns>Task for async.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         Task Create(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null);
 
         /// <summary>

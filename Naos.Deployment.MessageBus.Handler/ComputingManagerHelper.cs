@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ComputingManagerHelper.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="ComputingManagerHelper.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -172,6 +172,7 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <param name="settings">Settings necessary to handle the message.</param>
         /// <param name="computingManager">Computing infrastructure manager to perform operations.</param>
         /// <returns>System specific ID to use for operations.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
         public static async Task<IReadOnlyCollection<string>> GetSystemIdsFromTargeterAsync(
             InstanceTargeterBase instanceTargeter,
             ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,

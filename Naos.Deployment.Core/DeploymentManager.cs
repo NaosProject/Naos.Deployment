@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentManager.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DeploymentManager.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -543,7 +543,9 @@ namespace Naos.Deployment.Core
         {
             List<SetupStep> steps = new List<SetupStep>();
 
+#pragma warning disable SA1305 // Field names should not use Hungarian notation
             SetupStep BuildDnsStep(string dns, string ipAddress, string instanceLocation)
+#pragma warning restore SA1305 // Field names should not use Hungarian notation
             {
                 var step = new SetupStep
                                {

@@ -28,6 +28,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Database.MessageBus.Handler", "Naos.Database.MessageBus.Handler\Naos.Database.MessageBus.Handler.csproj", "{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Database.MessageBus.Hangfire.Console", "Naos.Database.MessageBus.Hangfire.Console\Naos.Database.MessageBus.Hangfire.Console.csproj", "{6EA321FE-2EA4-4BCB-82FA-D16848537877}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Database.MessageBus.Scheduler", "Naos.Database.MessageBus.Scheduler\Naos.Database.MessageBus.Scheduler.csproj", "{FCF5A964-EE1D-41B8-9F55-DB6FA9FBBFE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.FileJanitor.MessageBus.Handler", "Naos.FileJanitor.MessageBus.Handler\Naos.FileJanitor.MessageBus.Handler.csproj", "{26DEC75C-C6D1-47A5-BE70-90BE96EC2E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.FileJanitor.MessageBus.Hangfire.Console", "Naos.FileJanitor.MessageBus.Hangfire.Console\Naos.FileJanitor.MessageBus.Hangfire.Console.csproj", "{75DA3E2B-450A-443D-B508-DD4A4FF0F4DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.FileJanitor.MessageBus.Scheduler", "Naos.FileJanitor.MessageBus.Scheduler\Naos.FileJanitor.MessageBus.Scheduler.csproj", "{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -74,6 +86,30 @@ Global
 		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{578CAE89-A135-4F29-9C5C-ED506A12A6AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EA321FE-2EA4-4BCB-82FA-D16848537877}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EA321FE-2EA4-4BCB-82FA-D16848537877}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EA321FE-2EA4-4BCB-82FA-D16848537877}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EA321FE-2EA4-4BCB-82FA-D16848537877}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCF5A964-EE1D-41B8-9F55-DB6FA9FBBFE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCF5A964-EE1D-41B8-9F55-DB6FA9FBBFE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCF5A964-EE1D-41B8-9F55-DB6FA9FBBFE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCF5A964-EE1D-41B8-9F55-DB6FA9FBBFE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26DEC75C-C6D1-47A5-BE70-90BE96EC2E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26DEC75C-C6D1-47A5-BE70-90BE96EC2E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26DEC75C-C6D1-47A5-BE70-90BE96EC2E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26DEC75C-C6D1-47A5-BE70-90BE96EC2E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75DA3E2B-450A-443D-B508-DD4A4FF0F4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75DA3E2B-450A-443D-B508-DD4A4FF0F4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75DA3E2B-450A-443D-B508-DD4A4FF0F4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75DA3E2B-450A-443D-B508-DD4A4FF0F4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA09BAD8-0449-44E7-BAB5-2DA45C2E5DF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

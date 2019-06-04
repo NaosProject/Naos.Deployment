@@ -266,7 +266,7 @@ namespace OBeautifulCode.Validation.Recipes
             var result = CodeDomProvider.GetTypeOutput(new CodeTypeReference(type.FullName?.Replace(type.Namespace + ".", string.Empty)));
 
             // if type is an unbounded generic type, then the result will something like List<> or IReadOnlyDictionary<, >
-            // whereas we would perfer List<T> or IReadOnlyDictionary<T,K>
+            // whereas we would prefer List<T> or IReadOnlyDictionary<T,K>
             if (type.IsGenericTypeDefinition)
             {
                 var genericArgumentNames = string.Join(",", type.GetGenericArguments().Select(x => x.Name));
@@ -293,7 +293,7 @@ namespace OBeautifulCode.Validation.Recipes
             var enumerableQualifier = validation.IsElementInEnumerable ? " contains an element that" : string.Empty;
             var genericTypeQualifier = include.HasFlag(Include.GenericType) ? ", where T: " + (genericTypeOverride?.GetFriendlyTypeName() ?? validation.ValueType.GetFriendlyTypeName()) : string.Empty;
             var failingValueQualifier = include.HasFlag(Include.FailingValue) ? (validation.IsElementInEnumerable ? "  Element value" : "  Parameter value") + Invariant($" is '{validation.Value?.ToString() ?? NullValueToString}'.") : string.Empty;
-            var validationParameterQualifiers = validation.ValidationParameters == null || !validation.ValidationParameters.Any() ? string.Empty : string.Join(string.Empty, validation.ValidationParameters.Select(_ => Invariant($"  Specified '{_.Name}' is '{_.Value ?? NullValueToString}'.")));
+            var validationParameterQualifiers = validation.ValidationParameters == null || !validation.ValidationParameters.Any() ? string.Empty : string.Join(string.Empty, validation.ValidationParameters.Select(_ => _.ToExceptionMessageComponent()));
             var result = Invariant($"Parameter{parameterNameQualifier}{enumerableQualifier} {exceptionMessageSuffix}{genericTypeQualifier}.{failingValueQualifier}{validationParameterQualifiers}");
 
             if (validation.ApplyBecause == ApplyBecause.PrefixedToDefaultMessage)
@@ -316,6 +316,49 @@ namespace OBeautifulCode.Validation.Recipes
             }
 
             return result;
+        }
+
+        private static string ToExceptionMessageComponent(
+            this ValidationParameter validationParameter)
+        {
+            var result = Invariant($"  Specified '{validationParameter.Name}' is");
+            if (validationParameter.ValueToStringFunc == null)
+            {
+                // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+                if (validationParameter.Value == null)
+                {
+                    result = Invariant($"{result} '{NullValueToString}'");
+                }
+                else
+                {
+                    result = Invariant($"{result} '{validationParameter.Value}'");
+                }
+            }
+            else
+            {
+                result = Invariant($"{result} {validationParameter.ValueToStringFunc()}");
+            }
+
+            result = Invariant($"{result}.");
+
+            return result;
+        }
+
+        private static Exception AddData(
+            this Exception exception,
+            IDictionary data)
+        {
+            if (data != null)
+            {
+                // because the caller is creating a new exception, we know that Data is empty
+                // and we don't have to check for key conflicts (same key exists in both exception.Data and in data)
+                foreach (var dataKey in data.Keys)
+                {
+                    exception.Data[dataKey] = data[dataKey];
+                }
+            }
+
+            return exception;
         }
 
         private static T GetDefaultValue<T>()
@@ -437,6 +480,8 @@ namespace OBeautifulCode.Validation.Recipes
             public bool IsElementInEnumerable { get; set; }
 
             public IReadOnlyCollection<TypeValidation> TypeValidations { get; set; }
+
+            public IDictionary Data { get; set; }
         }
 
         private class ValidationParameter
@@ -446,6 +491,8 @@ namespace OBeautifulCode.Validation.Recipes
             public object Value { get; set; }
 
             public Type ValueType { get; set; }
+
+            public Func<string> ValueToStringFunc { get; set; }
         }
 
         [Flags]

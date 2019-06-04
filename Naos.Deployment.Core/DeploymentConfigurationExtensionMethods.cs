@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentConfigurationExtensionMethods.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="DeploymentConfigurationExtensionMethods.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ namespace Naos.Deployment.Core
         /// Creates a new config apply the provided config as an override.
         /// </summary>
         /// <param name="deploymentConfigInitial">Base deployment config to override.</param>
-        /// <param name="deploymentConfigOverride">Overrides to apply</param>
+        /// <param name="deploymentConfigOverride">Overrides to apply.</param>
         /// <returns>New config with overrides applied.</returns>
         public static DeploymentConfiguration ApplyOverrides(
             this DeploymentConfiguration deploymentConfigInitial,

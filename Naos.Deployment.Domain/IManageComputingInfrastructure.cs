@@ -1,6 +1,6 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="IManageComputingInfrastructure.cs" company="Naos">
-//    Copyright (c) Naos 2017. All Rights Reserved.
+// <copyright file="IManageComputingInfrastructure.cs" company="Naos Project">
+//    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -24,7 +24,7 @@ namespace Naos.Deployment.Domain
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="releasePublicIpIfApplicable">Optionally release the public IP address if the instance has one (DEFAULT is false).</param>
-        /// <returns>Task for async/await</returns>
+        /// <returns>Task for async/await.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "Ip", Justification = "Spelling/name is correct.")]
@@ -37,7 +37,7 @@ namespace Naos.Deployment.Domain
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="force">Force the stop.</param>
         /// <param name="waitUntilOff">Wait until the machine is off.</param>
-        /// <returns>Task for async/await</returns>
+        /// <returns>Task for async/await.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "TurnOff", Justification = "Spelling/name is correct.")]
         Task TurnOffInstanceAsync(string systemId, string systemLocation, bool force = false, bool waitUntilOff = true);
 
@@ -48,7 +48,7 @@ namespace Naos.Deployment.Domain
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="waitUntilOn">Wait until the machine is on.</param>
         /// <param name="maxRebootAttemptsOnFailedStarts">If "waitUntilOn" is true and any status checks failed the instance can have an attempted restart to resolve issues, default is 2.</param>
-        /// <returns>Task for async/await</returns>
+        /// <returns>Task for async/await.</returns>
         Task TurnOnInstanceAsync(string systemId, string systemLocation, bool waitUntilOn = true, int maxRebootAttemptsOnFailedStarts = 2);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Naos.Deployment.Domain
         /// <param name="systemId">Proprietary ID of the instance.</param>
         /// <param name="systemLocation">Proprietary location of the instance.</param>
         /// <param name="newInstanceType">New instance type for the instance.</param>
-        /// <returns>Task for async/await</returns>
+        /// <returns>Task for async/await.</returns>
         Task ChangeInstanceTypeAsync(string systemId, string systemLocation, InstanceType newInstanceType);
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Naos.Deployment.Domain
         /// <param name="location">System location to make calls against.</param>
         /// <param name="domain">Domain to operate on.</param>
         /// <param name="ipAddresses">IP Addresses to bind to the DNS entry specified.</param>
-        /// <returns>Task for async/await</returns>
+        /// <returns>Task for async/await.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Upsert", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "ip", Justification = "Spelling/name is correct.")]
