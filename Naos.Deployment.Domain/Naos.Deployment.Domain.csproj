@@ -116,7 +116,7 @@
     <Compile Include="Certificate\CertificateDescriptionWithClearPfxPayload.cs" />
     <Compile Include="Certificate\CertificateDescriptionWithEncryptedPfxPayload.cs" />
     <Compile Include="Certificate\IPersistCertificates.cs" />
-    <Compile Include="DeploymentJsonConfiguration.cs" />
+    <Compile Include="NaosDeploymentDomainJsonConfiguration.cs" />
     <Compile Include="Exception\PasswordUnavailableException.cs" />
     <Compile Include="IManageConfigFiles.cs" />
     <Compile Include="InitializationStrategy\AutoStartProvider.cs" />

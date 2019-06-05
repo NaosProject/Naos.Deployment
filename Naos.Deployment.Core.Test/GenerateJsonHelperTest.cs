@@ -64,7 +64,7 @@ namespace Naos.Deployment.Core.Test
                 new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), logFilePath),
             };
 
-            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var infrastructureTrackerConfig = new InfrastructureTrackerConfigurationDatabase
             {
                 Database = new DeploymentDatabase
@@ -162,7 +162,7 @@ namespace Naos.Deployment.Core.Test
 
             var databaseServer = "localhost";
 
-            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
             var persistenceConnectionConfiguration = new MessageBusConnectionConfiguration
                                                          {

@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core.Test
     public static class ConfigFileManagerTests
     {
         private static readonly ISerializeAndDeserialize Serializer =
-            new NaosJsonSerializer(typeof(DeploymentJsonConfiguration));
+            new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration));
 
         [Fact]
         public static void BuildPrecedenceChain___With_no_precedence___Gets_common()

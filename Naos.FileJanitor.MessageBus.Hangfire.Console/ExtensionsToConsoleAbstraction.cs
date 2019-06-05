@@ -171,7 +171,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             var fileManager = new FileManager(settings.UploadAccessKey, settings.UploadSecretKey);
 
-            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentDomainJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var userDefinedMetadata = string.IsNullOrWhiteSpace(userDefinedMetadataJson) ? null : serializer.Deserialize<IReadOnlyCollection<MetadataItem>>(userDefinedMetadataJson);
 
             if (!string.IsNullOrWhiteSpace(filePath) && string.IsNullOrWhiteSpace(directoryPath))

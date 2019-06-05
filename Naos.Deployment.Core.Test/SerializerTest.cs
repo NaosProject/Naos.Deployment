@@ -30,7 +30,7 @@ namespace Naos.Deployment.Core.Test
 
     public static class SerializerTest
     {
-        private static readonly NaosJsonSerializer JsonSerializerToUse = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly NaosJsonSerializer JsonSerializerToUse = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         [Fact]
         public static void Serializing_Logging_Config___Roundtrips()

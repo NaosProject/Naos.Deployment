@@ -1,5 +1,5 @@
 ﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="DeploymentJsonConfiguration.cs" company="Naos Project">
+// <copyright file="NaosDeploymentDomainJsonConfiguration.cs" company="Naos Project">
 //    Copyright (c) Naos Project 2019. All rights reserved.
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@ namespace Naos.Deployment.Domain
     /// <summary>
     /// <see cref="JsonConfigurationBase" /> implementation for Deployment types.
     /// </summary>
-    public class DeploymentJsonConfiguration : JsonConfigurationBase
+    public class NaosDeploymentDomainJsonConfiguration : JsonConfigurationBase
     {
         /// <inheritdoc />
         public override IReadOnlyCollection<Type> DependentConfigurationTypes =>

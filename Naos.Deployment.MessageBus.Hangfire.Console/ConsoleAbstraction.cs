@@ -89,7 +89,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
-            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentDomainJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var parcel = (Parcel)serializer.Deserialize(parcelJson, typeof(Parcel));
 			var schedule = string.IsNullOrWhiteSpace(scheduleJson) ? null : (ScheduleBase)serializer.Deserialize(scheduleJson, typeof(ScheduleBase));
             var messageBusConnectionConfiguration = Config.Get<MessageBusConnectionConfiguration>();

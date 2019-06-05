@@ -379,6 +379,7 @@
     <Compile Include="DeploymentAdjustment\DatabaseManagementAdder.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethods.cs" />
     <Compile Include="DeploymentManager.cs" />
+    <Compile Include="NaosDeploymentCoreJsonConfiguration.cs" />
     <Compile Include="RecordingMachineManagerFactory.cs" />
     <Compile Include="PackageHelper.cs" />
     <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />

@@ -38,7 +38,7 @@ namespace Naos.Deployment.Core.Test
         private static readonly DeploymentConfiguration DeploymentConfig;
 
         private static readonly SetupStepFactorySettings StepFactorySettings =
-            Config.Get<SetupStepFactorySettings>(typeof(DeploymentJsonConfiguration));
+            Config.Get<SetupStepFactorySettings>(typeof(NaosDeploymentCoreJsonConfiguration));
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Need static constructor for Its.Configuration initialization.")]
         static AdjustDeploymentTest()
@@ -125,7 +125,7 @@ namespace Naos.Deployment.Core.Test
                                                                                         },
                                                    };
 
-            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt));
+            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt));
 
             DeploymentConfig = new DeploymentConfiguration
                                    {

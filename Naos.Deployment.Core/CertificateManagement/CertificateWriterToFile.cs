@@ -22,7 +22,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class CertificateWriterToFile : IPersistCertificates
     {
-        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private readonly object fileSync = new object();
 

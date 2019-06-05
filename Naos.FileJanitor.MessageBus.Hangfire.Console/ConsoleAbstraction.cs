@@ -90,7 +90,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
-            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentDomainJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var parcel = (Parcel)Config.Deserialize(typeof(Parcel), parcelJson);
 			var schedule = string.IsNullOrWhiteSpace(scheduleJson) ? null : (ScheduleBase)serializer.Deserialize(scheduleJson, typeof(ScheduleBase));
             var messageBusConnectionConfiguration = Config.Get<MessageBusConnectionConfiguration>();

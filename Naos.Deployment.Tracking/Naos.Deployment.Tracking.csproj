@@ -128,6 +128,7 @@
     <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
     <Compile Include="Arcology.cs" />
+    <Compile Include="NaosDeploymentTrackingJsonConfiguration.cs" />
     <Compile Include="InfrastructureTrackerConfigurationBase.cs" />
     <Compile Include="LoggingHelper.cs" />
     <Compile Include="MongoInfrastructureTracker.cs" />
