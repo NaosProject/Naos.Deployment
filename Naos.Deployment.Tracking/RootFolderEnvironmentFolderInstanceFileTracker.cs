@@ -27,7 +27,7 @@ namespace Naos.Deployment.Tracking
         private const string InstancePrefix = "Instance--";
         private const string IpInfix = "ip--";
 
-        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer();
+        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private readonly Task emptyTask = Task.Run(
             () =>
