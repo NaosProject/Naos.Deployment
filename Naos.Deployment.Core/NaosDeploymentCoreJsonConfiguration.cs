@@ -32,6 +32,7 @@ namespace Naos.Deployment.Core
             typeof(PackagedDeploymentConfiguration),
             typeof(MessageBusHandlerHarnessConfiguration),
             typeof(CertificateManagementConfigurationBase),
+            typeof(AdjustDeploymentBase),
         };
     }
 }
