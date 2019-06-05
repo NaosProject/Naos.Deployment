@@ -67,7 +67,7 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(SetupStepFactorySettings),
                                                                                     typeof(Volume),
 
-                                                                                    // Persisitence types
+                                                                                    // Persistence types
                                                                                     typeof(ArcologyInfoContainer),
                                                                                     typeof(CertificateContainer),
                                                                                     typeof(InstanceContainer),

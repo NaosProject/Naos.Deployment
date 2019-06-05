@@ -25,7 +25,7 @@ namespace Naos.Deployment.Core
         public static IReadOnlyCollection<PackageDescription> WithoutStrategies(
             this IReadOnlyCollection<PackageDescriptionWithOverrides> withStrategies)
         {
-            var ret = withStrategies.Select(_ => new PackageDescription { Id = _.Id, Version = _.Version }).ToList();
+            var ret = withStrategies.Select(_ => _.PackageDescription).ToList();
             return ret;
         }
     }

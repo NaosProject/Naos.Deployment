@@ -131,9 +131,9 @@ namespace Naos.Deployment.Core.Test
             var exceptionMemory = Record.Exception(() => settingsMemory.BuildDefaultLogWritingSettings("path", "package"));
 
             // Assert
-            exceptionConsole.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.ConsoleLogConfig");
-            exceptionEvent.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.EventLogConfig");
-            exceptionMemory.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Domain.InMemoryLogConfig");
+            exceptionConsole.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Persistence.ConsoleLogConfig");
+            exceptionEvent.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Persistence.EventLogConfig");
+            exceptionMemory.Should().BeOfType<NotSupportedException>().Which.Message.Should().Be("Unsupported LogWriterConfigBase in SetupStepFactorySettings.DefaultLogWritingSettings; Naos.Logging.Persistence.InMemoryLogConfig");
         }
 
         [Fact]

@@ -20,6 +20,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
+    using Naos.Serialization.Domain;
     using Naos.Serialization.Factory;
     using Naos.Serialization.Json;
     using Xunit;
@@ -59,7 +60,7 @@ namespace Naos.Deployment.Core.Test
                                                             PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                             Package = new PackageDescriptionWithOverrides
                                                                           {
-                                                                              Id = "Naos.MessageBus.Hangfire.Console",
+                                                                              PackageDescription = new PackageDescription { Id = "Naos.MessageBus.Hangfire.Console" },
                                                                               InitializationStrategies =
                                                                                   new[]
                                                                                       {
@@ -86,8 +87,8 @@ namespace Naos.Deployment.Core.Test
                                                        PersistenceConnectionConfiguration = new MessageBusConnectionConfiguration(),
                                                        FileSystemManagementPackage = new PackageDescriptionWithOverrides
                                                                                          {
-                                                                                             Id = "Naos.FileJanitor.MessageBus.Hangfire.Console",
-                                                                                             InitializationStrategies =
+                                                                                            PackageDescription = new PackageDescription { Id = "Naos.FileJanitor.MessageBus.Hangfire.Console" },
+                                                                                            InitializationStrategies =
                                                                                                  new[]
                                                                                                      {
                                                                                                          new
@@ -105,7 +106,7 @@ namespace Naos.Deployment.Core.Test
                                                                                          },
                                                        DatabaseManagementPackage = new PackageDescriptionWithOverrides
                                                                                         {
-                                                                                            Id = "Naos.Database.MessageBus.Hangfire.Console",
+                                                                                            PackageDescription = new PackageDescription { Id = "Naos.Database.MessageBus.Hangfire.Console" },
                                                                                             InitializationStrategies =
                                                                                                 new[]
                                                                                                     {
@@ -124,7 +125,7 @@ namespace Naos.Deployment.Core.Test
                                                                                         },
                                                    };
 
-            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(DeploymentJsonConfiguration)));
+            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt));
 
             DeploymentConfig = new DeploymentConfiguration
                                    {
@@ -158,7 +159,7 @@ namespace Naos.Deployment.Core.Test
             // Arrange
             var adder = new MessageBusHarnessAdder(MessageBusHandlerHarnessConfiguration);
             var packagesToDeploy = BuildPackagesToDeploy(
-                new[] { new InitializationStrategyMessageBusHandler { ChannelsToMonitor = new[] { new SimpleChannel("work") }, WorkerCount = 1, }, }, MessageBusHandlerHarnessConfiguration.Package.Id);
+                new[] { new InitializationStrategyMessageBusHandler { ChannelsToMonitor = new[] { new SimpleChannel("work") }, WorkerCount = 1, }, }, MessageBusHandlerHarnessConfiguration.Package.PackageDescription.Id);
 
             // Act
             var wasMatch = adder.IsMatch(ConfigFileManager, packagesToDeploy, DeploymentConfig);

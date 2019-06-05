@@ -178,17 +178,17 @@ namespace Naos.Deployment.Core
 
             if (string.IsNullOrEmpty(instanceName))
             {
-                instanceName = string.Join("---", packagesToDeploy.Select(_ => _.Id.Replace(".", "-")).ToArray());
+                instanceName = string.Join("---", packagesToDeploy.Select(_ => _.PackageDescription.Id.Replace(".", "-")).ToArray());
             }
 
             // set null package id for any 'package-less' deployments
-            foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.Id)))
+            foreach (var package in packagesToDeploy.Where(package => string.IsNullOrEmpty(package.PackageDescription.Id)))
             {
-                package.Id = PackageDescription.NullPackageId;
+                package.PackageDescription.Id = PackageDescription.NullPackageId;
             }
 
             // get the NuGet package to push to instance AND crack open for Its.Config deployment file
-            this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.Id)));
+            this.LogAnnouncement("Downloading packages that are to be deployed => IDs: " + string.Join(",", packagesToDeploy.Select(_ => _.PackageDescription.Id)));
 
             this.LogAnnouncement("Extracting deployment configuration(s) for specified environment from packages (if present).");
             var packagedDeploymentConfigs = GetPackagedDeploymentConfigurations(
@@ -706,7 +706,7 @@ namespace Naos.Deployment.Core
                         // decide whether we need to get all of the dependencies or just the normal package
                         // currently this is for message bus handlers since web services already include all assemblies...
                         var bundleAllDependencies = FigureOutIfNeedToBundleDependencies(packageDescriptionWithOverrides);
-                        var package = packageHelper.GetPackage(packageDescriptionWithOverrides, bundleAllDependencies);
+                        var package = packageHelper.GetPackage(packageDescriptionWithOverrides.PackageDescription, bundleAllDependencies);
                         var actualVersion = packageHelper.GetActualVersionFromPackage(package.Package);
 
                         var deploymentConfigJson =
@@ -726,7 +726,7 @@ namespace Naos.Deployment.Core
                             // since we previously didn't bundle the packages dependencies
                             //        AND found in the extraced config that we need to
                             //       THEN we need to re-download with dependencies bundled...
-                            package = packageHelper.GetPackage(packageDescriptionWithOverrides, true);
+                            package = packageHelper.GetPackage(packageDescriptionWithOverrides.PackageDescription, true);
                         }
 
                         // take overrides if present, otherwise take existing, otherwise take empty
@@ -923,7 +923,7 @@ namespace Naos.Deployment.Core
 
             // confirm that terminating the instances will not take down any packages that aren't getting re-deployed...
             var deployedPackagesToCheck =
-                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages.Values)
+                instancesWithMatchingEnvironmentAndPackages.SelectMany(_ => _.DeployedPackages.Values.Select(p => p.PackageDescription))
                     .Except(packagesToIgnore, new PackageDescriptionIdOnlyEqualityComparer())
                     .ToList();
             if (deployedPackagesToCheck.Except(packagesToDeploy, new PackageDescriptionIdOnlyEqualityComparer()).Any())

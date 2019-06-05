@@ -61,7 +61,7 @@ namespace $rootnamespace$
     public static class NaosDeploymentBootstrapper
     {
         private static readonly object NugetAnnouncementFileLock = new object();
-        private static readonly ISerializeAndDeserialize ConfigFileSerializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration));
+        private static readonly ISerializeAndDeserialize ConfigFileSerializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private static void NugetAnnouncementAction(string output, string nugetAnnouncementFilePath)
         {

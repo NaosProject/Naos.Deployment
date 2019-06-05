@@ -199,8 +199,8 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-	""id"": ""Naos.Something"",
-	""initializationStrategies"": [{
+	""PackageDescription"" : { ""id"": ""Naos.Something"" },
+""initializationStrategies"": [{
 		""privateDnsEntry"": ""something.database.development.cometrics.com""
 	}]
 }]";
@@ -220,8 +220,8 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-	""id"": ""Naos.Something"",
-	""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeFilePathRelativeToPackageRoot"":""MyConsole.exe"", ""runElevated"":""true"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args"", ""scheduledTaskAccount"":""administrator""}]
+	""PackageDescription"" : { ""id"": ""Naos.Something"" },
+""initializationStrategies"": [{  ""name"": ""TheName"",  ""description"": ""Description To Have."", ""exeFilePathRelativeToPackageRoot"":""MyConsole.exe"", ""runElevated"":""true"", ""schedule"":{""cronExpression"":""* * * * *""}, ""arguments"":""/args"", ""scheduledTaskAccount"":""administrator""}]
 }]";
             var deserialized = (ICollection<PackageDescriptionWithOverrides>)JsonSerializerToUse.Deserialize(input, typeof(ICollection<PackageDescriptionWithOverrides>));
 
@@ -241,8 +241,8 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-	""id"": ""Naos.Something"",
-	""initializationStrategies"": [{
+	""PackageDescription"" : { ""id"": ""Naos.Something"" },
+""initializationStrategies"": [{
 		""directoryToCreate"": {""fullPath"": ""C:\\MyPath\\Is\\Here"", ""FullControlAccount"": ""Administrator"" }
 	}]
 }]";
@@ -267,7 +267,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-	""id"": ""Naos.Something"",
+	""PackageDescription"" : { ""id"": ""Naos.Something"" },
 	""initializationStrategies"": [{
 		""certificateToInstall"": ""ThisIsTheNameOfTheCertInCertRetriever...""
 	}]
@@ -287,7 +287,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-""id"": ""Naos.Something"",
+	""PackageDescription"" : { ""id"": ""Naos.Something"" },
 ""initializationStrategies"":
     [{""name"": ""DatabaseName"",      ""restore"": {""runChecksum"":true    }}]
 }]";
@@ -308,7 +308,7 @@ namespace Naos.Deployment.Core.Test
         {
             var input = @"
 [{
-""id"": ""Naos.Something"",
+""PackageDescription"" : { ""id"": ""Naos.Something"" },
 ""initializationStrategies"":
     [{""name"": ""DatabaseName"", ""administratorPassword"":""hello"",      ""migration"": {""version"":17}}]
 }]";

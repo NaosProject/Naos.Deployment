@@ -225,7 +225,7 @@ namespace Naos.Deployment.Core
                 itsConfigOverridesToUse.AddRange(packageDescriptionToAdd.ItsConfigOverrides);
             }
 
-            var packageToAdd = packageHelper.GetPackage(packageDescriptionToAdd, false);
+            var packageToAdd = packageHelper.GetPackage(packageDescriptionToAdd.PackageDescription, false);
 
             var actualVersion = packageHelper.GetActualVersionFromPackage(packageToAdd.Package);
             packageToAdd.Package.PackageDescription.Version = actualVersion;

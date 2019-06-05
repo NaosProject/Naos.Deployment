@@ -56,7 +56,7 @@ namespace Naos.Deployment.Core
             // make sure we're not already deploying the package ('server/host/schedule manager' is only scenario of this right now...)
             var alreadyDeployingTheSamePackageAsHandlersUse =
                 packagedDeploymentConfigsWithDefaultsAndOverrides.Any(
-                    _ => _.PackageWithBundleIdentifier.Package.PackageDescription.Id == this.MessageBusHandlerHarnessConfiguration.Package.Id);
+                    _ => _.PackageWithBundleIdentifier.Package.PackageDescription.Id == this.MessageBusHandlerHarnessConfiguration.Package.PackageDescription.Id);
 
             var hasMessageBusInitializations = messageBusInitializations.Any();
             var match = hasMessageBusInitializations && !alreadyDeployingTheSamePackageAsHandlersUse;
@@ -146,7 +146,7 @@ namespace Naos.Deployment.Core
                 itsConfigOverridesToUse.AddRange(this.MessageBusHandlerHarnessConfiguration.Package.ItsConfigOverrides);
             }
 
-            var messageBusHandlerPackage = packageHelper.GetPackage(this.MessageBusHandlerHarnessConfiguration.Package, false);
+            var messageBusHandlerPackage = packageHelper.GetPackage(this.MessageBusHandlerHarnessConfiguration.Package.PackageDescription, false);
 
             var actualVersion = packageHelper.GetActualVersionFromPackage(messageBusHandlerPackage.Package);
             messageBusHandlerPackage.Package.PackageDescription.Version = actualVersion;

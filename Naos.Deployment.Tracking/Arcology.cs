@@ -91,7 +91,7 @@ namespace Naos.Deployment.Tracking
             var instancesThatHaveAnyOfTheProvidedPackages =
                 this.Instances.Where(
                     _ =>
-                    _.InstanceDescription.DeployedPackages.Values.Intersect(
+                    _.InstanceDescription.DeployedPackages.Values.Select(p => p.PackageDescription).Intersect(
                         packages,
                         new PackageDescriptionIdOnlyEqualityComparer()).Any()).ToList();
 
@@ -254,12 +254,11 @@ namespace Naos.Deployment.Tracking
             };
 
             var deployedPackages = intendedPackages.ToDictionary(
-                item => item.Id,
+                item => item.PackageDescription.Id,
                 _ =>
                 new PackageDescriptionWithDeploymentStatus
                     {
-                        Id = _.Id,
-                        Version = _.Version,
+                        PackageDescription = _.PackageDescription,
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
                         InitializationStrategies = _.InitializationStrategies,
                         ItsConfigOverrides = _.ItsConfigOverrides,
@@ -293,7 +292,7 @@ namespace Naos.Deployment.Tracking
 
             PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
             var existing =
-                instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value, package)).ToList();
+                instanceToUpdatePackagesOn.InstanceDescription.DeployedPackages.Where(_ => comparer.Equals(_.Value.PackageDescription, package)).ToList();
             if (existing.Any())
             {
                 var existingSingle = existing.Single().Key;
@@ -304,8 +303,7 @@ namespace Naos.Deployment.Tracking
             {
                 var toAdd = new PackageDescriptionWithDeploymentStatus
                                 {
-                                    Id = package.Id,
-                                    Version = package.Version,
+                                    PackageDescription = package,
                                     DeploymentStatus =
                                         PackageDeploymentStatus
                                         .DeployedSuccessfully,

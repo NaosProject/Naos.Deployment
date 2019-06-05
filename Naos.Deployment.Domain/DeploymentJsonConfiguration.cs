@@ -10,6 +10,7 @@ namespace Naos.Deployment.Domain
     using System.Collections.Generic;
     using Naos.Cron.Serialization.Json;
     using Naos.Logging.Domain;
+    using Naos.MessageBus.Domain;
     using Naos.Packaging.Serialization.Json;
     using Naos.Serialization.Json;
 
@@ -25,6 +26,7 @@ namespace Naos.Deployment.Domain
                 typeof(CronJsonConfiguration),
                 typeof(LoggingJsonConfiguration),
                 typeof(PackagingJsonConfiguration),
+                typeof(MessageBusJsonConfiguration),
             };
 
         /// <inheritdoc />

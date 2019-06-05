@@ -75,7 +75,7 @@ namespace Naos.Deployment.Core
             var reason = string.Join(",", matches.Select(_ => _.Name));
             foreach (var packageToInject in this.PackagesToInject)
             {
-                var package = packageHelper.GetPackage(packageToInject, this.ShouldBundleDependenciesOfPackage);
+                var package = packageHelper.GetPackage(packageToInject.PackageDescription, this.ShouldBundleDependenciesOfPackage);
 
                 var packagedConfig = new PackagedDeploymentConfiguration
                              {

@@ -13,7 +13,7 @@ namespace Naos.Deployment.Core.Test
     using FluentAssertions;
 
     using Naos.Deployment.Domain;
-
+    using Naos.Packaging.Domain;
     using Xunit;
 
     public static partial class DeploymentConfigurationExtensionMethodsTest
@@ -506,8 +506,8 @@ namespace Naos.Deployment.Core.Test
                                                     ChocolateyPackages =
                                                         new[]
                                                             {
-                                                                new PackageDescriptionWithOverrides() { Id = "Monkeys" },
-                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" },
+                                                                new PackageDescription() { Id = "Monkeys" },
+                                                                new PackageDescription() { Id = "PandaBears" },
                                                             },
                                                 },
                                             new DeploymentConfiguration()
@@ -515,7 +515,7 @@ namespace Naos.Deployment.Core.Test
                                                     ChocolateyPackages =
                                                         new[]
                                                             {
-                                                                new PackageDescriptionWithOverrides() { Id = "PandaBears" },
+                                                                new PackageDescription() { Id = "PandaBears" },
                                                             },
                                                 },
                                         };

@@ -17,6 +17,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
     using Naos.MessageBus.Domain;
+    using Naos.Packaging.Domain;
     using Naos.Serialization.Domain;
     using Naos.Serialization.Factory;
     using Naos.Serialization.Json;
@@ -95,7 +96,10 @@ namespace Naos.Deployment.Core.Test
 
             var deploymentHandler = new PackageDescriptionWithOverrides
                                         {
-                                            Id = deploymentHandlerPackageId,
+                                            PackageDescription = new PackageDescription
+                                            {
+                                                Id = deploymentHandlerPackageId,
+                                            },
                                             InitializationStrategies =
                                                 new InitializationStrategyBase[]
                                                     {
@@ -205,7 +209,10 @@ namespace Naos.Deployment.Core.Test
 
             var hangfireDb = new PackageDescriptionWithOverrides
                                  {
-                                     Id = hangfireDatabasePackageId,
+                                     PackageDescription = new PackageDescription
+                                     {
+                                         Id = hangfireDatabasePackageId,
+                                     },
                                      InitializationStrategies = new InitializationStrategyBase[] { new InitializationStrategySqlServer { Name = "Hangfire", AdministratorPassword = databaseServerPassword, ManagementChannelName = "hangfire" }, },
                                  };
 
@@ -213,8 +220,11 @@ namespace Naos.Deployment.Core.Test
 
             var hangfireHarness = new PackageDescriptionWithOverrides
                                       {
-                                          Id = hangfireHarnessPackageId,
-                                          InitializationStrategies =
+                                         PackageDescription = new PackageDescription
+                                         {
+                                             Id = hangfireHarnessPackageId,
+                                         },
+                                         InitializationStrategies =
                                               new InitializationStrategyBase[]
                                                   {
                                                       new InitializationStrategyCertificateToInstall { CertificateToInstall = sslCertName },
@@ -235,7 +245,7 @@ namespace Naos.Deployment.Core.Test
                                                                       },
                                                           },
                                                   },
-                                          ItsConfigOverrides =
+                                         ItsConfigOverrides =
                                               new[]
                                                   {
                                                       new ItsConfigOverride

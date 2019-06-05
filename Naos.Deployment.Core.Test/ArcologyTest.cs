@@ -23,8 +23,8 @@ namespace Naos.Deployment.Core.Test
         {
             // arrange
             var environment = "envo";
-            var packageExisting = new PackageDescriptionWithOverrides { Id = "MyTestPackage", Version = "1" };
-            var packageSearching = new PackageDescriptionWithOverrides { Id = "MyTestPackage", Version = "2" };
+            var packageExisting = new PackageDescriptionWithOverrides { PackageDescription = new PackageDescription { Id = "MyTestPackage", Version = "1" } };
+            var packageSearching = new PackageDescriptionWithOverrides { PackageDescription = new PackageDescription { Id = "MyTestPackage", Version = "2" } };
 
             var computingContainers = new[]
                                                      {
@@ -64,13 +64,13 @@ namespace Naos.Deployment.Core.Test
 
             // act
             arcology.MutateInstancesAdd(newInstance);
-            var needDeletingList = arcology.GetInstancesByDeployedPackages(new[] { packageSearching });
+            var needDeletingList = arcology.GetInstancesByDeployedPackages(new[] { packageSearching.PackageDescription });
 
             // assert
             Assert.NotNull(needDeletingList);
             var instanceDescription = needDeletingList.Single();
             Assert.Equal(environment, instanceDescription.Environment);
-            Assert.Equal(packageSearching.Id, instanceDescription.DeployedPackages.Single().Value.Id);
+            Assert.Equal(packageSearching.PackageDescription.Id, instanceDescription.DeployedPackages.Single().Value.PackageDescription.Id);
         }
     }
 }

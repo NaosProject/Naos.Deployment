@@ -473,12 +473,11 @@ namespace Naos.Deployment.ComputingManagement
             }
 
             var deployedPackages = intendedPackages.ToDictionary(
-                item => item.Id,
+                item => item.PackageDescription.Id,
                 _ =>
                 new PackageDescriptionWithDeploymentStatus
                     {
-                        Id = _.Id,
-                        Version = _.Version,
+                        PackageDescription = _.PackageDescription,
                         DeploymentStatus = PackageDeploymentStatus.NotYetDeployed,
                         InitializationStrategies = _.InitializationStrategies,
                         ItsConfigOverrides = _.ItsConfigOverrides,
