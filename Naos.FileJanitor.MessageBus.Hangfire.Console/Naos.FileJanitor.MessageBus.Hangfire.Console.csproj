@@ -70,9 +70,6 @@
     <Reference Include="Hangfire.SqlServer, Version=1.5.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Hangfire.SqlServer.1.5.9\lib\net45\Hangfire.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="Its.Configuration, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Its.Configuration.1.0.6\lib\net40\Its.Configuration.dll</HintPath>
-    </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
     </Reference>
@@ -100,6 +97,9 @@
     <Reference Include="Naos.Compression.Domain, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Compression.Domain.1.0.16\lib\net462\Naos.Compression.Domain.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Naos.Configuration.Domain, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Configuration.Domain.1.0.6\lib\net462\Naos.Configuration.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Cron, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.17\lib\net462\Naos.Cron.dll</HintPath>
@@ -173,6 +173,9 @@
       <HintPath>..\packages\OBeautifulCode.Type.1.0.4\lib\net462\OBeautifulCode.Type.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="OBeautifulCode.TypeRepresentation, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.TypeRepresentation.1.0.16\lib\net462\OBeautifulCode.TypeRepresentation.dll</HintPath>
+    </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
     </Reference>
@@ -199,8 +202,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include=".recipes\Naos.Configuration\Config.cs" />
-    <Compile Include=".recipes\Naos.Configuration\ConfigRequiredTest.cs" />
     <Compile Include=".recipes\Naos.Console\ConsoleAbstractionBase.cs" />
     <Compile Include=".recipes\Naos.Console\WellKnownConsoleVerb.cs" />
     <Compile Include=".recipes\Naos.Diagnostics\DomainFactory.cs" />
@@ -265,6 +266,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Naos.Deployment.Domain\Naos.Deployment.Domain.csproj">
+      <Project>{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}</Project>
+      <Name>Naos.Deployment.Domain</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Naos.FileJanitor.MessageBus.Handler\Naos.FileJanitor.MessageBus.Handler.csproj">
       <Project>{26dec75c-c6d1-47a5-be70-90be96ec2e44}</Project>
       <Name>Naos.FileJanitor.MessageBus.Handler</Name>

@@ -10,9 +10,8 @@ namespace Naos.Database.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Configuration;
     using Its.Log.Instrumentation;
-
+    using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.MessageBus.Domain;
@@ -27,7 +26,7 @@ namespace Naos.Database.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(DeleteSqlServerDatabaseMessage message)
         {
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             await Task.Run(() => this.Handle(message, settings));
         }
 

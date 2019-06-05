@@ -11,9 +11,7 @@ namespace Naos.Deployment.Core.Test
     using System.Linq;
 
     using FluentAssertions;
-
-    using Its.Configuration;
-
+    using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
@@ -68,8 +66,7 @@ namespace Naos.Deployment.Core.Test
                                  };
 
             var packageManager = new PackageRetriever(tempPath, new[] { repoConfig });
-            Config.ResetConfigureSerializationAndSetValues("Common");
-            var setupFactorySettings = Settings.Get<SetupStepFactorySettings>();
+            var setupFactorySettings = Config.Get<SetupStepFactorySettings>();
             var packageHelper = new PackageHelper(packageManager, setupFactorySettings.RootPackageDirectoriesToPrune, tempPath);
 
             var package = new PackageDescription { Id = packageId };

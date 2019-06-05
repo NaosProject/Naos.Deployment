@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using System;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
-    using Its.Configuration;
+    using Naos.Configuration.Domain;
     using static System.FormattableString;
 
     /// <summary>

@@ -34,7 +34,7 @@ namespace Naos.Deployment.Console
         /// <param name="virtualMfaDeviceId">Virtual MFA device id of the credentials.</param>
         /// <param name="mfaValue">Token from the MFA device to use when authenticating.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
         /// <param name="escapeQuotes">Optional value indicating whether or not to escape quotes; DEFAULT is true.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "mfa", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Mfa", Justification = "Spelling/name is correct.")]
@@ -495,7 +495,7 @@ namespace Naos.Deployment.Console
         /// <param name="encryptingCertificateStoreName"><see cref="StoreName"/> to find the encrypting certificate.</param>
         /// <param name="encryptingCertificateStoreLocation"><see cref="StoreLocation"/> to find the encrypting certificate.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "pfx", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
@@ -553,7 +553,7 @@ namespace Naos.Deployment.Console
         /// <param name="windowsSkuSearchPatternMapJson">Map of <see cref="WindowsSku" /> to search pattern to find appropriate instance template.</param>
         /// <param name="rootDomainHostingIdMapJson">Map of root domain to root hosting ID for computing platform.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "All disposables are disposed, not sure why it's upset about the Creator.CreateEnvironment call.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "This is fine.")]
@@ -596,7 +596,7 @@ namespace Naos.Deployment.Console
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="configFilePath">XML Serialized <see cref="ConfigEnvironment "/> describing assets to destroy.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "populatedEnvironment", Justification = "Keeping for visibility and use if necessary.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This is fine.")]
         [Verb(Aliases = "destroy", Description = "Destroy an existing environment.")]

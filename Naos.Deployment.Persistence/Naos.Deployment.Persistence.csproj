@@ -54,8 +54,14 @@
     <Reference Include="Naos.Cron, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.17\lib\net462\Naos.Cron.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.43.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.43\lib\net462\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Cron.Serialization.Bson, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.Serialization.Bson.1.0.17\lib\net462\Naos.Cron.Serialization.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.45.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.45\lib\net462\Naos.Packaging.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Packaging.Serialization.Bson, Version=1.0.45.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Serialization.Bson.1.0.45\lib\net462\Naos.Packaging.Serialization.Bson.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Serialization.Bson, Version=1.0.125.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Serialization.Bson.1.0.125\lib\net462\Naos.Serialization.Bson.dll</HintPath>

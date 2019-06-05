@@ -96,7 +96,7 @@ namespace Naos.Deployment.Core
         /// <param name="announcer">Callback to get status messages through process.</param>
         /// <param name="debugAnnouncer">Callback to get more detailed information through process.</param>
         /// <param name="workingDirectory">Directory to perform temp disk operations.</param>
-        /// <param name="configFileManager">Config file manager necessary to be able to provide <see cref="Its.Configuration" /> overrides correctly.</param>
+        /// <param name="configFileManager">Config file manager necessary to be able to provide Its.Configuration overrides correctly.</param>
         /// <param name="machineManagerFactory">Machine manager factory.</param>
         /// <param name="environmentCertificateName">Optional name of the environment certificate to be found in the CertificateManager provided.</param>
         /// <param name="announcementFile">Optional file path to record a JSON file of announcements.</param>

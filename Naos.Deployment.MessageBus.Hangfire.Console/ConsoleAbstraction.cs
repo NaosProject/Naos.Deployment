@@ -10,12 +10,14 @@
 namespace Naos.Deployment.MessageBus.Hangfire.Console
 {
     using CLAP;
-
-    using Its.Configuration;
-
+    using Microsoft.SqlServer.Management.Smo;
+    using Naos.Configuration.Domain;
     using Naos.Cron;
+    using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Bootstrapper;
+    using Naos.Serialization.Domain;
+    using Naos.Serialization.Json;
 
     /// <summary>
     /// Abstraction for use with <see cref="CLAP" /> to provide basic command line interaction.
@@ -51,8 +53,8 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
-            var messageBusConnectionConfiguration = Settings.Get<MessageBusConnectionConfiguration>();
-            var messageBusLaunchConfig = Settings.Get<MessageBusLaunchConfiguration>();
+            var messageBusConnectionConfiguration = Config.Get<MessageBusConnectionConfiguration>();
+            var messageBusLaunchConfig = Config.Get<MessageBusLaunchConfiguration>();
 
             /*---------------------------------------------------------------------------*
              * Launch the harness here, it will run until the TimeToLive has expired AND *
@@ -87,10 +89,11 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
-            var parcel = (Parcel)Settings.Deserialize(typeof(Parcel), parcelJson);
-			var schedule = string.IsNullOrWhiteSpace(scheduleJson) ? null : (ScheduleBase)Settings.Deserialize(typeof(ScheduleBase), scheduleJson);
-            var messageBusConnectionConfiguration = Settings.Get<MessageBusConnectionConfiguration>();
-            var messageBusLaunchConfig = Settings.Get<MessageBusLaunchConfiguration>();
+            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var parcel = (Parcel)serializer.Deserialize(parcelJson, typeof(Parcel));
+			var schedule = string.IsNullOrWhiteSpace(scheduleJson) ? null : (ScheduleBase)serializer.Deserialize(scheduleJson, typeof(ScheduleBase));
+            var messageBusConnectionConfiguration = Config.Get<MessageBusConnectionConfiguration>();
+            var messageBusLaunchConfig = Config.Get<MessageBusLaunchConfiguration>();
 
             /*---------------------------------------------------------------------------*
              * Send the parcel here.                                                     *

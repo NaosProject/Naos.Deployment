@@ -10,9 +10,8 @@ namespace Naos.Database.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Configuration;
     using Its.Log.Instrumentation;
-
+    using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
@@ -32,7 +31,7 @@ namespace Naos.Database.MessageBus.Handler
         /// <inheritdoc />
         public override async Task HandleAsync(BackupSqlServerDatabaseMessage message)
         {
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             await this.HandleAsync(message, settings);
         }
 

@@ -18,9 +18,9 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
 
     using CLAP;
 
-    using Its.Configuration;
     using Its.Log.Instrumentation;
 
+    using Naos.Configuration.Domain;
     using Naos.Diagnostics.Domain;
     using Naos.Diagnostics.Recipes;
     using Naos.Logging.Domain;
@@ -168,11 +168,11 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         }
 
         /// <summary>
-        /// Runs common setup logic to prepare for and <see cref="Its.Configuration" />, also will launch the debugger if the debug flag is provided.
+        /// Runs common setup logic to prepare for and Its.Configuration, also will launch the debugger if the debug flag is provided.
         /// </summary>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
-        /// <param name="logWritingSettings">Optional <see cref="LogWritingSettings" /> to use instead of the default found in <see cref="Its.Configuration" />.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="logWritingSettings">Optional <see cref="LogWritingSettings" /> to use instead of the default found in Its.Configuration.</param>
         /// <param name="configuredAndManagedLogProcessors">Optional set of pre-configured and externally managed <see cref="LogWriterBase" /> to use.</param>
         /// <param name="announcer">Optional announcer; DEFAULT is null which will go to <see cref="Console.WriteLine(string)" />.<see cref="Console.WriteLine(string)" />.</param>
         protected static void CommonSetup(bool debug, string environment = null, LogWritingSettings logWritingSettings = null, IReadOnlyCollection<LogWriterBase> configuredAndManagedLogProcessors = null, Action<string> announcer = null)
@@ -199,11 +199,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
              *---------------------------------------------------------------------------*/
             if (!string.IsNullOrWhiteSpace(environment))
             {
-                Config.ResetConfigureSerializationAndSetValues(environment, announcer: localAnnouncer);
-            }
-            else
-            {
-                Config.ConfigureSerialization(localAnnouncer);
+                Config.SetPrecedence(environment);
             }
 
             /*---------------------------------------------------------------------------*
@@ -212,7 +208,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
              * swapped out to send all Its.Log messages to another logging framework if  *
              * there is already one in place.                                            *
              *---------------------------------------------------------------------------*/
-            var localLogProcessorSettings = logWritingSettings ?? Settings.Get<LogWritingSettings>();
+            var localLogProcessorSettings = logWritingSettings ?? Config.Get<LogWritingSettings>();
             if (localLogProcessorSettings == null)
             {
                 localAnnouncer("No LogProcessorSettings provided or found in config; using Null Object susbstitue.");
@@ -356,7 +352,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
     /// Example of how to extend the base class to add your custom functionality.  It's recommeneded that each method take
     /// optional environment name AND debug boolean paramters and then call the <see cref="ConsoleAbstractionBase.CommonSetup" /> but not necessary.
     /// The common setup also allows for provided the <see cref="LogWritingSettings" /> directly instead of the default
-    /// loading from <see cref="Its.Configuration" />.
+    /// loading from Its.Configuration.
     /// </summary>
     public class ExampleConsoleAbstraction : ConsoleAbstractionBase
     {
@@ -364,7 +360,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         /// Example of a custom data processing job that might need to be run as a cron job.
         /// </summary>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
-        /// <param name="environment">Optional environment name that will set the <see cref="Its.Configuration" /> precedence instead of the default which is reading the App.Config value.</param>
+        /// <param name="environment">Optional environment name that will set the Its.Configuration precedence instead of the default which is reading the App.Config value.</param>
         /// <param name="filePathToProcess">Example of a directory that needs to be checked for files to process.</param>
         [Verb(Aliases = nameof(WellKnownConsoleVerb.Example), Description = "Example of a custom data processing job that might need to be run as a cron job.")]
         public static void Example(

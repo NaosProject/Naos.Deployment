@@ -10,9 +10,8 @@ namespace Naos.Database.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Configuration;
     using Its.Log.Instrumentation;
-
+    using Naos.Configuration.Domain;
     using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.Mongo;
@@ -36,7 +35,7 @@ namespace Naos.Database.MessageBus.Handler
                 throw new FileNotFoundException("Could not find file to restore", message.FilePath);
             }
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             await this.HandleAsync(message, settings);
         }
 

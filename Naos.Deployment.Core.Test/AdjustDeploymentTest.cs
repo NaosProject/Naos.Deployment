@@ -12,8 +12,7 @@ namespace Naos.Deployment.Core.Test
 
     using FluentAssertions;
 
-    using Its.Configuration;
-
+    using Naos.Configuration.Domain;
     using Naos.Cron;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
@@ -22,7 +21,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
     using Naos.Serialization.Factory;
-
+    using Naos.Serialization.Json;
     using Xunit;
 
     public static class AdjustDeploymentTest
@@ -37,11 +36,12 @@ namespace Naos.Deployment.Core.Test
 
         private static readonly DeploymentConfiguration DeploymentConfig;
 
+        private static readonly SetupStepFactorySettings StepFactorySettings =
+            Config.Get<SetupStepFactorySettings>(typeof(DeploymentJsonConfiguration));
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Need static constructor for Its.Configuration initialization.")]
         static AdjustDeploymentTest()
         {
-            Config.ResetConfigureSerializationAndSetValues(Config.CommonPrecedence, false);
-
             MessageBusHarnessPackageBytes =
                 File.ReadAllBytes(
                     Path.Combine(
@@ -124,7 +124,7 @@ namespace Naos.Deployment.Core.Test
                                                                                         },
                                                    };
 
-            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(DeploymentJsonConfiguration)));
 
             DeploymentConfig = new DeploymentConfiguration
                                    {
@@ -195,7 +195,7 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    Settings.Get<SetupStepFactorySettings>());
+                    StepFactorySettings);
             }
 
             // Assert
@@ -230,7 +230,7 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    Settings.Get<SetupStepFactorySettings>());
+                    StepFactorySettings);
             }
 
             // Assert
@@ -266,7 +266,7 @@ namespace Naos.Deployment.Core.Test
                     packagesToDeploy,
                     DeploymentConfig,
                     new PackageHelper(packageManager, new[] { "netStandard" }, Path.GetTempPath()),
-                    Settings.Get<SetupStepFactorySettings>());
+                    StepFactorySettings);
             }
 
             // Assert
@@ -295,7 +295,7 @@ namespace Naos.Deployment.Core.Test
                         /*no-op*/
                     }))
             {
-                var setupStepFactorySettings = Settings.Get<SetupStepFactorySettings>();
+                var setupStepFactorySettings = StepFactorySettings;
                 setupStepFactorySettings.DatabaseServerSettings.Should().NotBeNull();
 
                 packages = adder.GetAdditionalPackages(

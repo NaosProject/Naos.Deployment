@@ -8,8 +8,7 @@ namespace Naos.Database.MessageBus.Handler
 {
     using System.Threading.Tasks;
 
-    using Its.Configuration;
-
+    using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.MessageBus.Domain;
@@ -26,7 +25,7 @@ namespace Naos.Database.MessageBus.Handler
         {
             new { message }.Must().NotBeNull();
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             new { settings }.Must().NotBeNull();
 
             var sourceDatabaseConnectionString = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.SourceDatabaseName.ToUpperInvariant()].ToSqlServerConnectionString();

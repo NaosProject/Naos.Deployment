@@ -9,10 +9,10 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System;
     using System.Threading.Tasks;
 
-    using Its.Configuration;
     using Its.Log.Instrumentation;
 
     using Naos.AWS.S3;
+    using Naos.Configuration.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
@@ -40,7 +40,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                 throw new ApplicationException("Must specify bucket name (container).");
             }
 
-            var settings = Settings.Get<FileJanitorMessageHandlerSettings>();
+            var settings = Config.Get<FileJanitorMessageHandlerSettings>();
             await this.HandleAsync(message, settings);
         }
 

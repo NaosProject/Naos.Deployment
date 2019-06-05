@@ -11,8 +11,6 @@ namespace Naos.Deployment.Domain
     using System.Linq;
     using System.Text;
 
-    using Its.Configuration;
-
     using Naos.Serialization.Domain;
 
     using static System.FormattableString;
@@ -75,7 +73,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Initializes a new instance of the <see cref="ConfigFileManager"/> class.
         /// </summary>
-        /// <param name="itsConfigPrecedenceAfterEnvironment">Ordered list of values to provide to <see cref="Its.Configuration" /> <see cref="Settings.Precedence" /> after environment which will be first value during any precedence configuration.</param>
+        /// <param name="itsConfigPrecedenceAfterEnvironment">Ordered list of values to provide to Its.Configuration Settings.Precedence after environment which will be first value during any precedence configuration.</param>
         /// <param name="configDirectoryName">Name of directory with config files.</param>
         /// <param name="serializer">Serializer to read configuration files in and out of objects.</param>
         public ConfigFileManager(string[] itsConfigPrecedenceAfterEnvironment, string configDirectoryName, ISerializeAndDeserialize serializer)

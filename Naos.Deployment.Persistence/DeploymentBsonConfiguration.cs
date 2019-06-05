@@ -9,8 +9,9 @@ namespace Naos.Deployment.Persistence
     using System;
     using System.Collections.Generic;
 
-    using Naos.Cron;
+    using Naos.Cron.Serialization.Bson;
     using Naos.Deployment.Domain;
+    using Naos.Packaging.Serialization.Bson;
     using Naos.Serialization.Bson;
 
     /// <summary>
@@ -18,6 +19,14 @@ namespace Naos.Deployment.Persistence
     /// </summary>
     public class DeploymentBsonConfiguration : BsonConfigurationBase
     {
+        /// <inheritdoc />
+        public override IReadOnlyCollection<Type> DependentConfigurationTypes =>
+            new[]
+            {
+                typeof(CronBsonConfiguration),
+                typeof(PackagingBsonConfiguration),
+            };
+
         /// <inheritdoc />
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Has a lot of type references by its nature.")]
         protected override IReadOnlyCollection<Type> ClassTypesToRegisterAlongWithInheritors =>
@@ -62,9 +71,6 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(ArcologyInfoContainer),
                                                                                     typeof(CertificateContainer),
                                                                                     typeof(InstanceContainer),
-
-                                                                                    // External types
-                                                                                    typeof(ScheduleBase),
                                                                                 };
     }
 }

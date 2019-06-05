@@ -9,16 +9,20 @@ namespace Naos.Deployment.Core.Test
     using System.Linq;
 
     using FluentAssertions;
-
+    using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
+    using Naos.Serialization.Domain;
     using Naos.Serialization.Factory;
-
+    using Naos.Serialization.Json;
     using Xunit;
 
     using static System.FormattableString;
 
     public static class ConfigFileManagerTests
     {
+        private static readonly ISerializeAndDeserialize Serializer =
+            new NaosJsonSerializer(typeof(DeploymentJsonConfiguration));
+
         [Fact]
         public static void BuildPrecedenceChain___With_no_precedence___Gets_common()
         {
@@ -27,7 +31,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 expected,
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             // Act
             var actual = manager.BuildPrecedenceChain();
@@ -44,7 +48,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 common,
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
             var precedence = "precedence";
             var expected = new[] { precedence }.Concat(common).ToArray();
 
@@ -62,7 +66,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { "another", Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var file = "file";
 
@@ -82,7 +86,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var root = "root";
             var precedence = "precedence";
@@ -103,7 +107,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var precedence = "precedence";
             var file = "file";
@@ -123,7 +127,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var root = "root";
             var precedence = "precedence";
@@ -143,7 +147,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var root = "root";
             var expected = Invariant($"{root}\\{Config.DefaultConfigDirectoryName}\\{Config.CommonPrecedence}");
@@ -162,7 +166,7 @@ namespace Naos.Deployment.Core.Test
             var manager = new ConfigFileManager(
                 new[] { Config.CommonPrecedence },
                 Config.DefaultConfigDirectoryName,
-                SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription));
+                Serializer);
 
             var precedence = "precedence";
             var expected = Invariant($"{Config.DefaultConfigDirectoryName}\\{precedence}");

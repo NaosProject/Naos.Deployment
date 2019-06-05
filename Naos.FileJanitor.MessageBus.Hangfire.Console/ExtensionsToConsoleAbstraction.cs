@@ -13,17 +13,18 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
     using CLAP;
 
-    using Its.Configuration;
-
     using Naos.AWS.S3;
+    using Naos.Configuration.Domain;
+    using Naos.Deployment.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
     using Naos.Recipes.RunWithRetry;
+    using Naos.Serialization.Domain;
     using Naos.Serialization.Factory;
-
+    using Naos.Serialization.Json;
     using static System.FormattableString;
 
     /// <summary>
@@ -166,11 +167,11 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<FileJanitorMessageHandlerSettings>();
+            var settings = Config.Get<FileJanitorMessageHandlerSettings>();
 
             var fileManager = new FileManager(settings.UploadAccessKey, settings.UploadSecretKey);
 
-            var serializer = SerializerFactory.Instance.BuildSerializer(Config.ConfigFileSerializationDescription);
+            var serializer = new NaosJsonSerializer(typeof(DeploymentJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var userDefinedMetadata = string.IsNullOrWhiteSpace(userDefinedMetadataJson) ? null : serializer.Deserialize<IReadOnlyCollection<MetadataItem>>(userDefinedMetadataJson);
 
             if (!string.IsNullOrWhiteSpace(filePath) && string.IsNullOrWhiteSpace(directoryPath))
@@ -231,7 +232,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<FileJanitorMessageHandlerSettings>();
+            var settings = Config.Get<FileJanitorMessageHandlerSettings>();
 
             var fileManager = new FileManager(settings.DownloadAccessKey, settings.DownloadSecretKey);
 

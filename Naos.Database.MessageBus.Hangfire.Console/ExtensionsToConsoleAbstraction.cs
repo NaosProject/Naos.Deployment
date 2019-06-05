@@ -12,13 +12,11 @@ namespace Naos.Database.MessageBus.Hangfire.Console
 
     using CLAP;
 
-    using Its.Configuration;
-
+    using Naos.Configuration.Domain;
     using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.Mongo;
     using Naos.Database.Mongo.Domain;
-    using Naos.Database.SqlServer;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
     using Naos.Logging.Domain;
@@ -66,7 +64,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
             var connectionString = connectionDefinition.ToSqlServerConnectionString();
 
@@ -127,7 +125,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.MongoDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
 
             if (string.IsNullOrWhiteSpace(workingDirectory))
@@ -182,7 +180,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
             var connectionString = connectionDefinition.ToSqlServerConnectionString();
 
@@ -247,7 +245,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                             }),
                     }));
 
-            var settings = Settings.Get<DatabaseMessageHandlerSettings>();
+            var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.MongoDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
 
             if (string.IsNullOrWhiteSpace(workingDirectory))

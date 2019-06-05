@@ -10,9 +10,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Its.Configuration;
-
+    using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
@@ -32,8 +30,8 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(StopInstanceWithDelayMessage message)
         {
-            var settings = Settings.Get<DeploymentMessageHandlerSettings>();
-            var computingInfrastructureManagerSettings = Settings.Get<ComputingInfrastructureManagerSettings>();
+            var settings = Config.Get<DeploymentMessageHandlerSettings>();
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>();
             await this.HandleAsync(message, settings, computingInfrastructureManagerSettings);
         }
 
