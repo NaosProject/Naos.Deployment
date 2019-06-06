@@ -440,7 +440,7 @@ namespace $rootnamespace$
 
                 var instancesInTracking = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
                 var trackedInstance = instancesInTracking.SingleOrDefault(
-                    _ => (_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
+                    _ => (_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.OrdinalIgnoreCase));
 
                 if (trackedInstance != null)
                 {
@@ -744,7 +744,7 @@ namespace $rootnamespace$
             var credentials = (CredentialContainer)Config.Deserialize(typeof(CredentialContainer), credentialsJson);
 			var serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)serializer.Deserialize(infrastructureTrackerJson, typeof(InfrastructureTrackerConfigurationBase));
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>();
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentCoreJsonConfiguration));
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
                 using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
@@ -819,9 +819,9 @@ namespace $rootnamespace$
             var overrideConfig =
                 (DeploymentConfiguration)serializer.Deserialize(overrideDeploymentConfigJson, typeof(DeploymentConfiguration));
 
-            var setupFactorySettings = Config.Get<SetupStepFactorySettings>();
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>();
-            var defaultDeploymentConfiguration = Config.Get<DefaultDeploymentConfiguration>();
+            var setupFactorySettings = Config.Get<SetupStepFactorySettings>(typeof(NaosDeploymentCoreJsonConfiguration));
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentCoreJsonConfiguration));
+            var defaultDeploymentConfiguration = Config.Get<DefaultDeploymentConfiguration>(typeof(NaosDeploymentCoreJsonConfiguration));
 
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))

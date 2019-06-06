@@ -1020,6 +1020,7 @@
                 "         return $true",
                 "      }",
                 "   }",
+                "   try {",
                 "   $pinToTaskBarVerbName = 'Pin to Tas&kbar'",
                 "   $createShortcutVerbName = 'Create &shortcut'",
                 "   # can't use the '~' home directory to get to desktop because it will not be set on a WinRM session so I'm using this hack...",
@@ -1070,6 +1071,7 @@
                 "          }",
                 "       }",
                 "   }",
+                "   }catch{}",
                 "}"
             ]
         },

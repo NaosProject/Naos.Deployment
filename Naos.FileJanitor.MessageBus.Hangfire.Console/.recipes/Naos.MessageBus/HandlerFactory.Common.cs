@@ -21,7 +21,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
     using Its.Log.Instrumentation;
 
-    using Naos.Configuration.Domain;
+	using Naos.Configuration.Domain;
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
 
@@ -95,7 +95,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
         private static IHandlerFactory BuildReflectionHandlerFactoryFromSettings()
         {
-            var configuration = Config.Get<HandlerFactoryConfiguration>();
+            var configuration = Config.Get<HandlerFactoryConfiguration>(typeof(MessageBusJsonConfiguration));
 
             new { configuration }.Must().NotBeNull();
 
