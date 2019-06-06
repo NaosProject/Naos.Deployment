@@ -862,7 +862,6 @@
                 "   $smoServer.Alter()",
                 "   $smoServer.ConnectionContext.ExecuteNonQuery($statementEnable)",
                 "   $smoServer.ConnectionContext.ExecuteNonQuery($statementPassword)",
-                "}",
                 "}"
             ]
         },
