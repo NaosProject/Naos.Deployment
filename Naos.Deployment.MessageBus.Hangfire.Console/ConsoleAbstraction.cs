@@ -10,10 +10,8 @@
 namespace Naos.Deployment.MessageBus.Hangfire.Console
 {
     using CLAP;
-    using Microsoft.SqlServer.Management.Smo;
     using Naos.Configuration.Domain;
     using Naos.Cron;
-    using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Bootstrapper;
     using Naos.Serialization.Domain;
