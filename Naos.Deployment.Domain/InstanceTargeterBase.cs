@@ -7,7 +7,6 @@
 namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Linq;
 
     using static System.FormattableString;
@@ -16,8 +15,7 @@ namespace Naos.Deployment.Domain
     /// Model class to contain information to find an instance.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
-    [Bindable(BindableSupport.Default)]
-    public class InstanceTargeterBase
+    public abstract class InstanceTargeterBase
     {
     }
 

@@ -7,6 +7,7 @@
 namespace Naos.Deployment.MessageBus.Handler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Its.Log.Instrumentation;
@@ -15,7 +16,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
-
+    using OBeautifulCode.Type;
     using static System.FormattableString;
 
     /// <summary>
@@ -23,6 +24,51 @@ namespace Naos.Deployment.MessageBus.Handler
     /// </summary>
     public static class InstanceOperationHelper
     {
+        /// <summary>
+        /// Parallelizable helper method to start an instance.
+        /// </summary>
+        /// <param name="instanceTargeter">Instance targeter to use.</param>
+        /// <param name="computingInfrastructureManagerSettings">Computing infrastructure manager settings to get enough context to operate with the computing platform.</param>
+        /// <param name="settings">Settings for the the deployment handlers.</param>
+        /// <param name="waitUntilOn">A value indicating to block until the server has started.</param>
+        /// <returns>Task for async.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Targeter", Justification = "Spelling/name is correct.")]
+        public static async Task ParallelOperationForStartInstanceAsync(
+            InstanceTargeterBase instanceTargeter,
+            ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,
+            DeploymentMessageHandlerSettings settings,
+            bool waitUntilOn)
+        {
+            using (var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings))
+            {
+                var systemIds =
+                    await
+                        ComputingManagerHelper.GetSystemIdsFromTargeterAsync(
+                            instanceTargeter,
+                            computingInfrastructureManagerSettings,
+                            settings,
+                            computingManager);
+
+                foreach (var systemId in systemIds)
+                {
+                    if (string.IsNullOrWhiteSpace(systemId))
+                    {
+                        throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
+                    }
+
+                    Log.Write(
+                        () => new
+                        {
+                            Info = "Starting Instance",
+                            InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter),
+                            SystemId = systemId,
+                        });
+
+                    await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
+                }
+            }
+        }
+
         /// <summary>
         /// Parallelizable helper method to stop an instance or schedule it for delayed stopping.
         /// </summary>
@@ -111,9 +157,15 @@ namespace Naos.Deployment.MessageBus.Handler
 
                     lock (postOfficeLock)
                     {
-                        postOffice.Send(
-                            stopInstanceWithDelayMessage,
-                            new SimpleChannel(settings.ReschedulingChannelName));
+                        var addressedMessage = stopInstanceWithDelayMessage.ToAddressedMessage(
+                            new SimpleChannel(settings.ReschedulingChannelName),
+                            typeof(NaosDeploymentMessageBusJsonConfiguration).ToTypeDescription());
+
+                        postOffice.Send(new MessageSequence
+                        {
+                            Id = Guid.NewGuid(),
+                            AddressedMessages = new[] { addressedMessage },
+                        });
                     }
                 }
             }

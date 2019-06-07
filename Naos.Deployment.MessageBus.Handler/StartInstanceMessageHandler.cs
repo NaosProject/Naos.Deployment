@@ -58,44 +58,12 @@ namespace Naos.Deployment.MessageBus.Handler
                 message.InstanceTargeters.Select(
                     (instanceTargeter) =>
                     Task.Run(
-                        () => ParallelOperationAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, message.WaitUntilOn)))
+                        () => InstanceOperationHelper.ParallelOperationForStartInstanceAsync(instanceTargeter, computingInfrastructureManagerSettings, settings, message.WaitUntilOn)))
                     .ToArray();
 
             await Task.WhenAll(tasks);
 
             this.InstanceTargeters = message.InstanceTargeters;
-        }
-
-        private static async Task ParallelOperationAsync(InstanceTargeterBase instanceTargeter, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings, DeploymentMessageHandlerSettings settings, bool waitUntilOn)
-        {
-            using (var computingManager = ComputingManagerHelper.CreateComputingManager(settings, computingInfrastructureManagerSettings))
-            {
-                var systemIds =
-                    await
-                        ComputingManagerHelper.GetSystemIdsFromTargeterAsync(
-                            instanceTargeter,
-                            computingInfrastructureManagerSettings,
-                            settings,
-                            computingManager);
-
-                foreach (var systemId in systemIds)
-                {
-                    if (string.IsNullOrWhiteSpace(systemId))
-                    {
-                        throw new ArgumentException(Invariant($"Could not find a {nameof(systemId)} for targeter: {instanceTargeter}."));
-                    }
-
-                    Log.Write(
-                        () => new
-                                  {
-                                      Info = "Starting Instance",
-                                      InstanceTargeterJson = LoggingHelper.SerializeToString(instanceTargeter),
-                                      SystemId = systemId,
-                                  });
-
-                    await computingManager.TurnOnInstanceAsync(systemId, settings.SystemLocation, waitUntilOn, settings.MaxRebootsOnFailedStatusCheck);
-                }
-            }
         }
     }
 }
