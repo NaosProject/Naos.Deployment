@@ -10,12 +10,13 @@
 namespace Naos.Database.MessageBus.Hangfire.Console
 {
     using CLAP;
-    using Microsoft.SqlServer.Management.Smo;
-    using Naos.Configuration.Domain;
+
     using Naos.Cron;
-    using Naos.Deployment.Domain;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Bootstrapper;
+
+    using Naos.Configuration.Domain;
+    using Naos.Deployment.Domain;
     using Naos.Serialization.Domain;
     using Naos.Serialization.Json;
 
