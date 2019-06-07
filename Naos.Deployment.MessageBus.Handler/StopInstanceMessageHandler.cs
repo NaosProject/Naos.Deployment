@@ -13,6 +13,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;
+    using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
 
     using static System.FormattableString;
@@ -30,8 +31,8 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(StopInstanceMessage message)
         {
-            var settings = Config.Get<DeploymentMessageHandlerSettings>();
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>();
+            var settings = Config.Get<DeploymentMessageHandlerSettings>(typeof(NaosDeploymentMessageBusJsonConfiguration));
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentMessageBusJsonConfiguration));
             await this.HandleAsync(message, settings, computingInfrastructureManagerSettings);
         }
 

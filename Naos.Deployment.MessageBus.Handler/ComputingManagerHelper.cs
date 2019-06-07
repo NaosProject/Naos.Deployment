@@ -16,7 +16,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
-
     using OBeautifulCode.Validation.Recipes;
 
     using static System.FormattableString;
@@ -180,15 +179,12 @@ namespace Naos.Deployment.MessageBus.Handler
             IManageComputingInfrastructure computingManager)
         {
             IReadOnlyCollection<string> ret;
-            var type = instanceTargeter.GetType();
-            if (type == typeof(InstanceTargeterSystemId))
+            if (instanceTargeter is InstanceTargeterSystemId asId)
             {
-                var asId = (InstanceTargeterSystemId)instanceTargeter;
                 ret = new[] { asId.InstanceId };
             }
-            else if (type == typeof(InstanceTargeterTagMatch))
+            else if (instanceTargeter is InstanceTargeterTagMatch asTag)
             {
-                var asTag = (InstanceTargeterTagMatch)instanceTargeter;
                 var tags = asTag.Tags;
                 if (tags.ContainsKey(computingInfrastructureManagerSettings.EnvironmentTagKey))
                 {
@@ -221,9 +217,8 @@ namespace Naos.Deployment.MessageBus.Handler
                             "InstanceLookupSource not supported: " + settings.InstanceLookupSource);
                 }
             }
-            else if (type == typeof(InstanceTargeterNameLookup))
+            else if (instanceTargeter is InstanceTargeterNameLookup asNameLookup)
             {
-                var asNameLookup = (InstanceTargeterNameLookup)instanceTargeter;
                 switch (settings.InstanceLookupSource)
                 {
                     case InstanceLookupSource.Provider:
@@ -247,7 +242,7 @@ namespace Naos.Deployment.MessageBus.Handler
             }
             else
             {
-                throw new NotSupportedException("InstanceTargeter not supported; type: " + type.FullName);
+                throw new NotSupportedException("InstanceTargeter not supported; type: " + instanceTargeter.GetType().FullName);
             }
 
             return ret;

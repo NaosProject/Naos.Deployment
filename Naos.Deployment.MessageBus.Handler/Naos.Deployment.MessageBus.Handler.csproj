@@ -102,6 +102,7 @@
     <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
     <Compile Include="ChangeInstanceTypeMessageHandler.cs" />
+    <Compile Include="NaosDeploymentMessageBusJsonConfiguration.cs" />
     <Compile Include="InstanceOperationHelper.cs" />
     <Compile Include="DeploymentMessageHandlerSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -114,7 +115,6 @@
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
     <None Include=".analyzers\release.ruleset" />
-    <None Include=".config\Common\CloudInfrastructureManagerSettings.json" />
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>

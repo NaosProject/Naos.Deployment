@@ -205,6 +205,10 @@
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
+    <None Include="..\Naos.Deployment.Console\.config\Common\ComputingInfrastructureManagerSettings.json">
+      <Link>.config\Common\ComputingInfrastructureManagerSettings.json</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include=".analyzers\release.ruleset" />
     <None Include=".recipes\Naos.MessageBus\App.Example.config" />
     <None Include=".recipes\Naos.MessageBus\MessageBusLaunchConfiguration.Example.json" />
