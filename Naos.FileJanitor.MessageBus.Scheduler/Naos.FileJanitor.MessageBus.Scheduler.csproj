@@ -99,6 +99,7 @@
     <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
     <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
     <Compile Include="FileJanitorMessageHandlerSettings.cs" />
+    <Compile Include="FileJanitorMessageBusJsonConfiguration.cs" />
     <Compile Include="RestoreDirectoryMessage.cs" />
     <Compile Include="CleanupDirectoryMessage.cs" />
     <Compile Include="AbortIfNoNewFileLocationForTopicMessage.cs" />

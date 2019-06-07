@@ -15,6 +15,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Domain.Exceptions;
+    using Naos.Serialization.Domain;
 
     /// <summary>
     /// Message handler for <see cref="AbortIfNoNewFileLocationForTopicMessage"/>.
@@ -61,7 +62,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                     else
                     {
                         log.Trace(() => $"Found affected item: {matchingAffectedItem.Id}");
-                        var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription);
+                        var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription, unregisteredTypeEncounteredStrategy: UnregisteredTypeEncounteredStrategy.Attempt);
                         var previousFileLocation = serializer.Deserialize<FileLocationAffectedItem>(matchingAffectedItem.Id).FileLocation;
                         if (message.FileLocation == previousFileLocation)
                         {

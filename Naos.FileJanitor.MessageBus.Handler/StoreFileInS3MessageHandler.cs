@@ -17,7 +17,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
     using Naos.MessageBus.Domain;
-
+    using Naos.Serialization.Domain;
     using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
@@ -90,7 +90,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                     FilePath = filePath,
                 };
 
-                var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription);
+                var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription, unregisteredTypeEncounteredStrategy: UnregisteredTypeEncounteredStrategy.Attempt);
 
                 this.AffectedItems = new[] { new AffectedItem { Id = serializer.SerializeToString(affectedItem) } };
 

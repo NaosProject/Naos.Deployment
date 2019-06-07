@@ -9,6 +9,7 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
     using Naos.FileJanitor.Domain;
     using Naos.MessageBus.Domain;
     using Naos.Serialization.Domain;
+    using OBeautifulCode.Type;
 
     /// <summary>
     /// Model object to hold an affected item from .
@@ -19,7 +20,11 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
         /// Serialization description to use for saving affected file locations into affected items list.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "Want this to be a read only field.")]
-        public static readonly SerializationDescription ItemSerializationDescription = PostOffice.MessageSerializationDescription;
+        public static readonly SerializationDescription ItemSerializationDescription =
+            new SerializationDescription(
+                SerializationKind.Json,
+                SerializationFormat.String,
+                typeof(FileJanitorMessageBusJsonConfiguration).ToTypeDescription());
 
         /// <summary>
         /// Gets or sets a message about the event.
