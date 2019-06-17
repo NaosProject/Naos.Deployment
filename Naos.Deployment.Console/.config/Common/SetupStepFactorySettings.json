@@ -401,6 +401,7 @@
             "scriptTextLines": [
                 "{",
                 "param()",
+                "   try{",
                 "   # this is generally a bad idea but recommended on chocolatey's site and needed due to some 7-zip error that was introduced around 2018/10/10.",
                 "   Set-ExecutionPolicy Bypass -Scope Process -Force",
                 "   # can't use write-host b/c we're not in interactive mode when executing remotely via WinRM.",
