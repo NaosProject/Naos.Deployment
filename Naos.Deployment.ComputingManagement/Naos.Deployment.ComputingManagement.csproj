@@ -49,7 +49,7 @@
       <HintPath>..\packages\AWSSDK.Route53.3.3.18.22\lib\net45\AWSSDK.Route53.dll</HintPath>
     </Reference>
     <Reference Include="AWSSDK.S3, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
-      <HintPath>..\packages\AWSSDK.S3.3.3.15\lib\net45\AWSSDK.S3.dll</HintPath>
+      <HintPath>..\packages\AWSSDK.S3.3.3.31.24\lib\net45\AWSSDK.S3.dll</HintPath>
     </Reference>
     <Reference Include="AWSSDK.SecurityToken, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.SecurityToken.3.3.4.58\lib\net45\AWSSDK.SecurityToken.dll</HintPath>
@@ -58,14 +58,14 @@
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.54\lib\net462\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.56\lib\net462\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.54\lib\net462\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.56\lib\net462\Naos.AWS.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.45.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.45\lib\net462\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.48.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.48\lib\net462\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -121,6 +121,7 @@
   <ItemGroup>
     <Analyzer Include="..\packages\AWSSDK.EC2.3.3.85.3\analyzers\dotnet\cs\AWSSDK.EC2.CodeAnalysis.dll" />
     <Analyzer Include="..\packages\AWSSDK.Route53.3.3.18.22\analyzers\dotnet\cs\AWSSDK.Route53.CodeAnalysis.dll" />
+    <Analyzer Include="..\packages\AWSSDK.S3.3.3.31.24\analyzers\dotnet\cs\AWSSDK.S3.CodeAnalysis.dll" />
     <Analyzer Include="..\packages\AWSSDK.SecurityToken.3.3.4.58\analyzers\dotnet\cs\AWSSDK.SecurityToken.CodeAnalysis.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.Unstable.1.1.0.47\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.Unstable.1.1.0.47\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
