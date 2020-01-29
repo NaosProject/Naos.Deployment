@@ -9,7 +9,7 @@
       <dependency id="Naos.Deployment.Config.Common" version="[$version$,)" />
       <dependency id="Naos.Deployment.Core" version="[$version$,)" />
       <dependency id="Naos.Recipes.RunWithRetry" version="[1.0.100,)" />
-      <dependency id="OBeautifulCode.Serialization.Factory" version="[1.0.55,)" />
+      <dependency id="OBeautifulCode.Serialization.Recipes.Factory" version="[1.0.12,)" />
       <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="[1.0.23,)" />
       <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="[1.0.27,)" />
       <dependency id="OBeautifulCode.Validation.Recipes.ParameterValidator" version="[1.0.14,)" />
