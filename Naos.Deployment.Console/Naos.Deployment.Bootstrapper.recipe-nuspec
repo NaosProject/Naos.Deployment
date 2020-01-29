@@ -16,6 +16,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="NaosDeploymentBootstrapper.cs.pp" target="content\net45\.recipes\Naos.Deployment\NaosDeploymentBootstrapper.cs.pp" />
+    <file src="NaosDeploymentBootstrapper.cs" target="content\net45\.recipes\Naos.Deployment\NaosDeploymentBootstrapper.cs" />
   </files>
 </package>
