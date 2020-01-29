@@ -20,9 +20,8 @@ namespace Naos.Deployment.Core.Test
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
     using Xunit;
 
     public static class AdjustDeploymentTest
@@ -125,7 +124,7 @@ namespace Naos.Deployment.Core.Test
                                                                                         },
                                                    };
 
-            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt));
+            ConfigFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt));
 
             DeploymentConfig = new DeploymentConfiguration
                                    {

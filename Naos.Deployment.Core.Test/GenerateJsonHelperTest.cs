@@ -18,9 +18,9 @@ namespace Naos.Deployment.Core.Test
     using Naos.Logging.Persistence;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
     using OBeautifulCode.Type;
 
     using Spritely.ReadModel.Mongo;
@@ -64,7 +64,7 @@ namespace Naos.Deployment.Core.Test
                 new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), logFilePath),
             };
 
-            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var infrastructureTrackerConfig = new InfrastructureTrackerConfigurationDatabase
             {
                 Database = new DeploymentDatabase
@@ -162,7 +162,7 @@ namespace Naos.Deployment.Core.Test
 
             var databaseServer = "localhost";
 
-            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
             var persistenceConnectionConfiguration = new MessageBusConnectionConfiguration
                                                          {

@@ -16,7 +16,7 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization.Json;
 
     using Xunit;
     using Xunit.Sdk;

@@ -15,7 +15,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-
+    using OBeautifulCode.Representation.System;
     using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
 

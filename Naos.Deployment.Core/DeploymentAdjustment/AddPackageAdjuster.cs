@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
 
     using Naos.Deployment.Domain;
-
+    using OBeautifulCode.Representation.System;
     using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
 
@@ -94,7 +94,7 @@ namespace Naos.Deployment.Core
         private IReadOnlyCollection<DeploymentAdjustmentMatchCriteria> GetMatches(IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith)
         {
             var initializationStrategies =
-                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToTypeDescription())).ToList();
+                packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(p => p.InitializationStrategies.Select(i => i.GetType().ToRepresentation())).ToList();
 
             var ret = this.MatchCriterion.Where(_ => _.Matches(configToCreateWith.InstanceType.OperatingSystem, initializationStrategies));
             return ret.ToList();
@@ -112,11 +112,11 @@ namespace Naos.Deployment.Core
         /// <param name="name">Friendly name for match.</param>
         /// <param name="skusToMatch"><see cref="WindowsSku"/>'s to match on.</param>
         /// <param name="distributionsToMatch"><see cref="LinuxDistribution"/>'s to match on.</param>
-        /// <param name="initializationStrategiesToMatch"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.</param>
-        /// <param name="typeMatchStrategy"><see cref="TypeMatchStrategy"/> to use with <see cref="TypeDescription"/>'s.</param>
+        /// <param name="initializationStrategiesToMatch"><see cref="TypeRepresentation"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.</param>
+        /// <param name="typeMatchStrategy"><see cref="TypeMatchStrategy"/> to use with <see cref="TypeRepresentation"/>'s.</param>
         /// <param name="criteriaMatchStrategy"><see cref="CriteriaMatchStrategy"/> to use when matching.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "skus", Justification = "Spelling/name is correct.")]
-        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeDescription> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
+        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeRepresentation> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
         {
             new { name }.Must().NotBeNullNorWhiteSpace();
 
@@ -145,12 +145,12 @@ namespace Naos.Deployment.Core
         public IReadOnlyCollection<LinuxDistribution> DistributionsToMatch { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.
+        /// Gets the <see cref="TypeRepresentation"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.
         /// </summary>
-        public IReadOnlyCollection<TypeDescription> InitializationStrategiesToMatch { get; private set; }
+        public IReadOnlyCollection<TypeRepresentation> InitializationStrategiesToMatch { get; private set; }
 
         /// <summary>
-        /// Gets the <see cref="TypeMatchStrategy"/> to use with <see cref="TypeDescription"/>'s.
+        /// Gets the <see cref="TypeMatchStrategy"/> to use with <see cref="TypeRepresentation"/>'s.
         /// </summary>
         public TypeMatchStrategy TypeMatchStrategy { get; private set; }
 
@@ -163,11 +163,11 @@ namespace Naos.Deployment.Core
         /// A value indicating whether or not there is a match on the criteria.
         /// </summary>
         /// <param name="operatingSystem"><see cref="OperatingSystemDescriptionBase"/> of the deployment.</param>
-        /// <param name="initializationStrategies"><see cref="TypeDescription"/> of the implementers of <see cref="InitializationStrategyBase"/> used in the current deployment.</param>
+        /// <param name="initializationStrategies"><see cref="TypeRepresentation"/> of the implementers of <see cref="InitializationStrategyBase"/> used in the current deployment.</param>
         /// <returns>A value indicating whether or not the criteria is a match.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sku", Justification = "Spelling/name is correct.")]
         [SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalse", Justification = "Don't care about it.")]
-        public bool Matches(OperatingSystemDescriptionBase operatingSystem, IReadOnlyCollection<TypeDescription> initializationStrategies)
+        public bool Matches(OperatingSystemDescriptionBase operatingSystem, IReadOnlyCollection<TypeRepresentation> initializationStrategies)
         {
             var match = false;
 

@@ -11,6 +11,29 @@
     <Rule Id="CA2210" Action="None" />    
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
+    <!--
+      ** Code should not contain multiple whitespace characters in a row. **
+      This becomes a problem with alignment of variables like below,
+      because there are multiple spaces between the name and the '=' symbol:
+      
+        public ProcessDescription(
+            string name,
+            string filePath,
+            string fileVersion,
+            string productVersion,
+            bool   runningAsAdmin)
+        {
+            new { name }.Must().NotBeNullNorWhiteSpace();
+
+            this.Name           = name;
+            this.FilePath       = filePath;
+            this.FileVersion    = fileVersion;
+            this.ProductVersion = productVersion;
+            this.RunningAsAdmin = runningAsAdmin;
+        }
+    -->
+    <Rule Id="SA1025" Action="None" />
+
     <Rule Id="SA1118" Action="None" />
     <Rule Id="SA1131" Action="None" />
     <Rule Id="SA1201" Action="None" />

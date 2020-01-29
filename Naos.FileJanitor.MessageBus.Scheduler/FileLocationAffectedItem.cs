@@ -8,7 +8,8 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
 {
     using Naos.FileJanitor.Domain;
     using Naos.MessageBus.Domain;
-    using Naos.Serialization.Domain;
+    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Serialization;
     using OBeautifulCode.Type;
 
     /// <summary>
@@ -24,7 +25,7 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
             new SerializationDescription(
                 SerializationKind.Json,
                 SerializationFormat.String,
-                typeof(FileJanitorMessageBusJsonConfiguration).ToTypeDescription());
+                typeof(FileJanitorMessageBusJsonConfiguration).ToRepresentation());
 
         /// <summary>
         /// Gets or sets a message about the event.

@@ -9,9 +9,7 @@ namespace Naos.Deployment.Core.Test
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
     using FluentAssertions;
-
     using Naos.Configuration.Domain;
     using Naos.Cron;
     using Naos.Deployment.Domain;
@@ -19,18 +17,15 @@ namespace Naos.Deployment.Core.Test
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
     using Naos.MessageBus.Domain;
-    using Naos.Serialization.Bson;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
-
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Bson;
+    using OBeautifulCode.Serialization.Json;
     using Xunit;
-
     using static System.FormattableString;
 
     public static class SerializerTest
     {
-        private static readonly NaosJsonSerializer JsonSerializerToUse = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ObcJsonSerializer JsonSerializerToUse = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         [Fact]
         public static void Serializing_Logging_Config___Roundtrips()
@@ -116,7 +111,7 @@ namespace Naos.Deployment.Core.Test
             }
 
             // Act & Assert
-            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new NaosBsonSerializer<DeploymentBsonConfiguration>());
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonConfiguration>());
         }
 
         [Fact]
@@ -138,10 +133,10 @@ namespace Naos.Deployment.Core.Test
             }
 
             // Act & Assert
-            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new NaosBsonSerializer<DeploymentBsonConfiguration>());
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonConfiguration>());
         }
 
-        private static void ActAndAssertForRoundtripSerialization(object expected, Action<object> throwIfObjectsDiffer, NaosBsonSerializer bsonSerializer, bool testBson = true, bool testJson = true)
+        private static void ActAndAssertForRoundtripSerialization(object expected, Action<object> throwIfObjectsDiffer, ObcBsonSerializer bsonSerializer, bool testBson = true, bool testJson = true)
         {
             var stringSerializers = new List<IStringSerializeAndDeserialize>();
             var binarySerializers = new List<IBinarySerializeAndDeserialize>();
@@ -174,7 +169,7 @@ namespace Naos.Deployment.Core.Test
                 }
                 catch (Exception ex)
                 {
-                    throw new NaosSerializationException(Invariant($"Failure with {nameof(stringSerializer)} - {stringSerializer.GetType()}"), ex);
+                    throw new ObcSerializationException(Invariant($"Failure with {nameof(stringSerializer)} - {stringSerializer.GetType()}"), ex);
                 }
             }
 
@@ -189,7 +184,7 @@ namespace Naos.Deployment.Core.Test
                 }
                 catch (Exception ex)
                 {
-                    throw new NaosSerializationException(Invariant($"Failure with {nameof(binarySerializer)} - {binarySerializer.GetType()}"), ex);
+                    throw new ObcSerializationException(Invariant($"Failure with {nameof(binarySerializer)} - {binarySerializer.GetType()}"), ex);
                 }
             }
         }

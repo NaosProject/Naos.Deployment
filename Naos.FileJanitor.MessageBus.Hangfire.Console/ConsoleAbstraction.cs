@@ -17,8 +17,8 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
     using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// Abstraction for use with <see cref="CLAP" /> to provide basic command line interaction.
@@ -89,7 +89,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
              *---------------------------------------------------------------------------*/
-            var serializer = new NaosJsonSerializer(typeof(MessageBusJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(MessageBusJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var parcel = (Parcel)serializer.Deserialize(parcelJson, typeof(Parcel));
             var schedule = string.IsNullOrWhiteSpace(scheduleJson) ? null : (ScheduleBase)serializer.Deserialize(scheduleJson, typeof(ScheduleBase));
             var messageBusConnectionConfiguration = Config.Get<MessageBusConnectionConfiguration>(typeof(MessageBusJsonConfiguration));

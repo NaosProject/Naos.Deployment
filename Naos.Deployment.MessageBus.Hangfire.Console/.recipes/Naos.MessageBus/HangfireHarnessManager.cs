@@ -21,7 +21,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
 
     using Its.Log.Instrumentation;
 
-    using Naos.Compression.Domain;
+    using OBeautifulCode.Compression;
     using Naos.Cron;
     using Naos.Diagnostics.Domain;
     using Naos.Diagnostics.Recipes;
@@ -29,10 +29,11 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Hangfire.Sender;
     using Naos.MessageBus.Persistence;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
+    using OBeautifulCode.Serialization;
     using Naos.Telemetry.Domain;
-
+    using OBeautifulCode.Compression.Recipes;
+    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Serialization.Recipes;
     using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
 

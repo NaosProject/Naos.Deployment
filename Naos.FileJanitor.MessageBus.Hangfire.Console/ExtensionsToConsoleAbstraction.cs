@@ -22,9 +22,8 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
     using Naos.Recipes.RunWithRetry;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
     using static System.FormattableString;
 
     /// <summary>
@@ -171,7 +170,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             var fileManager = new FileManager(settings.UploadAccessKey, settings.UploadSecretKey);
 
-            var serializer = new NaosJsonSerializer(typeof(NaosDeploymentDomainJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentDomainJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
             var userDefinedMetadata = string.IsNullOrWhiteSpace(userDefinedMetadataJson) ? null : serializer.Deserialize<IReadOnlyCollection<MetadataItem>>(userDefinedMetadataJson);
 
             if (!string.IsNullOrWhiteSpace(filePath) && string.IsNullOrWhiteSpace(directoryPath))

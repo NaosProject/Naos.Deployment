@@ -15,7 +15,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
     using Naos.MessageBus.Domain.Exceptions;
-    using Naos.Serialization.Domain;
+    using OBeautifulCode.Serialization;
 
     /// <summary>
     /// Message handler for <see cref="AbortIfNoNewFileLocationForTopicMessage"/>.

@@ -15,8 +15,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Packaging.Domain;
-    using Naos.Serialization.Bson;
-    using Naos.Serialization.Domain;
+    using OBeautifulCode.Serialization;
     using OBeautifulCode.Validation.Recipes;
 
     using Spritely.ReadModel;

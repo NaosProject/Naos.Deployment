@@ -14,8 +14,8 @@ namespace Naos.Deployment.Tracking
 
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     using static System.FormattableString;
 
@@ -27,7 +27,7 @@ namespace Naos.Deployment.Tracking
         private const string InstancePrefix = "Instance--";
         private const string IpInfix = "ip--";
 
-        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer(typeof(NaosDeploymentTrackingJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ISerializeAndDeserialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentTrackingJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private readonly Task emptyTask = Task.Run(
             () =>

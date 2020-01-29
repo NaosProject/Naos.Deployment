@@ -25,6 +25,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
 
+    using OBeautifulCode.Representation.System;
     using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
 

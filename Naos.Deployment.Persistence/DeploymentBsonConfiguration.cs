@@ -12,7 +12,7 @@ namespace Naos.Deployment.Persistence
     using Naos.Cron.Serialization.Bson;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Serialization.Bson;
-    using Naos.Serialization.Bson;
+    using OBeautifulCode.Serialization.Bson;
 
     /// <summary>
     /// Register class mapping necessary for the StorageModel.

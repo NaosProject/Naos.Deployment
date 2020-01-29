@@ -9,7 +9,7 @@ namespace Naos.Deployment.Tracking
     using System;
     using System.Collections.Generic;
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// Serialization configuration.

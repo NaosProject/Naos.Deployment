@@ -9,7 +9,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using System;
     using System.Collections.Generic;
     using Naos.Deployment.Tracking;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization.Json;
     using static System.FormattableString;
 
     /// <summary>

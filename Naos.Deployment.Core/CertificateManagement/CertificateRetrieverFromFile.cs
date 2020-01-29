@@ -13,15 +13,15 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// Implementation using a text file of IGetCertificates.
     /// </summary>
     public class CertificateRetrieverFromFile : IGetCertificates
     {
-        private static readonly IStringDeserialize Serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly IStringDeserialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private readonly object fileSync = new object();
 

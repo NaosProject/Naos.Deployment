@@ -7,15 +7,15 @@
 namespace Naos.Deployment.Tracking
 {
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// Helper methods for using a package manager.
     /// </summary>
     public static class LoggingHelper
     {
-        private static readonly IStringSerialize Serializer = new NaosJsonSerializer(typeof(NaosDeploymentTrackingJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly IStringSerialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentTrackingJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         /// <summary>
         /// Serializes the provided object to a string to be logged.

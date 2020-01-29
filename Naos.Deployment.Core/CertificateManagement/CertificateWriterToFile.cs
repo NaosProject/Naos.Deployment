@@ -12,8 +12,8 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Threading.Tasks;
 
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     using static System.FormattableString;
 
@@ -22,7 +22,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class CertificateWriterToFile : IPersistCertificates
     {
-        private static readonly ISerializeAndDeserialize Serializer = new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ISerializeAndDeserialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
 
         private readonly object fileSync = new object();
 

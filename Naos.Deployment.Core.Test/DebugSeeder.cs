@@ -11,24 +11,18 @@ namespace Naos.Deployment.Core.Test
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-
     using MongoDB.Bson;
-
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.MessageBus.Domain;
-    using Naos.Serialization.Bson;
-    using Naos.Serialization.Domain;
-
     using OBeautifulCode.DateTime;
-
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Bson;
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
-
     using Xunit;
-
     using Credentials = Spritely.ReadModel.Credentials;
 
     public static class DebugSeeder

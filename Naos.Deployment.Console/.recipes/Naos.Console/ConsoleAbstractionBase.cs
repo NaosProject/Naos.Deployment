@@ -25,10 +25,9 @@ namespace Naos.Deployment.Console
     using Naos.Logging.Persistence;
     using Naos.Telemetry.Domain;
 
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Collection.Recipes;
-    using OBeautifulCode.Validation.Recipes;
-    using OBeautifulCode.Type;
-
+    using OBeautifulCode.Representation.System;
     using static System.FormattableString;
 
     /// <summary>
@@ -42,7 +41,7 @@ namespace Naos.Deployment.Console
         /// <summary>
         /// Gets the exception types that should fail but NOT print the stack trace as the message is sufficient to understand the issue (useful for input failures). 
         /// </summary>
-        protected static IReadOnlyCollection<TypeDescription> ExceptionTypeDescriptionsToOnlyPrintMessage { get; set; } = new TypeDescription[0];
+        protected static IReadOnlyCollection<TypeRepresentation> ExceptionTypeRepresentationsToOnlyPrintMessage { get; set; } = new TypeRepresentation[0];
 
         /// <summary>
         /// Entry point to simulate a failure.
@@ -125,7 +124,7 @@ namespace Naos.Deployment.Console
                 Console.WriteLine("Failure parsing command line arguments.  Run the exe with the 'help' command for usage.");
                 Console.WriteLine("   " + context.Exception.Message);
             }
-            else if ((ExceptionTypeDescriptionsToOnlyPrintMessage ?? new TypeDescription[0]).Any(_ => typeDescriptionComparer.Equals(_, context.Exception.GetType().ToTypeDescription())))
+            else if ((ExceptionTypeRepresentationsToOnlyPrintMessage ?? new TypeRepresentation[0]).Any(_ => typeDescriptionComparer.Equals(_, context.Exception.GetType().ToRepresentation())))
             {
                 Console.WriteLine("Failure during execution; configured to omit stack trace.");
                 Console.WriteLine(string.Empty);

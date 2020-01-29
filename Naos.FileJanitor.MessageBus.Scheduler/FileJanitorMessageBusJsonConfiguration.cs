@@ -9,7 +9,7 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
     using System;
     using System.Collections.Generic;
     using Naos.MessageBus.Domain;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// Serialization configuration.

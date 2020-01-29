@@ -12,7 +12,7 @@ namespace Naos.Deployment.Domain
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Serialization.Json;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization.Json;
 
     /// <summary>
     /// <see cref="JsonConfigurationBase" /> implementation for Deployment types.

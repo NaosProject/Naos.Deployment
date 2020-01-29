@@ -11,9 +11,8 @@ namespace Naos.Deployment.Core.Test
     using FluentAssertions;
     using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
     using Xunit;
 
     using static System.FormattableString;
@@ -21,7 +20,7 @@ namespace Naos.Deployment.Core.Test
     public static class ConfigFileManagerTests
     {
         private static readonly ISerializeAndDeserialize Serializer =
-            new NaosJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration));
+            new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration));
 
         [Fact]
         public static void BuildPrecedenceChain___With_no_precedence___Gets_common()

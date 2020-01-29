@@ -17,7 +17,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
     using Naos.MessageBus.Domain;
-    using Naos.Serialization.Domain;
+    using OBeautifulCode.Serialization;
     using OBeautifulCode.Validation.Recipes;
 
     /// <summary>

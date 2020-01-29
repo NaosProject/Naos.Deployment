@@ -23,7 +23,6 @@ namespace Naos.Deployment.Console
     using Microsoft.SqlServer.Management.Smo;
 
     using Naos.AWS.Domain;
-    using Naos.Compression.Domain;
     using Naos.Configuration.Domain;
     using Naos.Cron;
     using Naos.Database.Domain;
@@ -38,9 +37,9 @@ namespace Naos.Deployment.Console
     using Naos.Packaging.NuGet;
     using Naos.Recipes.RunWithRetry;
     using Naos.Recipes.WinRM;
-    using Naos.Serialization.Domain;
-    using Naos.Serialization.Factory;
-    using Naos.Serialization.Json;
+    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Json;
 
     using OBeautifulCode.Type;
     using OBeautifulCode.Validation.Recipes;
@@ -62,7 +61,7 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Newing the serializer in a field initializer is fine.")]
         static ConsoleAbstraction()
         {
-            ExceptionTypeDescriptionsToOnlyPrintMessage = new[] { typeof(CredentialsPreRunCheckFailedException).ToTypeDescription() };
+            ExceptionTypeRepresentationsToOnlyPrintMessage = new[] { typeof(CredentialsPreRunCheckFailedException).ToRepresentation() };
         }
 
         // Replace 'Naos' with yours here.
@@ -77,7 +76,7 @@ namespace Naos.Deployment.Console
         // Replace 'Naos' with yours here.
         private const string PackagePrefixToStrip = "Naos";
 
-        private static readonly NaosJsonSerializer DefaultJsonSerializer = new NaosJsonSerializer(
+        private static readonly ObcJsonSerializer DefaultJsonSerializer = new ObcJsonSerializer(
             typeof(NaosDeploymentCoreJsonConfiguration),
             UnregisteredTypeEncounteredStrategy.Attempt);
 

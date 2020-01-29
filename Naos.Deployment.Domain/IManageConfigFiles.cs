@@ -11,7 +11,7 @@ namespace Naos.Deployment.Domain
     using System.Linq;
     using System.Text;
 
-    using Naos.Serialization.Domain;
+    using OBeautifulCode.Serialization;
 
     using static System.FormattableString;
 
