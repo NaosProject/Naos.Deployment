@@ -201,7 +201,7 @@ namespace Naos.Deployment.Core.Test
 [{
 	""PackageDescription"" : { ""id"": ""Naos.Something"" },
 ""initializationStrategies"": [{
-		""privateDnsEntry"": ""something.database.development.cometrics.com""
+		""privateDnsEntry"": ""something.database.development.naosproject.com""
 	}]
 }]";
             var deserialized = (ICollection<PackageDescriptionWithOverrides>)JsonSerializerToUse.Deserialize(input, typeof(ICollection<PackageDescriptionWithOverrides>));
@@ -212,7 +212,7 @@ namespace Naos.Deployment.Core.Test
                     .InitializationStrategies.OfType<InitializationStrategyDnsEntry>()
                     .Single()
                     .PrivateDnsEntry;
-            Assert.Equal("something.database.development.cometrics.com", actualDns);
+            Assert.Equal("something.database.development.naosproject.com", actualDns);
         }
 
         [Fact]
@@ -384,7 +384,7 @@ namespace Naos.Deployment.Core.Test
 		""sizeInGb"": ""50"",
 	}],
 	""InitializationStrategies"": [{
-		""primaryDns"": ""reports.coopmetrics.coop"",
+		""primaryDns"": ""reports.naosproject.com"",
 	}],
 }
 ";
@@ -392,7 +392,7 @@ namespace Naos.Deployment.Core.Test
             var deserialized = (DeploymentConfigurationWithStrategies)JsonSerializerToUse.Deserialize(input, typeof(DeploymentConfigurationWithStrategies));
 
             Assert.Equal(typeof(InitializationStrategyIis), deserialized.InitializationStrategies.Single().GetType());
-            Assert.Equal("reports.coopmetrics.coop", deserialized.InitializationStrategies.Cast<InitializationStrategyIis>().Single().PrimaryDns);
+            Assert.Equal("reports.naosproject.com", deserialized.InitializationStrategies.Cast<InitializationStrategyIis>().Single().PrimaryDns);
         }
 
         [Fact]

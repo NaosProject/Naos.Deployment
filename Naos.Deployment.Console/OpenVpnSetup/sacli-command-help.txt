@@ -1,0 +1,193 @@
+﻿sacli: Wrong number of arguments.
+Access Server API client
+Usage: sacli [options] cmd [args...]
+Commands:
+  Version          -> Show Access Server version number
+  Init             -> wipe database
+  EnumClients      -> enumerate client names
+  EnumAltConfigs   -> enumerate alternative client-config namespace
+  AddClient        -> add a client record to DB
+  AutoGenerateClient     -> generate a client record if none exists
+  AutoGenerateOnBehalfOf -> generate a client record for a specific user (--user)
+  ModClient        -> modify a client record
+  RevokeCert       -> revoke a client certificate
+  RevokeUser       -> revoke all client certificates associated with a user
+  DisconnectClient -> Disconnect client from VPN
+  DisconnectUser   -> Disconnect all instances of --user from VPN
+  VPNStatus        -> show current VPN status
+  VPNSummary       -> show current VPN summary
+  Get5             -> get 5 configuration files for client
+  Get1             -> get unified configuration file for client
+  GetInstaller     -> get installer for client
+  GetInstallerEx   -> get installer for client (also specify --user, --itype, and optionally --autologin)
+  GetServer        -> get configuration files for server
+  GetAutologin     -> get unified autologin configuration for client making request (or specify --user)
+  GetUserlogin     -> get unified user configuration for client making request (or specify --user)
+  GetAutologin5    -> like GetAutologin, but return configuration as 5 separate files
+  GetUserlogin5    -> like GetUserlogin, but return configuration as 5 separate files
+  GetGeneric       -> get generic configuration file for client
+  GetGenericInstaller -> get generic installer for client
+  GetVisibility    -> show file types that would be visible for this user in the CWS
+  EnumConfigTypes  -> show config types for this user (userlogin, autologin, generic)
+  GetBaseNames     -> show download file basenames
+  GetSession       -> get a Session ID
+  CloseSession     -> close a Session ID
+  NetInfo          -> show network information
+  Start            -> start services
+  Stop             -> stop services
+  Validate         -> validate the current profile
+  Status           -> show run status
+  SetActive        -> set the active profile
+  Resolve          -> DNS resolve
+  ResolveRev       -> DNS reverse resolve
+  IP               -> show server agent's public IP address
+  CTest            -> run connectivity test
+  Static           -> show static configuration
+  LDAPExp          -> search LDAP
+  QueryLog         -> query log file
+  LicActivate      -> activate license
+  LicRenew         -> renew license keys
+  LicUsage         -> show active connections compared to license limit
+  LocalAuthEnabled -> test if local auth enabled
+  SetLocalPassword -> set local password for a user (only when using local auth mode)
+  RemoveLocalPassword -> remove local password for a user (only when using local auth mode)
+  GoogleAuthGet    -> get Google Authenticator (specify --user)
+  GoogleAuthRegen  -> regenerate Google Authenticator key (specify --user and --lock)
+  GoogleAuthLock   -> lock/unlock Google Authenticator key (specify --user and --lock)
+  GetBranding      -> get branding info
+  GetNCores        -> get number of CPU cores
+  GetActiveWebCerts -> get current active web certificates/keys
+  RegisterCommit   -> tell server agent that we independently committed to a DB, use --dblist to specify DBs
+  DBReset          -> compel server agent to close and reopen DB connections
+  ExpeditePush     -> expedite scheduling for the next DB push
+  Reset            -> do a SIGHUP-like restart on server agent
+  FailTest         -> do a connectivity test between failover nodes
+  InitRestart      -> do a restart at the /etc/init.d/openvpnas level
+  InitPeer         -> do a start/stop/restart of peer at the /etc/init.d/openvpnas level
+  ConfigPut        -> save a configuration item (specify --key and --value)
+  ConfigDel        -> delete a configuration item (specify --key)
+  ConfigQuery      -> show active configuration settings (optionally specify --prof and/or --pfilt)
+  UserPropPut      -> save a user properties setting (specify --user, --key, and --value)
+  UserPropDel      -> delete a user properties setting (specify --user and --key)
+  UserPropDelAll   -> delete all user properties for a given user (specify --user)
+  UserPropGet      -> get user properties entries (optionally specify --pfilt or --tfilt)
+  UserPropCount    -> show number of user properties records (optionally specify --tfilt)
+  GetBootstrapUsers -> show currently configured bootstrap user list
+  GetUIHelperInfo  -> show general info of use to the client web server
+  TestWebCerts     -> validate web certificates
+  Memo             -> leave a timestampped comment in the log file
+Options:
+      --unix            Connect via Unix domain socket
+      --ssl             Connect via SSL
+      --active          Only show active clients in ListClients
+      --no_ovpn         Disable OpenVPN-specific functionality for Init
+      --revdns          For CTest, also return a reverse DNS lookup of the
+                        tested IP address
+      --openfw          For CTest, temporarily open firewall port during test
+      --autologin       Generate a client for AddClient, ModClient, and
+                        GetInstallerEx that doesn't require user/password
+                        credentials on VPN login
+      --import          If specified with GetActiveWebCerts, import the certs
+                        (by value) into the config DB
+      --asl             For InitRestart, enable the Active State Lock flag on
+                        the newly instantiated daemon
+  -i, --prompt          Prompt for interactive password entry
+      --noui            Don't show user properties record in Admin UI
+                        (UserPropPut)
+      --noverify        Don't verify SSL connection
+      --restart         DisconnectClient/DisconnectUser will restart client,
+                        otherwise client will be halted
+      --psid            DisconnectClient/DisconnectUser will preserve most
+                        recently used client session ID, otherwise it will be
+                        deleted
+  -a, --auth_user=      Username
+  -p, --auth_pass=      Password
+      --sock=           Unix domain socket to connect to
+      --sslserv=        SSL server to connect to [default: localhost:3000]
+      --ssldir=         Directory containing ca.crt and optionally client.crt
+                        and client.key
+  -o, --dest_dir=       Output directory for GetAutologin5, GetUserlogin5, Get5,
+                        Get1, GetInstaller, and GetActiveWebCerts [default:
+                        /usr/local/openvpn_as/etc/tmp]
+  -O, --out=            Output file for GetAutologin, GetUserlogin
+  -s, --keysize=        Key Size (1024 or 2048) for Init [default: 1024]
+  -e, --exp=            Days till cert expiration for Init and AddClient
+                        [default: 3650]
+      --ca_cn=          CA certificate Common Name for Init [default: OpenVPN
+                        CA]
+      --server_cn=      Server certificate Common Name for Init [default:
+                        OpenVPN Server]
+  -c, --cn=             Common Name for AddClient, ModClient, RevokeCert,
+                        DisconnectClient, Get5, Get1, GetInstaller, and as an
+                        optional filter for ListClients
+      --itype=          Installer type for GetInstaller, GetInstallerEx, and
+                        GetGenericInstaller, may be 'exe' or 'msi' [default:
+                        msi]
+  -u, --user=           Username for GetAutologin, GetUserlogin, GetInstallerEx,
+                        AddClient, AutoGenerateOnBehalfOf, RevokeUser,
+                        DisconnectUser, SetLocalPassword, UserPropPut,
+                        GoogleAuth methods, and as an optional filter for
+                        ListClients
+      --cert_pass=      Private key passphrase for AddClient (optional)
+      --comment=        Comment for AddClient or ModClient, 'None' to disable
+                        (optional)
+      --revoked=        Set to 'true' or 'false' for ModClient (optional)
+      --type=           Set to 'client' or 'server' to restrict records shown in
+                        ListClients (optional)
+      --restart_mode=   Restart mode for start, may be cold, warm, or dry_run
+                        [default: warm]
+      --prof=           Profile name for SetActive, Validate, ConfigQuery, and
+                        optionally for GetActiveWebCerts --import
+      --groups=         Group names for Start and Validate (may be
+                        comma-separated list)
+      --host=           Hostname for Resolve or CTest
+      --port=           Port number for CTest
+      --ipaddr=         IP address for ResolveReverse or local IP for CTest
+      --local_port=     Local port number for CTest
+      --proto=          Protocol (tcp|udp) for CTest
+      --dn=             DN for LDAP explore
+      --scope=          LDAP scope for LDAP explore ('base', 'onelevel',
+                        'subtree', or 'subnode') [default: base]
+  -k, --key=            Key for ConfigPut, UserPropPut, or optional search key
+                        for LDAP explore
+  -v, --value=          Value for ConfigPut, UserPropPut, or optional search
+                        value for LDAP explore
+      --value_file=     Specify value for ConfigPut and UserPropPut as the
+                        content of a file
+      --ldap_config=    Optional LDAP configuration file
+      --qlconf=         JSON config file for QueryLog
+      --lic_key=        LicActivate key
+      --lic_mode=       LicActivate mode (may be 'add_only', 'mod', or 'del'
+                        [default: mod]
+      --cur_pass=       current password for SetLocalPassword
+      --new_pass=       new password for SetLocalPassword
+      --alt=            select alternative client-config variant for Get5, Get1,
+                        GetInstaller, and GetServer
+      --dblist=         Specify a comma-separated list of DBs for RegisterCommit
+                        from the set ['certs', 'config', 'user_prop']
+      --timeout=        Timeout value for ExpeditePush [default: 10]
+      --urgency=        Urgency value for ExpeditePush [default: 60]
+      --foconf=         Config file for FailoverConnectivityTest or InitPeer
+      --delay=          For InitRestart or InitPeer, specify a delay in seconds
+                        before restart occurs [default: 5]
+      --init_cmd=       For InitPeer specify start, stop, or restart
+      --pfilt=          Comma-separated list of profile filter terms for
+                        UserPropGet or ConfigQuery
+      --tfilt=          Comma-separated list of type filter terms for
+                        UserPropGet or UserPropCount
+  -P, --sess_pass=      password for GetSession
+      --sess_id=        session ID for CloseSession
+      --reason=         reason for DisconnectClient/DisconnectUser (will be
+                        logged)
+      --client_reason=  reason for DisconnectClient/DisconnectUser (text sent to
+                        client to be viewed by end-user)
+      --cert=           Certificate for TestWebCerts
+      --priv_key=       Private key for TestWebCerts
+      --ca_bundle=      CA bundle for TestWebCerts
+  -t, --text=           [default: Comment for Memo]
+      --lock=           Lock/unlock Google Authenticator key, 0:unlocked,
+                        1:locked (if unlocked, will be visible to end user in
+                        CWS, and will automatically lock on first successful VPN
+                        login)
+      --version
+      --help            Display this help and exit.

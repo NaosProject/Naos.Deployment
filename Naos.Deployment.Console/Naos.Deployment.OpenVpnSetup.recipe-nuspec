@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" ?>
+
+<package>
+  <metadata>
+    <id>Naos.Deployment.Recipes.OpenVpnSetup</id>
+    <description>Recipe that installs the logic to setup an OpenVpn server.</description>
+    <dependencies>
+      <dependency id="BouncyCastle" version="1.8.2" />
+      <dependency id="OBeautifulCode.DateTime" version="1.0.6" />
+      <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="1.0.27" />
+      <dependency id="OBeautifulCode.Validation.Recipes.ParameterValidator" version="1.0.25" />
+      <dependency id="SSH.NET" version="2016.1.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="OpenVpnSetup\*" target="content\net45\.recipes\Naos.Deployment.OpenVpnSetup" />
+  </files>
+</package>

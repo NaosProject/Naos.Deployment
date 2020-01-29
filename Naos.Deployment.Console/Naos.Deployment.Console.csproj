@@ -324,7 +324,23 @@
     <Compile Include=".recipes\Spritely.Redo\RetriableFunctionAsync.cs" />
     <Compile Include=".recipes\Spritely.Redo\Using.cs" />
     <Compile Include="ConsoleAbstraction.cs" />
-    <Compile Include="NaosDeploymentBootstrapper.cs.pp" />
+    <Compile Include="EnvironmentConfiguration\ConsolidatedDeployment.cs" />
+    <Compile Include="EnvironmentConfiguration\ConsolidatedDeploymentFactory.cs" />
+    <Compile Include="EnvironmentConfiguration\EnvironmentSpec.Acls.cs" />
+    <Compile Include="EnvironmentConfiguration\EnvironmentSpec.cs" />
+    <Compile Include="EnvironmentConfiguration\Computing.cs" />
+    <Compile Include="EnvironmentConfiguration\PackageRepositoryConfigurations.cs" />
+    <Compile Include="NaosDeploymentBootstrapper.cs" />
+    <Compile Include="OpenVpnSetup\BashCommands.cs" />
+    <Compile Include="OpenVpnSetup\CommandTokenReplacer.cs" />
+    <Compile Include="OpenVpnSetup\CommandTokens.cs" />
+    <Compile Include="OpenVpnSetup\HostKeyAlgorithm.cs" />
+    <Compile Include="OpenVpnSetup\OpenVpnAccessServerSettings.cs" />
+    <Compile Include="OpenVpnSetup\OpenVpnAccessServerSetupExecutor.cs" />
+    <Compile Include="OpenVpnSetup\OpenVpnCommands.cs" />
+    <Compile Include="OpenVpnSetup\SshClientExtensions.cs" />
+    <Compile Include="OpenVpnSetup\SshConnectionHelper.cs" />
+    <Compile Include="OpenVpnSetup\SshConnectionSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -343,9 +359,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <AdditionalFiles Include=".analyzers\stylecop.json" />
+    <Content Include="OpenVpnSetup\sacli-command-help.txt" />
     <None Include=".analyzers\release.ruleset" />
     <None Include="InstallNeededToMarkConfigCopyToOutput.ps1" />
     <None Include="App.config" />
+    <None Include="Naos.Deployment.OpenVpnSetup.recipe-nuspec" />
     <None Include="Naos.Deployment.Config.Common.recipe-nuspec" />
     <None Include="Naos.Deployment.Bootstrapper.recipe-nuspec" />
     <None Include="packages.config" />
