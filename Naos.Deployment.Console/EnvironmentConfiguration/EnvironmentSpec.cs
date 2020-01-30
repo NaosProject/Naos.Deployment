@@ -27,42 +27,41 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
         public static ConfigEnvironment BuildEnvironmentSpec(string environment)
         {
-            var details = Computing.Details[environment];
+            var details = Computing.Details[environment.ToLowerInvariant()];
 
-            var environmentName = environment.ToLowerInvariant();
             var zoneToCidrableNameMap = new Dictionary<Zone, string>
                                             {
                                                 {
-                                                    Zone.Network, Invariant($"{nameof(Vpc)}-{environmentName}@{details.LocationAbbreviation}")
+                                                    Zone.Network, Invariant($"{nameof(Vpc)}-{environment}@{details.LocationAbbreviation}")
                                                 },
                                                 {
-                                                    Zone.Vpn, Invariant($"{nameof(Subnet)}-{environmentName}{nameof(Zone.Vpn)}@{details.ContainerLocationAbbreviation}")
+                                                    Zone.Vpn, Invariant($"{nameof(Subnet)}-{environment}{nameof(Zone.Vpn)}@{details.ContainerLocationAbbreviation}")
                                                 },
                                                 {
-                                                    Zone.Nat, Invariant($"{nameof(Subnet)}-{environmentName}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}")
+                                                    Zone.Nat, Invariant($"{nameof(Subnet)}-{environment}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}")
                                                 },
                                                 {
-                                                    Zone.Private, Invariant($"{nameof(Subnet)}-{environmentName}{nameof(Zone.Private)}@{details.ContainerLocationAbbreviation}")
+                                                    Zone.Private, Invariant($"{nameof(Subnet)}-{environment}{nameof(Zone.Private)}@{details.ContainerLocationAbbreviation}")
                                                 },
                                                 {
-                                                    Zone.Public, Invariant($"{nameof(Subnet)}-{environmentName}{nameof(Zone.Public)}@{details.ContainerLocationAbbreviation}")
+                                                    Zone.Public, Invariant($"{nameof(Subnet)}-{environment}{nameof(Zone.Public)}@{details.ContainerLocationAbbreviation}")
                                                 },
                                                 {
                                                     Zone.Universe, ConfigCidr.AllTrafficCidrName
                                                 },
                                             };
 
-            var internetGatewayName = Invariant($"{nameof(InternetGateway)}-{environmentName}@{details.ContainerLocationAbbreviation}");
+            var internetGatewayName = Invariant($"{nameof(InternetGateway)}-{environment}@{details.ContainerLocationAbbreviation}");
 
-            var natElasticIpName = Invariant($"{nameof(ElasticIp)}-{environmentName}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}");
+            var natElasticIpName = Invariant($"{nameof(ElasticIp)}-{environment}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}");
 
-            var natGatewayName = Invariant($"{nameof(NatGateway)}-{environmentName}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}");
+            var natGatewayName = Invariant($"{nameof(NatGateway)}-{environment}{nameof(Zone.Nat)}@{details.ContainerLocationAbbreviation}");
 
-            var defaultRouteTable = BuildDefaultRouteTable(environmentName, details.LocationAbbreviation);
-            var privateRouteTable = BuildPrivateRouteTable(environmentName, details.LocationAbbreviation, natGatewayName);
-            var publicRouteTable = BuildPublicRouteTable(environmentName, details.LocationAbbreviation, internetGatewayName);
+            var defaultRouteTable = BuildDefaultRouteTable(environment, details.LocationAbbreviation);
+            var privateRouteTable = BuildPrivateRouteTable(environment, details.LocationAbbreviation, natGatewayName);
+            var publicRouteTable = BuildPublicRouteTable(environment, details.LocationAbbreviation, internetGatewayName);
 
-            var defaultSecurityGroup = BuildDefaultSecurityGroup(environmentName, details.LocationAbbreviation);
+            var defaultSecurityGroup = BuildDefaultSecurityGroup(environment, details.LocationAbbreviation);
 
             var privateSubnet = new ConfigSubnet
             {
@@ -96,11 +95,11 @@ namespace Naos.Deployment.Console
                 RouteTableRef = publicRouteTable.Name,
             };
 
-            var defaultNetworkAcl = BuildDefaultNetworkAcl(environmentName, details.LocationAbbreviation);
-            var privateNetworkAcl = BuildPrivateNetworkAcl(environmentName, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { privateSubnet.Name });
-            var publicNetworkAcl = BuildPublicNetworkAcl(environmentName, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { publicSubnet.Name });
-            var natNetworkAcl = BuildNatNetworkAcl(environmentName, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { natSubnet.Name });
-            var vpnNetworkAcl = BuildVpnNetworkAcl(environmentName, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { vpnSubnet.Name });
+            var defaultNetworkAcl = BuildDefaultNetworkAcl(environment, details.LocationAbbreviation);
+            var privateNetworkAcl = BuildPrivateNetworkAcl(environment, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { privateSubnet.Name });
+            var publicNetworkAcl = BuildPublicNetworkAcl(environment, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { publicSubnet.Name });
+            var natNetworkAcl = BuildNatNetworkAcl(environment, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { natSubnet.Name });
+            var vpnNetworkAcl = BuildVpnNetworkAcl(environment, details.LocationAbbreviation, zoneToCidrableNameMap, new[] { vpnSubnet.Name });
 
             var vpc = new ConfigVpc
             {
@@ -126,7 +125,7 @@ namespace Naos.Deployment.Console
 
             var environmentConfig = new ConfigEnvironment
             {
-                Name = environmentName,
+                Name = environment,
                 RegionName = details.LocationName,
                 ElasticIps = new[] { new ConfigElasticIp { Name = natElasticIpName } },
                 InternetGateways = new[] { new ConfigInternetGateway { Name = internetGatewayName } },

@@ -70,11 +70,13 @@ namespace Naos.Deployment.Console
         /// <summary>
         /// Builds VPN Server deployment.
         /// </summary>
-        /// <param name="locationName">Will be the region name for AWS.</param>
+        /// <param name="environment">Environment being used.</param>
         /// <returns>Deployment to use.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn", Justification = "Spelling/name is correct.")]
-        public static ConsolidatedDeployment BuildVpnServerDeployment(string locationName)
+        public static ConsolidatedDeployment BuildVpnServerDeployment(string environment)
         {
+            var locationName = Computing.Details[environment.ToLowerInvariant()].LocationName;
             string openVpnImageIdFromMarketPlace;
             switch (locationName)
             {
@@ -95,7 +97,7 @@ namespace Naos.Deployment.Console
 
             return new ConsolidatedDeployment
                    {
-                       Name = "OpenVpn",
+                       Name     = "OpenVpn",
                        Packages = packages,
                        DeploymentConfigurationOverride = new DeploymentConfigurationWithStrategies
                                                          {
@@ -109,11 +111,28 @@ namespace Naos.Deployment.Console
                                                                                                   },
                                                                                 SpecificImageSystemId = openVpnImageIdFromMarketPlace,
                                                                             },
-                                                             InitializationStrategies = new[]
+                                                             DeploymentStrategy = new DeploymentStrategy
+                                                                                  {
+                                                                                      IncludeInstanceInitializationScript = false,
+                                                                                      RunSetupSteps                       = false,
+                                                                                  },
+                                                             InstanceAccessibility = InstanceAccessibility.Tunnel,
+                                                             Volumes = new List<Volume>
+                                                                       {
+                                                                           new Volume
+                                                                           {
+                                                                               DriveLetter = "C",
+                                                                               SizeInGb    = 15,
+                                                                               Type        = VolumeType.Standard,
+                                                                           },
+                                                                       },
+                                                             InitializationStrategies = new List<InitializationStrategyBase>
                                                                                         {
                                                                                             new InitializationStrategyDnsEntry
                                                                                             {
-                                                                                                PrivateDnsEntry = "vpn.{environment}.naosproject.com",
+                                                                                                PublicDnsEntry =
+                                                                                                    Invariant(
+                                                                                                        $"vpn.{environment.ToLowerInvariant()}.naosproject.com"),
                                                                                             },
                                                                                         },
                                                          },

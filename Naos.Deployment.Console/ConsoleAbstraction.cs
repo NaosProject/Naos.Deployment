@@ -106,7 +106,7 @@ namespace Naos.Deployment.Console
         {
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
 
-            var location = Computing.Details[environment].LocationName;
+            var location = Computing.Details[environment.ToLowerInvariant()].LocationName;
             var awsAccountId = GetAwsAccountIdFromEnvironment(environment);
             var oneDayTokenLifespan = TimeSpan.FromDays(1);
             var virtualMfaDeviceId = Invariant($"arn:aws:iam::{awsAccountId}:mfa/{mfaUserName}");
@@ -152,8 +152,7 @@ namespace Naos.Deployment.Console
         {
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
 
-            var environmentName = environment.ToLowerInvariant();
-            var configFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environmentName}-Configuration.xml"));
+            var configFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environment}-Configuration.xml"));
             if (File.Exists(configFilePath))
             {
                 var backupConfigFilePath = Path.ChangeExtension(
@@ -174,8 +173,8 @@ namespace Naos.Deployment.Console
                 xmlSerializer.Serialize(configFileWriter, configObject);
             }
 
-            var environmentCertificateFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environmentName}.Environment.pfx"));
-            var deploymentCertificateFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environmentName}.Deployment.pfx"));
+            var environmentCertificateFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environment}.Environment.pfx"));
+            var deploymentCertificateFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environment}.Deployment.pfx"));
 
             var rootDomainHostingIdMap = new Dictionary<string, string>
                                              {
@@ -194,7 +193,7 @@ namespace Naos.Deployment.Console
             var windowsSkuSearchPatternMapJson = DefaultJsonSerializer.SerializeToString(windowsSkuSearchPatternMap);
 
             var locationAbbreviation = Computing.Details[environment].LocationAbbreviation;
-            var computingPlatformKeyFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environmentName}--{locationAbbreviation.ToUpperInvariant()}.pem"));
+            var computingPlatformKeyFilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environment}--{locationAbbreviation.ToUpperInvariant()}.pem"));
 
             var credsJson = string.IsNullOrEmpty(credentialsJson) ? System.Environment.GetEnvironmentVariable(CredentialsEnvironmentVaraibleName, EnvironmentVariableTarget.User) : credentialsJson;
             NaosDeploymentBootstrapper.CreateEnvironment(
@@ -208,7 +207,7 @@ namespace Naos.Deployment.Console
                 deploymentCertificatePassword,
                 windowsSkuSearchPatternMapJson,
                 rootDomainHostingIdMapJson,
-                environmentName);
+                environment);
         }
 
         /// <summary>
@@ -260,7 +259,7 @@ namespace Naos.Deployment.Console
         {
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
 
-            var deployment = ConsolidatedDeploymentFactory.BuildVpnServerDeployment(Computing.Details[environment.ToLowerInvariant()].LocationName);
+            var deployment = ConsolidatedDeploymentFactory.BuildVpnServerDeployment(environment);
             var packagesJson = DefaultJsonSerializer.SerializeToString(deployment.Packages);
             var overridesJson = DefaultJsonSerializer.SerializeToString(deployment.DeploymentConfigurationOverride);
             DeployAdvanced(
@@ -274,6 +273,54 @@ namespace Naos.Deployment.Console
                 true,
                 workingPath,
                 false);
+        }
+
+        /// <summary>
+        /// Configure a new VPN server.
+        /// </summary>
+        /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn", Justification = "Spelling/name is correct.")]
+        [Verb(Aliases = "configvpn", Description = "Configure a new VPN server.")]
+        public static void ConfigureVpnServer(
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")] string environment)
+        {
+            CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
+
+            var connectionSettings = new SshConnectionSettings
+            {
+                Username = "openvpnas",
+                UserPemEncodedPrivateKey = @"<Server Private Key>",
+                ServerAddress = "<111.PublicIP>",
+                ServerPublicKeyAlgorithmToBase64Sha256ThumbprintMap = new Dictionary<HostKeyAlgorithm, string>
+                                                                                               {
+                                                                                                   /*
+                                                                                                    * Go to dashboard, select instance, Actions->Instance Settings->Get System Log
+                                                                                                    * Scroll to bottom and look for '-----BEGIN SSH HOST KEY KEYS-----'
+                                                                                                    * Get the value between (but not including) 'ssh-rsa ' and ' root@openvpnas2'
+                                                                                                    */
+                                                                                                   { HostKeyAlgorithm.Rsa, @"<RSA Key from log>" },
+                                                                                               },
+            };
+
+            var openVpnAccessServerSettings = new OpenVpnAccessServerSettings
+            {
+                AdminUsername = "admin-openvpn",
+                AdminPassword = "<new admin password>",
+                Hostname = "vpn.<environment>.naosproject.com",
+                PrivateSubnetsClientsCanAccess = new[]
+                                                                                   {
+                                                                                       "10.3X.0.0/16",
+                                                                                   },
+                LicenseKey = "XXX-LICENSE-KEY [Optional as server can run 2 connections without a license]",
+                WebserverCaBundlePemEncoded = @"<SSL Cert Intermediary chain> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+                WebserverCertificate = @"<SSL Cert> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+                WebserverPrivateKeyPemEncoded = @"<SSL Cert Private Key> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+            };
+
+            OpenVpnAccessServerSetupExecutor.SetupVpnServer(connectionSettings, openVpnAccessServerSettings, logger: Console.WriteLine);
         }
 
         /// <summary>
@@ -1011,7 +1058,7 @@ namespace Naos.Deployment.Console
             var environmentCertificateName = Invariant($"{environment.ToLowerInvariant()}.Environment");
 
             var infrastructureTrackerJson = GetInfrastructureTrackerJsonFromEnvironment(environment, environmentType, useFileBasedArcology);
-            var certificateRetrieverJson = GetCertificateRetrieverJsonFromEnvironment(environment);
+            var certificateRetrieverJson = GetCertificateRetrieverJsonFromEnvironment(environment, useFileBasedArcology);
             var deploymentAdjustmentApplicatorJson = GetDeploymentAdjustmentApplicatorJsonFromEnvironment(environment);
             var nugetPackageRepositoryConfigurationsJson = GetNugetPackageRepositoryConfigurationsJson();
             var credsJson = string.IsNullOrEmpty(credentialsJson) ? SysEnvironment.GetEnvironmentVariable(CredentialsEnvironmentVaraibleName, EnvironmentVariableTarget.User) : credentialsJson;
@@ -1108,6 +1155,7 @@ namespace Naos.Deployment.Console
             else
             {
                 var deploymentDatabaseJson = ReadConfigFileText(environment.ToLowerInvariant(), nameof(DeploymentDatabase));
+                deploymentDatabaseJson.Named(nameof(deploymentDatabaseJson)).Must().NotBeNull();
                 var adjustedJson = "{\"database\": " + deploymentDatabaseJson + "}";
                 return adjustedJson;
             }
@@ -1129,6 +1177,7 @@ namespace Naos.Deployment.Console
             else
             {
                 var deploymentDatabaseJson = ReadConfigFileText(environment.ToLowerInvariant(), nameof(DeploymentDatabase));
+                deploymentDatabaseJson.Named(nameof(deploymentDatabaseJson)).Must().NotBeNull();
                 var adjustedJson = "{\"database\": " + deploymentDatabaseJson + "}";
                 return adjustedJson;
             }
@@ -1152,6 +1201,7 @@ namespace Naos.Deployment.Console
             else if (environmentType == EnvironmentType.Aws)
             {
                 var deploymentDatabaseJson = ReadConfigFileText(environment.ToLowerInvariant(), nameof(DeploymentDatabase));
+                deploymentDatabaseJson.Named(nameof(deploymentDatabaseJson)).Must().NotBeNull();
                 var adjustedJson = "{\"database\": " + deploymentDatabaseJson + "}";
                 return adjustedJson;
             }
@@ -1164,13 +1214,23 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
         private static string GetDeploymentAdjustmentApplicatorJsonFromEnvironment(string environment)
         {
-            return ReadConfigFileText(environment.ToLowerInvariant(), nameof(DeploymentAdjustmentStrategiesApplicator));
+            var deploymentAdjustmentApplicatorJsonFromEnvironment = ReadConfigFileText(environment.ToLowerInvariant(), nameof(DeploymentAdjustmentStrategiesApplicator));
+            if (deploymentAdjustmentApplicatorJsonFromEnvironment == null)
+            {
+                var nullAdjuster     = new DeploymentAdjustmentStrategiesApplicator(new List<AdjustDeploymentBase>());
+                var nullAdjusterJson = DefaultJsonSerializer.SerializeToString(nullAdjuster);
+                deploymentAdjustmentApplicatorJsonFromEnvironment = nullAdjusterJson;
+            }
+
+            return deploymentAdjustmentApplicatorJsonFromEnvironment;
         }
 
         private static string GetNugetPackageRepositoryConfigurationsJson()
         {
-            var nugetPackageRepositoryConfigurationsJson = ReadConfigFileText(Config.CommonPrecedence, nameof(PackageRepositoryConfigurations));
             var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, DefaultJsonSerializer);
+
+            var nugetPackageRepositoryConfigurationsJson = ReadConfigFileText(Config.CommonPrecedence, nameof(PackageRepositoryConfigurations));
+            nugetPackageRepositoryConfigurationsJson.Named(nameof(nugetPackageRepositoryConfigurationsJson)).Must().NotBeNull();
 
             var configs = configFileManager.DeserializeConfigFileText<PackageRepositoryConfigurations>(nugetPackageRepositoryConfigurationsJson);
             var configsJson = configFileManager.SerializeConfigToFileText(configs.Configurations);
@@ -1182,7 +1242,7 @@ namespace Naos.Deployment.Console
         {
             var rootPath = Path.Combine(Config.SettingsDirectory, folderName);
             var filePath = Path.Combine(rootPath, Invariant($"{fileNameWithExtension}.json"));
-            return File.ReadAllText(filePath);
+            return File.Exists(filePath) ? File.ReadAllText(filePath) : null;
         }
 
         private static void NullAnnouncer(string obj)

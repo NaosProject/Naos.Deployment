@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27004.2009
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.Core", "Naos.Deployment.Core\Naos.Deployment.Core.csproj", "{6F1833BF-253D-4C2D-B429-CCEC58ECEED0}"
 EndProject
@@ -25,7 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Deployment.MessageBus.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C92B0719-0C8F-484D-933F-5E15CB3CE607}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		LICENSE = LICENSE
 		README.md = README.md
+		RepoConfig.state = RepoConfig.state
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Naos.Database.MessageBus.Handler", "Naos.Database.MessageBus.Handler\Naos.Database.MessageBus.Handler.csproj", "{AA549B15-265C-4BF4-9EB3-FBD3D3280F94}"
