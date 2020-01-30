@@ -986,6 +986,7 @@ namespace Naos.Deployment.Console
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
         /// <param name="packageId">Package ID to deploy.</param>
+        /// <param name="instanceName">Optional name of instance.</param>
         /// <param name="turnOffAfterDeployment">Optional switch to ensure server OFF after deployment.</param>
         /// <param name="leaveOnAfterDeployment">Optional switch to ensure server ON after deployment.</param>
         /// <param name="instanceSystemType">Optional system specific instance type to use.</param>
@@ -1006,6 +1007,7 @@ namespace Naos.Deployment.Console
         public static void DeployPackage(
             [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON; DEFAULT will be environment variable value of NaosDeploymentCredentialsJson.")] [DefaultValue(null)] string credentialsJson,
             [Aliases("id")] [Required] [Description("Optional packages descriptions (with overrides) to configure the instance with.")] string packageId,
+            [Aliases("name")] [Description("Optional name for instance.")] [DefaultValue(null)] string instanceName,
             [Aliases("off")] [Description("Optional deployment configuration to use as an override in JSON; ESCAPE QUOTES.")] [DefaultValue(null)] bool? turnOffAfterDeployment,
             [Aliases("on")] [Description("Optional deployment configuration to use as an override in JSON; ESCAPE QUOTES.")] [DefaultValue(null)] bool? leaveOnAfterDeployment,
             [Aliases("type")] [Description("Optional system specific instance type to use.")] [DefaultValue(null)] string instanceSystemType,
@@ -1056,17 +1058,17 @@ namespace Naos.Deployment.Console
                 ? packageId
                 : Regex.Replace(packageId, "^" + PackagePrefixToStrip + "\\.", string.Empty, RegexOptions.IgnoreCase);
 
-            var instanceName = withoutPackagePrefix.Replace(".", string.Empty);
+            var instanceNameLocal = string.IsNullOrWhiteSpace(instanceName) ? withoutPackagePrefix.Replace(".", string.Empty) : instanceName;
             var packagesJson = "[{\"packageDescription\": { \"id\" : \"" + packageId + "\"}}]";
             DeployAdvanced(
                 credentialsJson,
-                instanceName,
+                instanceNameLocal,
                 packagesJson,
                 overrideJson,
                 debug,
                 environment,
                 environmentType,
-                false,
+                true,
                 workingPath,
                 false);
         }
