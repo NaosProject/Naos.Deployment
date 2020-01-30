@@ -247,8 +247,11 @@ namespace Naos.Deployment.Console
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                var output = Run.TaskUntilCompletion(manager.GetConsoleOutputFromInstanceAsync(instance));
-                output.Named(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
+                var encodedOutput = Run.TaskUntilCompletion(manager.GetConsoleOutputFromInstanceAsync(instance));
+                encodedOutput.Named(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
+
+                var bytes = Convert.FromBase64String(encodedOutput);
+                var output = Encoding.UTF8.GetString(bytes);
 
                 localResultAnnouncer(output);
             }

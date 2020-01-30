@@ -332,8 +332,17 @@ namespace Naos.Deployment.Console
             void ConsoleOutputRecorder(string s) => consoleOutput = s;
             NaosDeploymentBootstrapper.GetConsoleOutput(credsJson, infrastructureTrackerJson, instanceName, environment, environmentType, ConsoleOutputRecorder);
             consoleOutput.MustForOp(nameof(consoleOutput)).NotBeNullNorWhiteSpace();
-            string rsaKey = string.Empty;
-
+            var beginSshHostKeyFingerprintsMarker = "-----BEGIN SSH HOST KEY FINGERPRINTS-----";
+            var endSshHostKeyFingerprintsMarker   = "-----END SSH HOST KEY FINGERPRINTS-----";
+            var indexOfSshFingerprintsStart       = consoleOutput.IndexOf(beginSshHostKeyFingerprintsMarker, StringComparison.InvariantCulture);
+            var indexOfSshFingerprintsEnd         = consoleOutput.IndexOf(endSshHostKeyFingerprintsMarker, StringComparison.InvariantCulture) + endSshHostKeyFingerprintsMarker.Length;
+            var sshFingerprintsBlock              = consoleOutput.Substring(indexOfSshFingerprintsStart, indexOfSshFingerprintsEnd - indexOfSshFingerprintsStart);
+            var beginRsaMarker                    = "2048 SHA256:";
+            var indexOfRsaStartBlock              = sshFingerprintsBlock.IndexOf(beginRsaMarker, StringComparison.InvariantCulture) + beginRsaMarker.Length;
+            var rsaStartBlock                     = sshFingerprintsBlock.Substring(indexOfRsaStartBlock);
+            var endRsaMarker                      = " root@";
+            var indexOfRsaEnd                     = rsaStartBlock.IndexOf(endRsaMarker, StringComparison.InvariantCulture);
+            var rsaKey                            = rsaStartBlock.Substring(0, indexOfRsaEnd);
             rsaKey.MustForOp(nameof(rsaKey)).NotBeNullNorWhiteSpace();
 
             var secondCidrBlockValue = Computing.Details[environment.ToLowerInvariant()].SecondCidrComponent;
@@ -1225,7 +1234,7 @@ namespace Naos.Deployment.Console
             {
                 var config = new CertificateManagementConfigurationFile
                              {
-                                 FilePath = Path.Combine(DefaultTempArcologyDirectory, "Certificates.json"),
+                                 FilePath = Path.Combine(DefaultTempArcologyDirectory, Invariant($"{environment}.Certificates.json")),
                              };
 
                 var json = DefaultJsonSerializer.SerializeToString(config);

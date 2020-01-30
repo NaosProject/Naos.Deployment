@@ -50,9 +50,6 @@ namespace Naos.Deployment.Console
             vpnSettings.AdminUsername.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.AdminUsername)}")).Must().NotBeNullNorWhiteSpace();
             vpnSettings.Hostname.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.Hostname)}")).Must().NotBeNullNorWhiteSpace();
             vpnSettings.PrivateSubnetsClientsCanAccess.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.PrivateSubnetsClientsCanAccess)}")).Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            vpnSettings.WebserverCaBundlePemEncoded.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.WebserverCaBundlePemEncoded)}")).Must().NotBeNullNorWhiteSpace();
-            vpnSettings.WebserverCertificate.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.WebserverCertificate)}")).Must().NotBeNullNorWhiteSpace();
-            vpnSettings.WebserverPrivateKeyPemEncoded.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.WebserverPrivateKeyPemEncoded)}")).Must().NotBeNullNorWhiteSpace();
 
             using (var sshClient = connectionSettings.BuildConnectedSshClient())
             {
@@ -85,9 +82,19 @@ namespace Naos.Deployment.Console
                 sshClient.RunCommandAndThrowOnError(OpenVpnCommands.UseHighestTlsVersionForVpnServer, logger);
                 sshClient.RunCommandAndThrowOnError(OpenVpnCommands.UseHighestTlsVersionForWebserver, logger);
 
-                sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverCaBundlePemEncoded.InsertPemEncodedCryptographicResource(vpnSettings.WebserverCaBundlePemEncoded), logger);
-                sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverCertificate.InsertPemEncodedCryptographicResource(vpnSettings.WebserverCertificate), logger);
-                sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverPrivateKeyPemEncoded.InsertPemEncodedCryptographicResource(vpnSettings.WebserverPrivateKeyPemEncoded), logger);
+                if (
+                    !string.IsNullOrWhiteSpace(vpnSettings.WebserverCaBundlePemEncoded) &&
+                    !string.IsNullOrWhiteSpace(vpnSettings.WebserverCertificate) &&
+                    !string.IsNullOrWhiteSpace(vpnSettings.WebserverPrivateKeyPemEncoded))
+                {
+                    sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverCaBundlePemEncoded.InsertPemEncodedCryptographicResource(vpnSettings.WebserverCaBundlePemEncoded), logger);
+                    sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverCertificate.InsertPemEncodedCryptographicResource(vpnSettings.WebserverCertificate), logger);
+                    sshClient.RunCommandAndThrowOnError(OpenVpnCommands.AddWebserverPrivateKeyPemEncoded.InsertPemEncodedCryptographicResource(vpnSettings.WebserverPrivateKeyPemEncoded), logger);
+                }
+                else
+                {
+                    logger?.Invoke("Missing some or all of the certificate information so skipping, will fall back on OpenVPN internal certificate but show a warning in the browser.");
+                }
             }
 
             using (var sshClient = connectionSettings.RebootAndReconnect(logger))
