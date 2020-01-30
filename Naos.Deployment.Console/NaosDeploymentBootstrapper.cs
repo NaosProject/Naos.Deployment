@@ -44,6 +44,7 @@ namespace Naos.Deployment.Console
     using Spritely.Redo;
 
     using static System.FormattableString;
+    using System.Text;
 
     /// <summary>
     /// Bootstrapper for deployment logic to bridge commands from command line and various components to create an end to end solution.
