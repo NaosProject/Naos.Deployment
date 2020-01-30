@@ -71,10 +71,11 @@ namespace Naos.Deployment.Console
         /// Builds VPN Server deployment.
         /// </summary>
         /// <param name="environment">Environment being used.</param>
+        /// <param name="dnsSuffix">Will be used to product "vpn.{environment}.{dnsSuffix}".</param>
         /// <returns>Deployment to use.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn", Justification = "Spelling/name is correct.")]
-        public static ConsolidatedDeployment BuildVpnServerDeployment(string environment)
+        public static ConsolidatedDeployment BuildVpnServerDeployment(string environment, string dnsSuffix)
         {
             var locationName = Computing.Details[environment.ToLowerInvariant()].LocationName;
             string openVpnImageIdFromMarketPlace;
@@ -132,7 +133,7 @@ namespace Naos.Deployment.Console
                                                                                             {
                                                                                                 PublicDnsEntry =
                                                                                                     Invariant(
-                                                                                                        $"vpn.{environment.ToLowerInvariant()}.naosproject.com"),
+                                                                                                        $"vpn.{environment.ToLowerInvariant()}.{dnsSuffix}"),
                                                                                             },
                                                                                         },
                                                          },
@@ -143,9 +144,11 @@ namespace Naos.Deployment.Console
         /// Builds Arcology database server.
         /// </summary>
         /// <param name="administratorPassword">Database administrator password.</param>
+        /// <param name="environment">Environment being used.</param>
+        /// <param name="dnsSuffix">Will be used to product "deployment.database.{environment}.{dnsSuffix}".</param>
         /// <returns>Deployment to use.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = "Spelling/name is correct.")]
-        public static ConsolidatedDeployment BuildArcologyServerDeployment(string administratorPassword)
+        public static ConsolidatedDeployment BuildArcologyServerDeployment(string administratorPassword, string environment, string dnsSuffix)
         {
             var packages = new[]
                                {
@@ -163,7 +166,7 @@ namespace Naos.Deployment.Console
                                                            },
                                                        new InitializationStrategyDnsEntry
                                                            {
-                                                               PrivateDnsEntry = "deployment.database.{environment}.naosproject.com",
+                                                               PrivateDnsEntry = Invariant($"deployment.database.{environment}.{dnsSuffix}"),
                                                            },
                                                    },
                                        },

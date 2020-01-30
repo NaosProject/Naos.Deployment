@@ -75,6 +75,15 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
+        public async Task<string> GetConsoleOutputFromInstanceAsync(
+            InstanceDescription instanceDescription,
+            bool                shouldGetLatest = false)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(1));
+            return "NullImplementationOfConsoleOutput";
+        }
+
+        /// <inheritdoc />
         public async Task UpsertDnsEntryAsync(string environment, string location, string domain, IReadOnlyCollection<string> ipAddresses)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(1));

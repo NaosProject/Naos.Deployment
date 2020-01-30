@@ -116,5 +116,13 @@ namespace Naos.Deployment.Domain
         /// <param name="privateKey">Decryption key needed for password.</param>
         /// <returns>Password of the instance's administrator account.</returns>
         Task<string> GetAdministratorPasswordForInstanceAsync(InstanceDescription instanceDescription, string privateKey);
+
+        /// <summary>
+        /// Gets the console output from the specified instance.
+        /// </summary>
+        /// <param name="instanceDescription">Description of the instance in question.</param>
+        /// <param name="shouldGetLatest">A value indicating whether or not to get latest; DEFAULT is false.</param>
+        /// <returns>Console output from the instance.</returns>
+        Task<string> GetConsoleOutputFromInstanceAsync(InstanceDescription instanceDescription, bool shouldGetLatest = false);
     }
 }

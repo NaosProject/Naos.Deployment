@@ -665,6 +665,22 @@ namespace Naos.Deployment.ComputingManagement
         }
 
         /// <inheritdoc />
+        public async Task<string> GetConsoleOutputFromInstanceAsync(
+            InstanceDescription instanceDescription,
+            bool                shouldGetLatest = false)
+        {
+            var instanceToGetConsoleOutputFor = new Instance()
+                                           {
+                                               Id     = instanceDescription.Id,
+                                               Region = instanceDescription.Location,
+                                           };
+
+            var output = await instanceToGetConsoleOutputFor.GetConsoleOutputAsync(this.credentials, shouldGetLatest);
+
+            return output;
+        }
+
+        /// <inheritdoc />
         public async Task UpsertDnsEntryAsync(string environment, string location, string domain, IReadOnlyCollection<string> ipAddresses)
         {
             // from: http://stackoverflow.com/questions/16473838/get-domain-name-of-a-url-in-c-sharp-net

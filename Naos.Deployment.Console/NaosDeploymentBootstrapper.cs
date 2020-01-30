@@ -226,6 +226,37 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
+        /// Gets the status of the instance found by name in provided tracker.
+        /// </summary>
+        /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
+        /// <param name="infrastructureTrackerJson">Configuration for tracking system of computing infrastructure.</param>
+        /// <param name="instanceName">Name of the computer (short name - i.e. 'Database' NOT 'instance-Development-Database@us-west-1a').</param>
+        /// <param name="environment">Environment name being deployed to.</param>
+        /// <param name="environmentType">Environment type.</param>
+        /// <param name="localResultAnnouncer">Call back action to use with result.</param>
+        public static void GetConsoleOutput(
+            string credentialsJson,
+            string infrastructureTrackerJson,
+            string instanceName,
+            string environment,
+            EnvironmentType environmentType,
+            Action<string> localResultAnnouncer)
+        {
+            void GetConsoleOutput(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
+            {
+                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+
+                var output = Run.TaskUntilCompletion(manager.GetConsoleOutputFromInstanceAsync(instance));
+                output.Named(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
+
+                localResultAnnouncer(output);
+            }
+
+            BootRunComputingManagerOperation(environmentType, GetConsoleOutput, credentialsJson, infrastructureTrackerJson);
+        }
+
+        /// <summary>
         /// Gets the instances that are active (not terminated) from the underlying computing provider.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>
