@@ -271,6 +271,7 @@ namespace Naos.Deployment.Console
                 deployment.Name,
                 packagesJson,
                 overridesJson,
+                ExistingDeploymentStrategy.Replace,
                 debug,
                 environment,
                 environmentType,
@@ -288,6 +289,7 @@ namespace Naos.Deployment.Console
         /// <param name="license">Optional license to apply.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" />.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.IndexOf(System.String,System.StringComparison)", Justification = "Culture for string manipulation is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "vpn", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn", Justification = "Spelling/name is correct.")]
@@ -425,6 +427,7 @@ namespace Naos.Deployment.Console
                 deployment.Name,
                 packagesJson,
                 overridesJson,
+                ExistingDeploymentStrategy.NotPossibleToReplaceOrDuplicate,
                 debug,
                 environment,
                 environmentType,
@@ -929,6 +932,7 @@ namespace Naos.Deployment.Console
                 instanceName,
                 packagesJson,
                 overridesJson,
+                ExistingDeploymentStrategy.DeploySideBySide,
                 debug,
                 environment,
                 environmentType,
@@ -973,6 +977,7 @@ namespace Naos.Deployment.Console
                 deployment.Name,
                 packagesJson,
                 overridesJson,
+                ExistingDeploymentStrategy.DeploySideBySide,
                 debug,
                 environment,
                 environmentType,
@@ -991,6 +996,7 @@ namespace Naos.Deployment.Console
         /// <param name="leaveOnAfterDeployment">Optional switch to ensure server ON after deployment.</param>
         /// <param name="instanceSystemType">Optional system specific instance type to use.</param>
         /// <param name="instanceCount">Optional number of instances to deploy.</param>
+        /// <param name="existingDeploymentStrategy">Optional strategy for how to handle existing deployments; DEFAULT is Replace.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" />.</param>
@@ -1012,6 +1018,7 @@ namespace Naos.Deployment.Console
             [Aliases("on")] [Description("Optional deployment configuration to use as an override in JSON; ESCAPE QUOTES.")] [DefaultValue(null)] bool? leaveOnAfterDeployment,
             [Aliases("type")] [Description("Optional system specific instance type to use.")] [DefaultValue(null)] string instanceSystemType,
             [Aliases("count")] [Description("Optional number of instances to deploy.")] [DefaultValue(null)] int? instanceCount,
+            [Aliases("existing")] [Description("Optional strategy to handle existing deployment.")] [DefaultValue(ExistingDeploymentStrategy.Replace)] ExistingDeploymentStrategy existingDeploymentStrategy,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")] string environment,
             [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType,
@@ -1065,6 +1072,7 @@ namespace Naos.Deployment.Console
                 instanceNameLocal,
                 packagesJson,
                 overrideJson,
+                existingDeploymentStrategy,
                 debug,
                 environment,
                 environmentType,
@@ -1080,6 +1088,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Optional name of the instance (one will be generated from the package list if not provided).</param>
         /// <param name="packagesToDeployJson">Packages descriptions (with overrides) to configure the instance with.</param>
         /// <param name="overrideDeploymentConfigJson">Optional deployment configuration to use as an override in JSON.</param>
+        /// <param name="existingDeploymentStrategy">Optional strategy for how to handle existing deployments; DEFAULT is Replace.</param>
         /// <param name="debug">A value indicating whether or not to launch the debugger.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" />.</param>
@@ -1102,6 +1111,7 @@ namespace Naos.Deployment.Console
             [Aliases("name")] [Required] [Description("Name of the instance (one will be generated from the package list if not provided).")] string instanceName,
             [Aliases("packages")] [Required] [Description("Packages descriptions (with overrides) to configure the instance with; ESCAPE QUOTES.")] string packagesToDeployJson,
             [Aliases("override")] [Description("Optional deployment configuration to use as an override in JSON; ESCAPE QUOTES.")] [DefaultValue("{}")] string overrideDeploymentConfigJson,
+            [Aliases("existing")] [Description("Optional strategy to handle existing deployment.")] [DefaultValue(ExistingDeploymentStrategy.Replace)] ExistingDeploymentStrategy existingDeploymentStrategy,
             [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
             [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")] string environment,
             [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType,
@@ -1145,6 +1155,7 @@ namespace Naos.Deployment.Console
                 instanceName,
                 localWorkingPath,
                 packagesToDeployJson,
+                existingDeploymentStrategy,
                 deploymentAdjustmentApplicatorJson,
                 environment.ToLowerInvariant(),
                 environmentType);

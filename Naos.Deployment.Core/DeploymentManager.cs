@@ -9,6 +9,7 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Threading;
@@ -151,7 +152,7 @@ namespace Naos.Deployment.Core
         }
 
         /// <inheritdoc />
-        public async Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null)
+        public async Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, ExistingDeploymentStrategy existingDeploymentStrategy = ExistingDeploymentStrategy.Replace, DeploymentConfiguration deploymentConfigOverride = null)
         {
             if (this.telemetryFile != null)
             {
@@ -215,11 +216,13 @@ namespace Naos.Deployment.Core
             // apply newly constructed configs across all configs
             var packagedDeploymentConfigsWithDefaultsAndOverrides = packagedDeploymentConfigs.OverrideDeploymentConfig(configToCreateWith);
 
-            // terminate existing instances...
-            await
-                this.RunActionWithTelemetryAsync(
-                    "Terminating Instances",
-                    () => this.TerminateInstancesBeingReplacedAsync(packagesToDeploy.WithoutStrategies(), environment));
+            var potentiallyAlteredInstanceName = await this.RunFuncWithTelemetryAsync(
+                "Terminating Instances",
+                () => this.ProcessExistingDeploymentStrategyAsync(
+                    packagesToDeploy.WithoutStrategies(),
+                    environment,
+                    existingDeploymentStrategy,
+                    instanceName));
 
             var instanceCount = configToCreateWith.InstanceCount;
             if (instanceCount == 0)
@@ -232,10 +235,11 @@ namespace Naos.Deployment.Core
                 items.Select(
                     instanceNumber =>
                     this.CreateNumberedInstanceAsync(
+                        existingDeploymentStrategy,
                         instanceNumber,
                         packagesToDeploy,
                         environment,
-                        instanceName,
+                        potentiallyAlteredInstanceName,
                         instanceCount,
                         configToCreateWith,
                         packagedDeploymentConfigsWithDefaultsAndOverrides)).ToArray();
@@ -280,6 +284,7 @@ namespace Naos.Deployment.Core
         }
 
         private async Task CreateNumberedInstanceAsync(
+            ExistingDeploymentStrategy existingDeploymentStrategy,
             int instanceNumber,
             IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy,
             string environment,
@@ -424,7 +429,21 @@ namespace Naos.Deployment.Core
                     packagedDeploymentConfigsWithDefaultsAndOverridesAndHarness,
                     createdInstanceDescription,
                     FuncToReplaceSupportedTokens);
-                setupSteps.AddRange(updateDnsSteps);
+                if (updateDnsSteps.Any())
+                {
+                    // should ONLY update DNS when there is NO potential for a collision...
+                    if (existingDeploymentStrategy == ExistingDeploymentStrategy.Replace)
+                    {
+                        setupSteps.AddRange(updateDnsSteps);
+                    }
+                    else
+                    {
+                        this.LogAnnouncement(
+                            Invariant(
+                                $"Skipping DNS because the {nameof(ExistingDeploymentStrategy)} was {existingDeploymentStrategy}, can only apply DNS when it is set to {nameof(ExistingDeploymentStrategy.Replace)}."),
+                            instanceNumber);
+                    }
+                }
 
                 await this.RunSetupStepsAsync(machineManager, setupSteps, instanceNumber);
             }
@@ -568,8 +587,7 @@ namespace Naos.Deployment.Core
             {
                 if (string.IsNullOrEmpty(initialization.PublicDnsEntry) && string.IsNullOrEmpty(initialization.PrivateDnsEntry))
                 {
-                    throw new ArgumentException(
-                        "Instance " + instanceNumber + " - Cannot create DNS entry of empty or null string, please specify either a public or private dns entry.");
+                    throw new ArgumentException(Invariant($"Instance {instanceNumber} - Cannot create DNS entry of empty or null string, please specify either a public or private dns entry."));
                 }
 
                 if (!string.IsNullOrEmpty(initialization.PrivateDnsEntry))
@@ -587,7 +605,7 @@ namespace Naos.Deployment.Core
                     if (string.IsNullOrEmpty(publicIpAddress))
                     {
                         throw new ArgumentException(
-                            "Instance " + instanceNumber + " - Cannot assign a public DNS because there isn't a public IP address on the instance.");
+                            Invariant($"Instance {instanceNumber} - Cannot assign a public DNS because there isn't a public IP address on the instance."));
                     }
 
                     var publicDnsEntry = funcToCreateNewDnsWithTokensReplaced(initialization.PublicDnsEntry);
@@ -909,7 +927,7 @@ namespace Naos.Deployment.Core
             return adminPassword;
         }
 
-        private async Task TerminateInstancesBeingReplacedAsync(IReadOnlyCollection<PackageDescription> packagesToDeploy, string environment)
+        private async Task<string> ProcessExistingDeploymentStrategyAsync(IReadOnlyCollection<PackageDescription> packagesToDeploy, string environment, ExistingDeploymentStrategy existingDeploymentStrategy, string instanceName)
         {
             var packagesToIgnore = this.packageIdsToIgnoreDuringTerminationSearch.Select(_ => new PackageDescription { Id = _ }).ToList();
 
@@ -933,18 +951,34 @@ namespace Naos.Deployment.Core
                 throw new DeploymentException(Invariant($"Cannot proceed because taking down the instances of requested packages will take down packages not getting redeployed => Running: {deployedIdList} Deploying: {deployingIdList}.  If these are expected from usage of {nameof(DeploymentAdjustmentStrategiesApplicator)} then update the exclusion list in {nameof(ComputingInfrastructureManagerSettings)}.{nameof(ComputingInfrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch)}"));
             }
 
-            // terminate instance(s) if necessary (if it exists)
             if (instancesWithMatchingEnvironmentAndPackages.Any())
             {
-                var tasks =
-                    instancesWithMatchingEnvironmentAndPackages.Select(
-                        instanceDescription => this.TerminateInstanceAsync(environment, instanceDescription)).ToArray();
-
-                await Task.WhenAll(tasks);
+                switch (existingDeploymentStrategy)
+                {
+                    case ExistingDeploymentStrategy.Replace:
+                        var terminateInstancesTasks =
+                            instancesWithMatchingEnvironmentAndPackages.Select(
+                                                                            instanceDescription => this.TerminateInstanceAsync(
+                                                                                environment,
+                                                                                instanceDescription))
+                                                                       .ToArray();
+                        await Task.WhenAll(terminateInstancesTasks);
+                        return instanceName;
+                    case ExistingDeploymentStrategy.DeploySideBySide:
+                        return instanceName + "-SideBySide-" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mmZ", CultureInfo.InvariantCulture);
+                    case ExistingDeploymentStrategy.DeployAdditional:
+                        throw new NotSupportedException("DeployAdditional is not currently supported.");
+                    case ExistingDeploymentStrategy.NotPossibleToReplaceOrDuplicate:
+                        throw new ArgumentException(Invariant($"Found existing instances and {nameof(ExistingDeploymentStrategy)} is {existingDeploymentStrategy}, cannot proceed."));
+                    default:
+                        throw new NotSupportedException(
+                            Invariant($"Unsupported {nameof(ExistingDeploymentStrategy)}; {existingDeploymentStrategy}."));
+                }
             }
             else
             {
                 this.LogAnnouncement("Did not find any existing instances for the specified package list and environment.");
+                return instanceName;
             }
         }
 
@@ -1045,7 +1079,7 @@ namespace Naos.Deployment.Core
         {
             var stringOutput = (output ?? new List<dynamic>()).Select(_ => _ == null ? string.Empty : Convert.ToString(_)).Cast<string>().ToList();
 
-            var instanceNumberAdjustedStep = "Instance " + instanceNumber + " - " + step;
+            var instanceNumberAdjustedStep = Invariant($"Instance {instanceNumber} - {step}");
             this.debugAnnouncer(instanceNumberAdjustedStep);
             foreach (var o in stringOutput)
             {

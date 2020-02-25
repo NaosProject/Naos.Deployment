@@ -800,6 +800,7 @@ namespace Naos.Deployment.Console
         /// <param name="instanceName">Optional name of the instance (one will be generated from the package list if not provided).</param>
         /// <param name="workingPath">Optional working directory for packages (default will be Temp Dir but might result in PathTooLongException).</param>
         /// <param name="packagesToDeployJson">Optional packages descriptions (with overrides) to configure the instance with.</param>
+        /// <param name="existingDeploymentStrategy">Strategy for how to handle existing deployments.</param>
         /// <param name="deploymentAdjustmentApplicatorJson">Optional deployment adjustment strategies to use.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Environment Type.</param>
@@ -819,6 +820,7 @@ namespace Naos.Deployment.Console
             string instanceName,
             string workingPath,
             string packagesToDeployJson,
+            ExistingDeploymentStrategy existingDeploymentStrategy,
             string deploymentAdjustmentApplicatorJson,
             string environment,
 			EnvironmentType environmentType)
@@ -923,7 +925,7 @@ namespace Naos.Deployment.Console
                             debugAnnouncementFilePath,
                             telemetryFilePath);
 
-                        deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, overrideConfig)
+                        deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, existingDeploymentStrategy, overrideConfig)
                             .Wait();
                     }
                 }

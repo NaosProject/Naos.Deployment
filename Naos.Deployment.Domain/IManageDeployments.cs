@@ -20,8 +20,9 @@ namespace Naos.Deployment.Domain
         /// <param name="packagesToDeploy">Descriptions of packages to deploy.</param>
         /// <param name="environment">Environment from Its.Config to use.</param>
         /// <param name="instanceName">Name of the instance the deployment will reside on.</param>
+        /// <param name="existingDeploymentStrategy">Optional strategy for how to handle existing deployments; DEFAULT is Replace.</param>
         /// <param name="deploymentConfigOverride">Optional overrides to the deployment configuration.</param>
         /// <returns>Task for async.</returns>
-        Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, DeploymentConfiguration deploymentConfigOverride = null);
+        Task DeployPackagesAsync(IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy, string environment, string instanceName, ExistingDeploymentStrategy existingDeploymentStrategy = ExistingDeploymentStrategy.Replace, DeploymentConfiguration deploymentConfigOverride = null);
     }
 }

@@ -315,4 +315,35 @@ namespace Naos.Deployment.Domain
         /// </summary>
         LastAfterReboot,
     }
+
+    /// <summary>
+    /// Strategy of what to do if there is an existing deployment.
+    /// </summary>
+    public enum ExistingDeploymentStrategy
+    {
+        /// <summary>
+        /// Invalid default.
+        /// </summary>
+        Invalid,
+
+        /// <summary>
+        /// Replace existing instance.
+        /// </summary>
+        Replace,
+
+        /// <summary>
+        /// Deploy same instance while leaving the existing.
+        /// </summary>
+        DeploySideBySide,
+
+        /// <summary>
+        /// Deploy an additional instance.
+        /// </summary>
+        DeployAdditional,
+
+        /// <summary>
+        /// Can not replace or duplicate existing (usually something stateful like persistence).
+        /// </summary>
+        NotPossibleToReplaceOrDuplicate,
+    }
 }
