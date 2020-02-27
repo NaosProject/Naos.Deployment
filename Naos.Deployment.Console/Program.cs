@@ -10,10 +10,13 @@
 namespace Naos.Deployment.Console
 {
     using System;
-
     using CLAP;
 
     using Its.Log.Instrumentation;
+    using Naos.Diagnostics.Recipes;
+    using Naos.MachineManagement.Local;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Exmaple of a main entry point of the application, just delete your 'Program.cs' is setup.
@@ -31,6 +34,24 @@ namespace Naos.Deployment.Console
         {
             try
             {
+                if (!ProcessHelpers.IsCurrentlyRunningAsAdmin())
+                {
+                    throw new NotSupportedException("This application requires elevated privileges, please run as administrator.");
+                }
+
+                using (var localMachineManager = new LocalMachineManager())
+                {
+                    var connectionProfiles = localMachineManager.RunScript("{ Get-NetConnectionProfile }");
+                    foreach (var connectionProfile in connectionProfiles)
+                    {
+                        var networkCategoryInt = connectionProfile.NetworkCategory;
+                        if (networkCategoryInt == 0)
+                        {
+                            throw new InvalidOperationException(Invariant($"Network (Name: '{connectionProfile.Name}', InterfaceAlias: '{connectionProfile.InterfaceAlias}', InterfaceIndex: '{connectionProfile.InterfaceIndex}') has a network category of 'Public'.{Environment.NewLine}    WinRM requires connections to be non-public in order to run remote commands on servers.{Environment.NewLine}    In order to deploy new machines you must either ONLY be connected to non-public networks. {Environment.NewLine}{Environment.NewLine}        OR {Environment.NewLine}{Environment.NewLine}    Change the category of the network; example PowerShell command: {Environment.NewLine}        Set-NetConnectionProfile -InterfaceIndex {connectionProfile.InterfaceIndex} -NetworkCategory 'Private' {Environment.NewLine}"));
+                        }
+                    }
+                }
+
                 WriteAsciiArt(Console.WriteLine);
 
                 /*---------------------------------------------------------------------------*
