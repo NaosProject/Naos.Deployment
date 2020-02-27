@@ -1,18 +1,17 @@
-﻿<?xml version="1.0" ?>
-
+<?xml version="1.0"?>
 <package>
   <metadata>
     <id>Naos.Deployment.Bootstrapper</id>
     <description>Recipe that installs the basic classes and references needed to run Naos.Deployment logic, servers to abstract configuration and not need to provided everything on the command line.</description>
     <dependencies>
-      <dependency id="Naos.Logging.Domain" version="[1.0.30,)" />
+      <dependency id="Naos.Logging.Domain" version="1.0.61" />
       <dependency id="Naos.Deployment.Config.Common" version="[$version$,)" />
       <dependency id="Naos.Deployment.Core" version="[$version$,)" />
-      <dependency id="Naos.Recipes.RunWithRetry" version="[1.0.100,)" />
-      <dependency id="OBeautifulCode.Serialization.Recipes.Factory" version="[1.0.12,)" />
-      <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="[1.0.23,)" />
-      <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="[1.0.27,)" />
-      <dependency id="OBeautifulCode.Validation.Recipes.ParameterValidator" version="[1.0.14,)" />
+      <dependency id="Naos.Recipes.RunWithRetry" version="1.0.122" />
+      <dependency id="OBeautifulCode.Serialization.Recipes.Factory" version="1.0.13" />
+      <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="1.0.41" />
+      <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="1.0.30" />
+      <dependency id="OBeautifulCode.Assertion.Recipes.Must" version="1.0.14" />
     </dependencies>
   </metadata>
   <files>

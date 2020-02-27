@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -27,8 +27,8 @@ namespace Naos.Deployment.Core
             var logName = eventLogToCreateStrategy.LogName;
             var source = eventLogToCreateStrategy.Source;
 
-            new { logName }.Must().NotBeNullNorWhiteSpace();
-            new { source }.Must().NotBeNullNorWhiteSpace();
+            new { logName }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { source }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var createEventLogParams = new object[] { logName, source };
 

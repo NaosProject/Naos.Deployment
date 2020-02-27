@@ -9,12 +9,10 @@ namespace Naos.Deployment.Core.CertificateManagement
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
-    using OBeautifulCode.Validation.Recipes;
-
     using Spritely.ReadModel;
 
     /// <summary>
@@ -30,7 +28,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <param name="certificateContainerQueries">Query interface for retrieving the certificates.</param>
         public CertificateRetrieverFromMongo(IQueries<CertificateContainer> certificateContainerQueries)
         {
-            new { certificateContainerQueries }.Must().NotBeNull();
+            new { certificateContainerQueries }.AsArg().Must().NotBeNull();
 
             this.certificateContainerQueries = certificateContainerQueries;
 
@@ -40,7 +38,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <inheritdoc />
         public async Task<CertificateDescriptionWithClearPfxPayload> GetCertificateByNameAsync(string name)
         {
-            new { name }.Must().NotBeNullNorWhiteSpace();
+            new { name }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             // ReSharper disable once SpecifyStringComparison - can't because the expression tree it converts to isn't supported by Mongo...
             var certificateContainer = await this.certificateContainerQueries.GetOneAsync(_ => _.Id.ToUpperInvariant() == name.ToUpperInvariant());
@@ -67,7 +65,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <returns>Built reader.</returns>
         public static CertificateRetrieverFromMongo Build(DeploymentDatabase database)
         {
-            new { database }.Must().NotBeNull();
+            new { database }.AsArg().Must().NotBeNull();
 
             var ret = new CertificateRetrieverFromMongo(database.GetQueriesInterface<CertificateContainer>());
             return ret;

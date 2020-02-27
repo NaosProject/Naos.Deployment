@@ -14,17 +14,13 @@ namespace Naos.Deployment.Core
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
     using Naos.Deployment.Domain;
     using Naos.MachineManagement.Domain;
     using Naos.Packaging.Domain;
     using Naos.Recipes.RunWithRetry;
-    using Naos.Recipes.WinRM;
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
-
-    using OBeautifulCode.Validation.Recipes;
-    using Spritely.Recipes;
     using static System.FormattableString;
 
     /// <inheritdoc />
@@ -122,8 +118,8 @@ namespace Naos.Deployment.Core
             string debugAnnouncementFile = null,
             string telemetryFile = null)
         {
-            new { configFileManager }.Must().NotBeNull();
-            new { machineManagerFactory }.Must().NotBeNull();
+            new { configFileManager }.AsArg().Must().NotBeNull();
+            new { machineManagerFactory }.AsArg().Must().NotBeNull();
 
             this.tracker = tracker;
             this.computingManager = computingManager;
@@ -709,7 +705,7 @@ namespace Naos.Deployment.Core
             IManageConfigFiles configFileManager,
             IReadOnlyCollection<PackageDescriptionWithOverrides> packagesToDeploy)
         {
-            new { configFileManager }.Must().NotBeNull();
+            new { configFileManager }.AsArg().Must().NotBeNull();
 
             // get deployment details from Its.Config in the package
             var deploymentFileSearchPattern = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");

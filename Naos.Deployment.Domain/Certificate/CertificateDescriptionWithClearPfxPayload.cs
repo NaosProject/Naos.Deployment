@@ -8,9 +8,8 @@ namespace Naos.Deployment.Domain
 {
     using System;
     using System.Collections.Generic;
-
-    using OBeautifulCode.DateTime;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Type;
 
     /// <summary>
     /// Implementation of <see cref="CertificateDescription"/> that also contains a PFX payload and a clear text password.
@@ -31,11 +30,11 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "pfx", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = "Spelling/name is correct.")]
-        public CertificateDescriptionWithClearPfxPayload(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
+        public CertificateDescriptionWithClearPfxPayload(string friendlyName, string thumbprint, UtcDateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, byte[] pfxBytes, string pfxPasswordInClearText, string certificateSigningRequestPemEncoded = null)
             : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {
-            new { pfxPasswordInClearText }.Must().NotBeNullNorWhiteSpace();
-            new { pfxBytes }.Must().NotBeNull();
+            new { pfxPasswordInClearText }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { pfxBytes }.AsArg().Must().NotBeNull();
 
             this.PfxBytes = pfxBytes;
             this.PfxPasswordInClearText = pfxPasswordInClearText;

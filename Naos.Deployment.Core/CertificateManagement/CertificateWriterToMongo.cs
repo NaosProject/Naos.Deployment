@@ -8,12 +8,10 @@ namespace Naos.Deployment.Core.CertificateManagement
 {
     using System;
     using System.Threading.Tasks;
-
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
-    using OBeautifulCode.Validation.Recipes;
-
     using Spritely.ReadModel;
 
     /// <summary>
@@ -29,7 +27,7 @@ namespace Naos.Deployment.Core.CertificateManagement
         /// <param name="certificateContainerCommands">Query interface for retrieving the certificates.</param>
         public CertificateWriterToMongo(ICommands<string, CertificateContainer> certificateContainerCommands)
         {
-            new { certificateContainerCommands }.Must().NotBeNull();
+            new { certificateContainerCommands }.AsArg().Must().NotBeNull();
 
             this.certificateContainerCommands = certificateContainerCommands;
 

@@ -18,7 +18,7 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.AWS.Domain;
     using Naos.Deployment.Domain;
     using Naos.Recipes.RunWithRetry;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -139,7 +139,7 @@ namespace Naos.Deployment.ComputingManagement
         /// <returns>The class.</returns>
         public IManageComputingInfrastructure InitializeCredentials(CredentialContainer credentialsToUse)
         {
-            new { credentialsToUse }.Must().NotBeNull();
+            new { credentialsToUse }.AsArg().Must().NotBeNull();
 
             if (credentialsToUse.CredentialType == CredentialType.Token && credentialsToUse.Expiration <= DateTime.Now.AddHours(1))
             {
@@ -331,11 +331,11 @@ namespace Naos.Deployment.ComputingManagement
         /// <inheritdoc />
         public async Task<InstanceDescription> CreateNewInstanceAsync(string environment, string name, DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages, bool includeInstanceInitializationScript)
         {
-            new { deploymentConfiguration }.Must().NotBeNull();
-            new { deploymentConfiguration.Volumes }.Must().NotBeNull();
+            new { deploymentConfiguration }.AsArg().Must().NotBeNull();
+            new { deploymentConfiguration.Volumes }.AsArg().Must().NotBeNull();
 
             deploymentConfiguration.Volumes.SingleOrDefault(_ => "C".Equals((_.DriveLetter ?? string.Empty).ToUpperInvariant()))
-                .Named("MustHaveVolumeWithDriveLetterC").Must().NotBeNull();
+                .AsArg("MustHaveVolumeWithDriveLetterC").Must().NotBeNull();
 
             var existing = await this.tracker.GetInstanceIdByNameAsync(environment, name);
             if (existing != null)
@@ -593,7 +593,7 @@ namespace Naos.Deployment.ComputingManagement
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "RamInGb", Justification = "Spelling/name is correct.")]
         public string GetAwsInstanceType(InstanceType instanceType)
         {
-            new { instanceType }.Must().NotBeNull();
+            new { instanceType }.AsArg().Must().NotBeNull();
 
             // if we don't have a specific instance type then look one up, otherwise use the specific one...
             if (!string.IsNullOrEmpty(instanceType.SpecificInstanceTypeSystemId))
@@ -696,7 +696,7 @@ namespace Naos.Deployment.ComputingManagement
             var rootDomain = host.Substring(index + 1);
 
             var hostingId = await this.tracker.GetDomainZoneIdAsync(environment, rootDomain);
-            hostingId.Named(Invariant($"{nameof(this.tracker.GetDomainZoneIdAsync)}-result-from-{environment}-{rootDomain}-MustFindAndId")).Must()
+            hostingId.AsArg(Invariant($"{nameof(this.tracker.GetDomainZoneIdAsync)}-result-from-{environment}-{rootDomain}-MustFindAndId")).Must()
                 .NotBeNullNorWhiteSpace();
 
             var dnsManager = new Route53Manager(this.credentials);

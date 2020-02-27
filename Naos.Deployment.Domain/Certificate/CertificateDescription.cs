@@ -8,9 +8,8 @@ namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
     using System.ComponentModel;
-
-    using OBeautifulCode.DateTime;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Type;
 
     /// <summary>
     /// Model object to hold necessary information to inflate a certificate on a machine.
@@ -27,12 +26,12 @@ namespace Naos.Deployment.Domain
         /// <param name="certificateAttributes">Attributes of the certificate.</param>
         /// <param name="certificateSigningRequestPemEncoded">Optional PEM Encoded certificate signing request (default will be NULL).</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Pem", Justification = "Spelling/name is correct.")]
-        protected CertificateDescription(string friendlyName, string thumbprint, DateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
+        protected CertificateDescription(string friendlyName, string thumbprint, UtcDateTimeRangeInclusive validityWindowInUtc, Dictionary<string, string> certificateAttributes, string certificateSigningRequestPemEncoded = null)
         {
-            new { friendlyName }.Must().NotBeNullNorWhiteSpace();
-            new { thumbprint }.Must().NotBeNullNorWhiteSpace();
-            new { validityWindowInUtc }.Must().NotBeNull();
-            new { certificateAttributes }.Must().NotBeNull();
+            new { friendlyName }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { thumbprint }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { validityWindowInUtc }.AsArg().Must().NotBeNull();
+            new { certificateAttributes }.AsArg().Must().NotBeNull();
 
             this.FriendlyName = friendlyName;
             this.Thumbprint = thumbprint;
@@ -54,7 +53,7 @@ namespace Naos.Deployment.Domain
         /// <summary>
         /// Gets the date range that the certificate is valid.
         /// </summary>
-        public DateTimeRangeInclusive ValidityWindowInUtc { get; private set; }
+        public UtcDateTimeRangeInclusive ValidityWindowInUtc { get; private set; }
 
         /// <summary>
         /// Gets the attributes of the certificate.

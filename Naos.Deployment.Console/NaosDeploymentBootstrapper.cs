@@ -39,7 +39,7 @@ namespace Naos.Deployment.Console
     using OBeautifulCode.Serialization.Json;
 
     using OBeautifulCode.Security.Recipes;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using Spritely.Redo;
 
@@ -154,13 +154,13 @@ namespace Naos.Deployment.Console
             void GetPassword(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
-                privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
+                privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
 
                 var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
-                password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
+                password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
 
                 localResultAnnouncer(password);
             }
@@ -215,10 +215,10 @@ namespace Naos.Deployment.Console
             void GetInstanceStatus(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var status = Run.TaskUntilCompletion(manager.GetInstanceStatusAsync(instance.Id, instance.Location));
-                status.Named(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull();
+                status.AsArg(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull();
 
                 localResultAnnouncer(status.ToString());
             }
@@ -246,10 +246,10 @@ namespace Naos.Deployment.Console
             void GetConsoleOutput(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var encodedOutput = Run.TaskUntilCompletion(manager.GetConsoleOutputFromInstanceAsync(instance));
-                encodedOutput.Named(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
+                encodedOutput.AsArg(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
 
                 var bytes = Convert.FromBase64String(encodedOutput);
                 var output = Encoding.UTF8.GetString(bytes);
@@ -514,7 +514,7 @@ namespace Naos.Deployment.Console
             void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var instanceText = configFileManager.SerializeConfigToFileText(instance);
 
@@ -549,12 +549,12 @@ namespace Naos.Deployment.Console
                 {
                     activity.Trace("Starting");
                     var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                    instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                    instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
                     activity.Trace(Invariant($"Found instance: {instance.Id}"));
 
                     var privateKey =
                         Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
-                    privateKey.Named(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
+                    privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
                     activity.Trace(Invariant($"Found key for password decryption."));
 
                     var address = instance.PrivateIpAddress;
@@ -576,7 +576,7 @@ namespace Naos.Deployment.Console
                     var user = "administrator";
                     var password =
                         Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
-                    password.Named(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
+                    password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
                     activity.Trace(Invariant($"Found password."));
 
                     // Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
@@ -593,7 +593,7 @@ namespace Naos.Deployment.Console
                     })
                     {
                         cmdKeyInitProcess.Start()
-                            .Named(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true"))
+                            .AsArg(Invariant($"{nameof(cmdKeyInitProcess)}.{nameof(cmdKeyInitProcess.Start)}-must-return-true"))
                             .Must().BeTrue();
                         cmdKeyInitProcess.WaitForExit();
                         var cmdKeyInitOutput = cmdKeyInitProcess.StandardOutput.ReadToEnd();
@@ -614,7 +614,7 @@ namespace Naos.Deployment.Console
                     var rdpProcess = new Process();
                     rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
                     rdpProcess.StartInfo.Arguments = rdpArgs;
-                    rdpProcess.Start().Named(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true"))
+                    rdpProcess.Start().AsArg(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true"))
                         .Must().BeTrue();
                     activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
@@ -634,7 +634,7 @@ namespace Naos.Deployment.Console
                     })
                     {
                         cmdKeyCleanupProcess.Start()
-                            .Named(Invariant(
+                            .AsArg(Invariant(
                                 $"{nameof(cmdKeyCleanupProcess)}.{nameof(cmdKeyCleanupProcess.Start)}-must-return-true")).Must()
                             .BeTrue();
                         cmdKeyCleanupProcess.WaitForExit();
@@ -677,7 +677,7 @@ namespace Naos.Deployment.Console
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -710,7 +710,7 @@ namespace Naos.Deployment.Console
             void StopInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -743,7 +743,7 @@ namespace Naos.Deployment.Console
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
-                instance.Named(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
+                instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
                 {
@@ -767,9 +767,9 @@ namespace Naos.Deployment.Console
         /// <param name="infrastructureTrackerJson">Tracker JSON.</param>
         public static void BootRunComputingManagerOperation(EnvironmentType environmentType, Action<ITrackComputingInfrastructure, IManageComputingInfrastructure> action, string credentialsJson, string infrastructureTrackerJson)
         {
-            new { action }.Must().NotBeNull();
-            new { credentialsJson }.Must().NotBeNull();
-            new { infrastructureTrackerJson }.Must().NotBeNull();
+            new { action }.AsArg().Must().NotBeNull();
+            new { credentialsJson }.AsArg().Must().NotBeNull();
+            new { infrastructureTrackerJson }.AsArg().Must().NotBeNull();
 
             var credentials = (CredentialContainer)Config.Deserialize(typeof(CredentialContainer), credentialsJson);
 			var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
@@ -957,10 +957,10 @@ namespace Naos.Deployment.Console
             string encryptingCertificateStoreName,
             string encryptingCertificateStoreLocation)
         {
-            new { name }.Must().NotBeNullNorWhiteSpace();
-            new { pfxFilePath }.Must().NotBeNullNorWhiteSpace();
-            new { clearTextPassword }.Must().NotBeNullNorWhiteSpace();
-            new { encryptingCertificateThumbprint }.Must().NotBeNullNorWhiteSpace();
+            new { name }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { pfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { encryptingCertificateThumbprint }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             if (!File.Exists(pfxFilePath))
             {
@@ -1207,8 +1207,8 @@ namespace Naos.Deployment.Console
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Ok for now.")]
         public static void DestroyEnvironment(string credentialsJson, string configFilePath, string environment)
         {
-            new { credentialsJson }.Must().NotBeNullNorWhiteSpace();
-            new { configFilePath }.Must().NotBeNullNorWhiteSpace();
+            new { credentialsJson }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { configFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var serializer = ConfigFileSerializer;
             var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);

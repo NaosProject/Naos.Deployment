@@ -16,7 +16,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -30,16 +30,16 @@ namespace Naos.FileJanitor.MessageBus.Handler
         {
             using (var log = Log.Enter(() => new { Message = message, message.FilePath }))
             {
-                new { message.FilePath }.Must().NotBeNullNorWhiteSpace();
-                new { message.TargetFilePath }.Must().NotBeNullNorWhiteSpace();
+                new { message.FilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+                new { message.TargetFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
 
-                Directory.Exists(message.FilePath).Named(Invariant($"SourceDirectory-MustExist-{message.FilePath ?? "[NULL]"}")).Must().BeTrue();
-                File.Exists(message.TargetFilePath).Named(Invariant($"TargetFile-MustNotExist-{message.TargetFilePath ?? "[NULL]"}")).Must().BeFalse();
+                Directory.Exists(message.FilePath).AsArg(Invariant($"SourceDirectory-MustExist-{message.FilePath ?? "[NULL]"}")).Must().BeTrue();
+                File.Exists(message.TargetFilePath).AsArg(Invariant($"TargetFile-MustNotExist-{message.TargetFilePath ?? "[NULL]"}")).Must().BeFalse();
 
                 log.Trace(() => Invariant($"Start archiving directory using; {nameof(DirectoryArchiveKind)}: {message.DirectoryArchiveKind}, {nameof(ArchiveCompressionKind)}: {message.ArchiveCompressionKind}"));
 
                 var archiver = ArchiverFactory.Instance.BuildArchiver(message.DirectoryArchiveKind, message.ArchiveCompressionKind);
-                new { archiver }.Must().NotBeNull();
+                new { archiver }.AsArg().Must().NotBeNull();
 
                 var archivedDirectory = await archiver.ArchiveDirectoryAsync(message.FilePath, message.TargetFilePath);
 

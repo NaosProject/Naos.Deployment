@@ -18,7 +18,7 @@ namespace Naos.Deployment.Console
     using Naos.Recipes.RunWithRetry;
 
     using OBeautifulCode.Security.Recipes;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using Renci.SshNet;
     using Renci.SshNet.Common;
@@ -48,11 +48,11 @@ namespace Naos.Deployment.Console
             this SshConnectionSettings connectionSettings)
 #pragma warning restore CS3002 // Return type is not CLS-compliant
         {
-            new { connectionSettings }.Must().NotBeNull();
-            connectionSettings.ServerAddress.Named(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.ServerAddress)}")).Must().NotBeNullNorWhiteSpace();
-            connectionSettings.Username.Named(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.Username)}")).Must().NotBeNullNorWhiteSpace();
-            connectionSettings.UserPemEncodedPrivateKey.Named(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.UserPemEncodedPrivateKey)}")).Must().NotBeNullNorWhiteSpace();
-            connectionSettings.ServerPublicKeyAlgorithmToBase64Sha256ThumbprintMap.Named(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.ServerPublicKeyAlgorithmToBase64Sha256ThumbprintMap)}")).Must().NotBeNullNorEmptyEnumerable();
+            new { connectionSettings }.AsArg().Must().NotBeNull();
+            connectionSettings.ServerAddress.AsArg(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.ServerAddress)}")).Must().NotBeNullNorWhiteSpace();
+            connectionSettings.Username.AsArg(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.Username)}")).Must().NotBeNullNorWhiteSpace();
+            connectionSettings.UserPemEncodedPrivateKey.AsArg(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.UserPemEncodedPrivateKey)}")).Must().NotBeNullNorWhiteSpace();
+            connectionSettings.ServerPublicKeyAlgorithmToBase64Sha256ThumbprintMap.AsArg(Invariant($"{nameof(connectionSettings)}.{nameof(SshConnectionSettings.ServerPublicKeyAlgorithmToBase64Sha256ThumbprintMap)}")).Must().NotBeNullNorEmptyEnumerable();
 
             var privateKeyFile = connectionSettings.CreatePrivateKeyFile();
             try
@@ -98,7 +98,7 @@ namespace Naos.Deployment.Console
         public static bool CanConnect(
             this SshConnectionSettings connectionSettings)
         {
-            new { connectionSettings }.Must().NotBeNull();
+            new { connectionSettings }.AsArg().Must().NotBeNull();
 
             try
             {
@@ -129,7 +129,7 @@ namespace Naos.Deployment.Console
             Action<string> logger = null)
 #pragma warning restore CS3002 // Return type is not CLS-compliant
         {
-            new { connectionSettings }.Must().NotBeNull();
+            new { connectionSettings }.AsArg().Must().NotBeNull();
 
             using (var sshClient = connectionSettings.BuildConnectedSshClient())
             {

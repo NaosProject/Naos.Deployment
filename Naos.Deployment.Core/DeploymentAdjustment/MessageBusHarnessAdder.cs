@@ -10,13 +10,11 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Representation.System;
-    using OBeautifulCode.Type;
-    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Class to implement <see cref="AdjustDeploymentBase"/> to add message bus harness package when needed.
@@ -68,10 +66,10 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         public override IReadOnlyCollection<InjectedPackage> GetAdditionalPackages(string environment, string instanceName, int instanceNumber, IManageConfigFiles configFileManager, IReadOnlyCollection<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, DeploymentConfiguration configToCreateWith, PackageHelper packageHelper, SetupStepFactorySettings setupStepFactorySettings)
         {
-            new { configFileManager }.Must().NotBeNull();
-            new { configToCreateWith }.Must().NotBeNull();
-            new { packageHelper }.Must().NotBeNull();
-            new { setupStepFactorySettings }.Must().NotBeNull();
+            new { configFileManager }.AsArg().Must().NotBeNull();
+            new { configToCreateWith }.AsArg().Must().NotBeNull();
+            new { packageHelper }.AsArg().Must().NotBeNull();
+            new { setupStepFactorySettings }.AsArg().Must().NotBeNull();
 
             PackagedDeploymentConfiguration ret = null;
 

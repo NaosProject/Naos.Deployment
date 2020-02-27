@@ -12,7 +12,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Handler to handle CleanupDirectoryMessages.
@@ -22,7 +22,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
         /// <inheritdoc />
         public override async Task HandleAsync(CleanupDirectoryMessage message)
         {
-            new { message }.Must().NotBeNull();
+            new { message }.AsArg().Must().NotBeNull();
 
             var directoryFullPath = message.DirectoryFullPath;
             var recursive = message.Recursive;

@@ -113,18 +113,41 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include=".analyzers\SuppressBecause.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ApplyBecause.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\DictionaryExtensions.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\Parameter.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterShould.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Internal.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Strings.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.TypeValidation.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Utility.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidator.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Actions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\ApplyBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\AssertionKind.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\AssertionTracker.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\AssertionTrackerShould.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\AssertionVerificationFailedException.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Delegates.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\ImproperUseOfAssertionFrameworkException.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Range.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\SuppressBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\TestAssertionVerificationFailedException.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\TypeValidation.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\ValidatedNotNullAttribute.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\VerifiableItem.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verification.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\VerificationParameter.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.Helpers.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.Internal.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.Strings.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.TypeValidation.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\Verifications.Workflow.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Assertion\WorkflowExtensions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\DateTimeEqualityComparer.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\DictionaryEqualityComparer.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\EnumerableEqualityComparer.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\EnumerableEqualityComparerStrategy.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\EqualityComparerHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\EqualityExtensions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\HashCodeHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\ReadOnlyDictionaryEqualityComparer.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Equality\SuppressBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Type\SuppressBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Type\ToStringReadableOptions.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Type\TypeExtensions.cs" />
     <Compile Include="Arcology.cs" />
     <Compile Include="NaosDeploymentTrackingJsonConfiguration.cs" />
     <Compile Include="InfrastructureTrackerConfigurationBase.cs" />
@@ -157,6 +180,7 @@
   <ItemGroup>
     <Content Include=".analyzers\dictionary.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Naos.Build.Analyzers.1.55.23\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.55.23\build\Naos.Build.Analyzers.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

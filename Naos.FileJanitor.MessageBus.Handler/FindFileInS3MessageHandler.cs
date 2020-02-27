@@ -18,7 +18,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using Naos.FileJanitor.S3;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -52,8 +52,8 @@ namespace Naos.FileJanitor.MessageBus.Handler
         /// <returns>Task to support async await execution.</returns>
         public async Task HandleAsync(FindFileMessage message, FileJanitorMessageHandlerSettings settings)
         {
-            new { message }.Must().NotBeNull();
-            new { settings }.Must().NotBeNull();
+            new { message }.AsArg().Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             var correlationId = Guid.NewGuid().ToString().ToUpperInvariant();
             var containerLocation = message.ContainerLocation;

@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
     using Naos.Logging.Persistence;
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -464,7 +464,7 @@ namespace Naos.Deployment.Core
         /// <returns>Root deployment path to use.</returns>
         public static string BuildRootDeploymentPath(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
         {
-            new { settings }.Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             var deploymentDriveLetter = settings.GetDeploymentDriveLetter(volumes);
 
@@ -480,8 +480,8 @@ namespace Naos.Deployment.Core
         /// <returns>Deployment drive letter to use.</returns>
         public static string GetDeploymentDriveLetter(this SetupStepFactorySettings settings, IReadOnlyCollection<Volume> volumes)
         {
-            new { settings }.Must().NotBeNull();
-            new { volumes }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            new { settings }.AsArg().Must().NotBeNull();
+            new { volumes }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             var driveLetters = volumes.Select(_ => _.DriveLetter).ToList();
             string deploymentDriveLetter = null;
@@ -514,9 +514,9 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "logfile", Justification = "Spelling/name is correct.")]
         public static LogWritingSettings BuildDefaultLogWritingSettings(this SetupStepFactorySettings settings, string deploymentDriveLetter, string packageName)
         {
-            new { settings }.Must().NotBeNull();
-            new { deploymentDriveLetter }.Must().NotBeNullNorWhiteSpace();
-            new { packageName }.Must().NotBeNullNorWhiteSpace();
+            new { settings }.AsArg().Must().NotBeNull();
+            new { deploymentDriveLetter }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { packageName }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var template = settings.DefaultLogWritingSettings;
             var updatedConfigurations = template.Configs.Select(_ => UpdateFilePathInfoOnLoggingConfigurations(_, deploymentDriveLetter, packageName)).ToList();

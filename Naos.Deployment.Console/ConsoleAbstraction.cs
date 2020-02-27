@@ -456,7 +456,7 @@ namespace Naos.Deployment.Console
             [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")] string environment,
             [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
         {
-            new { direction }.Must().NotBeEqualTo(ArcologyMigrationDirection.Unknown);
+            new { direction }.AsArg().Must().NotBeEqualTo(ArcologyMigrationDirection.Unknown);
 
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
 
@@ -1024,7 +1024,7 @@ namespace Naos.Deployment.Console
             [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType,
             [Aliases("")] [Description("Optionally sets the working directory; DEFAULT is DefaultWorkingDirectory.")] [DefaultValue(DefaultWorkingDirectory)] string workingPath)
         {
-            new { packageId }.Must().NotBeNullNorWhiteSpace();
+            new { packageId }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
 
@@ -1119,7 +1119,7 @@ namespace Naos.Deployment.Console
             [Aliases("")] [Description("Optionally sets the working directory; DEFAULT is DefaultWorkingDirectory.")] [DefaultValue(DefaultWorkingDirectory)] string workingPath,
             [Aliases("")] [Description("INTERNAL USE ONLY.")] [DefaultValue(true)] bool runCommonSetup)
         {
-            new { workingPath }.Must().NotBeNullNorWhiteSpace();
+            new { workingPath }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var stopwatch = Stopwatch.StartNew();
             if (runCommonSetup)

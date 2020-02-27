@@ -11,7 +11,7 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Additional behavior to add the initialization strategies.
@@ -29,7 +29,7 @@ namespace Naos.Deployment.Core
             this IReadOnlyCollection<PackagedDeploymentConfiguration> packagedConfigs,
             DeploymentConfiguration defaultDeploymentConfig)
         {
-            new { packagedConfigs }.Must().NotBeNull();
+            new { packagedConfigs }.AsArg().Must().NotBeNull();
 
             if (packagedConfigs.Count == 0)
             {

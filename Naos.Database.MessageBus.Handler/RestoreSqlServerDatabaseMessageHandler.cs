@@ -18,7 +18,7 @@ namespace Naos.Database.MessageBus.Handler
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -49,8 +49,8 @@ namespace Naos.Database.MessageBus.Handler
             RestoreSqlServerDatabaseMessage message,
             DatabaseMessageHandlerSettings settings)
         {
-            new { message }.Must().NotBeNull();
-            new { settings }.Must().NotBeNull();
+            new { message }.AsArg().Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             using (var activity = Log.Enter(() => new { Message = message, message.DatabaseName, message.FilePath }))
             {

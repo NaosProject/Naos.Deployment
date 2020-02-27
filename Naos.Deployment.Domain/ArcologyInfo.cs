@@ -11,7 +11,7 @@ namespace Naos.Deployment.Domain
     using System.Globalization;
     using System.Net;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Container with the description of an arcology (defines things needed to add to the arcology).
@@ -62,8 +62,8 @@ namespace Naos.Deployment.Domain
         public static bool IsIpAddressInRange(string ipAddress, string cidr)
 #pragma warning restore SA1305 // Field names should not use Hungarian notation
         {
-            new { ipAddress }.Must().NotBeNullNorWhiteSpace();
-            new { cidr }.Must().NotBeNullNorWhiteSpace();
+            new { ipAddress }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { cidr }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             if (cidr == "0.0.0.0/0")
             {

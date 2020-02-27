@@ -9,11 +9,9 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
-
     using Naos.Deployment.Domain;
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Representation.System;
-    using OBeautifulCode.Type;
-    using OBeautifulCode.Validation.Recipes;
 
     /// <summary>
     /// Class to implement <see cref="AdjustDeploymentBase"/> to add message bus harness package when needed.
@@ -66,9 +64,9 @@ namespace Naos.Deployment.Core
             PackageHelper packageHelper,
             SetupStepFactorySettings setupStepFactorySettings)
         {
-            new { configFileManager }.Must().NotBeNull();
-            new { packageHelper }.Must().NotBeNull();
-            new { setupStepFactorySettings }.Must().NotBeNull();
+            new { configFileManager }.AsArg().Must().NotBeNull();
+            new { packageHelper }.AsArg().Must().NotBeNull();
+            new { setupStepFactorySettings }.AsArg().Must().NotBeNull();
 
             var ret = new List<InjectedPackage>();
             var matches = this.GetMatches(packagedDeploymentConfigsWithDefaultsAndOverrides, configToCreateWith);
@@ -118,7 +116,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "skus", Justification = "Spelling/name is correct.")]
         public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeRepresentation> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
         {
-            new { name }.Must().NotBeNullNorWhiteSpace();
+            new { name }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             this.Name = name;
             this.SkusToMatch = skusToMatch;

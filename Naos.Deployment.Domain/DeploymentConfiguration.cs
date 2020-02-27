@@ -12,7 +12,7 @@ namespace Naos.Deployment.Domain
 
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Math.Recipes;
+    using OBeautifulCode.Equality.Recipes;
 
     /// <summary>
     /// Model object with necessary details to deploy software to a machine.
@@ -109,10 +109,10 @@ namespace Naos.Deployment.Domain
             .Hash(this.InstanceType)
             .Hash(this.InstanceAccessibility)
             .Hash(this.InstanceCount)
-            .HashElements(this.Volumes)
-            .HashElements(this.ChocolateyPackages)
+            .Hash(this.Volumes)
+            .Hash(this.ChocolateyPackages)
             .Hash(this.DeploymentStrategy)
             .Hash(this.PostDeploymentStrategy)
-            .HashElements(this.SafeSortedTags).Value;
+            .Hash(this.SafeSortedTags).Value;
     }
 }

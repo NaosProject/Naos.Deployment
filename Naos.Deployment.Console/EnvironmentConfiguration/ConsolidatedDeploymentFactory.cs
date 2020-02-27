@@ -21,8 +21,7 @@ namespace Naos.Deployment.Console
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Type;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using Spritely.Recipes;
 
@@ -210,9 +209,9 @@ namespace Naos.Deployment.Console
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Mongo wants lower case.")]
         public static ConsolidatedDeployment BuildTestMongoServerDeployment(string name, string databaseName, string administratorPassword)
         {
-            new { name }.Must().NotBeNullNorWhiteSpace();
-            new { databaseName }.Must().NotBeNullNorWhiteSpace();
-            new { administratorPassword }.Must().NotBeNullNorWhiteSpace();
+            new { name }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { databaseName }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { administratorPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var packages = new[]
                                {

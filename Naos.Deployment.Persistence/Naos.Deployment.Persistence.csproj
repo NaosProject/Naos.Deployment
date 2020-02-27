@@ -63,9 +63,6 @@
     <Reference Include="OBeautifulCode.Compression, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Compression.1.0.8\lib\net462\OBeautifulCode.Compression.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.DateTime, Version=1.0.6.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.DateTime.1.0.6\lib\net462\OBeautifulCode.DateTime.dll</HintPath>
-    </Reference>
     <Reference Include="OBeautifulCode.Representation.System, Version=1.0.37.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.37\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
     </Reference>

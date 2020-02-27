@@ -8,7 +8,7 @@ namespace Naos.Deployment.Domain
 {
     using System;
 
-    using OBeautifulCode.Math.Recipes;
+    using OBeautifulCode.Equality.Recipes;
 
     /// <summary>
     /// Information about how the deployment should run.

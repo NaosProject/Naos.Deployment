@@ -13,7 +13,7 @@ namespace Naos.Database.MessageBus.Handler
     using Naos.Database.SqlServer.Administration;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Naos.MessageBus handler for Share.
@@ -23,10 +23,10 @@ namespace Naos.Database.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(CopySqlServerDatabaseObjectMessage message)
         {
-            new { message }.Must().NotBeNull();
+            new { message }.AsArg().Must().NotBeNull();
 
             var settings = Config.Get<DatabaseMessageHandlerSettings>();
-            new { settings }.Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             var sourceDatabaseConnectionString = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.SourceDatabaseName.ToUpperInvariant()].ToSqlServerConnectionString();
             var targetDatabaseConnectionString = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.TargetDatabaseName.ToUpperInvariant()].ToSqlServerConnectionString();

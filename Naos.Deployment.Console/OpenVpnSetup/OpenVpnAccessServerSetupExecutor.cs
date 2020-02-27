@@ -11,7 +11,7 @@ namespace Naos.Deployment.Console
 {
     using System;
     using System.Threading;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -43,13 +43,13 @@ namespace Naos.Deployment.Console
             OpenVpnAccessServerSettings vpnSettings,
             Action<string> logger = null)
         {
-            new { connectionSettings }.Must().NotBeNull();
-            new { vpnSettings }.Must().NotBeNull();
+            new { connectionSettings }.AsArg().Must().NotBeNull();
+            new { vpnSettings }.AsArg().Must().NotBeNull();
 
-            vpnSettings.AdminPassword.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.AdminPassword)}")).Must().NotBeNullNorWhiteSpace();
-            vpnSettings.AdminUsername.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.AdminUsername)}")).Must().NotBeNullNorWhiteSpace();
-            vpnSettings.Hostname.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.Hostname)}")).Must().NotBeNullNorWhiteSpace();
-            vpnSettings.PrivateSubnetsClientsCanAccess.Named(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.PrivateSubnetsClientsCanAccess)}")).Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            vpnSettings.AdminPassword.AsArg(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.AdminPassword)}")).Must().NotBeNullNorWhiteSpace();
+            vpnSettings.AdminUsername.AsArg(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.AdminUsername)}")).Must().NotBeNullNorWhiteSpace();
+            vpnSettings.Hostname.AsArg(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.Hostname)}")).Must().NotBeNullNorWhiteSpace();
+            vpnSettings.PrivateSubnetsClientsCanAccess.AsArg(Invariant($"{nameof(vpnSettings)}.{nameof(OpenVpnAccessServerSettings.PrivateSubnetsClientsCanAccess)}")).Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             using (var sshClient = connectionSettings.BuildConnectedSshClient())
             {

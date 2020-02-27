@@ -10,16 +10,13 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-
     using Naos.Database.Domain;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
-
+    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Reflection.Recipes;
-    using OBeautifulCode.Validation.Recipes;
-
     using static System.FormattableString;
 
     /// <summary>
@@ -209,7 +206,7 @@ namespace Naos.Deployment.Core
                                         allFilePaths.Where(_ => Path.GetFileNameWithoutExtension(_) == package.PackageDescription.Id)
                                             .SingleOrDefault(_ => _.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || _.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase));
 
-                                    new { migrationAssemblyFilePath }.Must().NotBeNull(
+                                    new { migrationAssemblyFilePath }.AsArg().Must().NotBeNull(
                                         Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"));
 
                                     // Need to run loose because FluentMigrator doesn't play nice...

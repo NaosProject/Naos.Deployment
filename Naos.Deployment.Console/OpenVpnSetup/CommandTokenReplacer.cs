@@ -13,7 +13,7 @@ namespace Naos.Deployment.Console
     using System.Globalization;
     using System.Text.RegularExpressions;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -42,8 +42,8 @@ namespace Naos.Deployment.Console
             string token,
             string tokenValue)
         {
-            new { command }.Must().NotBeNullNorWhiteSpace();
-            new { token }.Must().NotBeNullNorWhiteSpace();
+            new { command }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { token }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var result = command.Replace(token, tokenValue);
 
@@ -64,7 +64,7 @@ namespace Naos.Deployment.Console
             this string command,
             string username)
         {
-            new { username }.Must().NotBeNullNorWhiteSpace().And().BeAlphanumeric(new[] { '-' });
+            new { username }.AsArg().Must().NotBeNullNorWhiteSpace().And().BeAlphanumeric(new[] { '-' });
 
             var result = command.Insert(CommandTokens.Username, username);
 
@@ -83,7 +83,7 @@ namespace Naos.Deployment.Console
             this string command,
             string password)
         {
-            new { password }.Must().NotBeNullNorWhiteSpace();
+            new { password }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             password = password.Replace("'", "\\'");
             var result = command.Insert(CommandTokens.Password, password);
@@ -105,7 +105,7 @@ namespace Naos.Deployment.Console
             this string command,
             string hostname)
         {
-            Uri.CheckHostName(hostname).Named(Invariant($"{nameof(Uri)}.{nameof(Uri.CheckHostName)}({nameof(hostname)})")).Must().NotBeEqualTo(UriHostNameType.Unknown);
+            Uri.CheckHostName(hostname).AsArg(Invariant($"{nameof(Uri)}.{nameof(Uri.CheckHostName)}({nameof(hostname)})")).Must().NotBeEqualTo(UriHostNameType.Unknown);
 
             var result = command.Insert(CommandTokens.Hostname, hostname);
 
@@ -124,8 +124,8 @@ namespace Naos.Deployment.Console
             this string command,
             string subnet)
         {
-            new { subnet }.Must().NotBeNullNorWhiteSpace();
-            SubnetRegex.IsMatch(subnet).Named(Invariant($"{nameof(SubnetRegex)}.{nameof(Regex.IsMatch)}")).Must().BeTrue();
+            new { subnet }.AsArg().Must().NotBeNullNorWhiteSpace();
+            SubnetRegex.IsMatch(subnet).AsArg(Invariant($"{nameof(SubnetRegex)}.{nameof(Regex.IsMatch)}")).Must().BeTrue();
 
             var result = command.Insert(CommandTokens.Subnet, subnet);
 
@@ -144,7 +144,7 @@ namespace Naos.Deployment.Console
             this string command,
             int index)
         {
-            new { index }.Must().BeGreaterThanOrEqualTo(0);
+            new { index }.AsArg().Must().BeGreaterThanOrEqualTo(0);
 
             var result = command.Insert(CommandTokens.ArrayIndex, index.ToString(CultureInfo.InvariantCulture));
 
@@ -164,7 +164,7 @@ namespace Naos.Deployment.Console
             this string command,
             string cryptographicResource)
         {
-            new { cryptographicResource }.Must().NotBeNullNorWhiteSpace();
+            new { cryptographicResource }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             cryptographicResource = cryptographicResource.Replace("\r\n", "\n");
             var result = command.Insert(CommandTokens.CryptographicResourcePemEncoded, cryptographicResource);
@@ -185,7 +185,7 @@ namespace Naos.Deployment.Console
             this string command,
             string licenseKey)
         {
-            new { licenseKey }.Must().NotBeNullNorWhiteSpace();
+            new { licenseKey }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             var result = command.Insert(CommandTokens.OpenVpnAccessServerLicenseKey, licenseKey);
 

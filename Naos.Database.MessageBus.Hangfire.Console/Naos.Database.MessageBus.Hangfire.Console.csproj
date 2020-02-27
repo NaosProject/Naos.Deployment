@@ -362,7 +362,6 @@
     <Compile Include=".recipes\OBeautifulCode.Equality\HashCodeHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\ReadOnlyDictionaryEqualityComparer.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\SuppressBecause.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Math\HashCodeHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Attribute.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Enum.cs" />
@@ -377,18 +376,6 @@
     <Compile Include=".recipes\OBeautifulCode.Type\SuppressBecause.cs" />
     <Compile Include=".recipes\OBeautifulCode.Type\ToStringReadableOptions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Type\TypeExtensions.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ApplyBecause.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\DictionaryExtensions.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\Parameter.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterShould.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Internal.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Strings.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.TypeValidation.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidation.Utility.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ParameterValidator.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\Range.cs" />
-    <Compile Include=".recipes\OBeautifulCode.Validation\ValidatedNotNullAttribute.cs" />
     <Compile Include=".recipes\Spritely.Redo\BackOffStrategy.cs" />
     <Compile Include=".recipes\Spritely.Redo\RetriableAction.cs" />
     <Compile Include=".recipes\Spritely.Redo\RetriableActionAsync.cs" />

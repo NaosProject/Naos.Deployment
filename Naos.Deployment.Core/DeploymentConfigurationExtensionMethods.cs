@@ -12,7 +12,7 @@ namespace Naos.Deployment.Core
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -207,7 +207,7 @@ namespace Naos.Deployment.Core
                 return deploymentConfigInitial;
             }
 
-            new { deploymentConfigInitial }.Must().NotBeNull();
+            new { deploymentConfigInitial }.AsArg().Must().NotBeNull();
 
             var instanceAccessibility = deploymentConfigInitial.InstanceAccessibility;
             var overrideAccessibility = deploymentConfigOverride.InstanceAccessibility;

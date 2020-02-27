@@ -8,7 +8,7 @@ namespace Naos.Deployment.Domain
 {
     using System;
 
-    using OBeautifulCode.Math.Recipes;
+    using OBeautifulCode.Equality.Recipes;
 
     /// <summary>
     /// Object to describe a volume to attach to the instance.

@@ -16,10 +16,8 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
-    using Naos.MessageBus.Domain;
-    using OBeautifulCode.DateTime;
     using OBeautifulCode.Serialization;
-    using OBeautifulCode.Serialization.Bson;
+    using OBeautifulCode.Type;
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
     using Xunit;
@@ -113,7 +111,7 @@ namespace Naos.Deployment.Core.Test
                                              new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
                                                  "ThumbprintOfCertificate",
-                                                 new DateTimeRangeInclusive(
+                                                 new UtcDateTimeRangeInclusive(
                                                      new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                                                      new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },
@@ -159,7 +157,7 @@ namespace Naos.Deployment.Core.Test
                                              new CertificateDescriptionWithClearPfxPayload(
                                                  "DevelopmentCertificate",
                                                  "ThumbprintOfCertificate",
-                                                 new DateTimeRangeInclusive(
+                                                 new UtcDateTimeRangeInclusive(
                                                      new DateTime(2010, 10, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                                                      new DateTime(2010, 10, 11, 0, 0, 0, 0, DateTimeKind.Utc)),
                                                  new Dictionary<string, string>() { { "Subject", "CN=CommonName" } },

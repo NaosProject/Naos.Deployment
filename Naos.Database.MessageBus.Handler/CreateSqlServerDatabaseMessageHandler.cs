@@ -18,7 +18,7 @@ namespace Naos.Database.MessageBus.Handler
     using Naos.Database.SqlServer.Domain;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Naos.MessageBus handler for CreateSqlServerDatabaseMessages.
@@ -42,8 +42,8 @@ namespace Naos.Database.MessageBus.Handler
             CreateSqlServerDatabaseMessage message,
             DatabaseMessageHandlerSettings settings)
         {
-            new { message }.Must().NotBeNull();
-            new { settings }.Must().NotBeNull();
+            new { message }.AsArg().Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             using (var activity = Log.Enter(() => new { Message = message, DatabaseName = message.DatabaseName }))
             {

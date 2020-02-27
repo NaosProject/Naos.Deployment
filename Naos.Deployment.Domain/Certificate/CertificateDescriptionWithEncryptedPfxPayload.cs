@@ -8,9 +8,8 @@ namespace Naos.Deployment.Domain
 {
     using System;
     using System.Collections.Generic;
-
-    using OBeautifulCode.DateTime;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Type;
 
     /// <summary>
     /// Implementation of <see cref="CertificateDescription"/> that also contains an encrypted PFX payload and an encrypted password with the certificate details used to encrypt.
@@ -34,7 +33,7 @@ namespace Naos.Deployment.Domain
         public CertificateDescriptionWithEncryptedPfxPayload(
             string friendlyName,
             string thumbprint,
-            DateTimeRangeInclusive validityWindowInUtc,
+            UtcDateTimeRangeInclusive validityWindowInUtc,
             Dictionary<string, string> certificateAttributes,
             CertificateLocator encryptingCertificateLocator,
             string encryptedBase64EncodedPfxBytes,
@@ -42,9 +41,9 @@ namespace Naos.Deployment.Domain
             string certificateSigningRequestPemEncoded = null)
             : base(friendlyName, thumbprint, validityWindowInUtc, certificateAttributes, certificateSigningRequestPemEncoded)
         {
-            new { encryptedBase64EncodedPfxBytes }.Must().NotBeNullNorWhiteSpace();
-            new { encryptedPfxPassword }.Must().NotBeNullNorWhiteSpace();
-            new { encryptingCertificateLocator }.Must().NotBeNull();
+            new { encryptedBase64EncodedPfxBytes }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { encryptedPfxPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { encryptingCertificateLocator }.AsArg().Must().NotBeNull();
 
             this.EncryptingCertificateLocator = encryptingCertificateLocator;
             this.EncryptedBase64EncodedPfxBytes = encryptedBase64EncodedPfxBytes;

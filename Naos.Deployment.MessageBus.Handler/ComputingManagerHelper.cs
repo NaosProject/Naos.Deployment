@@ -16,7 +16,7 @@ namespace Naos.Deployment.MessageBus.Handler
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -34,7 +34,7 @@ namespace Naos.Deployment.MessageBus.Handler
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Factory method is not suppossed to dispose...")]
         public static IManageComputingInfrastructure CreateComputingManager(DeploymentMessageHandlerSettings settings, ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings)
         {
-            new { settings }.Must().NotBeNull();
+            new { settings }.AsArg().Must().NotBeNull();
 
             var credentialsToUse = new CredentialContainer
             {

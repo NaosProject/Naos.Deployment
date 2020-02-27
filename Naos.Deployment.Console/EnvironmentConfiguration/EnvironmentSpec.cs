@@ -10,7 +10,7 @@ namespace Naos.Deployment.Console
 
     using Naos.AWS.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 

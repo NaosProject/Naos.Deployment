@@ -11,7 +11,7 @@ namespace Naos.Deployment.Console
 {
     using System;
     using System.Threading;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using Renci.SshNet;
 
@@ -43,8 +43,8 @@ namespace Naos.Deployment.Console
             string command,
             Action<string> logger = null)
         {
-            new { client }.Must().NotBeNull();
-            new { command }.Must().NotBeNullNorWhiteSpace();
+            new { client }.AsArg().Must().NotBeNull();
+            new { command }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             logger?.Invoke(Invariant($"RUNNING COMMAND: {command}"));
             using (var sshCommand = client.RunCommand(command))
@@ -79,7 +79,7 @@ namespace Naos.Deployment.Console
             this SshClient client,
             Action<string> logger = null)
         {
-            new { client }.Must().NotBeNull();
+            new { client }.AsArg().Must().NotBeNull();
 
             var commandOutput = RunCommandAndThrowOnError(client, BashCommands.IsRebootRequired, logger).Trim();
             switch (commandOutput)

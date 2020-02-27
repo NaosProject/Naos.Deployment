@@ -14,7 +14,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
 
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -35,7 +35,7 @@ namespace Naos.Deployment.Tracking
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public Arcology(string environment, ArcologyInfo arcologyInfo, IReadOnlyCollection<DeployedInstance> deployedInstances = null)
         {
-            new { arcologyInfo }.Must().NotBeNull();
+            new { arcologyInfo }.AsArg().Must().NotBeNull();
 
             this.Environment = environment;
             this.SerializedEnvironmentSpecification = arcologyInfo.SerializedEnvironmentSpecification;
@@ -58,7 +58,7 @@ namespace Naos.Deployment.Tracking
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "arcology", Justification = "Spelling/name is correct.")]
         public void MutateInstancesRemove(DeployedInstance instanceToRemove)
         {
-            new { instanceToRemove }.Must().NotBeNull();
+            new { instanceToRemove }.AsArg().Must().NotBeNull();
 
             var removed = this.instances.Remove(instanceToRemove);
             if (!removed)
@@ -201,7 +201,7 @@ namespace Naos.Deployment.Tracking
         /// <returns>Object holding information necessary to track and create an instance.</returns>
         public DeployedInstance CreateNewDeployedInstance(DeploymentConfiguration deploymentConfiguration, IReadOnlyCollection<PackageDescriptionWithOverrides> intendedPackages)
         {
-            new { deploymentConfiguration }.Must().NotBeNull();
+            new { deploymentConfiguration }.AsArg().Must().NotBeNull();
 
             var privateIpAddress = this.FindIpAddress(deploymentConfiguration);
             var location = this.Location;
@@ -288,7 +288,7 @@ namespace Naos.Deployment.Tracking
         /// <param name="package">Package that was successfully deployed.</param>
         public static void UpdatePackageVerificationInInstanceDeploymentList(DeployedInstance instanceToUpdatePackagesOn, PackageDescription package)
         {
-            new { instanceToUpdatePackagesOn }.Must().NotBeNull();
+            new { instanceToUpdatePackagesOn }.AsArg().Must().NotBeNull();
 
             PackageDescriptionIdOnlyEqualityComparer comparer = new PackageDescriptionIdOnlyEqualityComparer();
             var existing =

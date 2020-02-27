@@ -9,7 +9,7 @@ namespace Naos.Deployment.Domain
     using System;
     using System.ComponentModel;
     using Naos.MachineManagement.Domain;
-    using OBeautifulCode.Math.Recipes;
+    using OBeautifulCode.Equality.Recipes;
 
     using static System.FormattableString;
 
