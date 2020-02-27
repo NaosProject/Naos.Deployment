@@ -35,7 +35,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Serialization.Recipes;
     using OBeautifulCode.Type;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -63,9 +63,9 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             MessageBusLaunchConfiguration launchConfig,
             IHandlerFactory handlerFactory)
         {
-            new { messageBusConnectionConfiguration }.Must().NotBeNull();
-            new { launchConfig }.Must().NotBeNull();
-            new { handlerFactory }.Must().NotBeNull();
+            new { messageBusConnectionConfiguration }.AsArg().Must().NotBeNull();
+            new { launchConfig }.AsArg().Must().NotBeNull();
+            new { handlerFactory }.AsArg().Must().NotBeNull();
 
             if (launchConfig.ChannelsToMonitor.Any(_ => _.GetType() != typeof(SimpleChannel)))
             {
@@ -157,8 +157,8 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             // ReSharper disable once UnusedVariable - good reminder that the server object comes back and that's what is disposed in the end...
             using (var server = new BackgroundJobServer(executorOptions))
             {
-                Console.WriteLine("Hangfire Server started. Will terminate when there are no active jobs after: " + timeout);
-                Log.Write(() => new { LogMessage = "Hangfire Server launched. Will terminate when there are no active jobs after: " + timeout });
+                Console.WriteLine(Invariant($"Hangfire Server started. Will terminate when there are no active jobs after: {timeout}."));
+                Log.Write(() => new { LogMessage = Invariant($"Hangfire Server launched. Will terminate when there are no active jobs after: {timeout}.") });
 
                 // once the timeout has been achieved with no active jobs the process will exit (this assumes that a scheduled task will restart the process)
                 //    the main impetus for this was the fact that Hangfire won't reconnect correctly so we must periodically initiate an entire reconnect.
@@ -167,7 +167,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
                     Thread.Sleep(launchConfig.PollingInterval);
                 }
 
-                Log.Write(() => new { ex = "Hangfire Server terminating. There are no active jobs and current time if beyond the timeout: " + timeout });
+                Log.Write(() => new { ex = Invariant($"Hangfire Server terminating. There are no active jobs and current time if beyond the timeout:  {timeout}.") });
             }
         }
 
@@ -185,8 +185,8 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             Parcel parcel,
             ScheduleBase schedule = null)
         {
-            new { messageBusConnectionConfiguration }.Must().NotBeNull();
-            new { parcel }.Must().NotBeNull();
+            new { messageBusConnectionConfiguration }.AsArg().Must().NotBeNull();
+            new { parcel }.AsArg().Must().NotBeNull();
 
             var serializerFactory = SerializerFactory.Instance;
             var compressorFactory = CompressorFactory.Instance;
@@ -220,7 +220,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Catching and swallowing on purpose.")]
         private static AssemblyDetails SafeFetchAssemblyDetails(Assembly assembly)
         {
-            new { assembly }.Must().NotBeNull();
+            new { assembly }.AsArg().Must().NotBeNull();
 
             // get a default
             var assemblyName = assembly.GetName();

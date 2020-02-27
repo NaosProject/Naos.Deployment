@@ -27,7 +27,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
 
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Type;
-    using OBeautifulCode.Validation.Recipes;
+    using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
 
@@ -81,7 +81,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         /// <returns>Map of message type to handler type.</returns>
         internal static IReadOnlyDictionary<Type, Type> DiscoverHandlersInAssemblies(IReadOnlyCollection<Assembly> assembliesToLookIn, bool includeInternalHandlers = true)
         {
-            new { assembliesToLookIn }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            new { assembliesToLookIn }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
             var localDictionary = new Dictionary<Type, Type>();
 
@@ -98,7 +98,7 @@ namespace Naos.Deployment.MessageBus.Hangfire.Console
         {
             var configuration = Config.Get<HandlerFactoryConfiguration>(typeof(MessageBusJsonConfiguration));
 
-            new { configuration }.Must().NotBeNull();
+            new { configuration }.AsArg().Must().NotBeNull();
 
             var ret = !string.IsNullOrWhiteSpace(configuration.HandlerAssemblyPath)
                           ? new ReflectionHandlerFactory(configuration.HandlerAssemblyPath, configuration.TypeMatchStrategyForMessageResolution)
