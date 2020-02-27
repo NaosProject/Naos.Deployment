@@ -18,6 +18,7 @@ namespace OBeautifulCode.Validation.Recipes
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text.RegularExpressions;
 
     using static System.FormattableString;
@@ -34,9 +35,29 @@ namespace OBeautifulCode.Validation.Recipes
     {
 #pragma warning disable SA1201
 
+        private static readonly Regex GenericBracketsRegex = new Regex("<.*>", RegexOptions.Compiled);
+
         private static readonly CodeDomProvider CodeDomProvider = CodeDomProvider.CreateProvider("CSharp");
 
-        private static readonly Regex TypeFriendlyNameGenericArgumentsRegex = new Regex("<.*?>", RegexOptions.Compiled);
+        private static readonly Dictionary<Type, string> Aliases = new Dictionary<Type, string>
+        {
+            { typeof(byte), "byte" },
+            { typeof(sbyte), "sbyte" },
+            { typeof(short), "short" },
+            { typeof(ushort), "ushort" },
+            { typeof(int), "int" },
+            { typeof(uint), "uint" },
+            { typeof(long), "long" },
+            { typeof(ulong), "ulong" },
+            { typeof(float), "float" },
+            { typeof(double), "double" },
+            { typeof(decimal), "decimal" },
+            { typeof(object), "object" },
+            { typeof(bool), "bool" },
+            { typeof(char), "char" },
+            { typeof(string), "string" },
+            { typeof(void), "void" },
+        };
 
         private static readonly MethodInfo GetDefaultValueOpenGenericMethodInfo = ((Func<object>)GetDefaultValue<object>).Method.GetGenericMethodDefinition();
 
@@ -194,8 +215,8 @@ namespace OBeautifulCode.Validation.Recipes
         {
             // A copy of this method exists in OBC.Reflection.
             // Any bug fixes made here should also be applied to OBC.Reflection.
-            // OBC.Reflection cannot take a reference to OBC.Validation because it creates a circular reference
-            // since OBC.Validation itself depends on OBC.Reflection.
+            // OBC.Validation cannot take a reference to OBC.Reflection because it creates a circular reference
+            // since OBC.Reflection itself depends on OBC.Validation.
             // We considered converting all usages of OBC.Validation in OBC.Reflection to vanilla if..then..throw
             // but decided against because it was going to be too much work and we like the way OBC.Validation reads (e.g. Must().NotBeNull()) in OBC.Reflection.
             // The other option was to create a third package that OBC.Validation and OBC.Reflection could both depend on, but
@@ -259,18 +280,91 @@ namespace OBeautifulCode.Validation.Recipes
             }
         }
 
-        private static string GetFriendlyTypeName(
+        private static bool IsNullableType(
             this Type type)
         {
-            // adapted from: https://stackoverflow.com/a/6402967/356790
-            var result = CodeDomProvider.GetTypeOutput(new CodeTypeReference(type.FullName?.Replace(type.Namespace + ".", string.Empty)));
+            // A copy of this method exists in OBC.Reflection.
+            // Any bug fixes made here should also be applied to OBC.Reflection.
+            // OBC.Validation cannot take a reference to OBC.Reflection because it creates a circular reference
+            // since OBC.Reflection itself depends on OBC.Validation.
+            new { type }.Must().NotBeNull();
 
-            // if type is an unbounded generic type, then the result will something like List<> or IReadOnlyDictionary<, >
-            // whereas we would prefer List<T> or IReadOnlyDictionary<T,K>
-            if (type.IsGenericTypeDefinition)
+            var result = Nullable.GetUnderlyingType(type) != null;
+
+            return result;
+        }
+
+        private static bool IsAnonymous(
+            this Type type)
+        {
+            // A copy of this method exists in OBC.Reflection.
+            // Any bug fixes made here should also be applied to OBC.Reflection.
+            // OBC.Validation cannot take a reference to OBC.Reflection because it creates a circular reference
+            // since OBC.Reflection itself depends on OBC.Validation.
+            new { type }.Must().NotBeNull();
+
+            var result = Attribute.IsDefined(type, typeof(CompilerGeneratedAttribute), false)
+                         && type.Namespace == null
+                         && type.IsGenericType && type.Name.Contains("AnonymousType")
+                         && (type.Name.StartsWith("<>", StringComparison.Ordinal) || type.Name.StartsWith("VB$", StringComparison.Ordinal))
+                         && (type.Attributes & TypeAttributes.NotPublic) == TypeAttributes.NotPublic;
+
+            return result;
+        }
+
+        private static string ToStringReadable(
+            this Type type)
+        {
+            // A more full solution copy of this method exists in OBC.Representation.System (as ToStringReadableInternal, not ToStringReadable).
+            // Any bug fixes made here should also be applied to OBC.Representation.System.
+            // OBC.Validation cannot take a reference to OBC.Representation.System because it creates a circular reference
+            // since OBC.Representation.System itself depends on OBC.Validation.
+            string result;
+
+            if (type == null)
             {
-                var genericArgumentNames = string.Join(",", type.GetGenericArguments().Select(x => x.Name));
-                result = TypeFriendlyNameGenericArgumentsRegex.Replace(result, "<" + genericArgumentNames + ">");
+            }
+            if (type.IsGenericParameter)
+            {
+                result = type.Name;
+            }
+            else if (Aliases.ContainsKey(type))
+            {
+                result = Aliases[type];
+            }
+            else if (type.IsNullableType())
+            {
+                result = Nullable.GetUnderlyingType(type).ToStringReadable() + "?";
+            }
+            else if (type.IsArray)
+            {
+                result = type.GetElementType().ToStringReadable() + "[]";
+            }
+            else
+            {
+                result = CodeDomProvider.GetTypeOutput(new CodeTypeReference(type.FullName?.Replace(type.Namespace + ".", string.Empty) ?? type.Name));
+
+                if (type.IsGenericType)
+                {
+                    var isAnonymous = type.IsAnonymous();
+
+                    if (isAnonymous)
+                    {
+                        result = result.Replace("<>f__", string.Empty);
+                    }
+
+                    string[] genericParameters;
+                    if (isAnonymous && type.IsGenericTypeDefinition)
+                    {
+                        genericParameters = type.GetGenericArguments().Select((_, i) => "T" + (i + 1)).ToArray();
+                    }
+                    else
+                    {
+                        genericParameters = type.GetGenericArguments().Select(_ => _.ToStringReadable()).ToArray();
+                    }
+
+                    result = GenericBracketsRegex.Replace(result, "<" + string.Join(", ", genericParameters) + ">");
+                }
             }
 
             return result;
@@ -291,7 +385,7 @@ namespace OBeautifulCode.Validation.Recipes
 
             var parameterNameQualifier = validation.ParameterName == null ? string.Empty : Invariant($" '{validation.ParameterName}'");
             var enumerableQualifier = validation.IsElementInEnumerable ? " contains an element that" : string.Empty;
-            var genericTypeQualifier = include.HasFlag(Include.GenericType) ? ", where T: " + (genericTypeOverride?.GetFriendlyTypeName() ?? validation.ValueType.GetFriendlyTypeName()) : string.Empty;
+            var genericTypeQualifier = include.HasFlag(Include.GenericType) ? ", where T: " + (genericTypeOverride?.ToStringReadable() ?? validation.ValueType.ToStringReadable()) : string.Empty;
             var failingValueQualifier = include.HasFlag(Include.FailingValue) ? (validation.IsElementInEnumerable ? "  Element value" : "  Parameter value") + Invariant($" is '{validation.Value?.ToString() ?? NullValueToString}'.") : string.Empty;
             var validationParameterQualifiers = validation.ValidationParameters == null || !validation.ValidationParameters.Any() ? string.Empty : string.Join(string.Empty, validation.ValidationParameters.Select(_ => _.ToExceptionMessageComponent()));
             var result = Invariant($"Parameter{parameterNameQualifier}{enumerableQualifier} {exceptionMessageSuffix}{genericTypeQualifier}.{failingValueQualifier}{validationParameterQualifiers}");
@@ -504,7 +598,6 @@ namespace OBeautifulCode.Validation.Recipes
 
             GenericType = 2,
         }
-
 #pragma warning restore SA1201
     }
 }

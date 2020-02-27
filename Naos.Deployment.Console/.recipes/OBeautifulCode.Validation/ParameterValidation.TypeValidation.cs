@@ -185,7 +185,8 @@ namespace OBeautifulCode.Validation.Recipes
             Validation validation,
             TypeValidation typeValidation)
         {
-            var parameterValueTypeName = validation.ValueType.GetFriendlyTypeName();
+            var parameterValueTypeName = validation.ValueType.ToStringReadable();
+
             throw new InvalidCastException(Invariant($"validationName: {validation.ValidationName}, isElementInEnumerable: {validation.IsElementInEnumerable}, parameterValueTypeName: {parameterValueTypeName}"));
         }
 
@@ -280,7 +281,8 @@ namespace OBeautifulCode.Validation.Recipes
             Validation validation,
             params Type[] expectedTypes)
         {
-            var expectedTypeStrings = expectedTypes.Select(_ => _.GetFriendlyTypeName()).ToArray();
+            var expectedTypeStrings = expectedTypes.Select(_ => _.ToStringReadable()).ToArray();
+
             ThrowParameterUnexpectedType(validation, expectedTypeStrings);
         }
 
@@ -293,8 +295,11 @@ namespace OBeautifulCode.Validation.Recipes
             var isElementInEnumerable = validation.IsElementInEnumerable;
 
             var expectedTypesMessage = string.Join(", ", expectedTypes.Select(_ => isElementInEnumerable ? Invariant($"IEnumerable<{_}>") : _));
-            var valueTypeMessage = isElementInEnumerable ? Invariant($"IEnumerable<{valueType.GetFriendlyTypeName()}>") : valueType.GetFriendlyTypeName();
+
+            var valueTypeMessage = isElementInEnumerable ? Invariant($"IEnumerable<{valueType.ToStringReadable()}>") : valueType.ToStringReadable();
+
             var exceptionMessage = Invariant($"Called {validationName}() on a parameter of type {valueTypeMessage}, which is not one of the following expected type(s): {expectedTypesMessage}.");
+
             throw new InvalidCastException(exceptionMessage);
         }
 
@@ -304,9 +309,12 @@ namespace OBeautifulCode.Validation.Recipes
             string validationParameterName,
             params Type[] expectedTypes)
         {
-            var expectedTypesStrings = expectedTypes.Select(_ => _.GetFriendlyTypeName()).ToArray();
+            var expectedTypesStrings = expectedTypes.Select(_ => _.ToStringReadable()).ToArray();
+
             var expectedTypesMessage = string.Join(", ", expectedTypesStrings);
-            var exceptionMessage = Invariant($"Called {validationName}({validationParameterName}:) where '{validationParameterName}' is of type {validationParameterType.GetFriendlyTypeName()}, which is not one of the following expected type(s): {expectedTypesMessage}.");
+
+            var exceptionMessage = Invariant($"Called {validationName}({validationParameterName}:) where '{validationParameterName}' is of type {validationParameterType.ToStringReadable()}, which is not one of the following expected type(s): {expectedTypesMessage}.");
+
             throw new InvalidCastException(exceptionMessage);
         }
 

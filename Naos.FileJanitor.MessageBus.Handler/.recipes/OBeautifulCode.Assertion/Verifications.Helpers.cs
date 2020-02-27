@@ -135,8 +135,8 @@ namespace OBeautifulCode.Assertion.Recipes
             // (a verification passes when it should fail).
 
             // otherwise, if reflection is able to call Compare(T, T), then ArgumentException can be thrown if
-            // Type T does not implement either the System.IComparable<T> generic interface or the System.IComparable interface
-            // However we already check for this upfront in ThrowIfNotComparable
+            // Type T does not have a working default comparer (see TypeExtensions.HasDefaultWorkingComparer())
+            // However we already check for this upfront in ThrowIfTypeDoesNotHaveWorkingDefaultComparer
             var result = (CompareOutcome)CompareUsingDefaultComparerTypeToMethodInfoMap[type].Invoke(null, new[] { value1, value2 });
 
             return result;

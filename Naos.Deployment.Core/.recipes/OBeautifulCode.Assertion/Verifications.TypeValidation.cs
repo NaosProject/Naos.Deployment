@@ -29,10 +29,6 @@ namespace OBeautifulCode.Assertion.Recipes
 #pragma warning disable SA1201
         private static readonly Type EnumerableType = typeof(IEnumerable);
 
-        private static readonly Type ComparableType = typeof(IComparable);
-
-        private static readonly Type UnboundGenericComparableType = typeof(IComparable<>);
-
         private static readonly Type BoolType = typeof(bool);
 
         private static readonly Type NullableBoolType = typeof(bool?);
@@ -49,13 +45,11 @@ namespace OBeautifulCode.Assertion.Recipes
 
         private static readonly Type UnboundGenericReadOnlyDictionaryType = typeof(IReadOnlyDictionary<,>);
 
-        private static readonly Type NullableType = typeof(Nullable<>);
-
-        private static readonly IReadOnlyCollection<TypeValidation> MustBeNullableTypeValidations = new[]
+        private static readonly IReadOnlyCollection<TypeValidation> MustBeAssignableToNullTypeValidations = new[]
         {
             new TypeValidation
             {
-                Handler = ThrowIfTypeCannotBeNull,
+                Handler = ThrowIfTypeCannotBeAssignedToNull,
             },
         };
 
@@ -63,7 +57,7 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { BoolType, NullableBoolType },
             },
         };
@@ -72,7 +66,7 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { StringType },
             },
         };
@@ -81,7 +75,7 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { GuidType, NullableGuidType },
             },
         };
@@ -90,21 +84,21 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { EnumerableType },
             },
         };
 
-        private static readonly IReadOnlyCollection<TypeValidation> MustBeEnumerableOfNullableTypeValidations = new[]
+        private static readonly IReadOnlyCollection<TypeValidation> MustBeEnumerableWhoseElementTypeCanBeAssignedToNullValidations = new[]
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { EnumerableType },
             },
             new TypeValidation
             {
-                Handler = ThrowIfEnumerableTypeCannotBeNull,
+                Handler = ThrowIfEnumerableElementTypeCannotBeAssignedToNull,
             },
         };
 
@@ -112,21 +106,21 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { DictionaryType, UnboundGenericDictionaryType, UnboundGenericReadOnlyDictionaryType },
             },
         };
 
-        private static readonly IReadOnlyCollection<TypeValidation> MustBeDictionaryOfNullableTypeValidations = new[]
+        private static readonly IReadOnlyCollection<TypeValidation> MustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations = new[]
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { DictionaryType, UnboundGenericDictionaryType, UnboundGenericReadOnlyDictionaryType },
             },
             new TypeValidation
             {
-                Handler = ThrowIfDictionaryTypeCannotBeNull,
+                Handler = ThrowIfDictionaryValueTypeCannotBeAssignedToNull,
             },
         };
 
@@ -134,12 +128,11 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
-                ReferenceTypes = new[] { ComparableType, UnboundGenericComparableType, NullableType },
+                Handler = ThrowIfTypeDoesNotHaveWorkingDefaultComparer,
             },
             new TypeValidation
             {
-                Handler = ThrowIfAnyVerificationParameterTypeDoesNotEqualValueType,
+                Handler = ThrowIfTypeIsNotEqualToAllVerificationParameterType,
             },
         };
 
@@ -151,7 +144,7 @@ namespace OBeautifulCode.Assertion.Recipes
             },
             new TypeValidation
             {
-                Handler = ThrowIfAnyVerificationParameterTypeDoesNotEqualValueType,
+                Handler = ThrowIfTypeIsNotEqualToAllVerificationParameterType,
             },
         };
 
@@ -159,7 +152,7 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfAnyVerificationParameterTypeDoesNotEqualValueType,
+                Handler = ThrowIfTypeIsNotEqualToAllVerificationParameterType,
             },
         };
 
@@ -175,12 +168,12 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             new TypeValidation
             {
-                Handler = ThrowIfNotOfType,
+                Handler = ThrowIfNotAssignableToType,
                 ReferenceTypes = new[] { EnumerableType },
             },
             new TypeValidation
             {
-                Handler = ThrowIfAnyVerificationParameterTypeDoesNotEqualEnumerableValueType,
+                Handler = ThrowIfEnumerableElementTypeDoesNotEqualAllVerificationParameterTypes,
             },
         };
 
@@ -189,9 +182,9 @@ namespace OBeautifulCode.Assertion.Recipes
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueTypeString = verifiableItem.ValueType.ToStringReadable();
+            var verifiableItemTypeReadableString = verifiableItem.ItemType.ToStringReadable();
 
-            WorkflowExtensions.ThrowImproperUseOfFramework(Invariant($"verificationName: {verification.Name}, isElementInEnumerable: {verifiableItem.IsElementInEnumerable}, verifiableItemTypeName: {valueTypeString}"));
+            WorkflowExtensions.ThrowImproperUseOfFramework(Invariant($"verificationName: {verification.Name}, isElementInEnumerable: {verifiableItem.ItemIsElementInEnumerable}, verifiableItemTypeName: {verifiableItemTypeReadableString}"));
         }
 
         private static void ThrowIfValueType(
@@ -199,102 +192,109 @@ namespace OBeautifulCode.Assertion.Recipes
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            if (verifiableItem.ValueType.IsValueType)
+            if (verifiableItem.ItemType.IsValueType)
             {
                 ThrowSubjectUnexpectedType(verification, verifiableItem, AnyReferenceTypeName);
             }
         }
 
-        private static void ThrowIfTypeCannotBeNull(
+        private static void ThrowIfTypeCannotBeAssignedToNull(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueType = verifiableItem.ValueType;
+            var verifiableItemType = verifiableItem.ItemType;
 
-            if (valueType.IsValueType && (Nullable.GetUnderlyingType(valueType) == null))
+            if (!verifiableItemType.IsAssignableToNull())
             {
                 ThrowSubjectUnexpectedType(verification, verifiableItem, AnyReferenceTypeName, NullableGenericTypeName);
             }
         }
 
-        private static void ThrowIfEnumerableTypeCannotBeNull(
+        private static void ThrowIfEnumerableElementTypeCannotBeAssignedToNull(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueType = verifiableItem.ValueType;
+            var verifiableItemType = verifiableItem.ItemType;
 
-            var enumerableType = valueType.GetEnumerableElementType();
+            var elementType = verifiableItemType.GetClosedEnumerableElementType();
 
-            if (enumerableType.IsValueType && (Nullable.GetUnderlyingType(enumerableType) == null))
+            if (!elementType.IsAssignableToNull())
             {
-                // Nullable<T> is a struct, not a reference type, which is why we explicitly call it out
-                // see: https://stackoverflow.com/a/3149180/356790
                 ThrowSubjectUnexpectedType(verification, verifiableItem, EnumerableOfAnyReferenceTypeName, EnumerableOfNullableGenericTypeName, EnumerableWhenNotEnumerableOfAnyValueTypeName);
             }
         }
 
-        private static void ThrowIfDictionaryTypeCannotBeNull(
+        private static void ThrowIfDictionaryValueTypeCannotBeAssignedToNull(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueType = verifiableItem.ValueType;
+            var verifiableItemType = verifiableItem.ItemType;
 
-            var dictionaryValueType = valueType.GetDictionaryValueType();
+            var dictionaryValueType = verifiableItemType.GetClosedDictionaryValueType();
 
-            if (dictionaryValueType.IsValueType && (Nullable.GetUnderlyingType(dictionaryValueType) == null))
+            if (!dictionaryValueType.IsAssignableToNull())
             {
-                // Nullable<T> is a struct, not a reference type, which is why we explicitly call it out
-                // see: https://stackoverflow.com/a/3149180/356790
                 ThrowSubjectUnexpectedType(verification, verifiableItem, DictionaryTypeName, DictionaryWithValueOfAnyReferenceTypeName, DictionaryWithValueOfNullableGenericTypeName, ReadOnlyDictionaryWithValueOfAnyReferenceTypeName, ReadOnlyDictionaryWithValueOfNullableGenericTypeName);
             }
         }
 
-        private static void ThrowIfNotOfType(
+        private static void ThrowIfNotAssignableToType(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueType = verifiableItem.ValueType;
+            var verifiableItemType = verifiableItem.ItemType;
 
             var validTypes = typeValidation.ReferenceTypes;
 
-            if (!validTypes.Any(_ => valueType.IsAssignableTo(_, treatUnboundGenericAsAssignableTo: true)))
+            if (!validTypes.Any(_ => verifiableItemType.IsAssignableTo(_, treatGenericTypeDefinitionAsAssignableTo: true)))
             {
                 ThrowSubjectUnexpectedType(verification, verifiableItem, validTypes);
             }
         }
 
-        private static void ThrowIfAnyVerificationParameterTypeDoesNotEqualValueType(
+        private static void ThrowIfTypeDoesNotHaveWorkingDefaultComparer(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var valueType = verifiableItem.ValueType;
+            if (!verifiableItem.ItemType.HasWorkingDefaultComparer())
+            {
+                ThrowSubjectUnexpectedType(verification, verifiableItem, AnyTypeWithWorkingDefaultComparerName);
+            }
+        }
+
+        private static void ThrowIfTypeIsNotEqualToAllVerificationParameterType(
+            Verification verification,
+            VerifiableItem verifiableItem,
+            TypeValidation typeValidation)
+        {
+            var verifiableItemType = verifiableItem.ItemType;
 
             foreach (var verificationParameter in verification.VerificationParameters)
             {
-                if (verificationParameter.ParameterType != valueType)
+                if (verificationParameter.ParameterType != verifiableItemType)
                 {
-                    ThrowVerificationParameterUnexpectedType(verification.Name, verificationParameter.ParameterType, verificationParameter.Name, valueType);
+                    ThrowVerificationParameterUnexpectedType(verification.Name, verificationParameter.ParameterType, verificationParameter.Name, verifiableItemType);
                 }
             }
         }
 
-        private static void ThrowIfAnyVerificationParameterTypeDoesNotEqualEnumerableValueType(
+        private static void ThrowIfEnumerableElementTypeDoesNotEqualAllVerificationParameterTypes(
             Verification verification,
             VerifiableItem verifiableItem,
             TypeValidation typeValidation)
         {
-            var enumerableType = verifiableItem.ValueType.GetEnumerableElementType();
+            var elementType = verifiableItem.ItemType.GetClosedEnumerableElementType();
 
             foreach (var verificationParameter in verification.VerificationParameters)
             {
-                if (verificationParameter.ParameterType != enumerableType)
+                if (verificationParameter.ParameterType != elementType)
                 {
-                    ThrowVerificationParameterUnexpectedType(verification.Name, verificationParameter.ParameterType, verificationParameter.Name, enumerableType);
+                    ThrowVerificationParameterUnexpectedType(verification.Name, verificationParameter.ParameterType, verificationParameter.Name, elementType);
                 }
             }
         }
@@ -314,15 +314,15 @@ namespace OBeautifulCode.Assertion.Recipes
             VerifiableItem verifiableItem,
             params string[] expectedTypes)
         {
-            var valueType = verifiableItem.ValueType;
+            var verifiableItemType = verifiableItem.ItemType;
 
             var verificationName = verification.Name;
 
-            var isElementInEnumerable = verifiableItem.IsElementInEnumerable;
+            var isElementInEnumerable = verifiableItem.ItemIsElementInEnumerable;
 
             var expectedTypesMessage = string.Join(", ", expectedTypes.Select(_ => isElementInEnumerable ? Invariant($"IEnumerable<{_}>") : _));
 
-            var valueTypeMessage = isElementInEnumerable ? Invariant($"IEnumerable<{valueType.ToStringReadable()}>") : valueType.ToStringReadable();
+            var valueTypeMessage = isElementInEnumerable ? Invariant($"IEnumerable<{verifiableItemType.ToStringReadable()}>") : verifiableItemType.ToStringReadable();
 
             var exceptionMessage = string.Format(CultureInfo.InvariantCulture, SubjectUnexpectedTypeErrorMessage, verificationName, valueTypeMessage, expectedTypesMessage);
 

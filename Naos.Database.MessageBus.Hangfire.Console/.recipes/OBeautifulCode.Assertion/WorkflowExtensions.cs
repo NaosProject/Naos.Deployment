@@ -349,7 +349,7 @@ namespace OBeautifulCode.Assertion.Recipes
 
             if (!ReferenceEquals(value, null))
             {
-                if (subjectType.IsAnonymousFastCheck())
+                if (subjectType.IsClosedAnonymousTypeFastCheck())
                 {
                     // with one property?  that's the subject we are trying to apply verification to.
                     var properties = subjectType.GetProperties();

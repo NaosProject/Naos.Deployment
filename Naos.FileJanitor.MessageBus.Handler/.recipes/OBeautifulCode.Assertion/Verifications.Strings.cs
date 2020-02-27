@@ -39,6 +39,8 @@ namespace OBeautifulCode.Assertion.Recipes
 
         public const string AnyValueTypeName = "Any Value Type";
 
+        public const string AnyTypeWithWorkingDefaultComparerName = "Any Type With A Working (Non-Throwing) Default Comparer";
+
         public const string EnumerableOfAnyReferenceTypeName = "IEnumerable<" + AnyReferenceTypeName + ">";
 
         public const string EnumerableWhenNotEnumerableOfAnyValueTypeName = "IEnumerable when not IEnumerable<" + AnyValueTypeName + ">";

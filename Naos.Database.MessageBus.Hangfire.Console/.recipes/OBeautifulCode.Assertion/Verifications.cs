@@ -55,7 +55,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = BeNullInternal,
                 Name = nameof(BeNull),
-                TypeValidations = MustBeNullableTypeValidations,
+                TypeValidations = MustBeAssignableToNullTypeValidations,
                 Data = data,
             };
 
@@ -86,7 +86,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotBeNullInternal,
                 Name = nameof(NotBeNull),
-                TypeValidations = MustBeNullableTypeValidations,
+                TypeValidations = MustBeAssignableToNullTypeValidations,
                 Data = data,
             };
 
@@ -551,7 +551,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = ContainSomeNullElementsInternal,
                 Name = nameof(ContainSomeNullElements),
-                TypeValidations = MustBeEnumerableOfNullableTypeValidations,
+                TypeValidations = MustBeEnumerableWhoseElementTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
@@ -582,7 +582,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotContainAnyNullElementsInternal,
                 Name = nameof(NotContainAnyNullElements),
-                TypeValidations = MustBeEnumerableOfNullableTypeValidations,
+                TypeValidations = MustBeEnumerableWhoseElementTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
@@ -613,7 +613,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = ContainSomeKeyValuePairsWithNullValueInternal,
                 Name = nameof(ContainSomeKeyValuePairsWithNullValue),
-                TypeValidations = MustBeDictionaryOfNullableTypeValidations,
+                TypeValidations = MustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
@@ -644,7 +644,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotContainAnyKeyValuePairsWithNullValueInternal,
                 Name = nameof(NotContainAnyKeyValuePairsWithNullValue),
-                TypeValidations = MustBeDictionaryOfNullableTypeValidations,
+                TypeValidations = MustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
@@ -711,7 +711,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotBeEmptyEnumerableInternal,
                 Name = verificationName,
-                TypeValidations = MustBeEnumerableOfNullableTypeValidations,
+                TypeValidations = MustBeEnumerableWhoseElementTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
@@ -754,7 +754,7 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotBeEmptyDictionaryInternal,
                 Name = verificationName,
-                TypeValidations = MustBeDictionaryOfNullableTypeValidations,
+                TypeValidations = MustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
 
