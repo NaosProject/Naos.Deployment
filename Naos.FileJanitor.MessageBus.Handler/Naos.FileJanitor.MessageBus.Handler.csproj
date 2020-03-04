@@ -48,6 +48,9 @@
     <Reference Include="AWSSDK.SecurityToken, Version=3.3.0.0, Culture=neutral, PublicKeyToken=885c28607f98e604, processorArchitecture=MSIL">
       <HintPath>..\packages\AWSSDK.SecurityToken.3.3.4.58\lib\net45\AWSSDK.SecurityToken.dll</HintPath>
     </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.5.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.5\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Its.Log, Version=2.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Its.Log.2.9.14\lib\net451\Its.Log.dll</HintPath>
       <Private>True</Private>
@@ -65,8 +68,8 @@
     <Reference Include="Naos.AWS.S3, Version=1.0.59.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.AWS.S3.1.0.59\lib\net462\Naos.AWS.S3.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Configuration.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Configuration.Domain.1.0.11\lib\net462\Naos.Configuration.Domain.dll</HintPath>
+    <Reference Include="Naos.Configuration.Domain, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Configuration.Domain.1.0.12\lib\net462\Naos.Configuration.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Cron, Version=1.0.19.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.19\lib\net462\Naos.Cron.dll</HintPath>
@@ -93,8 +96,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="OBeautifulCode.Compression, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Compression.1.0.8\lib\net462\OBeautifulCode.Compression.dll</HintPath>
+    <Reference Include="OBeautifulCode.Compression, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Compression.1.0.9\lib\net462\OBeautifulCode.Compression.dll</HintPath>
     </Reference>
     <Reference Include="OBeautifulCode.Representation.System, Version=1.0.37.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.37\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
@@ -105,8 +108,8 @@
     <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.13.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.13\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Type, Version=1.0.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Type.1.0.38\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.39.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.39\lib\net462\OBeautifulCode.Type.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

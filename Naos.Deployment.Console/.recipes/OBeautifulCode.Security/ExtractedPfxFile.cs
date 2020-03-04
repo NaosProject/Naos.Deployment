@@ -38,7 +38,6 @@ namespace OBeautifulCode.Security.Recipes
             AsymmetricKeyParameter privateKey)
         {
             new { certificateChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            new { privateKey }.AsArg().Must().NotBeNull();
 
             this.CertificateChain = certificateChain;
             this.PrivateKey = privateKey;

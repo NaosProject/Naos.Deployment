@@ -191,8 +191,8 @@
     <Reference Include="Naos.AWS.Domain, Version=1.0.59.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.AWS.Domain.1.0.59\lib\net462\Naos.AWS.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Configuration.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Configuration.Domain.1.0.11\lib\net462\Naos.Configuration.Domain.dll</HintPath>
+    <Reference Include="Naos.Configuration.Domain, Version=1.0.12.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Configuration.Domain.1.0.12\lib\net462\Naos.Configuration.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Cron, Version=1.0.19.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Cron.1.0.19\lib\net462\Naos.Cron.dll</HintPath>
@@ -254,8 +254,8 @@
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Compression, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Compression.1.0.8\lib\net462\OBeautifulCode.Compression.dll</HintPath>
+    <Reference Include="OBeautifulCode.Compression, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Compression.1.0.9\lib\net462\OBeautifulCode.Compression.dll</HintPath>
     </Reference>
     <Reference Include="OBeautifulCode.Representation.System, Version=1.0.37.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.37\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
@@ -269,8 +269,8 @@
     <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.13.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.13\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Type, Version=1.0.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Type.1.0.38\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.39.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.39\lib\net462\OBeautifulCode.Type.dll</HintPath>
     </Reference>
     <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106, processorArchitecture=MSIL">
       <HintPath>..\packages\SSH.NET.2016.1.0\lib\net40\Renci.SshNet.dll</HintPath>

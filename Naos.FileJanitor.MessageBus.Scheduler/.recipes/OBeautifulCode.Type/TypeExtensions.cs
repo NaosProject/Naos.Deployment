@@ -926,6 +926,53 @@ namespace OBeautifulCode.Type.Recipes
             return result;
         }
 
+        /// <summary>
+        /// Gets a string representation of the specified type without the generic component.
+        /// For example, Dictionary&lt;string, string&gt; would be represented as 'Dictionary'.
+        /// </summary>
+        /// <remarks>
+        /// Adapted from: <a href="https://stackoverflow.com/a/6386234/356790" />.
+        /// </remarks>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// A string representation of the specified type with the generic component stripped out.
+        /// </returns>
+        public static string ToStringWithoutGenericComponent(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            string result;
+            if (ValueTypeToAliasMap.ContainsKey(type))
+            {
+                result = ValueTypeToAliasMap[type];
+            }
+            else if (type.IsArray)
+            {
+                result = type.GetElementType().ToStringWithoutGenericComponent() + "[]";
+            }
+            else
+            {
+                var isAnonymousType = type.IsAnonymousType();
+
+                var name = type.Name;
+
+                var index = name.IndexOf('`');
+
+                result = index == -1 ? name : name.Substring(0, index);
+
+                if (isAnonymousType)
+                {
+                    result = result.Replace("<>f__", string.Empty);
+                }
+            }
+
+            return result;
+        }
+
         private static void BuildInheritancePath(
             this Type type,
             List<Type> traversedPath)

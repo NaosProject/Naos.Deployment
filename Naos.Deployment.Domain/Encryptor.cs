@@ -6,10 +6,10 @@
 
 namespace Naos.Deployment.Domain
 {
-    using OBeautifulCode.Security.Recipes;
     using System;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
+    using OBeautifulCode.Security.Recipes;
     using static System.FormattableString;
 
     /// <summary>

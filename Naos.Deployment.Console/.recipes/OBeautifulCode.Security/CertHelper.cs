@@ -16,10 +16,13 @@ namespace OBeautifulCode.Security.Recipes
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography;
+    using System.Security.Cryptography.Pkcs;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text;
     using System.Text.RegularExpressions;
 
     using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Security.Recipes.Internal;
     using OBeautifulCode.Type;
 
     using Org.BouncyCastle.Asn1;
@@ -29,16 +32,18 @@ namespace OBeautifulCode.Security.Recipes
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.Crypto.Generators;
     using Org.BouncyCastle.Crypto.Operators;
+    using Org.BouncyCastle.Crypto.Parameters;
     using Org.BouncyCastle.OpenSsl;
     using Org.BouncyCastle.Pkcs;
     using Org.BouncyCastle.Security;
     using Org.BouncyCastle.X509;
     using Org.BouncyCastle.X509.Extension;
 
+    using static System.FormattableString;
+
+    using ContentInfo = System.Security.Cryptography.Pkcs.ContentInfo;
     using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
     using X509Extension = Org.BouncyCastle.Asn1.X509.X509Extension;
-
-    using static System.FormattableString;
 
     /// <summary>
     /// Provides helpers methods for dealing with certificates.
@@ -54,6 +59,205 @@ namespace OBeautifulCode.Security.Recipes
     static class CertHelper
     {
         /// <summary>
+        /// Creates an AWS Certificate Manager payload from a PFX file.
+        /// </summary>
+        /// <param name="input">A byte array of the PFX.</param>
+        /// <param name="clearTextPassword">The PFX password in clear-text.</param>
+        /// <returns>
+        /// A payload that can be used to load certs into the AWS Certificate Manager via the console.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
+        /// <exception cref="InvalidOperationException">The PFX file does not contain a private key.</exception>
+        public static AwsCertificateManagerPayload CreateAwsCertificateManagerPayloadFromPfx(
+            byte[] input,
+            string clearTextPassword)
+        {
+            new { input }.AsArg().Must().NotBeNull();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            var extractedPfxFile = ExtractCryptographicObjectsFromPfxFile(input, clearTextPassword);
+
+            new { extractedPfxFile.PrivateKey }.AsOp().Must().NotBeNull();
+
+            var endUserCertificate = extractedPfxFile.CertificateChain.GetEndUserCertFromCertChain();
+
+            var intermediateCertChain = extractedPfxFile.CertificateChain.GetIntermediateChainFromCertChain();
+
+            var result = new AwsCertificateManagerPayload(endUserCertificate.AsPemEncodedString(), extractedPfxFile.PrivateKey.AsPemEncodedString(), intermediateCertChain.AsPemEncodedString());
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a PFX file.
+        /// </summary>
+        /// <param name="pemEncodedIntermediateCertificateChainFilePath">Path to a PEM-encoded intermediate certificate chain (often with a 'ca-bundle' extension or file name contains 'bundle').</param>
+        /// <param name="pemEncodedCertificateFilePath">Path to PEM-encoded certificate (often with a 'crt' extension).</param>
+        /// <param name="clearTextPassword">The password for the PFX file.</param>
+        /// <param name="outputPfxFilePath">The path to write the PFX file to.</param>
+        /// <param name="overwrite">
+        /// Determines whether to overwrite a file that already exist at <paramref name="outputPfxFilePath"/>.
+        /// If false and a file exists at that path, the method will throw.
+        /// </param>
+        /// <param name="pemEncodedPrivateKeyFilePath">Optional path to PEM-encoded private key.  Default is null, no private key specified.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedIntermediateCertificateChainFilePath"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedIntermediateCertificateChainFilePath"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCertificateFilePath"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedCertificateFilePath"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="outputPfxFilePath"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="outputPfxFilePath"/> is white space.</exception>
+        /// <exception cref="IOException"><paramref name="overwrite"/> is false and there is a file at <paramref name="outputPfxFilePath"/>.</exception>
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
+        public static void CreatePfxFile(
+            string pemEncodedIntermediateCertificateChainFilePath,
+            string pemEncodedCertificateFilePath,
+            string clearTextPassword,
+            string outputPfxFilePath,
+            bool overwrite,
+            string pemEncodedPrivateKeyFilePath = null)
+        {
+            new { pemEncodedIntermediateCertificateChainFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { pemEncodedCertificateFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { outputPfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            var pemEncodedIntermediateCertificateChain = File.ReadAllText(pemEncodedIntermediateCertificateChainFilePath);
+
+            var intermediateCertificateChain = CertHelper.ReadCertsFromPemEncodedString(pemEncodedIntermediateCertificateChain);
+
+            var pemEncodedCertificate = File.ReadAllText(pemEncodedCertificateFilePath);
+
+            var certificate = ReadCertsFromPemEncodedString(pemEncodedCertificate);
+
+            AsymmetricKeyParameter privateKey = null;
+
+            if (!string.IsNullOrWhiteSpace(pemEncodedPrivateKeyFilePath))
+            {
+                var pemEncodedPrivateKey = File.ReadAllText(pemEncodedPrivateKeyFilePath);
+
+                privateKey = ReadPrivateKeyFromPemEncodedString(pemEncodedPrivateKey);
+            }
+
+            var certChain = certificate.Concat(intermediateCertificateChain.OrderCertChainFromLowestToHighestLevelOfTrust()).ToList();
+
+            CreatePfxFile(certChain, clearTextPassword, outputPfxFilePath, overwrite, privateKey);
+        }
+
+        /// <summary>
+        /// Creates a PFX file.
+        /// </summary>
+        /// <param name="certChain">The cert chain.  The order of the certificates is inconsequential.</param>
+        /// <param name="clearTextPassword">The password for the PFX file.</param>
+        /// <param name="outputPfxFilePath">The path to write the PFX file to.</param>
+        /// <param name="overwrite">
+        /// Determines whether to overwrite a file that already exist at <paramref name="outputPfxFilePath"/>.
+        /// If false and a file exists at that path, the method will throw.
+        /// </param>
+        /// <param name="privateKey">Optional private key to include in the PFX.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="outputPfxFilePath"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="outputPfxFilePath"/> is white space.</exception>
+        /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not null and not private.</exception>
+        /// <exception cref="IOException"><paramref name="overwrite"/> is false and there is a file at <paramref name="outputPfxFilePath"/>.</exception>
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
+        public static void CreatePfxFile(
+            IReadOnlyList<X509Certificate> certChain,
+            string clearTextPassword,
+            string outputPfxFilePath,
+            bool overwrite,
+            AsymmetricKeyParameter privateKey = null)
+        {
+            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { outputPfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (privateKey != null)
+            {
+                new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
+            }
+
+            var mode = overwrite ? FileMode.Create : FileMode.CreateNew;
+            using (var fileStream = new FileStream(outputPfxFilePath, mode, FileAccess.Write, FileShare.None))
+            {
+                CreatePfxFile(certChain, clearTextPassword, fileStream, privateKey);
+            }
+        }
+
+        /// <summary>
+        /// Creates a PFX file.
+        /// </summary>
+        /// <remarks>
+        /// adapted from: <a href="https://boredwookie.net/blog/m/bouncy-castle-create-a-basic-certificate" />.
+        /// </remarks>
+        /// <param name="certChain">The cert chain.  The order of the certificates is inconsequential.</param>
+        /// <param name="clearTextPassword">The password for the PFX file.</param>
+        /// <param name="output">The stream to write the PFX file to.</param>
+        /// <param name="privateKey">Optional private key to include in the PFX.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="output"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="output"/> is not writable.</exception>
+        /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not null and not private.</exception>
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
+        public static void CreatePfxFile(
+            IReadOnlyList<X509Certificate> certChain,
+            string clearTextPassword,
+            Stream output,
+            AsymmetricKeyParameter privateKey = null)
+        {
+            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { output }.AsArg().Must().NotBeNull();
+            new { output.CanWrite }.AsArg().Must().BeTrue();
+            if (privateKey != null)
+            {
+                new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
+            }
+
+            certChain = certChain.OrderCertChainFromLowestToHighestLevelOfTrust();
+
+            var store = new Pkcs12StoreBuilder().Build();
+
+            var certEntries = new List<X509CertificateEntry>();
+
+            foreach (var cert in certChain)
+            {
+                var certEntry = new X509CertificateEntry(cert);
+
+                certEntries.Add(certEntry);
+
+                var certSubjectAttributes = cert.GetX509SubjectAttributes();
+
+                var certStoreKey = certSubjectAttributes[X509SubjectAttributeKind.CommonName];
+
+                store.SetCertificateEntry(certStoreKey, certEntry);
+            }
+
+            if (privateKey != null)
+            {
+                var keyEntry = new AsymmetricKeyEntry(privateKey);
+
+                var firstCert = certChain.First();
+
+                var firstCertSubjectAttributes = firstCert.GetX509SubjectAttributes();
+
+                store.SetKeyEntry(firstCertSubjectAttributes[X509SubjectAttributeKind.CommonName], keyEntry, certEntries.ToArray());
+            }
+
+            store.Save(output, clearTextPassword.ToCharArray(), new SecureRandom());
+        }
+
+        /// <summary>
         /// Creates an RSA asymmetric cipher key pair.
         /// </summary>
         /// <param name="rsaKeyLength">The length of the rsa key (e.g. 2048 bits).</param>
@@ -68,101 +272,6 @@ namespace OBeautifulCode.Security.Recipes
             var keyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
             return keyPair;
-        }
-
-        /// <summary>
-        /// Creates a PFX file.
-        /// </summary>
-        /// <param name="certChain">The cert chain.  The order of the certificates is inconsequential.</param>
-        /// <param name="privateKey">The private key.</param>
-        /// <param name="unsecurePassword">The password for the PFX file.</param>
-        /// <param name="pfxFilePath">The path to write the PFX file to.</param>
-        /// <param name="overwrite">
-        /// Determines whether to overwrite a file that already exist at <paramref name="pfxFilePath"/>.
-        /// If false and a file exists at that path, the method will throw.
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="privateKey"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not private.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="unsecurePassword"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="unsecurePassword"/> is white space.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="pfxFilePath"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="pfxFilePath"/> is white space.</exception>
-        /// <exception cref="IOException"><paramref name="overwrite"/> is false and there is a file at <paramref name="pfxFilePath"/>.</exception>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
-        public static void CreatePfxFile(
-            IReadOnlyList<X509Certificate> certChain,
-            AsymmetricKeyParameter privateKey,
-            string unsecurePassword,
-            string pfxFilePath,
-            bool overwrite)
-        {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            new { privateKey }.AsArg().Must().NotBeNull();
-            new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
-            new { unsecurePassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { pfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
-
-            var mode = overwrite ? FileMode.Create : FileMode.CreateNew;
-            using (var fileStream = new FileStream(pfxFilePath, mode, FileAccess.Write, FileShare.None))
-            {
-                CreatePfxFile(certChain, privateKey, unsecurePassword, fileStream);
-            }
-        }
-
-        /// <summary>
-        /// Creates a PFX file.
-        /// </summary>
-        /// <remarks>
-        /// adapted from: <a href="https://boredwookie.net/blog/m/bouncy-castle-create-a-basic-certificate" />.
-        /// </remarks>
-        /// <param name="certChain">The cert chain.  The order of the certificates is inconsequential.</param>
-        /// <param name="privateKey">The private key.</param>
-        /// <param name="unsecurePassword">The password for the PFX file.</param>
-        /// <param name="output">The stream to write the PFX file to.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="privateKey"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not private.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="unsecurePassword"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="unsecurePassword"/> is white space.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="output"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="output"/> is not writable.</exception>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
-        public static void CreatePfxFile(
-            IReadOnlyList<X509Certificate> certChain,
-            AsymmetricKeyParameter privateKey,
-            string unsecurePassword,
-            Stream output)
-        {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            new { privateKey }.AsArg().Must().NotBeNull();
-            new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
-            new { unsecurePassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { output }.AsArg().Must().NotBeNull();
-            new { output.CanWrite }.AsArg().Must().BeTrue();
-
-            certChain = certChain.OrderCertChainFromLowestToHighestLevelOfTrust();
-
-            var store = new Pkcs12StoreBuilder().Build();
-            var certEntries = new List<X509CertificateEntry>();
-            foreach (var cert in certChain)
-            {
-                var certEntry = new X509CertificateEntry(cert);
-                certEntries.Add(certEntry);
-                var certSubjectAttributes = cert.GetX509SubjectAttributes();
-                var certStoreKey = certSubjectAttributes[X509SubjectAttributeKind.CommonName];
-                store.SetCertificateEntry(certStoreKey, certEntry);
-            }
-
-            var keyEntry = new AsymmetricKeyEntry(privateKey);
-            var firstCert = certChain.First();
-            var firstCertSubjectAttributes = firstCert.GetX509SubjectAttributes();
-            store.SetKeyEntry(firstCertSubjectAttributes[X509SubjectAttributeKind.CommonName], keyEntry, certEntries.ToArray());
-            store.Save(output, unsecurePassword.ToCharArray(), new SecureRandom());
         }
 
         /// <summary>
@@ -234,26 +343,365 @@ namespace OBeautifulCode.Security.Recipes
         }
 
         /// <summary>
+        /// Decrypts a string that was encrypted as a base-64 string.
+        /// </summary>
+        /// <param name="base64EncodedEncryptedBytes">The base-64 encoded encrypted bytes.</param>
+        /// <param name="certificate">The certificate that was used for encryption.</param>
+        /// <param name="encoding">Optional encoding to use.  Default is to use UTF-8.</param>
+        /// <returns>
+        /// The decrypted string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="base64EncodedEncryptedBytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        public static string DecryptStringFromBase64String(
+            this string base64EncodedEncryptedBytes,
+            X509Certificate2 certificate,
+            Encoding encoding = null)
+        {
+            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            var result = base64EncodedEncryptedBytes.DecryptStringFromBase64String(new[] { certificate }, encoding);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypts a string that was encrypted as a base-64 string.
+        /// </summary>
+        /// <param name="base64EncodedEncryptedBytes">The encrypted text to be decrypted.</param>
+        /// <param name="certificates">A set of certificates containing the one that was used for encryption.</param>
+        /// <param name="encoding">Optional encoding to use.  Default is to use UTF-8.</param>
+        /// <returns>
+        /// The decrypted string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="base64EncodedEncryptedBytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certificates"/> is empty or contains a null element.</exception>
+        public static string DecryptStringFromBase64String(
+            this string base64EncodedEncryptedBytes,
+            IReadOnlyCollection<X509Certificate2> certificates,
+            Encoding encoding = null)
+        {
+            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
+            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+
+            encoding = encoding ?? Encoding.UTF8;
+
+            var decryptedBytes = base64EncodedEncryptedBytes.DecryptByteArrayFromBase64String(certificates);
+
+            var result = encoding.GetString(decryptedBytes);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypts a byte array from a base-64 string.
+        /// </summary>
+        /// <param name="base64EncodedEncryptedBytes">The base-64 encoded encrypted bytes.</param>
+        /// <param name="certificate">The certificate that was used for encryption.</param>
+        /// <returns>
+        /// The decrypted bytes.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="base64EncodedEncryptedBytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        public static byte[] DecryptByteArrayFromBase64String(
+            this string base64EncodedEncryptedBytes,
+            X509Certificate2 certificate)
+        {
+            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            var result = base64EncodedEncryptedBytes.DecryptByteArrayFromBase64String(new[] { certificate });
+
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypts a byte array from a base-64 string.
+        /// </summary>
+        /// <param name="base64EncodedEncryptedBytes">The base-64 encoded encrypted bytes.</param>
+        /// <param name="certificates">A set of certificates containing the one that was used for encryption.</param>
+        /// <returns>
+        /// The decrypted bytes.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="base64EncodedEncryptedBytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certificates"/> is empty or contains a null element.</exception>
+        public static byte[] DecryptByteArrayFromBase64String(
+            this string base64EncodedEncryptedBytes,
+            IReadOnlyCollection<X509Certificate2> certificates)
+        {
+            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
+            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+
+            var encryptedBytes = Convert.FromBase64String(base64EncodedEncryptedBytes);
+
+            var result = encryptedBytes.Decrypt(certificates);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypts a byte array.
+        /// </summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="certificate">The certificate that was used for encryption.</param>
+        /// <returns>
+        /// The decrypted string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
+        public static byte[] Decrypt(
+            this byte[] bytes,
+            X509Certificate2 certificate)
+        {
+            new { bytes }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            var result = bytes.Decrypt(new[] { certificate });
+
+            return result;
+        }
+
+        /// <summary>
+        /// Decrypts a byte array.
+        /// </summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="certificates">A set of certificates containing the one that was used for encryption.</param>
+        /// <returns>
+        /// The decrypted string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certificates"/> is empty or contains a null element.</exception>
+        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
+        public static byte[] Decrypt(
+            this byte[] bytes,
+            IReadOnlyCollection<X509Certificate2> certificates)
+        {
+            new { bytes }.Must().NotBeNull();
+            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+
+            var certCollection = new X509Certificate2Collection(certificates.ToArray());
+
+            var envelopedCms = new EnvelopedCms();
+
+            envelopedCms.Decode(bytes);
+
+            envelopedCms.Decrypt(certCollection);
+
+            var result = envelopedCms.ContentInfo.Content;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Encrypts the specified string to a base-64 string.
+        /// </summary>
+        /// <param name="plaintext">The plaintext to be encrypted.</param>
+        /// <param name="certificate">The certificate to use for encryption.</param>
+        /// <param name="encoding">Optional encoding to use.  Default is to use UTF-8.</param>
+        /// <returns>
+        /// The specified string encrypted as a base-64 string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="plaintext"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        public static string EncryptToBase64String(
+            this string plaintext,
+            X509Certificate2 certificate,
+            Encoding encoding = null)
+        {
+            new { plaintext }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            encoding = encoding ?? Encoding.UTF8;
+
+            var bytes = encoding.GetBytes(plaintext);
+
+            var result = bytes.EncryptToBase64String(certificate);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Encrypts the specified byte array to a base-64 string.
+        /// </summary>
+        /// <param name="bytes">The bytes to be encrypted.</param>
+        /// <param name="certificate">The certificate to use for encryption.</param>
+        /// <returns>
+        /// The specified byte array encrypted as a base-64 string.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
+        public static string EncryptToBase64String(
+            this byte[] bytes,
+            X509Certificate2 certificate)
+        {
+            new { bytes }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            var encryptedBytes = bytes.Encrypt(certificate);
+
+            var result = Convert.ToBase64String(encryptedBytes);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Encrypts the specified bytes.
+        /// </summary>
+        /// <param name="bytes">The bytes to encrypt.</param>
+        /// <param name="certificate">The certificate to use for encryption.</param>
+        /// <returns>
+        /// The encrypted bytes.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
+        [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
+        public static byte[] Encrypt(
+            this byte[] bytes,
+            X509Certificate2 certificate)
+        {
+            new { bytes }.Must().NotBeNull();
+            new { certificate }.Must().NotBeNull();
+
+            var contentInfo = new ContentInfo(bytes);
+
+            var envelopedCms = new EnvelopedCms(contentInfo);
+
+            var cmsRecipient = new CmsRecipient(certificate);
+
+            envelopedCms.Encrypt(cmsRecipient);
+
+            var result = envelopedCms.Encode();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a certificate collection from the certificate store.
+        /// </summary>
+        /// <param name="storeLocation">The store location.</param>
+        /// <param name="storeName">The name of the store.</param>
+        /// <returns>
+        /// A certificate collection.
+        /// </returns>
+        public static X509Certificate2Collection GetCertificateCollectionFromStore(
+            StoreLocation storeLocation,
+            StoreName storeName)
+        {
+            using (var store = new X509Store(storeName, storeLocation))
+            {
+                store.Open(OpenFlags.ReadOnly);
+
+                var result = store.Certificates;
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Gets certificates from the certificate store.
+        /// </summary>
+        /// <param name="storeLocation">The store location.</param>
+        /// <param name="storeName">The name of the store.</param>
+        /// <returns>
+        /// Certificates from the certificate store.
+        /// </returns>
+        public static IReadOnlyCollection<X509Certificate2> GetCertificatesFromStore(
+            StoreLocation storeLocation,
+            StoreName storeName)
+        {
+            var certificateCollection = GetCertificateCollectionFromStore(storeLocation, storeName);
+
+            var result = certificateCollection.OfType<X509Certificate2>().ToList();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Finds a certificate in the specified store.
+        /// </summary>
+        /// <param name="storeLocation">Store location (eg. LocalMachine).</param>
+        /// <param name="storeName">Store name to search for certificate (eg: My).</param>
+        /// <param name="thumbprint">Thumbprint of the certificate to search for.</param>
+        /// <param name="shouldThrowIfNotFound">A value indicating whether to throw an exception if the certificate is not found.</param>
+        /// <param name="shouldThrowIfCertificateIsInvalid">A value indicating whether to throw an exception if the certificate is not valid.</param>
+        /// <returns>
+        /// The certificate if found, otherwise null.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="thumbprint"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="thumbprint"/> is white space.</exception>
+        /// <exception cref="InvalidOperationException">The certificate was not found and <paramref name="shouldThrowIfNotFound"/> is true.</exception>
+        /// <exception cref="InvalidOperationException">Found multiple certificates.</exception>
+        /// <exception cref="InvalidOperationException">The certificate is invalid and <paramref name="shouldThrowIfCertificateIsInvalid"/> is true.</exception>
+        public static X509Certificate2 GetCertificateFromStore(
+            this StoreLocation storeLocation,
+            StoreName storeName,
+            string thumbprint,
+            bool shouldThrowIfNotFound,
+            bool shouldThrowIfCertificateIsInvalid)
+        {
+            var certificateCollection = GetCertificateCollectionFromStore(storeLocation, storeName);
+
+            var potentiallyInvalidCerts = certificateCollection.Find(X509FindType.FindByThumbprint, thumbprint, false);
+
+            if (potentiallyInvalidCerts.Count == 0)
+            {
+                if (shouldThrowIfNotFound)
+                {
+                    throw new InvalidOperationException(Invariant($"Certificate was not found.  Specified thumbprint: {thumbprint}"));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            if (potentiallyInvalidCerts.Count != 1)
+            {
+                throw new InvalidOperationException(Invariant($"Expected a single certificate but found {potentiallyInvalidCerts.Count} certificates.  Specified thumbprint: {thumbprint}"));
+            }
+
+            if (shouldThrowIfCertificateIsInvalid)
+            {
+                var validCerts = certificateCollection.Find(X509FindType.FindByThumbprint, thumbprint, true);
+
+                if (validCerts.Count != 1)
+                {
+                    throw new InvalidOperationException(Invariant($"The certificate is invalid and {nameof(shouldThrowIfCertificateIsInvalid)} is true.  Specified thumbprint: {thumbprint}"));
+                }
+            }
+
+            var result = potentiallyInvalidCerts[0];
+
+            return result;
+        }
+
+        /// <summary>
         /// Extracts the cryptographic objects contained in a PFX file.
         /// </summary>
         /// <param name="input">A byte array of the PFX.</param>
-        /// <param name="unsecurePassword">The PFX password in clear-text.</param>
+        /// <param name="clearTextPassword">The PFX password in clear-text.</param>
         /// <returns>
         /// The cryptographic objects contained in the specified PFX file.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="unsecurePassword"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="unsecurePassword"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
         public static ExtractedPfxFile ExtractCryptographicObjectsFromPfxFile(
             byte[] input,
-            string unsecurePassword)
+            string clearTextPassword)
         {
             new { input }.AsArg().Must().NotBeNull();
-            new { unsecurePassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
 
             using (var inputStream = new MemoryStream(input))
             {
-                var result = ExtractCryptographicObjectsFromPfxFile(inputStream, unsecurePassword);
+                var result = ExtractCryptographicObjectsFromPfxFile(inputStream, clearTextPassword);
                 return result;
             }
         }
@@ -262,23 +710,23 @@ namespace OBeautifulCode.Security.Recipes
         /// Extracts the cryptographic objects contained in a PFX file.
         /// </summary>
         /// <param name="input">A stream with the PFX.</param>
-        /// <param name="unsecurePassword">The PFX password in clear-text.</param>
+        /// <param name="clearTextPassword">The PFX password in clear-text.</param>
         /// <returns>
         /// The cryptographic objects contained in the specified PFX file.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="input"/> is not readable.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="unsecurePassword"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="unsecurePassword"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
         public static ExtractedPfxFile ExtractCryptographicObjectsFromPfxFile(
             Stream input,
-            string unsecurePassword)
+            string clearTextPassword)
         {
             new { input }.AsArg().Must().NotBeNull();
             new { input.CanRead }.AsArg().Must().BeTrue();
-            new { unsecurePassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
 
-            var store = new Pkcs12Store(input, unsecurePassword.ToCharArray());
+            var store = new Pkcs12Store(input, clearTextPassword.ToCharArray());
             var aliases = store.Aliases;
 
             var certificateChain = new List<X509Certificate>();
@@ -305,51 +753,72 @@ namespace OBeautifulCode.Security.Recipes
         /// <param name="thumbprint">Thumbprint of the certificate to search for.</param>
         /// <param name="unsecuredPassword">Password to use for PFX file.</param>
         /// <param name="filePath">PFX file path to write to.</param>
-        /// <returns>Certificate if found, null otherwise.</returns>
+        /// <param name="shouldThrowIfCertificateIsInvalid">A value indicating whether to throw an exception if the certificate is not valid.</param>
+        /// <param name="shouldThrowIfPrivateKeyIsMissing">A value indicating whether to throw an exception if the certificate does not contain a private key.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="thumbprint"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="thumbprint"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="unsecuredPassword"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="unsecuredPassword"/> is white space.</exception>
+        /// <exception cref="InvalidOperationException">The certificate was not found.</exception>
+        /// <exception cref="InvalidOperationException">Found multiple certificates.</exception>
+        /// <exception cref="InvalidOperationException">The certificate is invalid and <paramref name="shouldThrowIfCertificateIsInvalid"/> is true.</exception>
+        /// <exception cref="InvalidOperationException">The certificate does not contain the private key and <paramref name="shouldThrowIfPrivateKeyIsMissing"/> is true.</exception>
         public static void ExportPfxFromCertificateStoreToFile(
             this StoreLocation storeLocation,
             StoreName storeName,
             string thumbprint,
             string unsecuredPassword,
-            string filePath)
+            string filePath,
+            bool shouldThrowIfCertificateIsInvalid,
+            bool shouldThrowIfPrivateKeyIsMissing)
         {
             new { thumbprint }.AsArg().Must().NotBeNullNorWhiteSpace();
             new { unsecuredPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { filePath }.AsArg().Must().NotBeNullNorWhiteSpace();
 
-            using (var store = new X509Store(storeName, storeLocation))
+            var cert = GetCertificateFromStore(storeLocation, storeName, thumbprint, true, shouldThrowIfCertificateIsInvalid);
+
+            if (shouldThrowIfPrivateKeyIsMissing && (!cert.HasPrivateKey))
             {
-                store.Open(OpenFlags.ReadOnly);
-                var certs = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-                if (certs.Count != 1)
+                throw new InvalidOperationException(Invariant($"The certificate does not contain the private key and {nameof(shouldThrowIfPrivateKeyIsMissing)} is true.  Specified thumbprint: {thumbprint}"));
+            }
+
+            AsymmetricKeyParameter privateKey = null;
+
+            if (cert.HasPrivateKey)
+            {
+                try
                 {
-                    throw new ArgumentException(Invariant($"Expected a single cert; found: {certs.Count}"));
+                    var rsa = (RSACryptoServiceProvider)cert.PrivateKey;
+
+                    var keyPair = DotNetUtilities.GetRsaKeyPair(rsa);
+
+                    privateKey = keyPair.Private;
                 }
-
-                var cert = certs[0];
-                if (!cert.HasPrivateKey)
+                catch (CryptographicException)
                 {
-                    throw new ArgumentException("Doesn't have private key for cert to export.");
-                }
-
-                var rsa = (RSACryptoServiceProvider)cert.PrivateKey;
-                var keyPair = DotNetUtilities.GetRsaKeyPair(rsa);
-                var privateKey = keyPair.Private;
-
-                var parser = new X509CertificateParser();
-                var bouncyCerts = new List<X509Certificate>();
-
-                using (var chain = new X509Chain())
-                {
-                    chain.Build(cert);
-                    foreach (var chainElement in chain.ChainElements)
-                    {
-                        var bouncyCert = parser.ReadCertificate(chainElement.Certificate.Export(X509ContentType.Cert));
-                        bouncyCerts.Add(bouncyCert);
-                    }
-
-                    CreatePfxFile(bouncyCerts, privateKey, unsecuredPassword, filePath, true);
+                    // 1. we have seen cases where cert.PrivateKey throws on a cert that was NOT created using CertHelper
+                    // 2. we have seen cases where .GetRsaKeyPair(rsa) throws on a cert that was installed via a PFX file created by CertHelper (NOT marking the private key as exportable)
                 }
             }
+
+            var parser = new X509CertificateParser();
+
+            var bouncyCerts = new List<X509Certificate>();
+
+            using (var chain = new X509Chain())
+            {
+                chain.Build(cert);
+
+                foreach (var chainElement in chain.ChainElements)
+                {
+                    var bouncyCert = parser.ReadCertificate(chainElement.Certificate.Export(X509ContentType.Cert));
+
+                    bouncyCerts.Add(bouncyCert);
+                }
+            }
+
+            CreatePfxFile(bouncyCerts, unsecuredPassword, filePath, true, privateKey);
         }
 
         /// <summary>
@@ -394,244 +863,6 @@ namespace OBeautifulCode.Security.Recipes
         }
 
         /// <summary>
-        /// Re-orders a certificate chain from lowest to highest level of trust.
-        /// </summary>
-        /// <param name="certChain">The certificate chain to re-order.</param>
-        /// <returns>
-        /// The certificates in the specified chain, ordered from lowest to highest level of trust.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        public static IReadOnlyList<X509Certificate> OrderCertChainFromLowestToHighestLevelOfTrust(
-            this IReadOnlyCollection<X509Certificate> certChain)
-        {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-
-            var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Reverse().ToList();
-            return result;
-        }
-
-        /// <summary>
-        /// Re-orders a certificate chain from highest to lowest level of trust.
-        /// </summary>
-        /// <param name="certChain">The certificate chain to re-order.</param>
-        /// <returns>
-        /// The certificates in the specified chain, ordered from highest to lowest level of trust.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
-        /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "This is a good use of catching general exception types.")]
-        public static IReadOnlyList<X509Certificate> OrderCertChainFromHighestToLowestLevelOfTrust(
-            this IReadOnlyCollection<X509Certificate> certChain)
-        {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-
-            certChain = certChain.Distinct().ToList();
-
-            // for every cert, record which other certs verify it
-            var parentCertsByChildCert = new Dictionary<X509Certificate, List<X509Certificate>>();
-            foreach (var cert in certChain)
-            {
-                parentCertsByChildCert.Add(cert, new List<X509Certificate>());
-
-                var otherCerts = certChain.Except(new[] { cert }).ToList();
-                foreach (var otherCert in otherCerts)
-                {
-                    try
-                    {
-                        cert.Verify(otherCert.GetPublicKey());
-                        parentCertsByChildCert[cert].Add(otherCert);
-                    }
-
-                    // ReSharper disable once EmptyGeneralCatchClause
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-
-            // any cert has two parents?
-            if (parentCertsByChildCert.Values.Any(_ => _.Count > 1))
-            {
-                throw new ArgumentException("the cert chain is malformed");
-            }
-
-            // should only be one cert with no parent
-            if (parentCertsByChildCert.Values.Count(_ => !_.Any()) != 1)
-            {
-                throw new ArgumentException("the cert chain is malformed");
-            }
-
-            // identify and remove the root cert, the remaining certs should have only one parent
-            var rootCert = parentCertsByChildCert.Single(_ => !_.Value.Any()).Key;
-            parentCertsByChildCert.Remove(rootCert);
-
-            // no two certs should have the same parent
-            if (parentCertsByChildCert.SelectMany(_ => _.Value).Distinct().Count() != parentCertsByChildCert.Count)
-            {
-                throw new ArgumentException("the cert chain is malformed");
-            }
-
-            // flip it and index the certs by parent
-            var childCertByParentCert = parentCertsByChildCert.ToDictionary(_ => _.Value.Single(), _ => _.Key);
-            var result = new List<X509Certificate> { rootCert };
-            while (childCertByParentCert.ContainsKey(result.Last()))
-            {
-                result.Add(childCertByParentCert[result.Last()]);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Reads one or more certs encoded in PEM.
-        /// </summary>
-        /// <param name="pemEncodedCerts">The PEM encoded certificates.</param>
-        /// <returns>
-        /// The certificates.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCerts"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="pemEncodedCerts"/> is white space.</exception>
-        public static IReadOnlyList<X509Certificate> ReadCertsFromPemEncodedString(
-            string pemEncodedCerts)
-        {
-            new { pemEncodedCerts }.AsArg().Must().NotBeNullNorWhiteSpace();
-
-            // remove empty lines - required so that PemReader.ReadObject doesn't return null in-between returning certs
-            pemEncodedCerts = Regex.Replace(pemEncodedCerts, @"^\s*$[\r\n]*", string.Empty, RegexOptions.Multiline);
-
-            var result = new List<X509Certificate>();
-            using (var stringReader = new StringReader(pemEncodedCerts))
-            {
-                var pemReader = new PemReader(stringReader);
-                var certObject = pemReader.ReadObject();
-                while (certObject != null)
-                {
-                    var cert = certObject as X509Certificate;
-                    result.Add(cert);
-                    certObject = pemReader.ReadObject();
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Extracts a certificate chain from PKCS#7 CMS payload encoded in PEM.
-        /// </summary>
-        /// <param name="pemEncodedPkcs7">The payload containing the PKCS#7 CMS data.</param>
-        /// <remarks>
-        /// The method is expecting a PKCS#7/CMS SignedData structure containing no "content" and zero SignerInfos.
-        /// </remarks>
-        /// <returns>
-        /// The certificate chain contained in the specified payload.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPkcs7"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="pemEncodedPkcs7"/> is white space.</exception>
-        public static IReadOnlyList<X509Certificate> ReadCertChainFromPemEncodedPkcs7CmsString(
-            string pemEncodedPkcs7)
-        {
-            new { pemEncodedPkcs7 }.AsArg().Must().NotBeNullNorWhiteSpace();
-
-            IReadOnlyList<X509Certificate> result;
-            using (var stringReader = new StringReader(pemEncodedPkcs7))
-            {
-                var pemReader = new PemReader(stringReader);
-                var pemObject = pemReader.ReadPemObject();
-                var data = new CmsSignedData(pemObject.Content);
-                var certStore = data.GetCertificates("COLLECTION");
-                result = certStore.GetMatches(null).Cast<X509Certificate>().ToList();
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Reads a certificate signing request encoded in PEM.
-        /// </summary>
-        /// <param name="pemEncodedCsr">The PEM encoded certificate signing request.</param>
-        /// <returns>
-        /// The certificate signing request.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCsr"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="pemEncodedCsr"/> is white space.</exception>
-        public static Pkcs10CertificationRequest ReadCsrFromPemEncodedString(
-            string pemEncodedCsr)
-        {
-            new { pemEncodedCsr }.AsArg().Must().NotBeNullNorWhiteSpace();
-
-            Pkcs10CertificationRequest result;
-            using (var stringReader = new StringReader(pemEncodedCsr))
-            {
-                var pemReader = new PemReader(stringReader);
-                var pemObject = pemReader.ReadPemObject();
-                result = new Pkcs10CertificationRequest(pemObject.Content);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Reads a private key encoded in PEM.
-        /// </summary>
-        /// <param name="pemEncodedPrivateKey">The PEM encoded private key.</param>
-        /// <returns>
-        /// The private key.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPrivateKey"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="pemEncodedPrivateKey"/> is white space.</exception>
-        public static AsymmetricKeyParameter ReadPrivateKeyFromPemEncodedString(
-            string pemEncodedPrivateKey)
-        {
-            new { pemEncodedPrivateKey }.AsArg().Must().NotBeNullNorWhiteSpace();
-
-            AsymmetricCipherKeyPair keyPair;
-            using (var stringReader = new StringReader(pemEncodedPrivateKey))
-            {
-                var pemReader = new PemReader(stringReader);
-                keyPair = pemReader.ReadObject() as AsymmetricCipherKeyPair;
-            }
-
-            AsymmetricKeyParameter result = null;
-            if (keyPair != null)
-            {
-                result = keyPair.Private;
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the X509 field values from a certificate.
-        /// </summary>
-        /// <param name="cert">The certificate.</param>
-        /// <returns>
-        /// The X509 field values indexed by the kind of field.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
-        public static IReadOnlyDictionary<X509FieldKind, string> GetX509Fields(
-            this X509Certificate cert)
-        {
-            new { cert }.AsArg().Must().NotBeNull();
-
-            var result = new Dictionary<X509FieldKind, string>
-            {
-                { X509FieldKind.IssuerName, cert.IssuerDN?.ToString() },
-                { X509FieldKind.NotAfter, cert.NotAfter.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
-                { X509FieldKind.NotBefore, cert.NotBefore.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
-                { X509FieldKind.SerialNumber, cert.SerialNumber?.ToString() },
-                { X509FieldKind.SignatureAlgorithmName, cert.SigAlgName },
-                { X509FieldKind.SubjectName, cert.SubjectDN?.ToString() },
-                { X509FieldKind.Version, cert.Version.ToString(CultureInfo.InvariantCulture) },
-            };
-            return result;
-        }
-
-        /// <summary>
         /// Gets the thumbprint of an X509 certificate.
         /// </summary>
         /// <param name="cert">The certificate.</param>
@@ -668,6 +899,32 @@ namespace OBeautifulCode.Security.Recipes
 
             var result = new UtcDateTimeRangeInclusive(cert.NotBefore, cert.NotAfter);
 
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the X509 field values from a certificate.
+        /// </summary>
+        /// <param name="cert">The certificate.</param>
+        /// <returns>
+        /// The X509 field values indexed by the kind of field.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
+        public static IReadOnlyDictionary<X509FieldKind, string> GetX509Fields(
+            this X509Certificate cert)
+        {
+            new { cert }.AsArg().Must().NotBeNull();
+
+            var result = new Dictionary<X509FieldKind, string>
+            {
+                { X509FieldKind.IssuerName, cert.IssuerDN?.ToString() },
+                { X509FieldKind.NotAfter, cert.NotAfter.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
+                { X509FieldKind.NotBefore, cert.NotBefore.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
+                { X509FieldKind.SerialNumber, cert.SerialNumber?.ToString() },
+                { X509FieldKind.SignatureAlgorithmName, cert.SigAlgName },
+                { X509FieldKind.SubjectName, cert.SubjectDN?.ToString() },
+                { X509FieldKind.Version, cert.Version.ToString(CultureInfo.InvariantCulture) },
+            };
             return result;
         }
 
@@ -776,28 +1033,227 @@ namespace OBeautifulCode.Security.Recipes
         }
 
         /// <summary>
-        /// Creates an AWS Certificate Manager payload from a PFX file.
+        /// Re-orders a certificate chain from lowest to highest level of trust.
         /// </summary>
-        /// <param name="input">A byte array of the PFX.</param>
-        /// <param name="unsecurePassword">The PFX password in clear-text.</param>
+        /// <param name="certChain">The certificate chain to re-order.</param>
         /// <returns>
-        /// A payload that can be used to load certs into the AWS Certificate Manager via the console.
+        /// The certificates in the specified chain, ordered from lowest to highest level of trust.
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="unsecurePassword"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="unsecurePassword"/> is white space.</exception>
-        public static AwsCertificateManagerPayload CreateAwsCertificateManagerPayloadFromPfx(
-            byte[] input,
-            string unsecurePassword)
+        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
+        public static IReadOnlyList<X509Certificate> OrderCertChainFromLowestToHighestLevelOfTrust(
+            this IReadOnlyCollection<X509Certificate> certChain)
         {
-            new { input }.AsArg().Must().NotBeNull();
-            new { unsecurePassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
 
-            var extractedPfxFile = ExtractCryptographicObjectsFromPfxFile(input, unsecurePassword);
-            var endUserCertificate = extractedPfxFile.CertificateChain.GetEndUserCertFromCertChain();
-            var intermediateCertChain = extractedPfxFile.CertificateChain.GetIntermediateChainFromCertChain();
+            var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Reverse().ToList();
+            return result;
+        }
 
-            var result = new AwsCertificateManagerPayload(endUserCertificate.AsPemEncodedString(), extractedPfxFile.PrivateKey.AsPemEncodedString(), intermediateCertChain.AsPemEncodedString());
+        /// <summary>
+        /// Re-orders a certificate chain from highest to lowest level of trust.
+        /// </summary>
+        /// <param name="certChain">The certificate chain to re-order.</param>
+        /// <returns>
+        /// The certificates in the specified chain, ordered from highest to lowest level of trust.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
+        /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "This is a good use of catching general exception types.")]
+        public static IReadOnlyList<X509Certificate> OrderCertChainFromHighestToLowestLevelOfTrust(
+            this IReadOnlyCollection<X509Certificate> certChain)
+        {
+            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+
+            certChain = certChain.Distinct().ToList();
+
+            // for every cert, record which other certs verify it
+            var parentCertsByChildCert = new Dictionary<X509Certificate, List<X509Certificate>>();
+            foreach (var cert in certChain)
+            {
+                parentCertsByChildCert.Add(cert, new List<X509Certificate>());
+
+                var otherCerts = certChain.Except(new[] { cert }).ToList();
+                foreach (var otherCert in otherCerts)
+                {
+                    try
+                    {
+                        cert.Verify(otherCert.GetPublicKey());
+                        parentCertsByChildCert[cert].Add(otherCert);
+                    }
+
+                    // ReSharper disable once EmptyGeneralCatchClause
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+
+            // any cert has two parents?
+            if (parentCertsByChildCert.Values.Any(_ => _.Count > 1))
+            {
+                throw new ArgumentException("the cert chain is malformed");
+            }
+
+            // should only be one cert with no parent
+            if (parentCertsByChildCert.Values.Count(_ => !_.Any()) != 1)
+            {
+                throw new ArgumentException("the cert chain is malformed");
+            }
+
+            // identify and remove the root cert, the remaining certs should have only one parent
+            var rootCert = parentCertsByChildCert.Single(_ => !_.Value.Any()).Key;
+            parentCertsByChildCert.Remove(rootCert);
+
+            // no two certs should have the same parent
+            if (parentCertsByChildCert.SelectMany(_ => _.Value).Distinct().Count() != parentCertsByChildCert.Count)
+            {
+                throw new ArgumentException("the cert chain is malformed");
+            }
+
+            // flip it and index the certs by parent
+            var childCertByParentCert = parentCertsByChildCert.ToDictionary(_ => _.Value.Single(), _ => _.Key);
+            var result = new List<X509Certificate> { rootCert };
+            while (childCertByParentCert.ContainsKey(result.Last()))
+            {
+                result.Add(childCertByParentCert[result.Last()]);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Extracts a certificate chain from PKCS#7 CMS payload encoded in PEM.
+        /// </summary>
+        /// <param name="pemEncodedPkcs7">The payload containing the PKCS#7 CMS data.</param>
+        /// <remarks>
+        /// The method is expecting a PKCS#7/CMS SignedData structure containing no "content" and zero SignerInfos.
+        /// </remarks>
+        /// <returns>
+        /// The certificate chain contained in the specified payload.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPkcs7"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedPkcs7"/> is white space.</exception>
+        public static IReadOnlyList<X509Certificate> ReadCertChainFromPemEncodedPkcs7CmsString(
+            string pemEncodedPkcs7)
+        {
+            new { pemEncodedPkcs7 }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            IReadOnlyList<X509Certificate> result;
+            using (var stringReader = new StringReader(pemEncodedPkcs7))
+            {
+                var pemReader = new PemReader(stringReader);
+                var pemObject = pemReader.ReadPemObject();
+                var data = new CmsSignedData(pemObject.Content);
+                var certStore = data.GetCertificates("COLLECTION");
+                result = certStore.GetMatches(null).Cast<X509Certificate>().ToList();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Reads one or more certs encoded in PEM.
+        /// </summary>
+        /// <param name="pemEncodedCerts">The PEM encoded certificates.</param>
+        /// <returns>
+        /// The certificates.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCerts"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedCerts"/> is white space.</exception>
+        public static IReadOnlyList<X509Certificate> ReadCertsFromPemEncodedString(
+            string pemEncodedCerts)
+        {
+            new { pemEncodedCerts }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            // remove empty lines - required so that PemReader.ReadObject doesn't return null in-between returning certs
+            pemEncodedCerts = Regex.Replace(pemEncodedCerts, @"^\s*$[\r\n]*", string.Empty, RegexOptions.Multiline);
+
+            var result = new List<X509Certificate>();
+            using (var stringReader = new StringReader(pemEncodedCerts))
+            {
+                var pemReader = new PemReader(stringReader);
+                var certObject = pemReader.ReadObject();
+                while (certObject != null)
+                {
+                    var cert = certObject as X509Certificate;
+                    result.Add(cert);
+                    certObject = pemReader.ReadObject();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Reads a certificate signing request encoded in PEM.
+        /// </summary>
+        /// <param name="pemEncodedCsr">The PEM encoded certificate signing request.</param>
+        /// <returns>
+        /// The certificate signing request.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCsr"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedCsr"/> is white space.</exception>
+        public static Pkcs10CertificationRequest ReadCsrFromPemEncodedString(
+            string pemEncodedCsr)
+        {
+            new { pemEncodedCsr }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            Pkcs10CertificationRequest result;
+            using (var stringReader = new StringReader(pemEncodedCsr))
+            {
+                var pemReader = new PemReader(stringReader);
+                var pemObject = pemReader.ReadPemObject();
+                result = new Pkcs10CertificationRequest(pemObject.Content);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Reads a private key encoded in PEM.
+        /// </summary>
+        /// <param name="pemEncodedPrivateKey">The PEM encoded private key.</param>
+        /// <returns>
+        /// The private key.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPrivateKey"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedPrivateKey"/> is white space.</exception>
+        public static AsymmetricKeyParameter ReadPrivateKeyFromPemEncodedString(
+            string pemEncodedPrivateKey)
+        {
+            new { pemEncodedPrivateKey }.AsArg().Must().NotBeNullNorWhiteSpace();
+
+            AsymmetricKeyParameter result;
+
+            using (var stringReader = new StringReader(pemEncodedPrivateKey))
+            {
+                var pemReader = new PemReader(stringReader);
+
+                var pemReaderResult = pemReader.ReadObject();
+
+                if (pemReaderResult == null)
+                {
+                    result = null;
+                }
+                else if (pemReaderResult is RsaPrivateCrtKeyParameters rsaPrivateCrtKeyParameters)
+                {
+                    result = rsaPrivateCrtKeyParameters;
+                }
+                else if (pemReaderResult is AsymmetricCipherKeyPair asymmetricCipherKeyPair)
+                {
+                    result = asymmetricCipherKeyPair.Private;
+                }
+                else
+                {
+                    throw new NotSupportedException("Type of PEM encoded private key not supported: " + pemReaderResult.GetType());
+                }
+            }
+
             return result;
         }
 
