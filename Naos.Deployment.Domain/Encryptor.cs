@@ -6,10 +6,10 @@
 
 namespace Naos.Deployment.Domain
 {
+    using OBeautifulCode.Security.Recipes;
     using System;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
-    using Naos.Configuration.Domain;
     using static System.FormattableString;
 
     /// <summary>
@@ -36,7 +36,7 @@ namespace Naos.Deployment.Domain
                 throw new ArgumentNullException(nameof(encryptingCertificate));
             }
 
-            Func<X509Certificate2, string> funcToRunWithCertificate = input.Encrypt;
+            Func<X509Certificate2, string> funcToRunWithCertificate = _ => input.EncryptToBase64String(_);
             var ret = RunWithCertificate(encryptingCertificate, funcToRunWithCertificate);
             return ret;
         }
@@ -59,7 +59,7 @@ namespace Naos.Deployment.Domain
                 throw new ArgumentNullException(nameof(encryptingCertificate));
             }
 
-            Func<X509Certificate2, string> funcToRunWithCertificate = certificate => encryptedInput.Decrypt(certificate);
+            Func<X509Certificate2, string> funcToRunWithCertificate = certificate => encryptedInput.DecryptStringFromBase64String(certificate);
             var ret = RunWithCertificate(encryptingCertificate, funcToRunWithCertificate);
             return ret;
         }
