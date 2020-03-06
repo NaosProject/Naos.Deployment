@@ -10,10 +10,9 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -28,7 +27,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
         /// <inheritdoc />
         public override async Task HandleAsync(ArchiveDirectoryMessage message)
         {
-            using (var log = Log.Enter(() => new { Message = message, message.FilePath }))
+            using (var log = Log.With(() => new { Message = message, message.FilePath }))
             {
                 new { message.FilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
                 new { message.TargetFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
@@ -36,7 +35,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                 Directory.Exists(message.FilePath).AsArg(Invariant($"SourceDirectory-MustExist-{message.FilePath ?? "[NULL]"}")).Must().BeTrue();
                 File.Exists(message.TargetFilePath).AsArg(Invariant($"TargetFile-MustNotExist-{message.TargetFilePath ?? "[NULL]"}")).Must().BeFalse();
 
-                log.Trace(() => Invariant($"Start archiving directory using; {nameof(DirectoryArchiveKind)}: {message.DirectoryArchiveKind}, {nameof(ArchiveCompressionKind)}: {message.ArchiveCompressionKind}"));
+                log.Write(() => Invariant($"Start archiving directory using; {nameof(DirectoryArchiveKind)}: {message.DirectoryArchiveKind}, {nameof(ArchiveCompressionKind)}: {message.ArchiveCompressionKind}"));
 
                 var archiver = ArchiverFactory.Instance.BuildArchiver(message.DirectoryArchiveKind, message.ArchiveCompressionKind);
                 new { archiver }.AsArg().Must().NotBeNull();
@@ -47,7 +46,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
 
                 this.UserDefinedMetadata = (message.UserDefinedMetadata ?? new MetadataItem[0]).Concat(archivedDirectory.ToMetadataItemCollection()).ToArray();
 
-                log.Trace(() => Invariant($"Finished archiving directory to {message.TargetFilePath}."));
+                log.Write(() => Invariant($"Finished archiving directory to {message.TargetFilePath}."));
             }
         }
 

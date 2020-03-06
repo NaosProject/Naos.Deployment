@@ -13,9 +13,7 @@ namespace Naos.Deployment.Core
     using System.IO.Compression;
     using System.Linq;
     using System.Text;
-
-    using Its.Log.Instrumentation;
-
+    using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -114,7 +112,7 @@ namespace Naos.Deployment.Core
             // clean up temp files
             Using.LinearBackOff(TimeSpan.FromSeconds(5))
                 .WithMaxRetries(3)
-                .WithReporter(_ => Log.Write(new LogEntry(FormattableString.Invariant($"Retrying delete package working directory {localWorkingDirectory} due to error."), _)))
+                .WithReporter(_ => Log.Write(() => _, FormattableString.Invariant($"Retrying delete package working directory {localWorkingDirectory} due to error.")))
                 .Run(() => Directory.Delete(localWorkingDirectory, true))
                 .Now();
 

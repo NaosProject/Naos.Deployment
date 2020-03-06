@@ -9,13 +9,12 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.AWS.S3;
     using Naos.Configuration.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -64,14 +63,14 @@ namespace Naos.FileJanitor.MessageBus.Handler
             var multipleKeysFoundStrategy = message.MultipleKeysFoundStrategy;
 
             Log.Write(() => Invariant($"Starting Find File; CorrelationId: {correlationId}, ContainerLocation/Region: {containerLocation}, Container/BucketName: {container}, KeyPrefixSearchPattern: {keyPrefixSearchPattern}, MultipleKeysFoundStrategy: {multipleKeysFoundStrategy}"));
-            using (var log = Log.Enter(() => new { CorrelationId = correlationId }))
+            using (var log = Log.With(() => new { CorrelationId = correlationId }))
             {
                 var fileManager = new FileManager(downloadAccessKey, downloadSecretKey);
 
                 // share the results
                 this.FileLocation = await FileExchanger.FindFile(fileManager, containerLocation, container, keyPrefixSearchPattern, multipleKeysFoundStrategy);
 
-                log.Trace(() => "Completed finding file");
+                log.Write(() => "Completed finding file");
             }
         }
 

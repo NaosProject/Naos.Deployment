@@ -10,10 +10,10 @@ namespace Naos.Database.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -43,7 +43,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, DatabaseName = message.DatabaseName }))
+            using (var activity = Log.With(() => new { Message = message, DatabaseName = message.DatabaseName }))
             {
                 {
                     // use this to avoid issues with database not there or going offline
@@ -56,17 +56,17 @@ namespace Naos.Database.MessageBus.Handler
                     var existingDatabases = SqlServerDatabaseManager.Retrieve(masterConnectionString);
                     if (existingDatabases.Any(_ => string.Equals(_.DatabaseName, message.DatabaseName, StringComparison.CurrentCultureIgnoreCase)))
                     {
-                        activity.Trace(() => "Deleting existing database before restore.");
+                        activity.Write(() => "Deleting existing database before restore.");
                         SqlServerDatabaseManager.Delete(masterConnectionString, message.DatabaseName);
                     }
                     else
                     {
-                        activity.Trace(() => "No existing database found to delete.");
+                        activity.Write(() => "No existing database found to delete.");
                     }
 
                     this.DatabaseName = message.DatabaseName;
 
-                    activity.Trace(() => "Completed successfully.");
+                    activity.Write(() => "Completed successfully.");
                 }
             }
         }

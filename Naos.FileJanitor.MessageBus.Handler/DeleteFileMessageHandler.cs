@@ -9,9 +9,8 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     /// <summary>
@@ -22,7 +21,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
         /// <inheritdoc />
         public override async Task HandleAsync(DeleteFileMessage message)
         {
-            using (var log = Log.Enter(() => new { Message = message, message.FilePath }))
+            using (var log = Log.With(() => new { Message = message, message.FilePath }))
             {
                 if (message.FilePath == null || !File.Exists(message.FilePath))
                 {
@@ -32,9 +31,9 @@ namespace Naos.FileJanitor.MessageBus.Handler
 
                 this.FilePath = message.FilePath;
 
-                log.Trace(() => "Start deleting file.");
+                log.Write(() => "Start deleting file.");
                 await Task.Run(() => File.Delete(message.FilePath));
-                log.Trace(() => "Finished deleting file.");
+                log.Write(() => "Finished deleting file.");
             }
         }
 

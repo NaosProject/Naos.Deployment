@@ -10,7 +10,6 @@ namespace Naos.Deployment.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;

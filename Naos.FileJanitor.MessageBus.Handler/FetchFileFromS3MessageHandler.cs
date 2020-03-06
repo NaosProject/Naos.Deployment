@@ -11,13 +11,12 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.AWS.S3;
     using Naos.Configuration.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
     using OBeautifulCode.Serialization;
     using Spritely.Redo;
@@ -70,13 +69,13 @@ namespace Naos.FileJanitor.MessageBus.Handler
             var key = message.FileLocation.Key;
 
             Log.Write(() => Invariant($"Starting Fetch File; CorrelationId: {correlationId}, Region: {containerLocation}, BucketName: {container}, Key: {key}, RawFilePath: {message.FilePath}"));
-            using (var log = Log.Enter(() => new { CorrelationId = correlationId }))
+            using (var log = Log.With(() => new { CorrelationId = correlationId }))
             {
                 var fileManager = new FileManager(settings.DownloadAccessKey, settings.DownloadSecretKey);
 
                 // shares path down because it can be augmented...
                 this.FilePath = message.FilePath.Replace("{Key}", key);
-                log.Trace(() => $"Dowloading the file to replaced FilePath: {this.FilePath}");
+                log.Write(() => $"Dowloading the file to replaced FilePath: {this.FilePath}");
 
                 var metadata = await FileExchanger.FetchMetadata(fileManager, containerLocation, container, key);
 
@@ -95,7 +94,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
 
                 this.UserDefinedMetadata = metadata.Select(_ => new MetadataItem(_.Key, _.Value)).ToArray();
 
-                log.Trace(() => "Completed downloading the file");
+                log.Write(() => "Completed downloading the file");
             }
         }
 

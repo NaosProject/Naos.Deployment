@@ -11,11 +11,11 @@ namespace Naos.Database.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -45,7 +45,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, DatabaseName = message.DatabaseName }))
+            using (var activity = Log.With(() => new { Message = message, DatabaseName = message.DatabaseName }))
             {
                 {
                     // use this to avoid issues with database not there or going offline
@@ -85,7 +85,7 @@ namespace Naos.Database.MessageBus.Handler
 
                     this.DatabaseName = message.DatabaseName;
 
-                    activity.Trace(() => "Completed successfully.");
+                    activity.Write(() => "Completed successfully.");
                 }
             }
         }

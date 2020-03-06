@@ -12,11 +12,10 @@ namespace Naos.Deployment.ComputingManagement
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.AWS.Core;
     using Naos.AWS.Domain;
     using Naos.Deployment.Domain;
+    using Naos.Logging.Domain;
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
 
@@ -199,7 +198,7 @@ namespace Naos.Deployment.ComputingManagement
                 }
             }
 
-            await Run.WithRetryAsync(TurnOffInstance, Log.Write);
+            await Run.WithRetryAsync(TurnOffInstance, _ => Log.Write(() => _));
         }
 
         /// <inheritdoc />
@@ -229,7 +228,7 @@ namespace Naos.Deployment.ComputingManagement
                 }
             }
 
-            await Run.WithRetryAsync(TurnOnFunction, Log.Write);
+            await Run.WithRetryAsync(TurnOnFunction, _ => Log.Write(() => _));
         }
 
         private async Task WaitUntilStatusChecksCompleteRebootOnFailures(Instance instanceToTurnOn, int maxRebootAttempts)
@@ -254,7 +253,7 @@ namespace Naos.Deployment.ComputingManagement
                     {
                         if (reboots < maxRebootAttempts)
                         {
-                            Log.Write($"Attempting restart due to failed status checks on {instanceToTurnOn.Id} - attempt: {reboots}/{maxRebootAttempts}");
+                            Log.Write(() => $"Attempting restart due to failed status checks on {instanceToTurnOn.Id} - attempt: {reboots}/{maxRebootAttempts}");
 
                             const bool ForceStop = true;
                             const bool WaitUntilOn = true;
@@ -499,7 +498,7 @@ namespace Naos.Deployment.ComputingManagement
 
             foreach (var badTag in badTags)
             {
-                Log.Write(Invariant($"Skipping tag {badTag.Key}:{badTag.Value} because it's one of the reserved tag keys ({string.Join(",", reservedTagNames)})."));
+                Log.Write(() => Invariant($"Skipping tag {badTag.Key}:{badTag.Value} because it's one of the reserved tag keys ({string.Join(",", reservedTagNames)})."));
             }
 
             foreach (var tag in tags)

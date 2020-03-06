@@ -10,11 +10,11 @@ namespace Naos.Deployment.MessageBus.Handler
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Its.Log.Instrumentation;
 
     using Naos.Deployment.Domain;
     using Naos.Deployment.MessageBus.Scheduler;
     using Naos.Deployment.Tracking;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Type;

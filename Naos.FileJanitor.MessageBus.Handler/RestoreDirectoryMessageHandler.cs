@@ -8,10 +8,9 @@ namespace Naos.FileJanitor.MessageBus.Handler
 {
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -32,14 +31,14 @@ namespace Naos.FileJanitor.MessageBus.Handler
             var userDefinedMetadata = message.UserDefinedMetadata;
             var targetFilePath = message.TargetFilePath;
 
-            using (var log = Log.Enter(() => new { Message = message, FilePath = filePath }))
+            using (var log = Log.With(() => new { Message = message, FilePath = filePath }))
             {
                 await FileExchanger.RestoreDownload(filePath, targetFilePath, userDefinedMetadata);
 
                 // share restored directory
                 this.FilePath = await Task.FromResult(targetFilePath);
 
-                log.Trace(() => Invariant($"Restored directory to {targetFilePath}."));
+                log.Write(() => Invariant($"Restored directory to {targetFilePath}."));
             }
         }
 

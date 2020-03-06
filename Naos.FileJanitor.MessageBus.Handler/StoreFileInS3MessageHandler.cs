@@ -9,11 +9,11 @@ namespace Naos.FileJanitor.MessageBus.Handler
     using System;
     using System.IO;
     using System.Threading.Tasks;
-    using Its.Log.Instrumentation;
     using Naos.AWS.S3;
     using Naos.Configuration.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.FileJanitor.S3;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
@@ -73,9 +73,9 @@ namespace Naos.FileJanitor.MessageBus.Handler
             var correlationId = Guid.NewGuid().ToString().ToUpperInvariant();
 
             Log.Write(() => $"Starting Store File; CorrelationId: {correlationId}, Region: {containerLocation}, BucketName: {container}, Key: {key}, FilePath: {filePath}");
-            using (var log = Log.Enter(() => new { CorrelationId = correlationId }))
+            using (var log = Log.With(() => new { CorrelationId = correlationId }))
             {
-                log.Trace(() => "Starting upload.");
+                log.Write(() => "Starting upload.");
 
                 var fileManager = new FileManager(uploadAccessKey, uploadSecretKey);
 
@@ -92,7 +92,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
 
                 this.AffectedItems = new[] { new AffectedItem { Id = serializer.SerializeToString(affectedItem) } };
 
-                log.Trace(() => "Finished upload.");
+                log.Write(() => "Finished upload.");
             }
         }
 

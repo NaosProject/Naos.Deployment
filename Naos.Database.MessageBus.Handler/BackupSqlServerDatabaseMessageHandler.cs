@@ -10,13 +10,13 @@ namespace Naos.Database.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -46,7 +46,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, DatabaseName = message.DatabaseName }))
+            using (var activity = Log.With(() => new { Message = message, DatabaseName = message.DatabaseName }))
             {
                 // must have a date that is strictly alphanumeric...
                 var datePart =
@@ -74,7 +74,7 @@ namespace Naos.Database.MessageBus.Handler
                                             ErrorHandling = message.ErrorHandling,
                                         };
 
-                activity.Trace(() => Invariant($"Backing up SQL Server database {this.DatabaseName} to {backupFilePath}."));
+                activity.Write(() => Invariant($"Backing up SQL Server database {this.DatabaseName} to {backupFilePath}."));
 
                 var localhostConnection = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                 await SqlServerDatabaseManager.BackupFullAsync(
@@ -85,7 +85,7 @@ namespace Naos.Database.MessageBus.Handler
                     message.Timeout == default(TimeSpan) ? settings.DefaultTimeout : message.Timeout);
                 this.UserDefinedMetadata = new MetadataItem[0];
 
-                activity.Trace(() => "Completed successfully.");
+                activity.Write(() => "Completed successfully.");
             }
         }
 

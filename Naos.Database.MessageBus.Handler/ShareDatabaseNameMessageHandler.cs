@@ -8,9 +8,8 @@ namespace Naos.Database.MessageBus.Handler
 {
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
-
     using Naos.Database.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     /// <summary>
@@ -21,9 +20,9 @@ namespace Naos.Database.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(ShareDatabaseNameMessage message)
         {
-            using (var log = Log.Enter(() => new { Message = message, DatabaseNameToShare = message.DatabaseNameToShare }))
+            using (var log = Log.With(() => new { Message = message, DatabaseNameToShare = message.DatabaseNameToShare }))
             {
-                log.Trace(() => "Sharing database name: " + message.DatabaseNameToShare);
+                log.Write(() => "Sharing database name: " + message.DatabaseNameToShare);
                 this.DatabaseName = await Task.FromResult(message.DatabaseNameToShare);
             }
         }

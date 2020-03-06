@@ -10,12 +10,12 @@ namespace Naos.Database.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.Mongo;
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -52,7 +52,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, message.DatabaseName, message.FilePath }))
+            using (var activity = Log.With(() => new { Message = message, message.DatabaseName, message.FilePath }))
             {
                 {
                     this.DatabaseName = message.DatabaseName;
@@ -63,7 +63,7 @@ namespace Naos.Database.MessageBus.Handler
 
                     var logFilePath = Path.Combine(dataDirectory, this.DatabaseName + "Log.ldf");
 
-                    activity.Trace(() => $"Using data path: {dataFilePath}, log path: {logFilePath}");
+                    activity.Write(() => $"Using data path: {dataFilePath}, log path: {logFilePath}");
 
                     var restoreFilePath = new Uri(this.FilePath);
                     var restoreDetails = new RestoreMongoDatabaseDetails
@@ -72,7 +72,7 @@ namespace Naos.Database.MessageBus.Handler
                                                  RestoreFrom = restoreFilePath,
                                              };
 
-                    activity.Trace(() => Invariant($"Restoring Mongo database {this.DatabaseName} from {restoreFilePath}."));
+                    activity.Write(() => Invariant($"Restoring Mongo database {this.DatabaseName} from {restoreFilePath}."));
 
                     var localhostConnection = settings.MongoDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                     await MongoDatabaseManager.RestoreFullAsync(
@@ -82,7 +82,7 @@ namespace Naos.Database.MessageBus.Handler
                         settings.WorkingDirectoryPath,
                         settings.MongoUtilityDirectory);
 
-                    activity.Trace(() => "Completed successfully.");
+                    activity.Write(() => "Completed successfully.");
                 }
             }
         }

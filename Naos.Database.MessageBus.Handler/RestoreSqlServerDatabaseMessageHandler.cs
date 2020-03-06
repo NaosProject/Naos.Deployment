@@ -10,12 +10,12 @@ namespace Naos.Database.MessageBus.Handler
     using System.IO;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.SqlServer.Administration;
     using Naos.Database.SqlServer.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -52,7 +52,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, message.DatabaseName, message.FilePath }))
+            using (var activity = Log.With(() => new { Message = message, message.DatabaseName, message.FilePath }))
             {
                 {
                     this.DatabaseName = message.DatabaseName;
@@ -63,7 +63,7 @@ namespace Naos.Database.MessageBus.Handler
 
                     var logFilePath = Path.Combine(dataDirectory, this.DatabaseName + "Log.ldf");
 
-                    activity.Trace(() => $"Using data path: {dataFilePath}, log path: {logFilePath}");
+                    activity.Write(() => $"Using data path: {dataFilePath}, log path: {logFilePath}");
 
                     var restoreFilePath = new Uri(this.FilePath);
                     var restoreDetails = new RestoreSqlServerDatabaseDetails
@@ -79,7 +79,7 @@ namespace Naos.Database.MessageBus.Handler
                                                  RestrictedUserOption = message.RestrictedUserOption,
                                              };
 
-                    activity.Trace(() => Invariant($"Restoring SQL Server database {this.DatabaseName} from {restoreFilePath}."));
+                    activity.Write(() => Invariant($"Restoring SQL Server database {this.DatabaseName} from {restoreFilePath}."));
 
                     var localhostConnection = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                     // use this to avoid issues with database not there or going offline
@@ -94,7 +94,7 @@ namespace Naos.Database.MessageBus.Handler
                         null,
                         message.Timeout == default(TimeSpan) ? settings.DefaultTimeout : message.Timeout);
 
-                    activity.Trace(() => "Completed successfully.");
+                    activity.Write(() => "Completed successfully.");
                 }
             }
         }

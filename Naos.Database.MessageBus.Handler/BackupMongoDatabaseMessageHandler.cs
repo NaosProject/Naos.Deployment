@@ -11,13 +11,13 @@ namespace Naos.Database.MessageBus.Handler
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Its.Log.Instrumentation;
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
     using Naos.Database.Mongo;
     using Naos.Database.Mongo.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
+    using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
@@ -47,7 +47,7 @@ namespace Naos.Database.MessageBus.Handler
             new { message }.AsArg().Must().NotBeNull();
             new { settings }.AsArg().Must().NotBeNull();
 
-            using (var activity = Log.Enter(() => new { Message = message, DatabaseName = message.DatabaseName }))
+            using (var activity = Log.With(() => new { Message = message, DatabaseName = message.DatabaseName }))
             {
                 // must have a date that is strictly alphanumeric...
                 var datePart =
@@ -70,7 +70,7 @@ namespace Naos.Database.MessageBus.Handler
                                             Description = message.BackupDescription,
                                         };
 
-                activity.Trace(() => Invariant($"Backing up Mongo database {this.DatabaseName} to {backupFilePath}."));
+                activity.Write(() => Invariant($"Backing up Mongo database {this.DatabaseName} to {backupFilePath}."));
 
                 var localhostConnection = settings.MongoDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                 var archivedDirectory = await MongoDatabaseManager.BackupFullAsync(
@@ -82,7 +82,7 @@ namespace Naos.Database.MessageBus.Handler
 
                 this.UserDefinedMetadata = archivedDirectory.ToMetadataItemCollection().ToArray();
 
-                activity.Trace(() => "Completed successfully.");
+                activity.Write(() => "Completed successfully.");
             }
         }
 
