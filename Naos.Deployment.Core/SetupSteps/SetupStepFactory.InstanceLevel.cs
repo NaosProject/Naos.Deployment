@@ -13,7 +13,6 @@ namespace Naos.Deployment.Core
 
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
-    using Naos.Logging.Persistence;
     using Naos.Packaging.Domain;
 
     using static System.FormattableString;
