@@ -200,6 +200,35 @@ namespace Naos.Deployment.Core.Test
             var result = await certReader.GetCertificateByNameAsync(certName);
         }
 
+        [Fact]
+        //[Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
+        public static async Task Debug_ReadInstances()
+        {
+            //var server = "deployment.database.legacy.cometrics.com";
+            var server = "deployment.database.production-1.cometrics.com";
+            var databaseName = "Deployment";
+            var databaseUser = "sa";
+            //var databasePassword = "xB$Z8BmLgTHs7jKPngp"; // legacy
+            var databasePassword = "4ceMSj0dWyXbQdcb"; // prod-1
+
+            var database = new DeploymentDatabase
+                               {
+                                   ConnectionSettings = new MongoConnectionSettings
+                                                            {
+                                                                Server = server,
+                                                                Database = databaseName,
+                                                                Credentials = new Credentials
+                                                                                  {
+                                                                                      User = databaseUser,
+                                                                                      Password = databasePassword.ToSecureString(),
+                                                                                  },
+                                                            },
+                               };
+
+            var instanceQueries = database.GetQueriesInterface<InstanceContainer>();
+            var deployedInstances = await instanceQueries.GetAllAsync();
+        }
+
         private static List<CertificateDescriptionWithEncryptedPfxPayload> BuildCertificates(IList<CertificateDescriptionWithClearPfxPayload> certificatesToLoad, CertificateLocator encryptingCertificateLocator)
         {
             var certificates = new List<CertificateDescriptionWithEncryptedPfxPayload>();
