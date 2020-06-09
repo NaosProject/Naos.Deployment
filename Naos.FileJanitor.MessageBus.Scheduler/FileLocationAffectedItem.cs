@@ -21,11 +21,10 @@ namespace Naos.FileJanitor.MessageBus.Scheduler
         /// Serialization description to use for saving affected file locations into affected items list.
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "Want this to be a read only field.")]
-        public static readonly SerializationDescription ItemSerializationDescription =
-            new SerializationDescription(
+        public static readonly SerializerRepresentation ItemSerializerRepresentation =
+            new SerializerRepresentation(
                 SerializationKind.Json,
-                SerializationFormat.String,
-                typeof(FileJanitorMessageBusJsonConfiguration).ToRepresentation());
+                typeof(FileJanitorMessageBusJsonSerializationConfiguration).ToRepresentation());
 
         /// <summary>
         /// Gets or sets a message about the event.

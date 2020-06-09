@@ -21,7 +21,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     /// </summary>
     public class CertificateRetrieverFromFile : IGetCertificates
     {
-        private static readonly IStringDeserialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly IStringDeserialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
         private readonly object fileSync = new object();
 

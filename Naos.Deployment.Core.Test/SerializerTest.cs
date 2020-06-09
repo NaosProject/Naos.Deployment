@@ -25,7 +25,7 @@ namespace Naos.Deployment.Core.Test
 
     public static class SerializerTest
     {
-        private static readonly ObcJsonSerializer JsonSerializerToUse = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ObcJsonSerializer JsonSerializerToUse = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
         [Fact]
         public static void Serializing_Logging_Config___Roundtrips()
@@ -70,7 +70,7 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void RoundtripSerializeDeserialize___Using_SerializationDescription___Works()
+        public static void RoundtripSerializeDeserialize___Using_SerializerRepresentation___Works()
         {
             // Arrange
             var expected = new DeployedInstance
@@ -111,11 +111,11 @@ namespace Naos.Deployment.Core.Test
             }
 
             // Act & Assert
-            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonConfiguration>());
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonSerializationConfiguration>());
         }
 
         [Fact]
-        public static void RoundtripSerializeDeserializeDeploymentConfig___Using_SerializationDescription___Works()
+        public static void RoundtripSerializeDeserializeDeploymentConfig___Using_SerializerRepresentation___Works()
         {
             // Arrange
             var expected = new DeploymentConfiguration
@@ -133,7 +133,7 @@ namespace Naos.Deployment.Core.Test
             }
 
             // Act & Assert
-            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonConfiguration>());
+            ActAndAssertForRoundtripSerialization(expected, ThrowIfObjectsDiffer, new ObcBsonSerializer<DeploymentBsonSerializationConfiguration>());
         }
 
         private static void ActAndAssertForRoundtripSerialization(object expected, Action<object> throwIfObjectsDiffer, ObcBsonSerializer bsonSerializer, bool testBson = true, bool testJson = true)

@@ -23,6 +23,7 @@ namespace Naos.Deployment.Console
     using Microsoft.SqlServer.Management.Smo;
 
     using Naos.AWS.Domain;
+    using Naos.Bootstrapper;
     using Naos.Configuration.Domain;
     using Naos.Cron;
     using Naos.Database.Domain;
@@ -32,6 +33,7 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
+    using Naos.MachineManagement.Local;
     using Naos.MessageBus.Domain;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
@@ -59,10 +61,29 @@ namespace Naos.Deployment.Console
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1053:StaticHolderTypesShouldNotHaveConstructors", Justification = "Used by CLAP.")]
     public class ConsoleAbstraction : ConsoleAbstractionBase
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline", Justification = "Newing the serializer in a field initializer is fine.")]
-        static ConsoleAbstraction()
+        /// <inheritdoc />
+        public override IReadOnlyCollection<TypeRepresentation> ExceptionTypeRepresentationsToOnlyPrintMessage => new[] { typeof(CredentialsPreRunCheckFailedException).ToRepresentation() };
+
+        /// <inheritdoc />
+        protected override bool RequiresElevatedPrivileges => true;
+
+        /// <inheritdoc />
+        protected override void CustomPerformEntryPointPreChecks()
         {
-            ExceptionTypeRepresentationsToOnlyPrintMessage = new[] { typeof(CredentialsPreRunCheckFailedException).ToRepresentation() };
+            using (var localMachineManager = new LocalMachineManager())
+            {
+                var connectionProfiles = localMachineManager.RunScript("{ Get-NetConnectionProfile }");
+                foreach (var connectionProfile in connectionProfiles)
+                {
+                    var networkCategoryInt = connectionProfile.NetworkCategory;
+                    if (networkCategoryInt == 0)
+                    {
+                        throw new InvalidOperationException(
+                            Invariant(
+                                $"Network (Name: '{connectionProfile.Name}', InterfaceAlias: '{connectionProfile.InterfaceAlias}', InterfaceIndex: '{connectionProfile.InterfaceIndex}') has a network category of 'Public'.{Environment.NewLine}    WinRM requires connections to be non-public in order to run remote commands on servers.{Environment.NewLine}    In order to deploy new machines you must either ONLY be connected to non-public networks. {Environment.NewLine}{Environment.NewLine}        OR {Environment.NewLine}{Environment.NewLine}    Change the category of the network; example PowerShell command: {Environment.NewLine}        Set-NetConnectionProfile -InterfaceIndex {connectionProfile.InterfaceIndex} -NetworkCategory 'Private' {Environment.NewLine}"));
+                    }
+                }
+            }
         }
 
         // Replace 'Naos' with yours here.
@@ -81,8 +102,7 @@ namespace Naos.Deployment.Console
         private const string DnsSuffix = "naosproject.com";
 
         private static readonly ObcJsonSerializer DefaultJsonSerializer = new ObcJsonSerializer(
-            typeof(NaosDeploymentCoreJsonConfiguration),
-            UnregisteredTypeEncounteredStrategy.Attempt);
+            typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
         /// <summary>
         /// Gets new credentials on the computing platform provider, optionally saves to an environment variable.
@@ -417,7 +437,7 @@ namespace Naos.Deployment.Console
 
             var configFileManager = new ConfigFileManager(new[] { Config.CommonPrecedence }, Config.DefaultConfigDirectoryName, DefaultJsonSerializer);
 
-            var deploymentDatabase = Config.Get<DeploymentDatabase>(typeof(NaosDeploymentCoreJsonConfiguration));
+            var deploymentDatabase = Config.Get<DeploymentDatabase>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
 
             var deployment = ConsolidatedDeploymentFactory.BuildArcologyServerDeployment(deploymentDatabase.ConnectionSettings.Credentials.Password.ToInsecureString(), environment, DnsSuffix);
             var packagesJson = configFileManager.SerializeConfigToFileText(deployment.Packages);

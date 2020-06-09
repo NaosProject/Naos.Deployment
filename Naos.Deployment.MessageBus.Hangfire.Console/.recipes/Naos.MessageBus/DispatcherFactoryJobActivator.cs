@@ -10,7 +10,7 @@
 namespace Naos.MessageBus.Hangfire.Bootstrapper
 {
     using System;
-
+    using System.Collections.Generic;
     using global::Hangfire;
 
     using Naos.MessageBus.Core;
@@ -36,7 +36,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
 #pragma warning restore CS3009 // Base type is not CLS-compliant
     {
         // Make this permissive since it's the underlying logic and shouldn't be coupled to whether handlers are matched in strict mode...
-        private readonly TypeComparer typeComparer = new TypeComparer(TypeMatchStrategy.NamespaceAndName);
+        private readonly IEqualityComparer<Type> typeComparer = new VersionlessTypeEqualityComparer();
 
         private readonly IDispatchMessages messageDispatcher;
 

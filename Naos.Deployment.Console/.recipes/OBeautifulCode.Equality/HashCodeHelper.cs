@@ -9,6 +9,7 @@
 
 namespace OBeautifulCode.Equality.Recipes
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
@@ -122,6 +123,10 @@ namespace OBeautifulCode.Equality.Recipes
                     var genericArguments = valueType.GetElementType();
 
                     result = (HashCodeHelper)HashOrderedCollectionMethodInfo.MakeGenericMethod(genericArguments).Invoke(this, new[] { (object)item });
+                }
+                else if (valueType.IsClosedSystemEnumerableType())
+                {
+                    result = (HashCodeHelper)HashUnorderedCollectionMethodInfo.MakeGenericMethod(valueType.GenericTypeArguments).Invoke(this, new[] { (object)item });
                 }
                 else
                 {

@@ -27,7 +27,7 @@ namespace OBeautifulCode.Compression.Recipes
 #else
     public
 #endif
-    class DotNetZipCompressor : ICompressAndDecompress
+    class DotNetZipCompressor : ICompressor
     {
         /// <inheritdoc />
         public CompressionKind CompressionKind => CompressionKind.DotNetZip;

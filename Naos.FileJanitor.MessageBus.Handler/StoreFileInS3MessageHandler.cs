@@ -88,7 +88,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                     FilePath = filePath,
                 };
 
-                var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription, unregisteredTypeEncounteredStrategy: UnregisteredTypeEncounteredStrategy.Attempt);
+                var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializerRepresentation);
 
                 this.AffectedItems = new[] { new AffectedItem { Id = serializer.SerializeToString(affectedItem) } };
 

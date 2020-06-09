@@ -6,8 +6,8 @@
     <dependencies>
       <dependency id="BouncyCastle" version="1.8.5" />
       <dependency id="Naos.Recipes.RunWithRetry" version="1.0.122" />
-      <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="1.0.30" />
-      <dependency id="OBeautifulCode.Assertion.Recipes.Must" version="1.0.14" />
+      <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="1.0.34" />
+      <dependency id="OBeautifulCode.Assertion.Recipes.Must" version="1.0.15" />
       <dependency id="SSH.NET" version="2016.1.0" />
     </dependencies>
   </metadata>

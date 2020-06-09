@@ -64,7 +64,7 @@ namespace Naos.Deployment.Core.Test
                 new FileLogConfig(new Dictionary<LogItemKind, IReadOnlyCollection<string>>(), logFilePath),
             };
 
-            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
             var infrastructureTrackerConfig = new InfrastructureTrackerConfigurationDatabase
             {
                 Database = new DeploymentDatabase
@@ -153,8 +153,6 @@ namespace Naos.Deployment.Core.Test
 
             var launchConfiguration = new MessageBusLaunchConfiguration(
                 TimeSpan.Zero,
-                TypeMatchStrategy.NamespaceAndName,
-                TypeMatchStrategy.NamespaceAndName,
                 0,
                 TimeSpan.FromMinutes(1),
                 1,
@@ -162,7 +160,7 @@ namespace Naos.Deployment.Core.Test
 
             var databaseServer = "localhost";
 
-            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
             var persistenceConnectionConfiguration = new MessageBusConnectionConfiguration
                                                          {
@@ -251,7 +249,7 @@ namespace Naos.Deployment.Core.Test
                                                       new ItsConfigOverride
                                                           {
                                                               FileNameWithoutExtension = nameof(HandlerFactoryConfiguration),
-                                                              FileContentsJson = serializer.SerializeToString(new HandlerFactoryConfiguration(TypeMatchStrategy.NamespaceAndName)),
+                                                              FileContentsJson = serializer.SerializeToString(new HandlerFactoryConfiguration()),
                                                           },
                                                       new ItsConfigOverride
                                                           {

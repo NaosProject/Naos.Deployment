@@ -160,7 +160,7 @@ namespace Naos.Deployment.MessageBus.Handler
                     {
                         var addressedMessage = stopInstanceWithDelayMessage.ToAddressedMessage(
                             new SimpleChannel(settings.ReschedulingChannelName),
-                            typeof(NaosDeploymentMessageBusJsonConfiguration).ToRepresentation());
+                            typeof(NaosDeploymentMessageBusJsonSerializationConfiguration).ToRepresentation());
 
                         postOffice.Send(new MessageSequence
                         {

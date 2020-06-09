@@ -169,14 +169,12 @@ namespace Naos.Deployment.Core
 
             var launchConfig = new MessageBusLaunchConfiguration(
                 this.MessageBusHandlerHarnessConfiguration.HandlerHarnessProcessTimeToLive,
-                TypeMatchStrategy.NamespaceAndName,
-                TypeMatchStrategy.NamespaceAndName,
                 0,
                 TimeSpan.FromMinutes(1),
                 workerCount,
                 adjustedChannelsToMonitor);
 
-            var handlerFactoryConfig = new HandlerFactoryConfiguration(TypeMatchStrategy.NamespaceAndName, rootDeploymentPath);
+            var handlerFactoryConfig = new HandlerFactoryConfiguration(rootDeploymentPath);
 
             itsConfigOverridesToUse.AddRange(
                 new[]

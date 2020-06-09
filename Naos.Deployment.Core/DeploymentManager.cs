@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Not refactoring right now.")]
     public class DeploymentManager : IManageDeployments
     {
-        private static readonly IStringSerialize AnnouncementSerializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly IStringSerialize AnnouncementSerializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
         /// <summary>
         /// Lock object to only allow one DNS update at a time because AWSSDK does not seem to support this otherwise.

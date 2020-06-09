@@ -13,6 +13,7 @@ namespace Naos.Deployment.Core.CertificateManagement
     using Naos.Deployment.Persistence;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Bson;
     using Spritely.ReadModel;
 
     /// <summary>
@@ -32,7 +33,7 @@ namespace Naos.Deployment.Core.CertificateManagement
 
             this.certificateContainerQueries = certificateContainerQueries;
 
-            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.GetOrAddSerializationConfiguration(typeof(DeploymentBsonSerializationConfiguration).ToBsonSerializationConfigurationType());
         }
 
         /// <inheritdoc />

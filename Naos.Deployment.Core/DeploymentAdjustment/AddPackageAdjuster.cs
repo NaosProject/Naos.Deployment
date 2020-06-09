@@ -111,10 +111,9 @@ namespace Naos.Deployment.Core
         /// <param name="skusToMatch"><see cref="WindowsSku"/>'s to match on.</param>
         /// <param name="distributionsToMatch"><see cref="LinuxDistribution"/>'s to match on.</param>
         /// <param name="initializationStrategiesToMatch"><see cref="TypeRepresentation"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.</param>
-        /// <param name="typeMatchStrategy"><see cref="TypeMatchStrategy"/> to use with <see cref="TypeRepresentation"/>'s.</param>
         /// <param name="criteriaMatchStrategy"><see cref="CriteriaMatchStrategy"/> to use when matching.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "skus", Justification = "Spelling/name is correct.")]
-        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeRepresentation> initializationStrategiesToMatch, TypeMatchStrategy typeMatchStrategy, CriteriaMatchStrategy criteriaMatchStrategy)
+        public DeploymentAdjustmentMatchCriteria(string name, IReadOnlyCollection<WindowsSku> skusToMatch, IReadOnlyCollection<LinuxDistribution> distributionsToMatch, IReadOnlyCollection<TypeRepresentation> initializationStrategiesToMatch, CriteriaMatchStrategy criteriaMatchStrategy)
         {
             new { name }.AsArg().Must().NotBeNullNorWhiteSpace();
 
@@ -122,7 +121,6 @@ namespace Naos.Deployment.Core
             this.SkusToMatch = skusToMatch;
             this.DistributionsToMatch = distributionsToMatch;
             this.InitializationStrategiesToMatch = initializationStrategiesToMatch;
-            this.TypeMatchStrategy = typeMatchStrategy;
             this.CriteriaMatchStrategy = criteriaMatchStrategy;
         }
 
@@ -146,11 +144,6 @@ namespace Naos.Deployment.Core
         /// Gets the <see cref="TypeRepresentation"/> of the implementers of <see cref="InitializationStrategyBase"/> to match on.
         /// </summary>
         public IReadOnlyCollection<TypeRepresentation> InitializationStrategiesToMatch { get; private set; }
-
-        /// <summary>
-        /// Gets the <see cref="TypeMatchStrategy"/> to use with <see cref="TypeRepresentation"/>'s.
-        /// </summary>
-        public TypeMatchStrategy TypeMatchStrategy { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="CriteriaMatchStrategy"/> to use when matching.
@@ -189,7 +182,7 @@ namespace Naos.Deployment.Core
                 }
             }
 
-            var typeComparer = new TypeComparer(this.TypeMatchStrategy);
+            var typeComparer = new VersionlessTypeRepresentationEqualityComparer();
             match = this.InitializationStrategiesToMatch.Intersect(initializationStrategies, typeComparer).Any();
             if (this.CriteriaMatchStrategy == CriteriaMatchStrategy.MatchAny && match)
             {

@@ -199,8 +199,8 @@ namespace Naos.Deployment.Core.Test
                         };
 
             var output = new[] { a, b }.Flatten();
-            Assert.Equal(true, output.DeploymentStrategy.IncludeInstanceInitializationScript);
-            Assert.Equal(true, output.DeploymentStrategy.RunSetupSteps);
+            Assert.True(output.DeploymentStrategy.IncludeInstanceInitializationScript);
+            Assert.True(output.DeploymentStrategy.RunSetupSteps);
         }
 
         [Fact]
@@ -243,8 +243,8 @@ namespace Naos.Deployment.Core.Test
                         };
 
             var output = new[] { a, b }.Flatten();
-            Assert.Equal(true, output.PostDeploymentStrategy.TurnOffInstance);
-            Assert.Equal(true, output.PostDeploymentStrategy.TurnOffInstance);
+            Assert.True(output.PostDeploymentStrategy.TurnOffInstance);
+            Assert.True(output.PostDeploymentStrategy.TurnOffInstance);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "TurnOff", Justification = "Spelling/name is correct.")]
@@ -399,7 +399,7 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(VolumeType.DoesNotMatter, doesNotMatterActual.Volumes.Single().Type);
 
             configReducer.RemoveAll(_ => _.Volumes.Single().Type == VolumeType.DoesNotMatter);
-            Assert.Equal(0, configReducer.Count);
+            Assert.Empty(configReducer);
         }
 
         [Fact]

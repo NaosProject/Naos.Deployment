@@ -40,12 +40,12 @@ namespace OBeautifulCode.Compression.Recipes
         public static ICompressorFactory Instance => InternalInstance;
 
         /// <inheritdoc />
-        public ICompressAndDecompress BuildCompressor(
+        public ICompressor BuildCompressor(
             CompressionKind compressionKind)
         {
             new { compressionKind }.AsArg().Must().NotBeEqualTo(CompressionKind.Invalid);
 
-            ICompressAndDecompress result;
+            ICompressor result;
 
             switch (compressionKind)
             {

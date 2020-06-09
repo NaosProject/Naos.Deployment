@@ -15,7 +15,7 @@ namespace Naos.Deployment.Tracking
     /// </summary>
     public static class LoggingHelper
     {
-        private static readonly IStringSerialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentTrackingJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly IStringSerialize Serializer = new ObcJsonSerializer(typeof(NaosDeploymentTrackingJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
 
         /// <summary>
         /// Serializes the provided object to a string to be logged.

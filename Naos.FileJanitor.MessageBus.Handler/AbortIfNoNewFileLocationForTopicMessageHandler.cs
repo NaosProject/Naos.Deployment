@@ -61,7 +61,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
                     else
                     {
                         log.Write(() => $"Found affected item: {matchingAffectedItem.Id}");
-                        var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializationDescription, unregisteredTypeEncounteredStrategy: UnregisteredTypeEncounteredStrategy.Attempt);
+                        var serializer = this.SerializerFactory.BuildSerializer(FileLocationAffectedItem.ItemSerializerRepresentation);
                         var previousFileLocation = serializer.Deserialize<FileLocationAffectedItem>(matchingAffectedItem.Id).FileLocation;
                         if (message.FileLocation == previousFileLocation)
                         {

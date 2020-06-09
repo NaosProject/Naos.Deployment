@@ -22,6 +22,7 @@ namespace Naos.Diagnostics.Recipes
     /// </summary>
 #if NaosDiagnosticsRecipes
 #pragma warning disable SA1649 // File name should match first type name
+    [Serializable]
     public class RecipePerformanceCounterDescription : IEquatable<RecipePerformanceCounterDescription>
 #pragma warning restore SA1649 // File name should match first type name
     {
@@ -124,6 +125,7 @@ namespace Naos.Diagnostics.Recipes
             .Hash(this.ExpectedMaxValue)
             .Value;
 #elif NaosDiagnosticsDomain
+    [Serializable]
     public class PerformanceCounterDescription : IEquatable<PerformanceCounterDescription>
     {
         /// <summary>
@@ -226,6 +228,7 @@ namespace Naos.Diagnostics.Recipes
 #else
     [System.CodeDom.Compiler.GeneratedCode("Naos.Diagnostics", "See package version number")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [Serializable]
     internal class RecipePerformanceCounterDescription : IEquatable<RecipePerformanceCounterDescription>
     {
         /// <summary>

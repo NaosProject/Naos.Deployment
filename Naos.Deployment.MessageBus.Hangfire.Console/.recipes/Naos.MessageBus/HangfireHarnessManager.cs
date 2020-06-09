@@ -94,10 +94,8 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             var activeMessageTracker = new InMemoryActiveMessageTracker();
 
             var envelopeMachine = new EnvelopeMachine(
-                PostOffice.MessageSerializationDescription,
-                serializerFactory,
-                compressorFactory,
-                launchConfig.TypeMatchStrategyForMessageResolution);
+                PostOffice.MessageSerializerRepresentation,
+                serializerFactory);
 
             var courier = new HangfireCourier(messageBusConnectionConfiguration.CourierPersistenceConnectionConfiguration, envelopeMachine);
             var parcelTrackingSystem = new ParcelTrackingSystem(
@@ -114,9 +112,7 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             HandlerToolshed.InitializeCompressorFactory(() => compressorFactory);
 
             var shareManager = new ShareManager(
-                serializerFactory,
-                compressorFactory,
-                launchConfig.TypeMatchStrategyForMatchingSharingInterfaces);
+                serializerFactory);
 
             var handlerSharedStateMap = new ConcurrentDictionary<Type, object>();
 
@@ -176,12 +172,10 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
         /// Send the provided parcel.
         /// </summary>
         /// <param name="messageBusConnectionConfiguration">Persistence configuration.</param>
-        /// <param name="typeMatchStrategyForMessageResolution">Launch settings to use.</param>
         /// <param name="parcel">Parcel to send.</param>
         /// <param name="schedule">Optional recurring schedule.</param>
         public static void Send(
             MessageBusConnectionConfiguration messageBusConnectionConfiguration,
-            TypeMatchStrategy typeMatchStrategyForMessageResolution,
             Parcel parcel,
             ScheduleBase schedule = null)
         {
@@ -189,13 +183,10 @@ namespace Naos.MessageBus.Hangfire.Bootstrapper
             new { parcel }.AsArg().Must().NotBeNull();
 
             var serializerFactory = SerializerFactory.Instance;
-            var compressorFactory = CompressorFactory.Instance;
 
             var envelopeMachine = new EnvelopeMachine(
-                PostOffice.MessageSerializationDescription,
-                serializerFactory,
-                compressorFactory,
-                typeMatchStrategyForMessageResolution);
+                PostOffice.MessageSerializerRepresentation,
+                serializerFactory);
 
             var courier = new HangfireCourier(messageBusConnectionConfiguration.CourierPersistenceConnectionConfiguration, envelopeMachine);
             using (var parcelTrackingSystem = new ParcelTrackingSystem(

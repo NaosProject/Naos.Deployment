@@ -25,8 +25,9 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
     using Naos.MessageBus.Core;
     using Naos.MessageBus.Domain;
 
-    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Serialization;
     using OBeautifulCode.Type;
+    using OBeautifulCode.Representation.System;
     using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
@@ -63,7 +64,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                             }
                         });
 
-                ret = new MappedTypeHandlerFactory(MessageTypeToHandlerTypeMap, TypeMatchStrategy.NamespaceAndName);
+                ret = new MappedTypeHandlerFactory(MessageTypeToHandlerTypeMap);
             }
             else
             {
@@ -96,13 +97,13 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
         private static IHandlerFactory BuildReflectionHandlerFactoryFromSettings()
         {
-            var configuration = Config.Get<HandlerFactoryConfiguration>(typeof(MessageBusJsonConfiguration));
+            var configuration = Config.Get<HandlerFactoryConfiguration>(new SerializerRepresentation(SerializationKind.Json, typeof(MessageBusJsonSerializationConfiguration).ToRepresentation()));
 
             new { configuration }.AsArg().Must().NotBeNull();
 
             var ret = !string.IsNullOrWhiteSpace(configuration.HandlerAssemblyPath)
-                          ? new ReflectionHandlerFactory(configuration.HandlerAssemblyPath, configuration.TypeMatchStrategyForMessageResolution)
-                          : new ReflectionHandlerFactory(configuration.TypeMatchStrategyForMessageResolution);
+                          ? new ReflectionHandlerFactory(configuration.HandlerAssemblyPath)
+                          : new ReflectionHandlerFactory();
 
             return ret;
         }

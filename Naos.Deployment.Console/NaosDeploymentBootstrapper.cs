@@ -45,6 +45,7 @@ namespace Naos.Deployment.Console
 
     using static System.FormattableString;
     using System.Text;
+    using OBeautifulCode.Representation.System;
 
     /// <summary>
     /// Bootstrapper for deployment logic to bridge commands from command line and various components to create an end to end solution.
@@ -57,7 +58,7 @@ namespace Naos.Deployment.Console
     public static class NaosDeploymentBootstrapper
     {
         private static readonly object NugetAnnouncementFileLock = new object();
-        private static readonly ISerializeAndDeserialize ConfigFileSerializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+        private static readonly ISerializeAndDeserialize ConfigFileSerializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
 
         private static void NugetAnnouncementAction(string output, string nugetAnnouncementFilePath)
         {
@@ -771,10 +772,10 @@ namespace Naos.Deployment.Console
             new { credentialsJson }.AsArg().Must().NotBeNull();
             new { infrastructureTrackerJson }.AsArg().Must().NotBeNull();
 
-            var credentials = (CredentialContainer)Config.Deserialize(typeof(CredentialContainer), credentialsJson);
-			var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var credentials = ConfigFileSerializer.Deserialize<CredentialContainer>(credentialsJson);
+			var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)serializer.Deserialize(infrastructureTrackerJson, typeof(InfrastructureTrackerConfigurationBase));
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentCoreJsonConfiguration));
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(new SerializerRepresentation(SerializationKind.Json, typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToRepresentation()));
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
                 using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
@@ -826,7 +827,7 @@ namespace Naos.Deployment.Console
 			EnvironmentType environmentType)
         {
 		    var machineManagerFactory = GetMachineManagerFactory(environmentType);
-            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+            var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var packagesToDeploy =
                 (IReadOnlyCollection<PackageDescriptionWithOverrides>)serializer.Deserialize(
 				    packagesToDeployJson,
@@ -851,9 +852,9 @@ namespace Naos.Deployment.Console
             var overrideConfig =
                 (DeploymentConfiguration)serializer.Deserialize(overrideDeploymentConfigJson, typeof(DeploymentConfiguration));
 
-            var setupFactorySettings = Config.Get<SetupStepFactorySettings>(typeof(NaosDeploymentCoreJsonConfiguration));
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentCoreJsonConfiguration));
-            var defaultDeploymentConfiguration = Config.Get<DefaultDeploymentConfiguration>(typeof(NaosDeploymentCoreJsonConfiguration));
+            var setupFactorySettings = Config.Get<SetupStepFactorySettings>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
+            var defaultDeploymentConfiguration = Config.Get<DefaultDeploymentConfiguration>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
 
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
@@ -975,7 +976,7 @@ namespace Naos.Deployment.Console
                     certificateSigningRequestPemEncodedFilePath);
             }
 
-			var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonConfiguration), UnregisteredTypeEncounteredStrategy.Attempt);
+			var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var certificateConfiguration =
                 (CertificateManagementConfigurationBase)serializer.Deserialize(
                     certificateWriterJson,

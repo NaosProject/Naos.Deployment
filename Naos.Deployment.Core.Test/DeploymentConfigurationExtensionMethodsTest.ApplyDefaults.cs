@@ -75,9 +75,9 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(defaultConfig.Volumes.Single().Type, appliedConfig.Volumes.Single().Type);
             Assert.Equal(defaultConfig.ChocolateyPackages.Single().Id, appliedConfig.ChocolateyPackages.Single().Id);
             Assert.Equal(WindowsSku.SqlStandard, (appliedConfig.InstanceType.OperatingSystem as OperatingSystemDescriptionWindows)?.Sku);
-            Assert.Equal(true, appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
-            Assert.Equal(true, appliedConfig.DeploymentStrategy.RunSetupSteps);
-            Assert.Equal(true, appliedConfig.PostDeploymentStrategy.TurnOffInstance);
+            Assert.True(appliedConfig.DeploymentStrategy.IncludeInstanceInitializationScript);
+            Assert.True(appliedConfig.DeploymentStrategy.RunSetupSteps);
+            Assert.True(appliedConfig.PostDeploymentStrategy.TurnOffInstance);
             Assert.Equal(defaultConfig.TagNameToValueMap.Single(), appliedConfig.TagNameToValueMap.Single());
         }
 

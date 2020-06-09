@@ -128,6 +128,44 @@ namespace OBeautifulCode.Type.Recipes
             };
 
         /// <summary>
+        /// Determines the kind of array that the specified type is.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// The kind of array of the specified type.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static ArrayKind GetArrayKind(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            ArrayKind result;
+
+            if (!type.IsArray)
+            {
+                result = ArrayKind.None;
+            }
+            else if (type.GetArrayRank() > 1)
+            {
+                result = ArrayKind.Multidimensional;
+            }
+            else if (type == type.GetElementType().MakeArrayType())
+            {
+                result = ArrayKind.Vector;
+            }
+            else
+            {
+                result = ArrayKind.Multidimensional;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets the type of the elements of a specified closed Enumerable type.
         /// </summary>
         /// <param name="type">The closed Enumerable type.</param>
@@ -323,6 +361,35 @@ namespace OBeautifulCode.Type.Recipes
             var result = new List<Type>();
 
             type.BuildInheritancePath(result);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified type has a default (public parameterless) constructor.
+        /// </summary>
+        /// <param name="type">Type to check.</param>
+        /// <returns>
+        /// A value indicating whether or not the type has a default (public parameterless) constructor.
+        /// </returns>
+        public static bool HasDefaultConstructor(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.ContainsGenericParameters)
+            {
+                return false;
+            }
+
+            new DateTime();
+
+            var defaultConstructor = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance).SingleOrDefault(_ => _.GetParameters().Length == 0);
+
+            var result = defaultConstructor != null;
 
             return result;
         }
@@ -601,6 +668,26 @@ namespace OBeautifulCode.Type.Recipes
         }
 
         /// <summary>
+        /// Determines if the specified type is a closed generic type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// true if the specified type is a closed generic type; otherwise false.
+        /// </returns>
+        public static bool IsClosedGenericType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var result = type.IsGenericType && (!type.ContainsGenericParameters);
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if the specified type is a class type, that's not anonymous, and is closed.
         /// </summary>
         /// <remarks>
@@ -720,6 +807,39 @@ namespace OBeautifulCode.Type.Recipes
         }
 
         /// <summary>
+        /// Determines if the specified type is a closed <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// true if the specified type is a closed <see cref="IEnumerable{T}"/>; otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static bool IsClosedSystemEnumerableType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.ContainsGenericParameters)
+            {
+                return false;
+            }
+
+            if (!type.IsGenericType)
+            {
+                return false;
+            }
+
+            var genericTypeDefinition = type.GetGenericTypeDefinition();
+
+            var result = genericTypeDefinition == EnumerableInterfaceGenericTypeDefinition;
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if the specified type is a closed version of one of the
         /// following ordered <see cref="System"/> Collection generic type definitions:
         /// <see cref="SystemOrderedCollectionGenericTypeDefinitions"/>.
@@ -785,6 +905,32 @@ namespace OBeautifulCode.Type.Recipes
             var genericTypeDefinition = type.GetGenericTypeDefinition();
 
             var result = SystemUnorderedCollectionGenericTypeDefinitions.Contains(genericTypeDefinition);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified type is in the <see cref="System"/> namespace.
+        /// </summary>
+        /// <remarks>
+        /// An array is considered a system type.
+        /// A ValueTuple is considered a system type.
+        /// A generic type parameter is considered a system type.
+        /// An anonymous type is not considered a system type.
+        /// </remarks>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// true if the specified type is in the <see cref="System"/> namespace, otherwise false.
+        /// </returns>
+        public static bool IsSystemType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var result = type.IsArray || type.IsGenericParameter || (type.Namespace?.StartsWith(nameof(System), StringComparison.Ordinal) ?? false);
 
             return result;
         }

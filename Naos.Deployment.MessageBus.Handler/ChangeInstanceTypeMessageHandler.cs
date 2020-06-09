@@ -30,8 +30,8 @@ namespace Naos.Deployment.MessageBus.Handler
         /// <inheritdoc cref="MessageHandlerBase{T}" />
         public override async Task HandleAsync(ChangeInstanceTypeMessage message)
         {
-            var settings = Config.Get<DeploymentMessageHandlerSettings>(typeof(NaosDeploymentMessageBusJsonConfiguration));
-            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(typeof(NaosDeploymentMessageBusJsonConfiguration));
+            var settings = Config.Get<DeploymentMessageHandlerSettings>(NaosDeploymentMessageBusJsonSerializationConfiguration.NaosDeploymentMessageBusJsonSerializerRepresentation);
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(NaosDeploymentMessageBusJsonSerializationConfiguration.NaosDeploymentMessageBusJsonSerializerRepresentation);
             await this.HandleAsync(message, settings, computingInfrastructureManagerSettings);
         }
 

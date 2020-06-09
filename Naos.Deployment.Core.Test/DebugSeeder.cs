@@ -17,6 +17,8 @@ namespace Naos.Deployment.Core.Test
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Bson;
+    using OBeautifulCode.Serialization.Json;
     using OBeautifulCode.Type;
     using Spritely.ReadModel.Mongo;
     using Spritely.Recipes;
@@ -62,7 +64,7 @@ namespace Naos.Deployment.Core.Test
                 },
             };
 
-            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.GetOrAddSerializationConfiguration(typeof(DeploymentBsonSerializationConfiguration).ToBsonSerializationConfigurationType());
 
             var arcologyInfoCommands = database.GetCommandsInterface<string, ArcologyInfoContainer>();
             var arcologyInfoContainer = new ArcologyInfoContainer
@@ -200,8 +202,7 @@ namespace Naos.Deployment.Core.Test
             var result = await certReader.GetCertificateByNameAsync(certName);
         }
 
-        [Fact]
-        //[Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
+        [Fact(Skip = "Debug test designed to aid in setting up dependent items for deploying.")]
         public static async Task Debug_ReadInstances()
         {
             //var server = "deployment.database.legacy.cometrics.com";

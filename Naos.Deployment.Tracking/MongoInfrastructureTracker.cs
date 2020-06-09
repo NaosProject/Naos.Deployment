@@ -16,6 +16,7 @@ namespace Naos.Deployment.Tracking
     using Naos.Packaging.Domain;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Serialization;
+    using OBeautifulCode.Serialization.Bson;
     using Spritely.ReadModel;
     using static System.FormattableString;
 
@@ -56,7 +57,7 @@ namespace Naos.Deployment.Tracking
             this.instanceQueries = instanceQueries;
             this.instanceCommands = instanceCommands;
 
-            SerializationConfigurationManager.Configure<DeploymentBsonConfiguration>();
+            SerializationConfigurationManager.GetOrAddSerializationConfiguration(typeof(DeploymentBsonSerializationConfiguration).ToBsonSerializationConfigurationType());
         }
 
         /// <inheritdoc />
