@@ -10,6 +10,7 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+    using Naos.MachineManagement.Domain;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
@@ -19,6 +20,13 @@ namespace Naos.Deployment.Core
     /// </summary>
     public class NaosDeploymentCoreJsonSerializationConfiguration : JsonSerializationConfigurationBase
     {
+        /// <inheritdoc />
+        protected override IReadOnlyCollection<string> TypeToRegisterNamespacePrefixFilters => new[]
+                                                                                               {
+                                                                                                   this.GetType().Namespace,
+                                                                                                   typeof(MachineProtocol).Namespace, // this is a hack and we should have a specific serialization config for Naos.MachineManagement in the future.
+                                                                                               };
+
         /// <inheritdoc />
         public override UnregisteredTypeEncounteredStrategy UnregisteredTypeEncounteredStrategy => UnregisteredTypeEncounteredStrategy.Attempt;
 
@@ -33,8 +41,8 @@ namespace Naos.Deployment.Core
         /// <inheritdoc />
         protected override IReadOnlyCollection<TypeToRegisterForJson> TypesToRegisterForJson => new[]
         {
-            typeof(PackageWithBundleIdentifier).ToTypeToRegisterForJson(),
             typeof(PackagedDeploymentConfiguration).ToTypeToRegisterForJson(),
+            typeof(PackageWithBundleIdentifier).ToTypeToRegisterForJson(),
             typeof(MessageBusHandlerHarnessConfiguration).ToTypeToRegisterForJson(),
             typeof(CertificateManagementConfigurationBase).ToTypeToRegisterForJson(),
             typeof(AdjustDeploymentBase).ToTypeToRegisterForJson(),

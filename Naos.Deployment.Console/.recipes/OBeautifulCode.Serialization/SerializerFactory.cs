@@ -10,6 +10,7 @@
 namespace OBeautifulCode.Serialization.Recipes
 {
     using System;
+    using System.Collections.Concurrent;
 
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Compression;
@@ -34,6 +35,9 @@ namespace OBeautifulCode.Serialization.Recipes
     {
         private static readonly SerializerFactory InternalInstance = new SerializerFactory();
 
+        private static readonly ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>>
+            SerializerCache = new ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyBagSerializerFactory"/> class.
         /// </summary>
@@ -56,6 +60,16 @@ namespace OBeautifulCode.Serialization.Recipes
         {
             new { serializerRepresentation }.AsArg().Must().NotBeNull();
 
+            ISerializer result;
+
+            if (SerializerCache.TryGetValue(serializerRepresentation, out ConcurrentDictionary<AssemblyMatchStrategy, ISerializer> assemblyMatchStrategyToSerializerMap))
+            {
+                if (assemblyMatchStrategyToSerializerMap.TryGetValue(assemblyMatchStrategy, out result))
+                {
+                    return result;
+                }
+            }
+
             // ReSharper disable once RedundantArgumentDefaultValue
             var configurationType = serializerRepresentation.SerializationConfigType?.ResolveFromLoadedTypes(assemblyMatchStrategy, throwIfCannotResolve: true);
 
@@ -76,7 +90,11 @@ namespace OBeautifulCode.Serialization.Recipes
                     throw new NotSupportedException(Invariant($"{nameof(serializerRepresentation)} from enumeration {nameof(SerializationKind)} of {serializerRepresentation.SerializationKind} is not supported."));
             }
 
-            var result = this.WrapInCompressingSerializerIfAppropriate(serializer, serializerRepresentation.CompressionKind);
+            result = this.WrapInCompressingSerializerIfAppropriate(serializer, serializerRepresentation.CompressionKind);
+
+            SerializerCache.TryAdd(serializerRepresentation, new ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>());
+
+            SerializerCache[serializerRepresentation].TryAdd(assemblyMatchStrategy, result);
 
             return result;
         }

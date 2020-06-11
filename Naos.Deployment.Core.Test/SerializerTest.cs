@@ -169,7 +169,7 @@ namespace Naos.Deployment.Core.Test
                 }
                 catch (Exception ex)
                 {
-                    throw new ObcSerializationException(Invariant($"Failure with {nameof(stringSerializer)} - {stringSerializer.GetType()}"), ex);
+                    throw new InvalidOperationException(Invariant($"Failure with {nameof(stringSerializer)} - {stringSerializer.GetType()}"), ex);
                 }
             }
 
@@ -184,7 +184,7 @@ namespace Naos.Deployment.Core.Test
                 }
                 catch (Exception ex)
                 {
-                    throw new ObcSerializationException(Invariant($"Failure with {nameof(binarySerializer)} - {binarySerializer.GetType()}"), ex);
+                    throw new InvalidOperationException(Invariant($"Failure with {nameof(binarySerializer)} - {binarySerializer.GetType()}"), ex);
                 }
             }
         }

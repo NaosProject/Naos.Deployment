@@ -11,6 +11,7 @@ namespace Naos.Deployment.Persistence
 
     using Naos.Cron.Serialization.Bson;
     using Naos.Deployment.Domain;
+    using Naos.MachineManagement.Domain;
     using Naos.Packaging.Serialization.Bson;
     using OBeautifulCode.Serialization.Bson;
 
@@ -19,6 +20,14 @@ namespace Naos.Deployment.Persistence
     /// </summary>
     public class DeploymentBsonSerializationConfiguration : BsonSerializationConfigurationBase
     {
+        /// <inheritdoc />
+        protected override IReadOnlyCollection<string> TypeToRegisterNamespacePrefixFilters => new[]
+                                                                                               {
+                                                                                                   this.GetType().Namespace,
+                                                                                                   typeof(ArcologyInfo).Namespace,
+                                                                                                   typeof(MachineProtocol).Namespace, // this is a hack and we should have a specific serialization config for Naos.MachineManagement in the future.
+                                                                                               };
+
         /// <inheritdoc />
         protected override IReadOnlyCollection<BsonSerializationConfigurationType> DependentBsonSerializationConfigurationTypes =>
             new[]
