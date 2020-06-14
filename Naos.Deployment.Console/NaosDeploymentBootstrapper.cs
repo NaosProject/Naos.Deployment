@@ -1014,6 +1014,32 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
+        /// Gets the certificate from arcology.
+        /// </summary>
+        /// <param name="certificateName">Name of the certificate.</param>
+        /// <param name="certificateRetrieverJson">The certificate retriever json.</param>
+        /// <param name="exportFilePath">The export file path.</param>
+        /// <returns>Password to file.</returns>
+        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology")]
+        public static string GetCertificatePasswordAndWritePfxFileFromArcology(
+            string certificateName,
+            string certificateRetrieverJson,
+            string exportFilePath)
+        {
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
+            var certificateRetrieverConfiguration =
+                (CertificateManagementConfigurationBase)serializer.Deserialize(
+                    certificateRetrieverJson,
+                    typeof(CertificateManagementConfigurationBase));
+
+            var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
+            var arcologyCertificate = Run.TaskUntilCompletion(certificateRetriever.GetCertificateByNameAsync(certificateName));
+
+            File.WriteAllBytes(exportFilePath, arcologyCertificate.PfxBytes);
+            return arcologyCertificate.PfxPasswordInClearText;
+        }
+
+        /// <summary>
         /// Creates a new environment.
         /// </summary>
         /// <param name="credentialsJson">Credentials for the computing platform provider to use in JSON.</param>

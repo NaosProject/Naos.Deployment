@@ -28,6 +28,7 @@ namespace Naos.Deployment.Console
     using Naos.Cron;
     using Naos.Database.Domain;
     using Naos.Database.SqlServer;
+    using Naos.Deployment.Console.Internal;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
@@ -1236,6 +1237,34 @@ namespace Naos.Deployment.Console
                 encryptingCertificateIsValid,
                 encryptingCertificateStoreName,
                 encryptingCertificateStoreLocation);
+        }
+
+        /// <summary>
+        /// Downloads the certificate from arcology and prints the password.
+        /// </summary>
+        /// <param name="debug">if set to <c>true</c> [debug].</param>
+        /// <param name="environment">The environment.</param>
+        /// <param name="certificateName">Name of the certificate.</param>
+        /// <param name="exportFilePath">The export file path.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Arcology", Justification = NaosSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
+        [Verb(Aliases = "downloadCert", Description = "Downloads a certificate from the arcology.")]
+        public static void DownloadCertificateFromArcology(
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)]
+            bool debug,
+            [Aliases("env")] [Required] [Description("Sets the Its.Configuration precedence to use specific settings.")]
+            string environment,
+            [Aliases("name")] [Description("Name of the certificate in the arcology.")] [Required]
+            string certificateName,
+            [Aliases("path")] [Description("File path to write pfx file to.")] [Required]
+            string exportFilePath)
+        {
+            CommonSetup(debug, environment);
+
+            var certificateRetrieverJson = GetCertificateRetrieverJsonFromEnvironment(environment);
+
+            var pfxPassword = NaosDeploymentBootstrapper.GetCertificatePasswordAndWritePfxFileFromArcology(certificateName, certificateRetrieverJson, exportFilePath);
+            Console.WriteLine(Invariant($"File written to: {exportFilePath}"));
+            Console.WriteLine(Invariant($"Password: {pfxPassword}"));
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
