@@ -18,34 +18,33 @@ namespace Naos.Deployment.Console
     using System.Linq;
     using System.Management.Automation;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text;
     using System.Xml.Serialization;
-
-    using Its.Log.Instrumentation;
 
     using Naos.AWS.Core;
     using Naos.AWS.Domain;
-	using Naos.Configuration.Domain;
+    using Naos.Configuration.Domain;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
-	using Naos.MachineManagement.Domain;
-	using Naos.MachineManagement.Factory;
+    using Naos.Logging.Domain;
+    using Naos.MachineManagement.Domain;
+    using Naos.MachineManagement.Factory;
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
     using Naos.Recipes.RunWithRetry;
+
+    using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Representation.System;
+    using OBeautifulCode.Security.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
-
-    using OBeautifulCode.Security.Recipes;
-    using OBeautifulCode.Assertion.Recipes;
 
     using Spritely.Redo;
 
     using static System.FormattableString;
-    using System.Text;
-    using OBeautifulCode.Representation.System;
 
     /// <summary>
     /// Bootstrapper for deployment logic to bridge commands from command line and various components to create an end to end solution.
@@ -546,17 +545,17 @@ namespace Naos.Deployment.Console
         {
             void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                using (var activity = Log.Enter(() => new { Name = instanceName }))
+                using (var activity = Log.With(() => new { Name = instanceName }))
                 {
-                    activity.Trace("Starting");
+                    activity.Write(() => "Starting");
                     var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                     instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
-                    activity.Trace(Invariant($"Found instance: {instance.Id}"));
+                    activity.Write(() => Invariant($"Found instance: {instance.Id}"));
 
                     var privateKey =
                         Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
                     privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
-                    activity.Trace(Invariant($"Found key for password decryption."));
+                    activity.Write(() => Invariant($"Found key for password decryption."));
 
                     var address = instance.PrivateIpAddress;
                     var dnsStrategies = instance.DeployedPackages.Values
@@ -578,7 +577,7 @@ namespace Naos.Deployment.Console
                     var password =
                         Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
                     password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
-                    activity.Trace(Invariant($"Found password."));
+                    activity.Write(() => Invariant($"Found password."));
 
                     // Help from: https://stackoverflow.com/questions/11296819/run-mstsc-exe-with-specified-username-and-password
                     using (var cmdKeyInitProcess = new Process
@@ -608,7 +607,7 @@ namespace Naos.Deployment.Console
                             throw new ApplicationFailedException(cmdKeyInitFailedMessage);
                         }
 
-                        activity.Trace(Invariant($"Stored credentials temporarily stored using CMDKEY."));
+                        activity.Write(() => Invariant($"Stored credentials temporarily stored using CMDKEY."));
                     }
 
 					var rdpArgs = shouldConnectInFullScreen ? Invariant($"/f /v {address}") : Invariant($"/v {address}");
@@ -617,7 +616,7 @@ namespace Naos.Deployment.Console
                     rdpProcess.StartInfo.Arguments = rdpArgs;
                     rdpProcess.Start().AsArg(Invariant($"{nameof(rdpProcess)}.{nameof(rdpProcess.Start)}-must-return-true"))
                         .Must().BeTrue();
-                    activity.Trace(Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
+                    activity.Write(() => Invariant($"Started MSTSC (Microsoft Terminal Services Client)."));
 
                     System.Threading.Thread.Sleep(TimeSpan
                         .FromSeconds(5)); // dirty way to make sure that MSTSC launches before cleaning the credentials...
@@ -650,10 +649,10 @@ namespace Naos.Deployment.Console
                             throw new ApplicationFailedException(cmdKeyCleanupFailedMessage);
                         }
 
-                        activity.Trace(Invariant($"Removed credentials temporarily stored using CMDKEY."));
+                        activity.Write(() => Invariant($"Removed credentials temporarily stored using CMDKEY."));
                     }
 
-                    activity.Trace("Done - check for spawned window.");
+                    activity.Write(() => "Done - check for spawned window.");
                 }
             }
 
@@ -680,11 +679,11 @@ namespace Naos.Deployment.Console
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
-                    activity.Trace("Starting");
+                    activity.Write(() => "Starting");
                     Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
-                    activity.Trace("Running");
+                    activity.Write(() => "Running");
                 }
             }
 
@@ -713,11 +712,11 @@ namespace Naos.Deployment.Console
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
-                    activity.Trace("Stopping");
+                    activity.Write(() => "Stopping");
                     Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
-                    activity.Trace("Stopped");
+                    activity.Write(() => "Stopped");
                 }
             }
 
@@ -746,13 +745,13 @@ namespace Naos.Deployment.Console
                 var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                using (var activity = Log.Enter(() => new { instance.Name, instance.Id }))
+                using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
-                    activity.Trace("Stopping");
+                    activity.Write(() => "Stopping");
                     Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
-                    activity.Trace("Restarting");
+                    activity.Write(() => "Restarting");
                     Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
-                    activity.Trace("Running");
+                    activity.Write(() => "Running");
                 }
             }
 
@@ -781,6 +780,252 @@ namespace Naos.Deployment.Console
                 using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
                 {
                     action(infrastructureTracker, computingManager);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Verifies the configuration repository.
+        /// </summary>
+        /// <param name="credentialsJson">The credentials json.</param>
+        /// <param name="infrastructureTrackerJson">The infrastructure tracker json.</param>
+        /// <param name="environment">The environment.</param>
+        /// <param name="environmentType">Type of the environment.</param>
+        /// <param name="configRepositoryPath">The configuration repository path.</param>
+        /// <param name="nonPackageDeployments">The non package deployments.</param>
+        /// <param name="adjustPackageIdToDeploymentConfigDirectoryName">Function to take the package identifier and return the deployment configuration directory name.</param>
+        /// <param name="shouldIncludeByDecisionAgainstName">Function to take the instance name (short name) and determine if it should be included in the run.</param>
+        public static void VerifyConfigurationRepository(
+            string credentialsJson,
+            string infrastructureTrackerJson,
+            string environment,
+            EnvironmentType environmentType,
+            string configRepositoryPath,
+            IReadOnlyCollection<Tuple<string, DeploymentConfiguration>> nonPackageDeployments = null,
+            Func<string, string> adjustPackageIdToDeploymentConfigDirectoryName = null,
+            Func<string, bool> shouldIncludeByDecisionAgainstName = null)
+        {
+            if (!Directory.Exists(configRepositoryPath))
+            {
+                throw new DirectoryNotFoundException(Invariant($"Could not find configuration repository directory specified: '{configRepositoryPath}'."));
+            }
+
+            nonPackageDeployments = nonPackageDeployments ?? new Tuple<string, DeploymentConfiguration>[0];
+            adjustPackageIdToDeploymentConfigDirectoryName = adjustPackageIdToDeploymentConfigDirectoryName ?? (_ => _);
+            shouldIncludeByDecisionAgainstName = shouldIncludeByDecisionAgainstName ?? (_ => true);
+
+            var serializer = new ObcJsonSerializer(typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToJsonSerializationConfigurationType());
+            var infrastructureTrackerConfiguration =
+                (InfrastructureTrackerConfigurationBase)serializer.Deserialize(
+                    infrastructureTrackerJson,
+                    typeof(InfrastructureTrackerConfigurationBase));
+            var credentials = (CredentialContainer)serializer.Deserialize(credentialsJson, typeof(CredentialContainer));
+            var infrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
+            var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(NaosDeploymentCoreJsonSerializationConfiguration.NaosDeploymentCoreJsonSerializerRepresentation);
+
+            var nonPackageId = "NonPackageDeployment";
+
+            using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
+            {
+                var allInstances = Run.TaskUntilCompletion(infrastructureTracker.GetAllInstanceDescriptionsAsync(environment));
+                var instancesFilteredByName = allInstances.Where(_ => shouldIncludeByDecisionAgainstName(_.ComputerName)).ToList();
+                var instancesToEvaluate = instancesFilteredByName.Select(
+                    _ =>
+                    {
+                        var nonPackageDeployment = nonPackageDeployments.SingleOrDefault(__ => __.Item1 == _.ComputerName);
+                        var packageId = nonPackageDeployment != null
+                            ? nonPackageId + Guid.NewGuid().ToString().ToUpperInvariant()
+                            : _.DeployedPackages
+                               .Where(__ => !infrastructureManagerSettings.PackageIdsToIgnoreDuringTerminationSearch.Contains(__.Key))
+                               .Select(__ => __.Key)
+                               .SingleOrDefault();
+
+                        _.SystemSpecificDetails.TryGetValue(nameof(OperatingSystem), out var operatingSystemText);
+                        WindowsSku? windowsSku = null;
+                        if (operatingSystemText?.StartsWith(nameof(WindowsSku)) ?? false)
+                        {
+                            var treated = operatingSystemText.Replace(nameof(WindowsSku) + "-", string.Empty);
+                            windowsSku = (WindowsSku)Enum.Parse(typeof(WindowsSku), treated);
+                        }
+                        else if (nonPackageDeployment != null && (nonPackageDeployment.Item2?.InstanceType?.OperatingSystem is OperatingSystemDescriptionWindows windowsOperatingSystem))
+                        {
+                            windowsSku = windowsOperatingSystem.Sku;
+                        }
+
+                        var hadWindowsSku = windowsSku != null;
+                        var result = new
+                        {
+                            InstanceName = _.ComputerName,
+                            OriginalAbstractInstanceType = nonPackageDeployment?.Item2?.InstanceType,
+                            AbstractInstanceType = new InstanceType(),
+                            PackageId = packageId,
+                            OperatingSystemFromArcology = hadWindowsSku ? new OperatingSystemDescriptionWindows { Sku = (WindowsSku)windowsSku } : new OperatingSystemDescriptionWindows(),
+                            OperatingSystemFromAws = new OperatingSystemDescriptionWindows(),
+                        };
+
+                        return result;
+                    }).ToList();
+
+                using (var computingManager = GetComputingManager(environmentType, computingInfrastructureManagerSettings, infrastructureTracker, credentials))
+                {
+                    foreach (var instanceToEvaluate in instancesToEvaluate)
+                    {
+                        var description = Run.TaskUntilCompletion(
+                            computingManager.GetInstanceDescriptionAsync(environment, instanceToEvaluate.InstanceName));
+                        var systemSpecificInstanceType = description.SystemSpecificDetails["instanceType"];
+                        instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId = systemSpecificInstanceType;
+
+                        description.SystemSpecificDetails.TryGetValue(nameof(OperatingSystem), out var operatingSystemText);
+                        if (operatingSystemText?.StartsWith(nameof(WindowsSku)) ?? false)
+                        {
+                            var treated = operatingSystemText.Replace(nameof(WindowsSku) + "-", string.Empty);
+                            var windowsSku = (WindowsSku)Enum.Parse(typeof(WindowsSku), treated);
+                            instanceToEvaluate.OperatingSystemFromAws.Sku = (WindowsSku)windowsSku;
+                        }
+                    }
+                }
+
+                var configs = Directory.GetDirectories(configRepositoryPath, "*.Deployment")
+                                       .Select(
+                                            _ => new
+                                            {
+                                                RootPath = _,
+                                                DirectoryName = new DirectoryInfo(_).Name,
+                                                DeploymentConfigPath = Path.Combine(
+                                                         _,
+                                                         Invariant($".config/{environment}/DeploymentConfigurationWithStrategies.json"))
+                                            })
+                                       .ToList();
+
+                var deduplicatedInstancesToEvaluate = instancesToEvaluate.GroupBy(_ => _.PackageId).Select(
+                    _ =>
+                    {
+                        if (_.Count() > 1)
+                        {
+                            string instanceType = null;
+                            foreach (var item in _)
+                            {
+                                if (instanceType == null)
+                                {
+                                    instanceType = item.AbstractInstanceType.SpecificInstanceTypeSystemId;
+                                }
+                                else
+                                {
+                                    if (item.AbstractInstanceType.SpecificInstanceTypeSystemId != instanceType)
+                                    {
+                                        Console.WriteLine(Invariant($"Instance '{item.InstanceName}' has a type '{item.AbstractInstanceType.SpecificInstanceTypeSystemId}' but '{instanceType}' was expected."));
+                                    }
+                                }
+                            }
+
+                            return _.First();
+                        }
+                        else
+                        {
+                            return _.Single();
+                        }
+                    }).ToList();
+
+                var patchedAbstractInstanceTypeInstancesToEvaluate = deduplicatedInstancesToEvaluate.Select(
+                    _ =>
+                    {
+                        IReadOnlyCollection<AwsInstanceType> abstractInstanceTypes;
+                        var windowsSkuArcology = _.OperatingSystemFromArcology.Sku;
+                        var windowsSkuAws = _.OperatingSystemFromAws.Sku;
+                        if (windowsSkuArcology != windowsSkuAws
+                         && windowsSkuArcology != WindowsSku.DoesNotMatter
+                         && windowsSkuAws != WindowsSku.DoesNotMatter)
+                        {
+                            Console.WriteLine(Invariant($"Unexpected that {_.InstanceName} has a {nameof(WindowsSku)} of '{windowsSkuArcology}' in Arcology but '{windowsSkuAws}' in AWS Tags."));
+                        }
+
+                        WindowsSku windowsSku;
+                        if (windowsSkuArcology == WindowsSku.DoesNotMatter)
+                        {
+                            windowsSku = windowsSkuAws;
+                        }
+                        else
+                        {
+                            windowsSku = windowsSkuArcology;
+                        }
+
+                        if (windowsSku == WindowsSku.Base || windowsSku == WindowsSku.DoesNotMatter)
+                        {
+                            abstractInstanceTypes = computingInfrastructureManagerSettings.AwsInstanceTypes;
+                        }
+                        else if (windowsSku == WindowsSku.SqlWeb)
+                        {
+                            abstractInstanceTypes = computingInfrastructureManagerSettings.AwsInstanceTypesForSqlWeb;
+                        }
+                        else if (windowsSku == WindowsSku.SqlStandard)
+                        {
+                            abstractInstanceTypes = computingInfrastructureManagerSettings.AwsInstanceTypesForSqlStandard;
+                        }
+                        else
+                        {
+                            throw new NotSupportedException("This should not have been reached for " + _.InstanceName);
+                        }
+
+                        var matchingAbstractInstanceType = abstractInstanceTypes.SingleOrDefault(
+                            __ => __.AwsInstanceTypeDescriptor == _.AbstractInstanceType.SpecificInstanceTypeSystemId);
+
+                        if (matchingAbstractInstanceType != null)
+                        {
+                            _.AbstractInstanceType.VirtualCores = matchingAbstractInstanceType.VirtualCores;
+                            _.AbstractInstanceType.RamInGb = matchingAbstractInstanceType.RamInGb;
+                        }
+
+                        return _;
+                    }).ToList();
+
+                foreach (var instanceToEvaluate in patchedAbstractInstanceTypeInstancesToEvaluate)
+                {
+                    if (instanceToEvaluate.PackageId?.StartsWith(nonPackageId) ?? false)
+                    {
+                        if (instanceToEvaluate.OriginalAbstractInstanceType.SpecificInstanceTypeSystemId
+                         != instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId
+                         && !(instanceToEvaluate.OriginalAbstractInstanceType.VirtualCores
+                           == instanceToEvaluate.AbstractInstanceType.VirtualCores
+                           && instanceToEvaluate.OriginalAbstractInstanceType.RamInGb
+                           == instanceToEvaluate.AbstractInstanceType.RamInGb))
+                        {
+                            Console.WriteLine(Invariant($"FINISH WRITING NON PACKAGE ID CHECK AGAINST THINGY - {instanceToEvaluate.InstanceName}"));
+                        }
+                    }
+                    else if (instanceToEvaluate.PackageId == null)
+                    {
+                        Console.WriteLine(Invariant($"! {instanceToEvaluate.InstanceName} did not have a package id."));
+                    }
+                    else
+                    {
+                        var configDirectoryName = adjustPackageIdToDeploymentConfigDirectoryName(instanceToEvaluate.PackageId);
+                        var config = configs.SingleOrDefault(_ => _.DirectoryName == configDirectoryName);
+
+                        if (config == null)
+                        {
+                            Console.WriteLine(Invariant($"! No config found {instanceToEvaluate.PackageId} on {instanceToEvaluate.InstanceName} expected to find: {configDirectoryName}"));
+                        }
+                        else
+                        {
+                            if (!File.Exists(config.DeploymentConfigPath))
+                            {
+                                Console.WriteLine(Invariant($"! Expected to find file '{config.DeploymentConfigPath}' but it did not exist."));
+                            }
+                            else
+                            {
+                                var configFileContents = File.ReadAllText(config.DeploymentConfigPath);
+                                var configFileObject = serializer.Deserialize<DeploymentConfigurationWithStrategies>(configFileContents);
+                                if (configFileObject.InstanceType.SpecificInstanceTypeSystemId != instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId)
+                                {
+                                    if (configFileObject.InstanceType.VirtualCores != instanceToEvaluate.AbstractInstanceType.VirtualCores
+                                     && configFileObject.InstanceType.RamInGb != instanceToEvaluate.AbstractInstanceType.RamInGb)
+                                    {
+                                        Console.WriteLine(Invariant($"! Expected {config.DeploymentConfigPath} to have an instance type of {instanceToEvaluate.AbstractInstanceType} but found {configFileObject.InstanceType}"));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -873,9 +1118,8 @@ namespace Naos.Deployment.Console
                         Using.LinearBackOff(TimeSpan.FromSeconds(5))
                             .WithMaxRetries(3)
                             .WithReporter(_ =>
-                                Log.Write(new LogEntry(
-                                    Invariant($"Retrying delete deployment working directory {unzipDirPath} due to error."),
-                                    _)))
+                                Log.Write(() => _,
+                                    Invariant($"Retrying delete deployment working directory {unzipDirPath} due to error.")))
                             .Run(() => Directory.Delete(unzipDirPath, true))
                             .Now();
                     }
@@ -883,8 +1127,8 @@ namespace Naos.Deployment.Console
                     Using.LinearBackOff(TimeSpan.FromSeconds(5))
                         .WithMaxRetries(3)
                         .WithReporter(_ =>
-                            Log.Write(new LogEntry(
-                                Invariant($"Retrying create deployment working directory {unzipDirPath} due to error."), _)))
+                            Log.Write(() => _,
+                                Invariant($"Retrying create deployment working directory {unzipDirPath} due to error.")))
                         .Run(() => Directory.CreateDirectory(unzipDirPath))
                         .Now();
 
