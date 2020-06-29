@@ -533,6 +533,7 @@ namespace Naos.Deployment.Console
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Environment type.</param>
         /// <param name="shouldConnectInFullScreen">A value indicating whether or not to connect in full screen mode.</param>
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Weird logic to get terminal services to automatically connect, complexity not a problem here.")]
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Weird logic to get terminal services to automatically connect, coupling not a problem here.")]
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope", Justification = "Object is disposed correctly.")]
         public static void ConnectToInstance(
@@ -795,6 +796,9 @@ namespace Naos.Deployment.Console
         /// <param name="nonPackageDeployments">The non package deployments.</param>
         /// <param name="adjustPackageIdToDeploymentConfigDirectoryName">Function to take the package identifier and return the deployment configuration directory name.</param>
         /// <param name="shouldIncludeByDecisionAgainstName">Function to take the instance name (short name) and determine if it should be included in the run.</param>
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "This will be refactored in the future but it will require improvements to various interfaces and it will wait until a larger refactoring is taking place.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1505:AvoidUnmaintainableCode", Justification = "This will be refactored in the future but it will require improvements to various interfaces and it will wait until a larger refactoring is taking place.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "This will be refactored in the future but it will require improvements to various interfaces and it will wait until a larger refactoring is taking place.")]
         public static void VerifyConfigurationRepository(
             string credentialsJson,
             string infrastructureTrackerJson,
@@ -842,7 +846,7 @@ namespace Naos.Deployment.Console
 
                         _.SystemSpecificDetails.TryGetValue(nameof(OperatingSystem), out var operatingSystemText);
                         WindowsSku? windowsSku = null;
-                        if (operatingSystemText?.StartsWith(nameof(WindowsSku)) ?? false)
+                        if (operatingSystemText?.StartsWith(nameof(WindowsSku), StringComparison.Ordinal) ?? false)
                         {
                             var treated = operatingSystemText.Replace(nameof(WindowsSku) + "-", string.Empty);
                             windowsSku = (WindowsSku)Enum.Parse(typeof(WindowsSku), treated);
@@ -876,7 +880,7 @@ namespace Naos.Deployment.Console
                         instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId = systemSpecificInstanceType;
 
                         description.SystemSpecificDetails.TryGetValue(nameof(OperatingSystem), out var operatingSystemText);
-                        if (operatingSystemText?.StartsWith(nameof(WindowsSku)) ?? false)
+                        if (operatingSystemText?.StartsWith(nameof(WindowsSku), StringComparison.Ordinal) ?? false)
                         {
                             var treated = operatingSystemText.Replace(nameof(WindowsSku) + "-", string.Empty);
                             var windowsSku = (WindowsSku)Enum.Parse(typeof(WindowsSku), treated);
@@ -980,7 +984,7 @@ namespace Naos.Deployment.Console
 
                 foreach (var instanceToEvaluate in patchedAbstractInstanceTypeInstancesToEvaluate)
                 {
-                    if (instanceToEvaluate.PackageId?.StartsWith(nonPackageId) ?? false)
+                    if (instanceToEvaluate.PackageId?.StartsWith(nonPackageId, StringComparison.Ordinal) ?? false)
                     {
                         if (instanceToEvaluate.OriginalAbstractInstanceType.SpecificInstanceTypeSystemId
                          != instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId
