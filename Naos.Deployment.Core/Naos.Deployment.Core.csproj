@@ -182,77 +182,77 @@
     <Reference Include="MongoDB.Driver.Core, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Driver.Core.2.4.4\lib\net45\MongoDB.Driver.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.61.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.61\lib\net462\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.62.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.62\lib\net462\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.61.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.61\lib\net462\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.62.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.62\lib\net462\Naos.AWS.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Configuration.Domain, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Configuration.Domain.1.0.16\lib\net462\Naos.Configuration.Domain.dll</HintPath>
+    <Reference Include="Naos.Configuration.Domain, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Configuration.Domain.1.0.17\lib\net462\Naos.Configuration.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Cron, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.1.0.23\lib\net462\Naos.Cron.dll</HintPath>
+    <Reference Include="Naos.Cron, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.24\lib\net462\Naos.Cron.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Cron.Serialization.Bson, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.Serialization.Bson.1.0.23\lib\net462\Naos.Cron.Serialization.Bson.dll</HintPath>
+    <Reference Include="Naos.Cron.Serialization.Bson, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.Serialization.Bson.1.0.24\lib\net462\Naos.Cron.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Cron.Serialization.Json, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.Serialization.Json.1.0.23\lib\net462\Naos.Cron.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Cron.Serialization.Json, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.Serialization.Json.1.0.24\lib\net462\Naos.Cron.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Domain, Version=1.1.204.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Domain.1.1.204\lib\net462\Naos.Database.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Domain.1.1.205\lib\net462\Naos.Database.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Mongo.Domain, Version=1.1.204.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Mongo.Domain.1.1.204\lib\net462\Naos.Database.Mongo.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Mongo.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Mongo.Domain.1.1.205\lib\net462\Naos.Database.Mongo.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer.Administration, Version=1.1.204.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Administration.1.1.204\lib\net462\Naos.Database.SqlServer.Administration.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer.Administration, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.Administration.1.1.205\lib\net462\Naos.Database.SqlServer.Administration.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer.Domain, Version=1.1.204.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Domain.1.1.204\lib\net462\Naos.Database.SqlServer.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.Domain.1.1.205\lib\net462\Naos.Database.SqlServer.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.3.31.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.31\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.3.32.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.32\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.146.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.146\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.147.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.147\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Domain, Version=1.0.67.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Domain.1.0.67\lib\net462\Naos.Logging.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.72.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.72\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.9\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.10\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Factory, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Factory.1.0.9\lib\net462\Naos.MachineManagement.Factory.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Factory, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Factory.1.0.10\lib\net462\Naos.MachineManagement.Factory.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Local, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Local.1.0.9\lib\net462\Naos.MachineManagement.Local.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Local, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Local.1.0.10\lib\net462\Naos.MachineManagement.Local.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Ssh, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Ssh.1.0.9\lib\net462\Naos.MachineManagement.Ssh.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Ssh, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Ssh.1.0.10\lib\net462\Naos.MachineManagement.Ssh.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.WinRm, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.WinRm.1.0.9\lib\net462\Naos.MachineManagement.WinRm.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.WinRm, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.WinRm.1.0.10\lib\net462\Naos.MachineManagement.WinRm.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.3.29.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.3.29\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.3.30.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.3.30\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.53\lib\net462\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.54\lib\net462\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.NuGet, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.53\lib\net462\Naos.Packaging.NuGet.dll</HintPath>
+    <Reference Include="Naos.Packaging.NuGet, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.NuGet.1.0.54\lib\net462\Naos.Packaging.NuGet.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Serialization.Bson, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Serialization.Bson.1.0.53\lib\net462\Naos.Packaging.Serialization.Bson.dll</HintPath>
+    <Reference Include="Naos.Packaging.Serialization.Bson, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Serialization.Bson.1.0.54\lib\net462\Naos.Packaging.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.53\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.54\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Telemetry.Domain, Version=1.0.22.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.22\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
+    <Reference Include="Naos.Telemetry.Domain, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.23\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -260,17 +260,17 @@
     <Reference Include="OBeautifulCode.Compression, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Compression.1.0.14\lib\net462\OBeautifulCode.Compression.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Representation.System, Version=1.0.47.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.47\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
+    <Reference Include="OBeautifulCode.Representation.System, Version=1.0.48.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.48\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization, Version=1.0.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.1.0.38\lib\net462\OBeautifulCode.Serialization.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.1.0.53\lib\net462\OBeautifulCode.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization.Bson, Version=1.0.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.Bson.1.0.38\lib\net462\OBeautifulCode.Serialization.Bson.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization.Bson, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.Bson.1.0.53\lib\net462\OBeautifulCode.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.38.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.38\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.53.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.53\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="OBeautifulCode.Type, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Type.1.0.51\lib\net462\OBeautifulCode.Type.dll</HintPath>
@@ -472,10 +472,10 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.SqlServer.SqlManagementObjects.140.17283.0\build\net40\Microsoft.SqlServer.SqlManagementObjects.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.SqlServer.SqlManagementObjects.140.17283.0\build\net40\Microsoft.SqlServer.SqlManagementObjects.targets'))" />
-    <Error Condition="!Exists('..\packages\Naos.Build.Analyzers.1.55.30\build\Naos.Build.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Naos.Build.Analyzers.1.55.30\build\Naos.Build.Analyzers.targets'))" />
+    <Error Condition="!Exists('..\packages\Naos.Build.Analyzers.1.55.31\build\Naos.Build.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Naos.Build.Analyzers.1.55.31\build\Naos.Build.Analyzers.targets'))" />
   </Target>
   <Import Project="..\packages\Microsoft.SqlServer.SqlManagementObjects.140.17283.0\build\net40\Microsoft.SqlServer.SqlManagementObjects.targets" Condition="Exists('..\packages\Microsoft.SqlServer.SqlManagementObjects.140.17283.0\build\net40\Microsoft.SqlServer.SqlManagementObjects.targets')" />
-  <Import Project="..\packages\Naos.Build.Analyzers.1.55.30\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.55.30\build\Naos.Build.Analyzers.targets')" />
+  <Import Project="..\packages\Naos.Build.Analyzers.1.55.31\build\Naos.Build.Analyzers.targets" Condition="Exists('..\packages\Naos.Build.Analyzers.1.55.31\build\Naos.Build.Analyzers.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
