@@ -11,6 +11,7 @@ namespace Naos.Deployment.Console
 {
     using System;
     using System.Threading;
+
     using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
@@ -53,6 +54,57 @@ namespace Naos.Deployment.Console
 
             using (var sshClient = connectionSettings.BuildConnectedSshClient())
             {
+                // answer start-up questions
+                using (var shellStream = sshClient.CreateShellStream())
+                {
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // do not accept EULA so that we can drop into shell and initialize
+                    shellStream.ExpectAndRespond("Please enter 'yes' to indicate your agreement", "yes", logger: logger);
+                    shellStream.ReadAllLines(TimeSpan.FromSeconds(30), logger);
+
+                    // Will this be the primary Access Server node?
+                    shellStream.ExpectAndRespond("Press ENTER for default [yes]", "yes", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Please specify the network interface and IP address to be used by the Admin Web UI:
+                    // (1) all interfaces: 0.0.0.0
+                    shellStream.ExpectAndRespond("Press Enter for default [1]", "1", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Please specify the port number for the Admin Web UI.
+                    shellStream.ExpectAndRespond("Press ENTER for default [943]", "943", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Please specify the TCP port number for the OpenVPN Daemon
+                    shellStream.ExpectAndRespond("Press ENTER for default [443]", "443", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Should client traffic be routed by default through the VPN?
+                    shellStream.ExpectAndRespond("Press ENTER for default [no]", "no", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Should client DNS traffic be routed by default through the VPN?
+                    shellStream.ExpectAndRespond("Press ENTER for default [no]", "no", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Use local authentication via internal DB?
+                    shellStream.ExpectAndRespond("Press ENTER for default [yes]", "yes", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Should private subnets be accessible to clients by default?
+                    shellStream.ExpectAndRespond("Press ENTER for EC2 default [yes]", "yes", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Do you wish to login to the Admin UI as "openvpn"?
+                    shellStream.ExpectAndRespond("Press ENTER for default [yes]", "yes", logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+
+                    // Please specify your Activation key (or leave blank to specify later)
+                    shellStream.ExpectAndRespond("Please specify your Activation key (or leave blank to specify later)", string.Empty, logger: logger);
+                    shellStream.ReadAllLines(logger: logger);
+                }
+
                 // initialize
                 sshClient.RunCommandAndThrowOnError(OpenVpnCommands.InitializeServer, logger);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
