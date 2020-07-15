@@ -10,7 +10,6 @@
 namespace Naos.Deployment.Console
 {
     using System;
-    using Naos.Deployment.Console.Internal;
     using Renci.SshNet;
 
     using static System.FormattableString;
