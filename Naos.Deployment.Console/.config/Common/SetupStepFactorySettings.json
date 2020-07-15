@@ -404,6 +404,8 @@
                 "   try{",
                 "   # this is generally a bad idea but recommended on chocolatey's site and needed due to some 7-zip error that was introduced around 2018/10/10.",
                 "   Set-ExecutionPolicy Bypass -Scope Process -Force",
+                "   # Need to support TLS 1.2",
+                "   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12",
                 "   # can't use write-host b/c we're not in interactive mode when executing remotely via WinRM.",
                 "   iex (((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1') -ireplace 'Write-Host', 'Write-Output'))",
                 "   }catch{}",
