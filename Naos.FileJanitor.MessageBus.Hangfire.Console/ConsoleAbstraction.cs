@@ -51,7 +51,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
             /*---------------------------------------------------------------------------*
              * Any method should run this logic to write telemetry info to the log.      *
              *---------------------------------------------------------------------------*/
-            WriteStandardTelemetry();
+            // WriteStandardTelemetry(); // removing this for now because it's not being collected well enough
 
             /*---------------------------------------------------------------------------*
              * Necessary configuration.                                                *
