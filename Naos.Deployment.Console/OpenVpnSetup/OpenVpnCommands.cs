@@ -33,7 +33,7 @@ namespace Naos.Deployment.Console
         /// The command to initialize/setup an OpenVPN Access Server using the default configuration values.
         /// </summary>
         // ReSharper disable once StringLiteralTypo
-        public static readonly string InitializeServer = "sudo ovpn-init --batch";
+        public static readonly string InitializeServer = "sudo ovpn-init --batch --force";
 
         /// <summary>
         /// The command to add a VPN user.
@@ -111,14 +111,14 @@ namespace Naos.Deployment.Console
         /// </summary>
         // ReSharper disable once IdentifierTypo
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Tls")]
-        public static readonly string UseHighestTlsVersionForWebserver = $"sudo {CliPath} --key \"cs.tls_version_min\" --value \"1.2\" ConfigPut";
+        public static readonly string UseHighestTlsVersionForWebserver = $"sudo {CliPath} --key \"cs.tls_version_min\" --value \"1.3\" ConfigPut";
 
         /// <summary>
         /// The command to use the highest TLS version (1.2) for the VPN server.
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn")]
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Tls")]
-        public static readonly string UseHighestTlsVersionForVpnServer = $"sudo {CliPath} --key \"vpn.server.tls_version_min\" --value \"1.2\" ConfigPut";
+        public static readonly string UseHighestTlsVersionForVpnServer = $"sudo {CliPath} --key \"vpn.server.tls_version_min\" --value \"1.3\" ConfigPut";
 
         /// <summary>
         /// The command to specify that the client's DNS server settings should not be altered.

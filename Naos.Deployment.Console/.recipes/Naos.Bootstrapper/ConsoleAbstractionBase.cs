@@ -12,6 +12,7 @@ namespace Naos.Bootstrapper
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -39,6 +40,16 @@ namespace Naos.Bootstrapper
     [System.CodeDom.Compiler.GeneratedCode("Naos.Bootstrapper.Recipes.Console", "See package version number")]
     public abstract class ConsoleAbstractionBase
     {
+        /// <summary>
+        /// The default prefix used in <see cref="PrefixAnnounce"/>.
+        /// </summary>
+        public const string DefaultAnnouncementPrefix = "- ";
+
+        /// <summary>
+        /// The padding used by the <see cref="PrefixAnnounce"/>.
+        /// </summary>
+        public const string DefaultAnnouncementPadding = "    ";
+
         private static IReadOnlyCollection<TypeRepresentation> globalTypeRepresentationsOfExceptionsToOmitStackTraceFrom = new List<TypeRepresentation>();
 
         /// <summary>
@@ -216,7 +227,10 @@ namespace Naos.Bootstrapper
         /// <param name="announcer">Optional announcer; DEFAULT is null which will go to <see cref="Console.WriteLine(string)" />.<see cref="Console.WriteLine(string)" />.</param>
         protected static void CommonSetup(bool debug, string environment = null, LogWritingSettings logWritingSettings = null, IReadOnlyCollection<LogWriterBase> configuredAndManagedLogProcessors = null, Action<string> announcer = null)
         {
-            var localAnnouncer = announcer ?? Console.WriteLine;
+            var launchTime = DateTime.UtcNow;
+            var localAnnouncer = BuildPrefixingAnnouncer(announcer);
+            localAnnouncer(Invariant($"Launched at {launchTime.ToLocalTime().TimeOfDay} on {launchTime.ToLocalTime().Date} (Local) | {launchTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)}Z (UTC)."));
+            localAnnouncer(Invariant($"> Common Setup"));
 
             /*---------------------------------------------------------------------------*
              * Useful for launching the debugger from the command line and making sure   *
@@ -224,6 +238,7 @@ namespace Naos.Bootstrapper
              *---------------------------------------------------------------------------*/
             if (debug)
             {
+                localAnnouncer(Invariant($"Debugger was set to be launched (debug=true option provide).{Environment.NewLine}{DefaultAnnouncementPadding}{DefaultAnnouncementPadding}- If the VisualStudio debugger menu is not shown check your 'Just-In-Time debugger' settings.{Environment.NewLine}{DefaultAnnouncementPadding}{DefaultAnnouncementPadding}- Go to (Visual Studio Menu Bar)->Tools->Options{Environment.NewLine}{DefaultAnnouncementPadding}{DefaultAnnouncementPadding}- then (Options Left Pane Navigation)->Debugging->Just-In-Time{Environment.NewLine}{DefaultAnnouncementPadding}{DefaultAnnouncementPadding}- then (Just-In-Time Debugging Settings on right pane)->Make sure the 'Managed' check box is checked."));
                 Debugger.Launch();
             }
 
@@ -232,12 +247,13 @@ namespace Naos.Bootstrapper
              * config files from the '.config' directory with 'environment' sub folders  *
              * the chain of responsibility is set in the App.config file using the       *
              * 'Naos.Configuration.Settings.Precedence' setting.  You can override the    *
-             * way this is used by specifying a different diretory for the config or     *
-             * providing additonal precedence values using                               *
+             * way this is used by specifying a different directory for the config or     *
+             * providing additional precedence values using                               *
              * ResetConfigureSerializationAndSetValues.                                  *
              *---------------------------------------------------------------------------*/
             if (!string.IsNullOrWhiteSpace(environment))
             {
+                localAnnouncer(Invariant($"Set Config Precedence to: '{environment}'."));
                 Config.SetPrecedence(environment, Config.CommonPrecedence);
             }
 
@@ -250,12 +266,53 @@ namespace Naos.Bootstrapper
             var localLogProcessorSettings = logWritingSettings ?? Config.Get<LogWritingSettings>(new SerializerRepresentation(SerializationKind.Json, typeof(LoggingJsonSerializationConfiguration).ToRepresentation()));
             if (localLogProcessorSettings == null)
             {
-                localAnnouncer("No LogProcessorSettings provided or found in config; using Null Object susbstitue.");
+                localAnnouncer(Invariant($"{DefaultAnnouncementPadding}- No LogProcessorSettings provided or found in config; using Null Object substitute."));
                 localLogProcessorSettings = new LogWritingSettings();
             }
 
             LogWriting.Instance.Setup(localLogProcessorSettings, localAnnouncer, configuredAndManagedLogProcessors, errorCodeKeys: new[] { "__OBC_ErrorCode__" });
+            localAnnouncer(Invariant($"< Common Setup"));
+        }
 
+        /// <summary>
+        /// Prefixes the announcement using the provided announcer.
+        /// </summary>
+        /// <param name="announcement">The announcement.</param>
+        /// <param name="announcer">Optional announcer; DEFAULT is Console.WriteLine.</param>
+        /// <param name="padding">Optional padding to use; DEFAULT is '    '.</param>
+        /// <param name="defaultPrefix">Optional prefix to use on announcements that have none; DEFAULT is hyphen/minus/'-'.</param>
+        protected static void PrefixAnnounce(
+            string announcement,
+            Action<string> announcer = null,
+            string padding = null,
+            string defaultPrefix = null)
+        {
+            var prefix =
+                (announcement.StartsWith(">") || announcement.StartsWith("<") || announcement.StartsWith("-") || announcement.StartsWith("!"))
+                    ? string.Empty
+                    : defaultPrefix ?? DefaultAnnouncementPrefix;
+
+            var prefixed = (padding ?? DefaultAnnouncementPadding) + prefix + announcement;
+            (announcer ?? Console.WriteLine)(prefixed);
+        }
+
+        /// <summary>
+        /// Builds an announcer wrapper that will call <see cref="PrefixAnnounce"/> with the announcement and provided values.
+        /// </summary>
+        /// <param name="announcer">Optional announcer; DEFAULT is Console.WriteLine.</param>
+        /// <param name="padding">Optional padding to use; DEFAULT is '    '.</param>
+        /// <param name="defaultPrefix">Optional prefix to use on announcements that have none; DEFAULT is hyphen/minus/'-'.</param>
+        /// <returns>An announcer that does the prefixing.</returns>
+        protected static Action<string> BuildPrefixingAnnouncer(
+            Action<string> announcer = null,
+            string padding = null,
+            string defaultPrefix = null)
+        {
+            void ResultAction(
+                string _)
+                => PrefixAnnounce(_, announcer, padding, defaultPrefix);
+
+            return ResultAction;
         }
 
         /// <summary>
@@ -316,7 +373,7 @@ namespace Naos.Bootstrapper
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "object", Justification = "Prefer this name for clarity.")]
         protected static void PrintArguments(object anonymousObjectWithArguments = null, string description = null, string method = null, Action<string> announcer = null)
         {
-            var localAnnouncer = announcer ?? Console.WriteLine;
+            var localAnnouncer = BuildPrefixingAnnouncer(announcer);
             var localMethod = method ?? new StackTrace().GetFrame(1).GetMethod().Name;
             var lines = new List<string>();
 
@@ -431,7 +488,7 @@ namespace Naos.Bootstrapper
             /*---------------------------------------------------------------------------*
              * Any method should run this logic to write telemetry info to the log.      *
              *---------------------------------------------------------------------------*/
-            WriteStandardTelemetry();
+            // WriteStandardTelemetry(); // removing this for now because it's not being collected well enough
 
             /*---------------------------------------------------------------------------*
              * This is not necessary but often very useful to print out the arguments.   *

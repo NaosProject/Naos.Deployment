@@ -18,6 +18,7 @@ namespace Naos.Deployment.Console
     using static System.FormattableString;
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
+#pragma warning disable CS3002 // Return type is not CLS-compliant
 
     /// <summary>
     /// Extension methods on type <see cref="SshClient"/>.
@@ -67,6 +68,21 @@ namespace Naos.Deployment.Console
         }
 
         /// <summary>
+        /// Creates a shell stream.
+        /// </summary>
+        /// <param name="client">The SSH client.</param>
+        /// <returns>
+        /// The shell stream.
+        /// </returns>
+        public static ShellStream CreateShellStream(
+            this SshClient client)
+        {
+            var result = client.CreateShellStream(Guid.NewGuid().ToString(), 1000, 1000000, 1000, 1000000, 10000000);
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if a reboot is required.
         /// </summary>
         /// <param name="client">The SSH client.</param>
@@ -94,5 +110,6 @@ namespace Naos.Deployment.Console
         }
     }
 
+#pragma warning restore CS3002 // Return type is not CLS-compliant
 #pragma warning restore CS3001 // Argument type is not CLS-compliant
 }

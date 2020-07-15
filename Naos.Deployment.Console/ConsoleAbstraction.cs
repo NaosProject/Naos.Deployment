@@ -389,7 +389,7 @@ namespace Naos.Deployment.Console
                 credsJson,
                 infrastructureTrackerJson,
                 instanceName,
-                environment.ToEnvironmentName(),
+                environment,
                 environmentType,
                 InstanceDescriptionJsonResultRecorder);
             instanceDescriptionJson.MustForOp(nameof(instanceDescriptionJson)).NotBeNullNorWhiteSpace();
@@ -404,7 +404,7 @@ namespace Naos.Deployment.Console
                 credsJson,
                 infrastructureTrackerJson,
                 instanceName,
-                environment.ToEnvironmentName(),
+                environment,
                 environmentType,
                 ConsoleOutputRecorder);
             consoleOutput.MustForOp(nameof(consoleOutput)).NotBeNullNorWhiteSpace();
@@ -450,14 +450,14 @@ namespace Naos.Deployment.Console
                 : null;
 
             var openVpnAccessServerSettings = new OpenVpnAccessServerSettings
-            {
-                AdminUsername = "admin-openvpn",
-                AdminPassword = vpnAdminPassword,
-                Hostname      = Invariant($"vpn.{environment.ToLowerInvariant()}.{DnsSuffix}"),
-                PrivateSubnetsClientsCanAccess = new[]
-                                                 {
-                                                     Invariant($"10.{secondCidrBlockValue}.0.0/16"),
-                                                 },
+                                              {
+                                                  AdminUsername = "admin-openvpn",
+                                                  AdminPassword = vpnAdminPassword,
+                                                  Hostname = Invariant($"vpn.{environment.ToLowerInvariant()}.{DnsSuffix}"),
+                                                  PrivateSubnetsClientsCanAccess = new[]
+                                                                                   {
+                                                                                       Invariant($"10.{secondCidrBlockValue}.0.0/16"),
+                                                                                   },
                                                   LicenseKey =
                                                       license, // "XXX-LICENSE-KEY [Optional as server can run 2 connections without a license]",
                                                   WebserverCaBundlePemEncoded =
@@ -470,7 +470,7 @@ namespace Naos.Deployment.Console
                                                       certificate
                                                         ?.PrivateKey
                                                          .AsPemEncodedString(), // @"<SSL Cert Private Key> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
-            };
+                                              };
 
             OpenVpnAccessServerSetupExecutor.SetupVpnServer(connectionSettings, openVpnAccessServerSettings, logger: Console.WriteLine);
         }
