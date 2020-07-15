@@ -310,29 +310,64 @@ namespace Naos.Deployment.Console
         /// <param name="license">Optional license to apply.</param>
         /// <param name="environment">Environment name being deployed to.</param>
         /// <param name="environmentType">Optionally sets the type of environment; DEFAULT is <see cref="EnvironmentType.Aws" />.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.IndexOf(System.String,System.StringComparison)", Justification = "Culture for string manipulation is correct.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "vpn", Justification = "Spelling/name is correct.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Want lowercase here.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Vpn", Justification = "Spelling/name is correct.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "credentialsJson", Justification = "Spelling/name is correct.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "nuget", Justification = "Not sure why it's complaining...")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1309:UseOrdinalStringComparison", MessageId = "System.String.IndexOf(System.String,System.StringComparison)", Justification = "String check is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Naming",
+            "CA1704:IdentifiersShouldBeSpelledCorrectly",
+            MessageId     = "vpn",
+            Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Globalization",
+            "CA1308:NormalizeStringsToUppercase",
+            Justification = "Want lowercase here.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Naming",
+            "CA1704:IdentifiersShouldBeSpelledCorrectly",
+            MessageId     = "Vpn",
+            Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Maintainability",
+            "CA1506:AvoidExcessiveClassCoupling",
+            Justification = "Like it this way.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Naming",
+            "CA2204:Literals should be spelled correctly",
+            MessageId     = "credentialsJson",
+            Justification = "Spelling/name is correct.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage(
+            "Microsoft.Naming",
+            "CA1702:CompoundWordsShouldBeCasedCorrectly",
+            MessageId     = "nuget",
+            Justification = "Not sure why it's complaining...")]
         [Verb(Aliases = "configvpn", Description = "Configure a new VPN server.")]
         public static void ConfigureVpnServer(
-            [Aliases("")] [Description("Credentials for the computing platform provider to use in JSON; DEFAULT will be environment variable value of NaosDeploymentCredentialsJson.")] [DefaultValue(null)] string credentialsJson,
-            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)] bool debug,
-            [Aliases("pass")] [Required] [Description("Admin password for VPN.")] string vpnAdminPassword,
-            [Aliases("")] [DefaultValue(null)] [Description("License to apply.")] string license,
-            [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")] string environment,
-            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)] EnvironmentType environmentType)
+            [Aliases("")]
+            [Description(
+                "Credentials for the computing platform provider to use in JSON; DEFAULT will be environment variable value of NaosDeploymentCredentialsJson.")]
+            [DefaultValue(null)]
+            string credentialsJson,
+            [Aliases("")] [Description("Launches the debugger.")] [DefaultValue(false)]
+            bool debug,
+            [Aliases("pass")] [Required] [Description("Admin password for VPN.")]
+            string vpnAdminPassword,
+            [Aliases("")] [DefaultValue(null)] [Description("License to apply.")]
+            string license,
+            [Aliases("env")] [Required] [Description("Sets the Naos.Configuration precedence to use specific settings.")]
+            string environment,
+            [Aliases("envType")] [Description("Optionally sets the type of environment; DEFAULT is Aws")] [DefaultValue(EnvironmentType.Aws)]
+            EnvironmentType environmentType)
         {
             CommonSetup(debug, environment.ToLowerInvariant(), announcer: NullAnnouncer);
             var infrastructureTrackerJson = GetInfrastructureTrackerJsonFromEnvironment(environment, environmentType, true);
 
             string privateKey = null;
-            void PrivateKeyResultRecorder(string s) => privateKey = s;
 
-            var credsJson = string.IsNullOrEmpty(credentialsJson) ? System.Environment.GetEnvironmentVariable(CredentialsEnvironmentVaraibleName, EnvironmentVariableTarget.User) : credentialsJson;
+            void PrivateKeyResultRecorder(
+                string s) => privateKey = s;
+
+            var credsJson = string.IsNullOrEmpty(credentialsJson)
+                ? System.Environment.GetEnvironmentVariable(CredentialsEnvironmentVaraibleName, EnvironmentVariableTarget.User)
+                : credentialsJson;
             NaosDeploymentBootstrapper.GetComputingContainerPrivateKey(
                 credsJson,
                 infrastructureTrackerJson,
@@ -346,19 +381,38 @@ namespace Naos.Deployment.Console
             var instanceName = ConsolidatedDeploymentFactory.BuildVpnServerDeployment(environment, DnsSuffix).Name;
 
             string instanceDescriptionJson = null;
-            void InstanceDescriptionJsonResultRecorder(string s) => instanceDescriptionJson = s;
-            NaosDeploymentBootstrapper.GetInstanceDetails(credsJson, infrastructureTrackerJson, instanceName, environment, environmentType, InstanceDescriptionJsonResultRecorder);
+
+            void InstanceDescriptionJsonResultRecorder(
+                string s) => instanceDescriptionJson = s;
+
+            NaosDeploymentBootstrapper.GetInstanceDetails(
+                credsJson,
+                infrastructureTrackerJson,
+                instanceName,
+                environment.ToEnvironmentName(),
+                environmentType,
+                InstanceDescriptionJsonResultRecorder);
             instanceDescriptionJson.MustForOp(nameof(instanceDescriptionJson)).NotBeNullNorWhiteSpace();
             var instanceDescription = DefaultJsonSerializer.Deserialize<InstanceDescription>(instanceDescriptionJson);
 
             string consoleOutput = null;
-            void ConsoleOutputRecorder(string s) => consoleOutput = s;
-            NaosDeploymentBootstrapper.GetConsoleOutput(credsJson, infrastructureTrackerJson, instanceName, environment, environmentType, ConsoleOutputRecorder);
+
+            void ConsoleOutputRecorder(
+                string s) => consoleOutput = s;
+
+            NaosDeploymentBootstrapper.GetConsoleOutput(
+                credsJson,
+                infrastructureTrackerJson,
+                instanceName,
+                environment.ToEnvironmentName(),
+                environmentType,
+                ConsoleOutputRecorder);
             consoleOutput.MustForOp(nameof(consoleOutput)).NotBeNullNorWhiteSpace();
             var beginSshHostKeyFingerprintsMarker = "-----BEGIN SSH HOST KEY FINGERPRINTS-----";
             var endSshHostKeyFingerprintsMarker   = "-----END SSH HOST KEY FINGERPRINTS-----";
             var indexOfSshFingerprintsStart       = consoleOutput.IndexOf(beginSshHostKeyFingerprintsMarker, StringComparison.InvariantCulture);
-            var indexOfSshFingerprintsEnd         = consoleOutput.IndexOf(endSshHostKeyFingerprintsMarker, StringComparison.InvariantCulture) + endSshHostKeyFingerprintsMarker.Length;
+            var indexOfSshFingerprintsEnd = consoleOutput.IndexOf(endSshHostKeyFingerprintsMarker, StringComparison.InvariantCulture)
+                                          + endSshHostKeyFingerprintsMarker.Length;
             var sshFingerprintsBlock              = consoleOutput.Substring(indexOfSshFingerprintsStart, indexOfSshFingerprintsEnd - indexOfSshFingerprintsStart);
             var beginRsaMarker                    = "2048 SHA256:";
             var indexOfRsaStartBlock              = sshFingerprintsBlock.IndexOf(beginRsaMarker, StringComparison.InvariantCulture) + beginRsaMarker.Length;
@@ -381,7 +435,8 @@ namespace Naos.Deployment.Console
                                      };
 
             var certificateRetrieverJson = GetCertificateRetrieverJsonFromEnvironment(environment, true);
-            var certificateRetrieverConfiguration = DefaultJsonSerializer.Deserialize<CertificateManagementConfigurationBase>(certificateRetrieverJson);
+            var certificateRetrieverConfiguration =
+                DefaultJsonSerializer.Deserialize<CertificateManagementConfigurationBase>(certificateRetrieverJson);
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
             var certificateNames = Run.TaskUntilCompletion(certificateRetriever.GetAllCertificateNamesAsync());
             var certificateName =
@@ -403,13 +458,39 @@ namespace Naos.Deployment.Console
                                                  {
                                                      Invariant($"10.{secondCidrBlockValue}.0.0/16"),
                                                  },
-                LicenseKey = license, // "XXX-LICENSE-KEY [Optional as server can run 2 connections without a license]",
-                WebserverCaBundlePemEncoded = certificate?.CertificateChain.GetIntermediateChainFromCertChain().AsPemEncodedString(), // "<SSL Cert Intermediary chain> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
-                WebserverCertificate = certificate?.CertificateChain.GetEndUserCertFromCertChain().AsPemEncodedString(), // @"<SSL Cert> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
-                WebserverPrivateKeyPemEncoded = certificate?.PrivateKey.AsPemEncodedString(), // @"<SSL Cert Private Key> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+                                                  LicenseKey =
+                                                      license, // "XXX-LICENSE-KEY [Optional as server can run 2 connections without a license]",
+                                                  WebserverCaBundlePemEncoded =
+                                                      certificate?.CertificateChain.GetIntermediateChainFromCertChain()
+                                                                  .AsPemEncodedString(), // "<SSL Cert Intermediary chain> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+                                                  WebserverCertificate =
+                                                      certificate?.CertificateChain.GetEndUserCertFromCertChain()
+                                                                  .AsPemEncodedString(), // @"<SSL Cert> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
+                                                  WebserverPrivateKeyPemEncoded =
+                                                      certificate
+                                                        ?.PrivateKey
+                                                         .AsPemEncodedString(), // @"<SSL Cert Private Key> [Optional as server will fall back on OpenVPN cert but browser will have a warning]",
             };
 
             OpenVpnAccessServerSetupExecutor.SetupVpnServer(connectionSettings, openVpnAccessServerSettings, logger: Console.WriteLine);
+        }
+
+        /// <summary>
+        /// Export a certificate from local store to pfx file.
+        /// </summary>
+        /// <param name="thumbprint">Thumbprint of certificate.</param>
+        /// <param name="pfxPassword">Password for pfx file.</param>
+        /// <param name="exportFilePath">File path to write pfx file to.</param>
+        [Verb(Aliases = "exportCert", Description = "Export a certificate from local store to pfx file.")]
+        public static void ExportCertificateFromStore(
+            [Aliases("")] [Description("Thumbprint of certificate.")] [Required]
+            string thumbprint,
+            [Aliases("pass")] [Description("Password for pfx file.")] [Required]
+            string pfxPassword,
+            [Aliases("path")] [Description("File path to write pfx file to.")] [Required]
+            string exportFilePath)
+        {
+            StoreLocation.LocalMachine.ExportPfxFromCertificateStoreToFile(StoreName.My, thumbprint, pfxPassword, exportFilePath, false, true);
         }
 
         /// <summary>
