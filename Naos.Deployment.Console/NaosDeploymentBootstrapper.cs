@@ -585,11 +585,11 @@ namespace Naos.Deployment.Console
                     {
                         StartInfo = new ProcessStartInfo(
                             Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe"),
-                            Invariant($"/generic:TERMSRV/{address} /user:{user} /pass:{password}"))
+                            Invariant($"/generic:TERMSRV/{address} /user:\"{user}\" /pass:\"{password}\""))
                         {
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            UseShellExecute = false,
+                            RedirectStandardOutput = true, // want to redirect output b/c we do not want to show it on the main application UNLESS there is an issue.
+                            RedirectStandardError = true, // want to redirect output b/c we do not want to show it on the main application UNLESS there is an issue.
+                            UseShellExecute = false, // cannot redirect output if it's running as shell execute
                         },
                     })
                     {
