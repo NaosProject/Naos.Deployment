@@ -12,7 +12,6 @@ namespace OBeautifulCode.Serialization.Recipes
     using System;
     using System.Collections.Concurrent;
 
-    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Compression;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Serialization.Bson;
@@ -58,7 +57,10 @@ namespace OBeautifulCode.Serialization.Recipes
             SerializerRepresentation serializerRepresentation,
             AssemblyMatchStrategy assemblyMatchStrategy = AssemblyMatchStrategy.AnySingleVersion)
         {
-            new { serializerRepresentation }.AsArg().Must().NotBeNull();
+            if (serializerRepresentation == null)
+            {
+                throw new ArgumentNullException(nameof(serializerRepresentation));
+            }
 
             ISerializer result;
 

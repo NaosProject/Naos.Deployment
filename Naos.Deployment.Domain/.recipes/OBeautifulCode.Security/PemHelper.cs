@@ -15,8 +15,6 @@ namespace OBeautifulCode.Security.Recipes
     using System.IO;
     using System.Text;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.OpenSsl;
     using Org.BouncyCastle.Pkcs;
@@ -45,7 +43,10 @@ namespace OBeautifulCode.Security.Recipes
         public static string AsPemEncodedString(
             this Pkcs10CertificationRequest csr)
         {
-            new { csr }.AsArg().Must().NotBeNull();
+            if (csr == null)
+            {
+                throw new ArgumentNullException(nameof(csr));
+            }
 
             var result = EncodeAsPem(csr);
             return result;
@@ -62,9 +63,13 @@ namespace OBeautifulCode.Security.Recipes
         public static string AsPemEncodedString(
             this AsymmetricCipherKeyPair keyPair)
         {
-            new { keyPair }.AsArg().Must().NotBeNull();
+            if (keyPair == null)
+            {
+                throw new ArgumentNullException(nameof(keyPair));
+            }
 
             var result = EncodeAsPem(keyPair);
+
             return result;
         }
 
@@ -79,9 +84,13 @@ namespace OBeautifulCode.Security.Recipes
         public static string AsPemEncodedString(
             this AsymmetricKeyParameter key)
         {
-            new { key }.AsArg().Must().NotBeNull();
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
 
             var result = EncodeAsPem(key);
+
             return result;
         }
 
@@ -96,9 +105,13 @@ namespace OBeautifulCode.Security.Recipes
         public static string AsPemEncodedString(
             this X509Certificate cert)
         {
-            new { cert }.AsArg().Must().NotBeNull();
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
 
             var result = EncodeAsPem(cert);
+
             return result;
         }
 
@@ -113,32 +126,45 @@ namespace OBeautifulCode.Security.Recipes
         public static string AsPemEncodedString(
             this IReadOnlyList<X509Certificate> certChain)
         {
-            new { certChain }.AsArg().Must().NotBeNull();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
 
             var stringBuilder = new StringBuilder();
+
             foreach (var cert in certChain)
             {
                 stringBuilder.Append(cert.AsPemEncodedString());
+
                 stringBuilder.AppendLine();
             }
 
             var result = stringBuilder.ToString();
+
             return result;
         }
 
         private static string EncodeAsPem(
             object item)
         {
-            new { item }.AsArg().Must().NotBeNull();
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
 
             string result;
+
             var stringBuilder = new StringBuilder();
+
             using (var stringWriter = new StringWriter(stringBuilder, CultureInfo.InvariantCulture))
             {
                 var pemWriter = new PemWriter(stringWriter);
-                pemWriter.WriteObject(item);
-                pemWriter.Writer.Flush();
 
+                pemWriter.WriteObject(item);
+
+                pemWriter.Writer.Flush();
+                
                 result = stringBuilder.ToString();
             }
 

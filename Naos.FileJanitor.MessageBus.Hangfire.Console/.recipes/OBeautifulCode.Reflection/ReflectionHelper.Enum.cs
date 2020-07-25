@@ -14,7 +14,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Linq;
 
     using OBeautifulCode.Enum.Recipes;
-    using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
     /// Provides useful methods related to reflection.
@@ -49,7 +48,10 @@ namespace OBeautifulCode.Reflection.Recipes
             where TEnum : struct
             where TAttribute : Attribute
         {
-            typeof(TEnum).IsEnum.AsArg($"typeof {nameof(TEnum)} is Enum").Must().BeTrue();
+            if (!typeof(TEnum).IsEnum)
+            {
+                throw new ArgumentException($"typeof({nameof(TEnum)}).IsEnum is false");
+            }
 
             var result =
                 EnumExtensions.GetDefinedEnumValues<TEnum>()
@@ -89,8 +91,15 @@ namespace OBeautifulCode.Reflection.Recipes
             Func<TAttribute, bool> attributeFilter = null)
             where TAttribute : Attribute
         {
-            new { enumType }.AsArg().Must().NotBeNull();
-            enumType.IsEnum.AsArg($"{nameof(enumType)} is Enum").Must().BeTrue();
+            if (enumType == null)
+            {
+                throw new ArgumentNullException(nameof(enumType));
+            }
+
+            if (!enumType.IsEnum)
+            {
+                throw new ArgumentException($"{nameof(enumType)}.IsEnum is false");
+            }
 
             var result =
                 EnumExtensions.GetDefinedEnumValues(enumType)

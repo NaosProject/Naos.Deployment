@@ -14,8 +14,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Reflection;
     using System.Runtime.CompilerServices;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     /// <summary>
     /// Provides useful methods related to reflection.
     /// </summary>
@@ -36,7 +34,10 @@ namespace OBeautifulCode.Reflection.Recipes
         public static bool IsCompilerGenerated(
             this MemberInfo memberInfo)
         {
-            new { memberInfo }.AsArg().Must().NotBeNull();
+            if (memberInfo == null)
+            {
+                throw new ArgumentNullException(nameof(memberInfo));
+            }
 
             var result = memberInfo.CustomAttributes.Select(s => s.AttributeType).Contains(typeof(CompilerGeneratedAttribute));
 
@@ -53,7 +54,10 @@ namespace OBeautifulCode.Reflection.Recipes
         public static Type GetUnderlyingType(
             this MemberInfo memberInfo)
         {
-            new { memberInfo }.AsArg().Must().NotBeNull();
+            if (memberInfo == null)
+            {
+                throw new ArgumentNullException(nameof(memberInfo));
+            }
 
             switch (memberInfo.MemberType)
             {

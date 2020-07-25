@@ -14,7 +14,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Linq;
     using System.Reflection;
 
-    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Type.Recipes;
 
     /// <summary>
@@ -57,10 +56,16 @@ namespace OBeautifulCode.Reflection.Recipes
             this Type type,
             BindingFlags bindingFlags = DefaultBindingFlags)
         {
-            new { type }.AsArg().Must().NotBeNull();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             var allProperties = type.GetProperties(bindingFlags);
-            var ret = allProperties.Select(_ => _.Name).ToList();
-            return ret;
+
+            var result = allProperties.Select(_ => _.Name).ToList();
+
+            return result;
         }
 
         /// <summary>
@@ -91,13 +96,15 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var pi = type.GetPropertyInfo(propertyName, bindingFlags);
+
             if (pi == null)
             {
                 throw new InvalidOperationException($"Property {propertyName} was not found on type {type.FullName}");
             }
 
-            var ret = pi.GetPropertyValue<T>(null);
-            return ret;
+            var result = pi.GetPropertyValue<T>(null);
+
+            return result;
         }
 
         /// <summary>
@@ -128,13 +135,15 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var pi = item.GetType().GetPropertyInfo(propertyName, bindingFlags);
+
             if (pi == null)
             {
                 throw new InvalidOperationException($"Property {propertyName} was not found on type {item.GetType().FullName}");
             }
 
-            var ret = pi.GetPropertyValue<T>(item);
-            return ret;
+            var result = pi.GetPropertyValue<T>(item);
+
+            return result;
         }
 
         /// <summary>
@@ -167,6 +176,7 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var pi = type.GetPropertyInfo(propertyName, bindingFlags);
+
             if (pi == null)
             {
                 throw new InvalidOperationException($"Property {propertyName} was not found on type {type.FullName}");
@@ -205,6 +215,7 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var pi = item.GetType().GetPropertyInfo(propertyName, bindingFlags);
+
             if (pi == null)
             {
                 throw new InvalidOperationException($"Property {propertyName} was not found in Type {item.GetType().FullName}");
@@ -224,6 +235,7 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             Type returnType = typeof(T);
+
             try
             {
                 var value = pi.GetValue(item, null);
@@ -289,15 +301,16 @@ namespace OBeautifulCode.Reflection.Recipes
                 throw new ArgumentException("The name of the property is whitespace.", nameof(propertyName));
             }
 
-            PropertyInfo pi = null;
+            PropertyInfo result = null;
 
-            while ((pi == null) && (type != null))
+            while ((result == null) && (type != null))
             {
-                pi = type.GetProperty(propertyName, bindingFlags);
+                result = type.GetProperty(propertyName, bindingFlags);
+
                 type = type.BaseType;
             }
 
-            return pi;
+            return result;
         }
     }
 }

@@ -14,8 +14,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Linq;
     using System.Reflection;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     /// <summary>
     /// Provides useful methods related to reflection.
     /// </summary>
@@ -117,7 +115,10 @@ namespace OBeautifulCode.Reflection.Recipes
             Func<TAttribute, bool> attributeFilter = null)
             where TAttribute : Attribute
         {
-            new { assembly }.AsArg().Must().NotBeNull();
+            if (assembly == null)
+            {
+                throw new ArgumentNullException(nameof(assembly));
+            }
 
             var attributeType = typeof(TAttribute);
             var result = assembly.GetTypes()

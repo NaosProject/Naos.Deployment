@@ -13,8 +13,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Collections.Generic;
     using System.Linq;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     /// <summary>
     /// Provides useful methods related to reflection.
     /// </summary>
@@ -42,7 +40,10 @@ namespace OBeautifulCode.Reflection.Recipes
             this Type type)
             where TAttribute : Attribute
         {
-            new { type }.AsArg().Must().NotBeNull();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
             var attributes = type.GetAttributes<TAttribute>();
             if (attributes.Count > 1)
@@ -72,11 +73,20 @@ namespace OBeautifulCode.Reflection.Recipes
             this object enumValue)
             where TAttribute : Attribute
         {
-            new { enumValue }.AsArg().Must().NotBeNull();
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
+
             var enumValueAsEnum = enumValue as Enum;
-            (enumValueAsEnum != null).AsArg($"{nameof(enumValue)} is Enum").Must().BeTrue();
+
+            if (enumValueAsEnum == null)
+            {
+                throw new ArgumentException($"'{nameof(enumValue)}' is not an Enum");
+            }
 
             var result = enumValueAsEnum.GetAttributeOnEnumValue<TAttribute>();
+
             return result;
         }
 
@@ -97,7 +107,10 @@ namespace OBeautifulCode.Reflection.Recipes
             this Enum enumValue)
             where TAttribute : Attribute
         {
-            new { enumValue }.AsArg().Must().NotBeNull();
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
 
             var attributes = enumValue.GetAttributesOnEnumValue<TAttribute>();
             if (attributes.Count > 1)
@@ -127,7 +140,10 @@ namespace OBeautifulCode.Reflection.Recipes
             this Type type)
             where TAttribute : Attribute
         {
-            new { type }.AsArg().Must().NotBeNull();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
             var attributes = type.GetCustomAttributes(typeof(TAttribute), false);
             var result = attributes.Cast<TAttribute>().ToList().AsReadOnly();
@@ -151,11 +167,20 @@ namespace OBeautifulCode.Reflection.Recipes
             this object enumValue)
             where TAttribute : Attribute
         {
-            new { enumValue }.AsArg().Must().NotBeNull();
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
+
             var enumValueAsEnum = enumValue as Enum;
-            (enumValueAsEnum != null).AsArg($"{nameof(enumValue)} is Enum").Must().BeTrue();
+
+            if (enumValueAsEnum == null)
+            {
+                throw new ArgumentException($"'{nameof(enumValue)}' is not an Enum");
+            }
 
             var result = enumValueAsEnum.GetAttributesOnEnumValue<TAttribute>();
+
             return result;
         }
 
@@ -177,7 +202,10 @@ namespace OBeautifulCode.Reflection.Recipes
             this Enum enumValue)
             where TAttribute : Attribute
         {
-            new { enumValue }.AsArg().Must().NotBeNull();
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
 
             var type = enumValue.GetType();
             var member = type.GetMember(enumValue.ToString());

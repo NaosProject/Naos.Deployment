@@ -9,7 +9,9 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
-    using OBeautifulCode.Assertion.Recipes;
+    using System;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Container for payload require to load certificates into the AWS Certificate Manager.
@@ -34,9 +36,35 @@ namespace OBeautifulCode.Security.Recipes
             string certificatePrivateKey,
             string certificateChain)
         {
-            new { certificateBody }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { certificatePrivateKey }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { certificateChain }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (certificateBody == null)
+            {
+                throw new ArgumentNullException(nameof(certificateBody));
+            }
+
+            if (string.IsNullOrWhiteSpace(certificateBody))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificateBody)}' is white space"));
+            }
+
+            if (certificatePrivateKey == null)
+            {
+                throw new ArgumentNullException(nameof(certificatePrivateKey));
+            }
+
+            if (string.IsNullOrWhiteSpace(certificatePrivateKey))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificatePrivateKey)}' is white space"));
+            }
+
+            if (certificateChain == null)
+            {
+                throw new ArgumentNullException(nameof(certificateChain));
+            }
+
+            if (string.IsNullOrWhiteSpace(certificateChain))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificateChain)}' is white space"));
+            }
 
             this.CertificateBody = certificateBody;
             this.CertificatePrivateKey = certificatePrivateKey;

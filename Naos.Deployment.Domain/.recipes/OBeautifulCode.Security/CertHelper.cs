@@ -21,7 +21,6 @@ namespace OBeautifulCode.Security.Recipes
     using System.Text;
     using System.Text.RegularExpressions;
 
-    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Security.Recipes.Internal;
     using OBeautifulCode.Type;
 
@@ -74,12 +73,27 @@ namespace OBeautifulCode.Security.Recipes
             byte[] input,
             string clearTextPassword)
         {
-            new { input }.AsArg().Must().NotBeNull();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
 
             var extractedPfxFile = ExtractCryptographicObjectsFromPfxFile(input, clearTextPassword);
 
-            new { extractedPfxFile.PrivateKey }.AsOp().Must().NotBeNull();
+            if (extractedPfxFile.PrivateKey == null)
+            {
+                throw new InvalidOperationException(Invariant($"{nameof(extractedPfxFile)}.{nameof(ExtractedPfxFile.PrivateKey)} is null"));
+            }
 
             var endUserCertificate = extractedPfxFile.CertificateChain.GetEndUserCertFromCertChain();
 
@@ -120,10 +134,45 @@ namespace OBeautifulCode.Security.Recipes
             bool overwrite,
             string pemEncodedPrivateKeyFilePath = null)
         {
-            new { pemEncodedIntermediateCertificateChainFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { pemEncodedCertificateFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { outputPfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (pemEncodedIntermediateCertificateChainFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedIntermediateCertificateChainFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedIntermediateCertificateChainFilePath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedIntermediateCertificateChainFilePath)}' is white space"));
+            }
+
+            if (pemEncodedCertificateFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedCertificateFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedCertificateFilePath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedCertificateFilePath)}' is white space"));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
+
+            if (outputPfxFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(outputPfxFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(outputPfxFilePath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(outputPfxFilePath)}' is white space"));
+            }
 
             var pemEncodedIntermediateCertificateChain = File.ReadAllText(pemEncodedIntermediateCertificateChainFilePath);
 
@@ -175,12 +224,47 @@ namespace OBeautifulCode.Security.Recipes
             bool overwrite,
             AsymmetricKeyParameter privateKey = null)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { outputPfxFilePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
+
+            if (outputPfxFilePath == null)
+            {
+                throw new ArgumentNullException(nameof(outputPfxFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(outputPfxFilePath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(outputPfxFilePath)}' is white space"));
+            }
+
             if (privateKey != null)
             {
-                new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
+                if (!privateKey.IsPrivate)
+                {
+                    throw new ArgumentException(Invariant($"'{nameof(privateKey.IsPrivate)}' is false"));
+                }
             }
 
             var mode = overwrite ? FileMode.Create : FileMode.CreateNew;
@@ -215,13 +299,47 @@ namespace OBeautifulCode.Security.Recipes
             Stream output,
             AsymmetricKeyParameter privateKey = null)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { output }.AsArg().Must().NotBeNull();
-            new { output.CanWrite }.AsArg().Must().BeTrue();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
+
+            if (output == null)
+            {
+                throw new ArgumentNullException(nameof(output));
+            }
+
+            if (!output.CanWrite)
+            {
+                throw new ArgumentException(Invariant($"'{nameof(output.CanWrite)}' is false"));
+            }
+
             if (privateKey != null)
             {
-                new { privateKey.IsPrivate }.AsArg().Must().BeTrue();
+                if (!privateKey.IsPrivate)
+                {
+                    throw new ArgumentException(Invariant($"'{nameof(privateKey.IsPrivate)}' is false"));
+                }
             }
 
             certChain = certChain.OrderCertChainFromLowestToHighestLevelOfTrust();
@@ -268,7 +386,9 @@ namespace OBeautifulCode.Security.Recipes
             int rsaKeyLength = 2048)
         {
             var rsaKeyPairGenerator = new RsaKeyPairGenerator();
+
             rsaKeyPairGenerator.Init(new KeyGenerationParameters(new SecureRandom(), rsaKeyLength));
+
             var keyPair = rsaKeyPairGenerator.GenerateKeyPair();
 
             return keyPair;
@@ -305,13 +425,70 @@ namespace OBeautifulCode.Security.Recipes
             string state,
             string country)
         {
-            new { asymmetricKeyPair }.AsArg().Must().NotBeNull();
-            new { commonName }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { organizationalUnit }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { organization }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { locality }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { state }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { country }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (asymmetricKeyPair == null)
+            {
+                throw new ArgumentNullException(nameof(asymmetricKeyPair));
+            }
+
+            if (commonName == null)
+            {
+                throw new ArgumentNullException(nameof(commonName));
+            }
+
+            if (string.IsNullOrWhiteSpace(commonName))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(commonName)}' is white space"));
+            }
+
+            if (organizationalUnit == null)
+            {
+                throw new ArgumentNullException(nameof(organizationalUnit));
+            }
+
+            if (string.IsNullOrWhiteSpace(organizationalUnit))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(organizationalUnit)}' is white space"));
+            }
+
+            if (organization == null)
+            {
+                throw new ArgumentNullException(nameof(organization));
+            }
+
+            if (string.IsNullOrWhiteSpace(organization))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(organization)}' is white space"));
+            }
+
+            if (locality == null)
+            {
+                throw new ArgumentNullException(nameof(locality));
+            }
+
+            if (string.IsNullOrWhiteSpace(locality))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(locality)}' is white space"));
+            }
+
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (string.IsNullOrWhiteSpace(state))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(state)}' is white space"));
+            }
+
+            if (country == null)
+            {
+                throw new ArgumentNullException(nameof(country));
+            }
+
+            if (string.IsNullOrWhiteSpace(country))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(country)}' is white space"));
+            }
 
             var attributesInOrder = new List<DerObjectValue>
             {
@@ -334,6 +511,7 @@ namespace OBeautifulCode.Security.Recipes
             if ((subjectAlternativeNames != null) && subjectAlternativeNames.Any())
             {
                 var generalNames = subjectAlternativeNames.Select(_ => new GeneralName(GeneralName.DnsName, _)).ToArray();
+
                 extensions.Add(X509Extensions.SubjectAlternativeName, new X509Extension(false, new DerOctetString(new GeneralNames(generalNames))));
             }
 
@@ -358,8 +536,15 @@ namespace OBeautifulCode.Security.Recipes
             X509Certificate2 certificate,
             Encoding encoding = null)
         {
-            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (base64EncodedEncryptedBytes == null)
+            {
+                throw new ArgumentNullException(nameof(base64EncodedEncryptedBytes));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var result = base64EncodedEncryptedBytes.DecryptStringFromBase64String(new[] { certificate }, encoding);
 
@@ -383,8 +568,25 @@ namespace OBeautifulCode.Security.Recipes
             IReadOnlyCollection<X509Certificate2> certificates,
             Encoding encoding = null)
         {
-            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
-            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (base64EncodedEncryptedBytes == null)
+            {
+                throw new ArgumentNullException(nameof(base64EncodedEncryptedBytes));
+            }
+
+            if (certificates == null)
+            {
+                throw new ArgumentNullException(nameof(certificates));
+            }
+
+            if (!certificates.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' is an empty enumerable"));
+            }
+
+            if (certificates.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' contains an element that is null"));
+            }
 
             encoding = encoding ?? Encoding.UTF8;
 
@@ -409,8 +611,15 @@ namespace OBeautifulCode.Security.Recipes
             this string base64EncodedEncryptedBytes,
             X509Certificate2 certificate)
         {
-            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (base64EncodedEncryptedBytes == null)
+            {
+                throw new ArgumentNullException(nameof(base64EncodedEncryptedBytes));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var result = base64EncodedEncryptedBytes.DecryptByteArrayFromBase64String(new[] { certificate });
 
@@ -432,8 +641,25 @@ namespace OBeautifulCode.Security.Recipes
             this string base64EncodedEncryptedBytes,
             IReadOnlyCollection<X509Certificate2> certificates)
         {
-            new { base64EncodedEncryptedBytes }.Must().NotBeNull();
-            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (base64EncodedEncryptedBytes == null)
+            {
+                throw new ArgumentNullException(nameof(base64EncodedEncryptedBytes));
+            }
+
+            if (certificates == null)
+            {
+                throw new ArgumentNullException(nameof(certificates));
+            }
+
+            if (!certificates.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' is an empty enumerable"));
+            }
+
+            if (certificates.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' contains an element that is null"));
+            }
 
             var encryptedBytes = Convert.FromBase64String(base64EncodedEncryptedBytes);
 
@@ -457,8 +683,15 @@ namespace OBeautifulCode.Security.Recipes
             this byte[] bytes,
             X509Certificate2 certificate)
         {
-            new { bytes }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (bytes == null)
+            {
+                throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var result = bytes.Decrypt(new[] { certificate });
 
@@ -481,8 +714,25 @@ namespace OBeautifulCode.Security.Recipes
             this byte[] bytes,
             IReadOnlyCollection<X509Certificate2> certificates)
         {
-            new { bytes }.Must().NotBeNull();
-            new { certificates }.Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (bytes == null)
+            {
+                throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (certificates == null)
+            {
+                throw new ArgumentNullException(nameof(certificates));
+            }
+
+            if (!certificates.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' is an empty enumerable"));
+            }
+
+            if (certificates.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificates)}' contains an element that is null"));
+            }
 
             var certCollection = new X509Certificate2Collection(certificates.ToArray());
 
@@ -513,8 +763,15 @@ namespace OBeautifulCode.Security.Recipes
             X509Certificate2 certificate,
             Encoding encoding = null)
         {
-            new { plaintext }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (plaintext == null)
+            {
+                throw new ArgumentNullException(nameof(plaintext));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             encoding = encoding ?? Encoding.UTF8;
 
@@ -540,8 +797,15 @@ namespace OBeautifulCode.Security.Recipes
             this byte[] bytes,
             X509Certificate2 certificate)
         {
-            new { bytes }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (bytes == null)
+            {
+                throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var encryptedBytes = bytes.Encrypt(certificate);
 
@@ -565,8 +829,15 @@ namespace OBeautifulCode.Security.Recipes
             this byte[] bytes,
             X509Certificate2 certificate)
         {
-            new { bytes }.Must().NotBeNull();
-            new { certificate }.Must().NotBeNull();
+            if (bytes == null)
+            {
+                throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (certificate == null)
+            {
+                throw new ArgumentNullException(nameof(certificate));
+            }
 
             var contentInfo = new ContentInfo(bytes);
 
@@ -696,8 +967,20 @@ namespace OBeautifulCode.Security.Recipes
             byte[] input,
             string clearTextPassword)
         {
-            new { input }.AsArg().Must().NotBeNull();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
 
             using (var inputStream = new MemoryStream(input))
             {
@@ -722,26 +1005,49 @@ namespace OBeautifulCode.Security.Recipes
             Stream input,
             string clearTextPassword)
         {
-            new { input }.AsArg().Must().NotBeNull();
-            new { input.CanRead }.AsArg().Must().BeTrue();
-            new { clearTextPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            if (!input.CanRead)
+            {
+                throw new ArgumentException(Invariant($"'{nameof(input.CanRead)}' is false"));
+            }
+
+            if (clearTextPassword == null)
+            {
+                throw new ArgumentNullException(nameof(clearTextPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(clearTextPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(clearTextPassword)}' is white space"));
+            }
 
             var store = new Pkcs12Store(input, clearTextPassword.ToCharArray());
+            
             var aliases = store.Aliases;
 
             var certificateChain = new List<X509Certificate>();
+            
             foreach (var alias in aliases)
             {
                 var certEntry = store.GetCertificate(alias.ToString());
+
                 certificateChain.Add(certEntry.Certificate);
             }
 
             var endUserCertificate = certificateChain.GetEndUserCertFromCertChain();
+
             var subjectAttributes = endUserCertificate.GetX509SubjectAttributes();
+
             var storeKey = store.GetKey(subjectAttributes[X509SubjectAttributeKind.CommonName]);
+
             var privateKey = storeKey.Key;
 
             var result = new ExtractedPfxFile(certificateChain, privateKey);
+
             return result;
         }
 
@@ -772,9 +1078,35 @@ namespace OBeautifulCode.Security.Recipes
             bool shouldThrowIfCertificateIsInvalid,
             bool shouldThrowIfPrivateKeyIsMissing)
         {
-            new { thumbprint }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { unsecuredPassword }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { filePath }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (thumbprint == null)
+            {
+                throw new ArgumentNullException(nameof(thumbprint));
+            }
+
+            if (string.IsNullOrWhiteSpace(thumbprint))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(thumbprint)}' is white space"));
+            }
+
+            if (unsecuredPassword == null)
+            {
+                throw new ArgumentNullException(nameof(unsecuredPassword));
+            }
+
+            if (string.IsNullOrWhiteSpace(unsecuredPassword))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(unsecuredPassword)}' is white space"));
+            }
+
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(filePath)}' is white space"));
+            }
 
             var cert = GetCertificateFromStore(storeLocation, storeName, thumbprint, true, shouldThrowIfCertificateIsInvalid);
 
@@ -835,7 +1167,20 @@ namespace OBeautifulCode.Security.Recipes
         public static X509Certificate GetEndUserCertFromCertChain(
             this IReadOnlyCollection<X509Certificate> certChain)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
 
             var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Last();
             return result;
@@ -856,9 +1201,23 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyList<X509Certificate> GetIntermediateChainFromCertChain(
             this IReadOnlyCollection<X509Certificate> certChain)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
 
             var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Take(certChain.Count - 1).ToList();
+
             return result;
         }
 
@@ -874,12 +1233,17 @@ namespace OBeautifulCode.Security.Recipes
         public static string GetThumbprint(
             this X509Certificate cert)
         {
-            new { cert }.AsArg().Must().NotBeNull();
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
 
             using (var shaProvider = new SHA1CryptoServiceProvider())
             {
                 var hash = shaProvider.ComputeHash(cert.GetEncoded());
+
                 var result = BitConverter.ToString(hash).Replace("-", " ").ToLowerInvariant();
+
                 return result;
             }
         }
@@ -895,7 +1259,10 @@ namespace OBeautifulCode.Security.Recipes
         public static UtcDateTimeRangeInclusive GetValidityPeriod(
             this X509Certificate cert)
         {
-            new { cert }.AsArg().Must().NotBeNull();
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
 
             var result = new UtcDateTimeRangeInclusive(cert.NotBefore, cert.NotAfter);
 
@@ -913,7 +1280,10 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyDictionary<X509FieldKind, string> GetX509Fields(
             this X509Certificate cert)
         {
-            new { cert }.AsArg().Must().NotBeNull();
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
 
             var result = new Dictionary<X509FieldKind, string>
             {
@@ -936,10 +1306,14 @@ namespace OBeautifulCode.Security.Recipes
         /// The X509 subject attribute values indexed by the kind of subject attribute.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="csr"/> is null.</exception>
+        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Specifically supporting this kind of CSR.")]
         public static IReadOnlyDictionary<X509SubjectAttributeKind, string> GetX509SubjectAttributes(
             this Pkcs10CertificationRequest csr)
         {
-            new { csr }.AsArg().Must().NotBeNull();
+            if (csr == null)
+            {
+                throw new ArgumentNullException(nameof(csr));
+            }
 
             var subject = csr.GetCertificationRequestInfo().Subject;
 
@@ -959,7 +1333,10 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyDictionary<X509SubjectAttributeKind, string> GetX509SubjectAttributes(
             this X509Certificate cert)
         {
-            new { cert }.AsArg().Must().NotBeNull();
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
 
             var subject = cert.SubjectDN;
 
@@ -979,7 +1356,10 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyDictionary<X509SubjectAttributeKind, string> GetX509SubjectAttributes(
             this X509Name subject)
         {
-            new { subject }.AsArg().Must().NotBeNull();
+            if (subject == null)
+            {
+                throw new ArgumentNullException(nameof(subject));
+            }
 
             var objectIds = subject.GetOidList();
             var values = subject.GetValueList();
@@ -1046,7 +1426,20 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyList<X509Certificate> OrderCertChainFromLowestToHighestLevelOfTrust(
             this IReadOnlyCollection<X509Certificate> certChain)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
 
             var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Reverse().ToList();
             return result;
@@ -1063,11 +1456,24 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "This is a good use of catching general exception types.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = ObcSuppressBecause.CA1502_AvoidExcessiveComplexity_DisagreeWithAssessment)]
         public static IReadOnlyList<X509Certificate> OrderCertChainFromHighestToLowestLevelOfTrust(
             this IReadOnlyCollection<X509Certificate> certChain)
         {
-            new { certChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (certChain == null)
+            {
+                throw new ArgumentNullException(nameof(certChain));
+            }
+
+            if (!certChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' is an empty enumerable"));
+            }
+
+            if (certChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certChain)}' contains an element that is null"));
+            }
 
             certChain = certChain.Distinct().ToList();
 
@@ -1141,7 +1547,15 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyList<X509Certificate> ReadCertChainFromPemEncodedPkcs7CmsString(
             string pemEncodedPkcs7)
         {
-            new { pemEncodedPkcs7 }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (pemEncodedPkcs7 == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedPkcs7));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedPkcs7))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedPkcs7)}' is white space"));
+            }
 
             IReadOnlyList<X509Certificate> result;
             using (var stringReader = new StringReader(pemEncodedPkcs7))
@@ -1168,7 +1582,15 @@ namespace OBeautifulCode.Security.Recipes
         public static IReadOnlyList<X509Certificate> ReadCertsFromPemEncodedString(
             string pemEncodedCerts)
         {
-            new { pemEncodedCerts }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (pemEncodedCerts == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedCerts));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedCerts))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedCerts)}' is white space"));
+            }
 
             // remove empty lines - required so that PemReader.ReadObject doesn't return null in-between returning certs
             pemEncodedCerts = Regex.Replace(pemEncodedCerts, @"^\s*$[\r\n]*", string.Empty, RegexOptions.Multiline);
@@ -1201,7 +1623,15 @@ namespace OBeautifulCode.Security.Recipes
         public static Pkcs10CertificationRequest ReadCsrFromPemEncodedString(
             string pemEncodedCsr)
         {
-            new { pemEncodedCsr }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (pemEncodedCsr == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedCsr));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedCsr))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedCsr)}' is white space"));
+            }
 
             Pkcs10CertificationRequest result;
             using (var stringReader = new StringReader(pemEncodedCsr))
@@ -1226,7 +1656,15 @@ namespace OBeautifulCode.Security.Recipes
         public static AsymmetricKeyParameter ReadPrivateKeyFromPemEncodedString(
             string pemEncodedPrivateKey)
         {
-            new { pemEncodedPrivateKey }.AsArg().Must().NotBeNullNorWhiteSpace();
+            if (pemEncodedPrivateKey == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedPrivateKey));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedPrivateKey))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedPrivateKey)}' is white space"));
+            }
 
             AsymmetricKeyParameter result;
 
@@ -1287,10 +1725,35 @@ namespace OBeautifulCode.Security.Recipes
             IReadOnlyList<DerObjectValue> attributesInOrder,
             IReadOnlyDictionary<DerObjectIdentifier, X509Extension> extensions)
         {
-            new { asymmetricKeyPair }.AsArg().Must().NotBeNull();
-            new { signatureAlgorithm }.AsArg().Must().NotBeEqualTo(SignatureAlgorithm.None);
-            new { attributesInOrder }.AsArg().Must().NotBeNull().And().NotBeEmptyEnumerable();
-            new { extensions }.AsArg().Must().NotBeNull().And().NotBeEmptyEnumerable();
+            if (asymmetricKeyPair == null)
+            {
+                throw new ArgumentNullException(nameof(asymmetricKeyPair));
+            }
+
+            if (signatureAlgorithm == SignatureAlgorithm.None)
+            {
+                throw new ArgumentOutOfRangeException(Invariant($"'{nameof(signatureAlgorithm)}' == '{SignatureAlgorithm.None}'"), (Exception)null);
+            }
+
+            if (attributesInOrder == null)
+            {
+                throw new ArgumentNullException(nameof(attributesInOrder));
+            }
+
+            if (!attributesInOrder.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(attributesInOrder)}' is an empty enumerable"));
+            }
+                
+            if (extensions == null)
+            {
+                throw new ArgumentNullException(nameof(extensions));
+            }
+
+            if (!extensions.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(extensions)}' is an empty enumerable"));
+            }
 
             var signatureFactory = new Asn1SignatureFactory(signatureAlgorithm.ToSignatureAlgorithmString(), asymmetricKeyPair.Private);
 

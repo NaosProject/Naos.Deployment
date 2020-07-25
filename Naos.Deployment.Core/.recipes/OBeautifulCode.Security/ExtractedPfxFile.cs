@@ -9,12 +9,14 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
+    using System;
     using System.Collections.Generic;
-
-    using OBeautifulCode.Assertion.Recipes;
+    using System.Linq;
 
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.X509;
+
+    using static System.FormattableString;
 
     /// <summary>
     /// Represents cryptographic objects extracted from a PFX file.
@@ -37,7 +39,20 @@ namespace OBeautifulCode.Security.Recipes
             IReadOnlyList<X509Certificate> certificateChain,
             AsymmetricKeyParameter privateKey)
         {
-            new { certificateChain }.AsArg().Must().NotBeNullNorEmptyEnumerableNorContainAnyNulls();
+            if (certificateChain == null)
+            {
+                throw new ArgumentNullException(nameof(certificateChain));
+            }
+
+            if (!certificateChain.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificateChain)}' is an empty enumerable"));
+            }
+
+            if (certificateChain.Any(_ => _ == null))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(certificateChain)}' contains an element that is null"));
+            }
 
             this.CertificateChain = certificateChain;
             this.PrivateKey = privateKey;

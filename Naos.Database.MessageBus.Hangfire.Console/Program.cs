@@ -37,11 +37,13 @@ namespace Naos.Database.MessageBus.Hangfire.Console
             {
                 WriteAsciiArt(Console.WriteLine);
 
-                // ConsoleAbstraction must derive from ConsoleAbstractionBase which is provided in the Bootstrapper recipes, it contains the implementation of this method.
                 var consoleAbstraction = new ConsoleAbstraction();
-                ConsoleAbstractionBase.UpdateTypeRepresentationsOfExceptionsToOmitStackTraceFrom(consoleAbstraction.ExceptionTypeRepresentationsToOnlyPrintMessage);
 
+                // ConsoleAbstraction must derive from ConsoleAbstractionBase which is provided in the Bootstrapper recipes, it contains the implementation of this method.
                 consoleAbstraction.PerformEntryPointPreChecks();
+
+                // Need to register the exception types to the static context.
+                ConsoleAbstractionBase.UpdateTypeRepresentationsOfExceptionsToOmitStackTraceFrom(consoleAbstraction.ExceptionTypeRepresentationsToOnlyPrintMessage);
 
                 /*---------------------------------------------------------------------------*
                  * This is just a pass through to the CLAP implementation of the harness,    *

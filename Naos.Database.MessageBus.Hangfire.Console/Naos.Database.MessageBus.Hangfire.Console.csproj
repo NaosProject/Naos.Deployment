@@ -194,86 +194,86 @@
     <Reference Include="MongoDB.Bson, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Bson.2.4.4\lib\net45\MongoDB.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Configuration.Domain, Version=1.0.17.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Configuration.Domain.1.0.17\lib\net462\Naos.Configuration.Domain.dll</HintPath>
+    <Reference Include="Naos.Configuration.Domain, Version=1.0.18.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Configuration.Domain.1.0.18\lib\net462\Naos.Configuration.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Cron, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.1.0.24\lib\net462\Naos.Cron.dll</HintPath>
+    <Reference Include="Naos.Cron, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.1.0.25\lib\net462\Naos.Cron.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Cron.Serialization.Json, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Cron.Serialization.Json.1.0.24\lib\net462\Naos.Cron.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Cron.Serialization.Json, Version=1.0.25.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Cron.Serialization.Json.1.0.25\lib\net462\Naos.Cron.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Domain.1.1.205\lib\net462\Naos.Database.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Domain, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Domain.1.1.206\lib\net462\Naos.Database.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Mongo.Administration, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Mongo.Administration.1.1.205\lib\net462\Naos.Database.Mongo.Administration.dll</HintPath>
+    <Reference Include="Naos.Database.Mongo.Administration, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Mongo.Administration.1.1.206\lib\net462\Naos.Database.Mongo.Administration.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Mongo.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Mongo.Domain.1.1.205\lib\net462\Naos.Database.Mongo.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.Mongo.Domain, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.Mongo.Domain.1.1.206\lib\net462\Naos.Database.Mongo.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer.Administration, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Administration.1.1.205\lib\net462\Naos.Database.SqlServer.Administration.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer.Administration, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.Administration.1.1.206\lib\net462\Naos.Database.SqlServer.Administration.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.SqlServer.Domain, Version=1.1.205.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Domain.1.1.205\lib\net462\Naos.Database.SqlServer.Domain.dll</HintPath>
+    <Reference Include="Naos.Database.SqlServer.Domain, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Database.SqlServer.Domain.1.1.206\lib\net462\Naos.Database.SqlServer.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Diagnostics.Domain, Version=1.3.32.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.32\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
+    <Reference Include="Naos.Diagnostics.Domain, Version=1.3.33.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.33\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.147.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.147\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.148.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.148\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Domain, Version=1.0.72.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Domain.1.0.72\lib\net462\Naos.Logging.Domain.dll</HintPath>
+    <Reference Include="Naos.Logging.Domain, Version=1.0.73.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Domain.1.0.73\lib\net462\Naos.Logging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Logging.Persistence, Version=1.0.72.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Logging.Persistence.1.0.72\lib\net462\Naos.Logging.Persistence.dll</HintPath>
+    <Reference Include="Naos.Logging.Persistence, Version=1.0.73.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Logging.Persistence.1.0.73\lib\net462\Naos.Logging.Persistence.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.10\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
+    <Reference Include="Naos.MachineManagement.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MachineManagement.Domain.1.0.11\lib\net462\Naos.MachineManagement.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Core, Version=1.3.30.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Core.1.3.30\lib\net462\Naos.MessageBus.Core.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Core, Version=1.3.31.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Core.1.3.31\lib\net462\Naos.MessageBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Domain, Version=1.3.30.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Domain.1.3.30\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Domain, Version=1.3.31.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Domain.1.3.31\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Hangfire.Sender, Version=1.3.30.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Hangfire.Sender.1.3.30\lib\net462\Naos.MessageBus.Hangfire.Sender.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Hangfire.Sender, Version=1.3.31.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Hangfire.Sender.1.3.31\lib\net462\Naos.MessageBus.Hangfire.Sender.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.MessageBus.Persistence, Version=1.3.30.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.MessageBus.Persistence.1.3.30\lib\net462\Naos.MessageBus.Persistence.dll</HintPath>
+    <Reference Include="Naos.MessageBus.Persistence, Version=1.3.31.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.MessageBus.Persistence.1.3.31\lib\net462\Naos.MessageBus.Persistence.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Domain, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Domain.1.0.54\lib\net462\Naos.Packaging.Domain.dll</HintPath>
+    <Reference Include="Naos.Packaging.Domain, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Domain.1.0.55\lib\net462\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.54.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.54\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.55.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.55\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Telemetry.Domain, Version=1.0.23.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.23\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
+    <Reference Include="Naos.Telemetry.Domain, Version=1.0.24.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Telemetry.Domain.1.0.24\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Compression, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Compression.1.0.14\lib\net462\OBeautifulCode.Compression.dll</HintPath>
+    <Reference Include="OBeautifulCode.Compression, Version=1.0.16.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Compression.1.0.16\lib\net462\OBeautifulCode.Compression.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Representation.System, Version=1.0.49.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.49\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
+    <Reference Include="OBeautifulCode.Representation.System, Version=1.0.52.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Representation.System.1.0.52\lib\net462\OBeautifulCode.Representation.System.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization, Version=1.0.58.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.1.0.58\lib\net462\OBeautifulCode.Serialization.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.1.0.63\lib\net462\OBeautifulCode.Serialization.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization.Bson, Version=1.0.58.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.Bson.1.0.58\lib\net462\OBeautifulCode.Serialization.Bson.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization.Bson, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.Bson.1.0.63\lib\net462\OBeautifulCode.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.58.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.58\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.63\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Serialization.PropertyBag, Version=1.0.58.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Serialization.PropertyBag.1.0.58\lib\net462\OBeautifulCode.Serialization.PropertyBag.dll</HintPath>
+    <Reference Include="OBeautifulCode.Serialization.PropertyBag, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Serialization.PropertyBag.1.0.63\lib\net462\OBeautifulCode.Serialization.PropertyBag.dll</HintPath>
     </Reference>
     <Reference Include="OBeautifulCode.Type, Version=1.0.51.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Type.1.0.51\lib\net462\OBeautifulCode.Type.dll</HintPath>

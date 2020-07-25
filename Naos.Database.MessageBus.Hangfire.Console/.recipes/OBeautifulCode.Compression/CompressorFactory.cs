@@ -11,8 +11,6 @@ namespace OBeautifulCode.Compression.Recipes
 {
     using System;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     using static System.FormattableString;
 
     /// <summary>
@@ -43,7 +41,10 @@ namespace OBeautifulCode.Compression.Recipes
         public ICompressor BuildCompressor(
             CompressionKind compressionKind)
         {
-            new { compressionKind }.AsArg().Must().NotBeEqualTo(CompressionKind.Invalid);
+            if (compressionKind == CompressionKind.Invalid)
+            {
+                throw new ArgumentOutOfRangeException(Invariant($"'{nameof(compressionKind)}' == '{CompressionKind.Invalid}'"), (Exception)null);
+            }
 
             ICompressor result;
 

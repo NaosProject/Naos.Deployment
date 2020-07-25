@@ -14,7 +14,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Linq;
     using System.Reflection;
 
-    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Type.Recipes;
 
     /// <summary>
@@ -57,10 +56,16 @@ namespace OBeautifulCode.Reflection.Recipes
             this Type type,
             BindingFlags bindingFlags = DefaultBindingFlags)
         {
-            new { type }.AsArg().Must().NotBeNull();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             var allProperties = type.GetFields(bindingFlags);
-            var ret = allProperties.Select(_ => _.Name).ToList();
-            return ret;
+
+            var result = allProperties.Select(_ => _.Name).ToList();
+
+            return result;
         }
 
         /// <summary>
@@ -91,13 +96,15 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var fi = type.GetFieldInfo(fieldName, bindingFlags);
+
             if (fi == null)
             {
                 throw new InvalidOperationException($"Field {fieldName} was not found on type {type.FullName}");
             }
 
-            var ret = fi.GetFieldValue<T>(null);
-            return ret;
+            var result = fi.GetFieldValue<T>(null);
+
+            return result;
         }
 
         /// <summary>
@@ -128,13 +135,15 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var fi = item.GetType().GetFieldInfo(fieldName, bindingFlags);
+
             if (fi == null)
             {
                 throw new InvalidOperationException($"Field {fieldName} was not found on type {item.GetType().FullName}");
             }
 
-            var ret = fi.GetFieldValue<T>(item);
-            return ret;
+            var result = fi.GetFieldValue<T>(item);
+
+            return result;
         }
 
         /// <summary>
@@ -164,6 +173,7 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var fi = type.GetFieldInfo(fieldName, bindingFlags);
+
             if (fi == null)
             {
                 throw new InvalidOperationException($"Field {fieldName} was not found in Type {type.FullName}");
@@ -283,15 +293,16 @@ namespace OBeautifulCode.Reflection.Recipes
                 throw new ArgumentException("The name of the field is whitespace.", nameof(fieldName));
             }
 
-            FieldInfo fi = null;
+            FieldInfo result = null;
 
-            while ((fi == null) && (type != null))
+            while ((result == null) && (type != null))
             {
-                fi = type.GetField(fieldName, bindingFlags);
+                result = type.GetField(fieldName, bindingFlags);
+
                 type = type.BaseType;
             }
 
-            return fi;
+            return result;
         }
     }
 }

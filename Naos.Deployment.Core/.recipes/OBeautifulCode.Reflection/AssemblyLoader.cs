@@ -16,7 +16,6 @@ namespace OBeautifulCode.Reflection.Recipes
     using System.Reflection;
     using System.Text.RegularExpressions;
 
-    using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Collection.Recipes;
 
     using static System.FormattableString;
@@ -63,12 +62,45 @@ namespace OBeautifulCode.Reflection.Recipes
             IReadOnlyCollection<string> assemblyFileNameRegexBlacklist,
             Action<string> logger)
         {
-            new { directoryPath }.AsArg().Must().NotBeNullNorWhiteSpace();
-            new { assemblyFileExtensionsWithoutPeriodToLoad }.AsArg().Must().NotBeNull().And().NotBeEmptyEnumerable();
-            new { symbolFileExtensionsWithoutPeriodToConsider }.AsArg().Must().NotBeNull();
-            new { assemblyFileNameRegexBlacklist }.AsArg().Must().NotBeNull();
-            new { logger }.AsArg().Must().NotBeNull();
-            Directory.Exists(directoryPath).AsArg(Invariant($"{nameof(directoryPath)}MustBeDirectoryAndExist-{directoryPath}-DoesNotExist")).Must().BeTrue();
+            if (directoryPath == null)
+            {
+                throw new ArgumentNullException(nameof(directoryPath));
+            }
+
+            if (string.IsNullOrWhiteSpace(directoryPath))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(directoryPath)}' is white space"));
+            }
+
+            if (assemblyFileExtensionsWithoutPeriodToLoad == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyFileExtensionsWithoutPeriodToLoad));
+            }
+
+            if (!assemblyFileExtensionsWithoutPeriodToLoad.Any())
+            {
+                throw new ArgumentException(Invariant($"'{nameof(assemblyFileExtensionsWithoutPeriodToLoad)}' is an empty enumerable"));
+            }
+
+            if (symbolFileExtensionsWithoutPeriodToConsider == null)
+            {
+                throw new ArgumentNullException(nameof(symbolFileExtensionsWithoutPeriodToConsider));
+            }
+
+            if (assemblyFileNameRegexBlacklist == null)
+            {
+                throw new ArgumentNullException(nameof(assemblyFileNameRegexBlacklist));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (!Directory.Exists(directoryPath))
+            {
+                throw new ArgumentException(Invariant($"{nameof(directoryPath)}MustBeDirectoryAndExist-{directoryPath}-DoesNotExist"));
+            }
 
             this.FilePathToAssemblyMap = new Dictionary<string, Assembly>();
 
@@ -76,7 +108,7 @@ namespace OBeautifulCode.Reflection.Recipes
             this.LoadRecursively = loadRecursively;
             this.AssemblyFileExtensionsWithoutPeriodToLoad = assemblyFileExtensionsWithoutPeriodToLoad;
             this.SymbolFileExtensionsWithoutPeriodToConsider = symbolFileExtensionsWithoutPeriodToConsider;
-            this.AssemblyFileNameRegexBlacklist = assemblyFileNameRegexBlacklist ?? new List<string>();
+            this.AssemblyFileNameRegexBlacklist = assemblyFileNameRegexBlacklist;
             this.regexBlacklistObjects = this.AssemblyFileNameRegexBlacklist.Select(_ => new Regex(_, RegexOptions.Compiled | RegexOptions.IgnoreCase)).ToList();
             this.logger = logger;
 
