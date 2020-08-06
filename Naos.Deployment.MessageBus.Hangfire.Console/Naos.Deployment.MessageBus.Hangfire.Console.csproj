@@ -305,6 +305,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Naos.Deployment.Core\Naos.Deployment.Core.csproj">
+      <Project>{6f1833bf-253d-4c2d-b429-ccec58eceed0}</Project>
+      <Name>Naos.Deployment.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Naos.Deployment.Domain\Naos.Deployment.Domain.csproj">
       <Project>{EDC80E07-BF02-4860-94D3-6DDD75EC78FB}</Project>
       <Name>Naos.Deployment.Domain</Name>
