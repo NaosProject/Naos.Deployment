@@ -125,7 +125,7 @@ namespace Naos.Deployment.Console
             string subnet)
         {
             new { subnet }.AsArg().Must().NotBeNullNorWhiteSpace();
-            SubnetRegex.IsMatch(subnet).AsArg(Invariant($"{nameof(SubnetRegex)}.{nameof(Regex.IsMatch)}")).Must().BeTrue();
+            SubnetRegex.IsMatch(subnet).AsArg(Invariant($"{nameof(SubnetRegex)}.{nameof(Regex.IsMatch)}")).Must().BeTrue("Attempting to add subnet " + subnet);
 
             var result = command.Insert(CommandTokens.Subnet, subnet);
 
