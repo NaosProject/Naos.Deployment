@@ -9,7 +9,7 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// Attribute that avoids false positives of Code Analysis rule CA1062.
@@ -18,15 +18,14 @@ namespace OBeautifulCode.Assertion.Recipes
     /// See <a href="http://esmithy.net/2011/03/15/suppressing-ca1062/" />.
     /// </remarks>
     [AttributeUsage(AttributeTargets.Parameter)]
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        sealed class ValidatedNotNullAttribute : Attribute
+    sealed class ValidatedNotNullAttribute : Attribute
     {
     }
 }

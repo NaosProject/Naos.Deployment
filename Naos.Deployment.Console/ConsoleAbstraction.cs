@@ -24,11 +24,11 @@ namespace Naos.Deployment.Console
 
     using Naos.AWS.Domain;
     using Naos.Bootstrapper;
+    using Naos.CodeAnalysis.Recipes;
     using Naos.Configuration.Domain;
     using Naos.Cron;
     using Naos.Database.Domain;
     using Naos.Database.SqlServer;
-    using Naos.Deployment.Console.Internal;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;

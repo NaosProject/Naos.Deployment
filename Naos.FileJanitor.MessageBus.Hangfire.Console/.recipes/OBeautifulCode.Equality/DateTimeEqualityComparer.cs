@@ -9,22 +9,22 @@
 
 namespace OBeautifulCode.Equality.Recipes
 {
-    using System;
-    using System.Collections.Generic;
+    using global::System;
+    using global::System.Collections.Generic;
 
     /// <summary>
     /// Compares two <see cref="DateTime"/>, fixing .NET's default implementation where two objects
     /// having the same <see cref="DateTime.Ticks"/> but different <see cref="DateTime.Kind"/> are
     /// considered equal.
     /// </summary>
-#if !OBeautifulCodeEqualityRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
+#if !OBeautifulCodeEqualitySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class DateTimeEqualityComparer : IEqualityComparer<DateTime>
+    class DateTimeEqualityComparer : IEqualityComparer<DateTime>
     {
         /// <inheritdoc />
         public bool Equals(

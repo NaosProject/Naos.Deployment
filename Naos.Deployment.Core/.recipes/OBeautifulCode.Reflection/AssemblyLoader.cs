@@ -9,28 +9,28 @@
 
 namespace OBeautifulCode.Reflection.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text.RegularExpressions;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::System.Reflection;
+    using global::System.Text.RegularExpressions;
 
     using OBeautifulCode.Collection.Recipes;
 
-    using static System.FormattableString;
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Helper that will load all the assemblies in a directory and wire up all the necessary <see cref="AppDomain" /> logic to allow them to be reflected into.
     /// </summary>
-#if !OBeautifulCodeReflectionRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Reflection.Recipes", "See package version number")]
+#if !OBeautifulCodeReflectionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Reflection.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        sealed class AssemblyLoader : IDisposable
+    sealed class AssemblyLoader : IDisposable
     {
         /// <summary>
         /// Default assembly file extensions to process; ONLY the file extension not including the period e.g. "dll" NOT ".dll".

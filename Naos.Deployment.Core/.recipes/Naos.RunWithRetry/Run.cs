@@ -14,8 +14,6 @@ namespace Naos.Recipes.RunWithRetry
     using System.Threading;
     using System.Threading.Tasks;
 
-    using OBeautifulCode.Assertion.Recipes;
-
     using Spritely.Redo;
 
     using static System.FormattableString;
@@ -53,7 +51,10 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static void WithRetry(this Action operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -76,7 +77,10 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static T WithRetry<T>(this Func<T> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -105,8 +109,15 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static void WithRetry(this Action operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
-            new { reporter }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (reporter == null)
+            {
+                throw new ArgumentNullException(nameof(reporter));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -136,8 +147,15 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static T WithRetry<T>(this Func<T> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
-            new { reporter }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (reporter == null)
+            {
+                throw new ArgumentNullException(nameof(reporter));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -161,7 +179,10 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task WithRetryAsync(this Func<Task> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -184,7 +205,10 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task<T> WithRetryAsync<T>(this Func<Task<T>> operation, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -213,8 +237,15 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task WithRetryAsync(this Func<Task> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
-            new { reporter }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (reporter == null)
+            {
+                throw new ArgumentNullException(nameof(reporter));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -244,8 +275,15 @@ namespace Naos.Recipes.RunWithRetry
         /// </returns>
         public static async Task<T> WithRetryAsync<T>(this Func<Task<T>> operation, Action<object> reporter, Func<Exception, string> messageBuilder = null, int retryCount = DefaultRetryCount, TimeSpan backOffDelay = default(TimeSpan))
         {
-            new { operation }.AsArg().Must().NotBeNull();
-            new { reporter }.AsArg().Must().NotBeNull();
+            if (operation == null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (reporter == null)
+            {
+                throw new ArgumentNullException(nameof(reporter));
+            }
 
             var localBackOff = backOffDelay == default(TimeSpan) ? DefaultLinearBackoffDelay : backOffDelay;
 
@@ -266,15 +304,35 @@ namespace Naos.Recipes.RunWithRetry
         /// <param name="taskWaitingStrategy">Optional strategy on how to wait; DEFAULT is <see cref="TaskWaitingStrategy.Sleep" />.</param>
         public static void TaskUntilCompletion(Task task, TimeSpan pollingInterval = default(TimeSpan), TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
         {
-            new { task }.AsArg().Must().NotBeNull();
-
-            async Task<string> UnnecessaryReturnTask()
+            if (task == null)
             {
-                await task;
-                return string.Empty;
+                throw new ArgumentNullException(nameof(task));
             }
 
-            TaskUntilCompletion(UnnecessaryReturnTask(), pollingInterval, taskWaitingStrategy);
+            async Task<string> UnnecessaryReturnTaskToReuseReturningObjectCodePath()
+            {
+                try
+                {
+                    await task;
+                    task.IfNotCompletedThrowException();
+                    task.IfFaultedTaskExtractAndThrowException();
+
+                    // This result is not necessary but it is asserted to be the case later so those location must be congruent.
+                    // This is to allow for reusing a single code path for both returning and void tasks.
+                    return string.Empty;
+                }
+                catch
+                {
+                    // This is here intentionally as the TPL will sometimes do dumb things...
+                    throw;
+                }
+            }
+
+            var unnecessaryResult = TaskUntilCompletion(UnnecessaryReturnTaskToReuseReturningObjectCodePath(), pollingInterval, taskWaitingStrategy);
+            if (unnecessaryResult != string.Empty)
+            {
+                throw new InvalidOperationException(Invariant($"Task was run until completion but it was expected to be a void call and thus during the wrapping should have returned {typeof(string).Name}.{nameof(string.Empty)} but instead it returned '{unnecessaryResult}'."));
+            }
         }
 
         /// <summary>
@@ -286,34 +344,63 @@ namespace Naos.Recipes.RunWithRetry
         /// <returns>Return value of task provided.</returns>
         public static T TaskUntilCompletion<T>(Task<T> task, TimeSpan pollingInterval = default(TimeSpan), TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
         {
-            new { task }.AsArg().Must().NotBeNull();
-
-            var localPollingTime = pollingInterval == default(TimeSpan) ? TimeSpan.FromMilliseconds(10) : pollingInterval;
-
-            if (task.Status == TaskStatus.Created)
+            try
             {
-                task.Start();
-            }
-
-            // running this way because i want to interrogate afterwards to throw if faulted...
-            while (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
-            {
-                switch (taskWaitingStrategy)
+                if (task == null)
                 {
-                    case TaskWaitingStrategy.YieldAndSleep:
-                        Thread.Yield();
-                        Thread.Sleep(pollingInterval);
-                        break;
-                    case TaskWaitingStrategy.Sleep:
-                        Thread.Sleep(pollingInterval);
-                        break;
-                    default:
-                        throw new NotSupportedException(Invariant($"Unsupported {nameof(TaskWaitingStrategy)} - {taskWaitingStrategy}"));
+                    throw new ArgumentNullException(nameof(task));
                 }
 
-                Thread.Sleep(localPollingTime);
-            }
+                var localPollingTime = pollingInterval == default ? TimeSpan.FromMilliseconds(10) : pollingInterval;
 
+                if (task.Status == TaskStatus.Created)
+                {
+                    task.Start();
+                }
+
+                // running this way because i want to interrogate afterwards to throw if faulted...
+                while (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
+                {
+                    switch (taskWaitingStrategy)
+                    {
+                        case TaskWaitingStrategy.YieldAndSleep:
+                            Thread.Yield();
+                            Thread.Sleep(pollingInterval);
+                            break;
+                        case TaskWaitingStrategy.Sleep:
+                            Thread.Sleep(pollingInterval);
+                            break;
+                        default:
+                            throw new NotSupportedException(Invariant($"Unsupported {nameof(TaskWaitingStrategy)} - {taskWaitingStrategy}"));
+                    }
+
+                    Thread.Sleep(localPollingTime);
+                }
+
+                task.IfFaultedTaskExtractAndThrowException();
+
+                return task.Result;
+            }
+            catch
+            {
+                // This is here intentionally as the TPL will sometimes do dumb things...
+                throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extensions to the <see cref="Task"/> class.
+    /// </summary>
+    internal static class NaosTaskExtensions
+    {
+        /// <summary>
+        /// Extracts and throws the exception from faulted task.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        public static void IfFaultedTaskExtractAndThrowException(
+            this Task task)
+        {
             if (task.Status == TaskStatus.Faulted)
             {
                 var exception = task.Exception ?? new AggregateException(Invariant($"No exception came back from task but status was Faulted."));
@@ -327,8 +414,19 @@ namespace Naos.Recipes.RunWithRetry
                     ExceptionDispatchInfo.Capture(exception).Throw();
                 }
             }
+        }
 
-            return task.Result;
+        /// <summary>
+        /// Throw an exception if the task is not completed.
+        /// </summary>
+        /// <param name="task">The task.</param>
+        public static void IfNotCompletedThrowException(
+                    this Task task)
+        {
+            if (!task.IsCompleted)
+            {
+                throw new InvalidOperationException(Invariant($"The task await was passed but the task was not completed, status '{task.Status}'."));
+            }
         }
     }
 

@@ -9,17 +9,16 @@
 
 namespace OBeautifulCode.Reflection.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Reflection;
 
     using OBeautifulCode.Type.Recipes;
 
-    /// <summary>
-    /// Provides useful methods related to reflection.
-    /// </summary>
-#if !OBeautifulCodeReflectionRecipesProject
+    using static global::System.FormattableString;
+
+#if !OBeautifulCodeReflectionSolution
     internal
 #else
     public
@@ -27,264 +26,70 @@ namespace OBeautifulCode.Reflection.Recipes
     static partial class ReflectionHelper
     {
         /// <summary>
-        /// Determines if an object has a given property.
-        /// </summary>
-        /// <param name="item">Object for which to check for the given property.</param>
-        /// <param name="propertyName">The name of the property to check for.</param>
-        /// <param name="bindingFlags">Optional binding flags to use during reflection operations.</param>
-        /// <returns>
-        /// true if the object has the specified property, false if not.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static bool HasProperty(
-            this object item,
-            string propertyName,
-            BindingFlags bindingFlags = DefaultBindingFlags) =>
-            GetPropertyInfo(item?.GetType(), propertyName, bindingFlags) != null;
-
-        /// <summary>
-        /// Gets the names of all properties.
+        /// Gets the properties of the specified type,
+        /// with various options to control the scope of properties included and optionally order the properties.
         /// </summary>
         /// <param name="type">The type.</param>
-        /// <param name="bindingFlags">The binding flags to use.</param>
-        /// <returns>Collection of property names.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static IReadOnlyCollection<string> GetPropertyNames(
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <param name="orderMembersBy">OPTIONAL value that specifies how to the members.  DEFAULT is return the members in no particular order.</param>
+        /// <returns>
+        /// The properties in the specified order.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static IReadOnlyList<PropertyInfo> GetPropertiesFiltered(
             this Type type,
-            BindingFlags bindingFlags = DefaultBindingFlags)
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated,
+            OrderMembersBy orderMembersBy = OrderMembersBy.None)
         {
             if (type == null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var allProperties = type.GetProperties(bindingFlags);
-
-            var result = allProperties.Select(_ => _.Name).ToList();
+            var result = type
+                .GetMembersFiltered(memberRelationships, memberOwners, memberAccessModifiers, MemberKinds.Property, memberMutability, memberAttributes, orderMembersBy)
+                .Cast<PropertyInfo>()
+                .ToList();
 
             return result;
         }
 
         /// <summary>
-        /// Retrieves a property value from a given object.
+        /// Gets the <see cref="PropertyInfo"/> for the specified property.
         /// </summary>
-        /// <typeparam name="T">Type of the property.</typeparam>
-        /// <param name="type">Type to get property value on (will only get static properties).</param>
+        /// <param name="type">The type.</param>
         /// <param name="propertyName">The name of the property.</param>
-        /// <param name="bindingFlags">Optional binding flags to use during reflection operations.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <param name="throwIfNotFound">OPTIONAL value indicating whether to throw if no properties are found.  DEFAULT is to throw..</param>
         /// <returns>
-        /// The value of the property.
+        /// The <see cref="PropertyInfo"/> or null if no properties are found and <paramref name="throwIfNotFound"/> is false
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
-        /// <exception cref="InvalidOperationException">The property was not found.</exception>
-        /// <exception cref="InvalidCastException">The property is not of the specified type.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static T GetPropertyValue<T>(
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on the object type using the specified binding constraints and <paramref name="throwIfNotFound"/> is true.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        public static PropertyInfo GetPropertyFiltered(
             this Type type,
             string propertyName,
-            BindingFlags bindingFlags = DefaultBindingFlags)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            var pi = type.GetPropertyInfo(propertyName, bindingFlags);
-
-            if (pi == null)
-            {
-                throw new InvalidOperationException($"Property {propertyName} was not found on type {type.FullName}");
-            }
-
-            var result = pi.GetPropertyValue<T>(null);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Retrieves a property value from a given object.
-        /// </summary>
-        /// <typeparam name="T">Type of the property.</typeparam>
-        /// <param name="item">Object from which the property value is returned.</param>
-        /// <param name="propertyName">The name of the property.</param>
-        /// <param name="bindingFlags">Optional binding flags to use during reflection operations.</param>
-        /// <returns>
-        /// The value of the property.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
-        /// <exception cref="InvalidOperationException">The property was not found.</exception>
-        /// <exception cref="InvalidCastException">The property is not of the specified type.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static T GetPropertyValue<T>(
-            this object item,
-            string propertyName,
-            BindingFlags bindingFlags = DefaultBindingFlags)
-        {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
-            var pi = item.GetType().GetPropertyInfo(propertyName, bindingFlags);
-
-            if (pi == null)
-            {
-                throw new InvalidOperationException($"Property {propertyName} was not found on type {item.GetType().FullName}");
-            }
-
-            var result = pi.GetPropertyValue<T>(item);
-
-            return result;
-        }
-
-        /// <summary>
-        /// Sets a property value in a given Object.
-        /// </summary>
-        /// <typeparam name="T">Type of the property.</typeparam>
-        /// <param name="type">Type to set property value on (will only set static properties).</param>
-        /// <param name="propertyName">The name of the property to set.</param>
-        /// <param name="value">Value to set.</param>
-        /// <param name="bindingFlags">Optional binding flags to use during reflection operations.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
-        /// <exception cref="InvalidOperationException">The property was not found.</exception>
-        /// <exception cref="InvalidCastException">The property is not of type T.</exception>
-        /// <remarks>
-        /// adapted from: <a href="http://stackoverflow.com/questions/1565734/is-it-possible-to-set-private-property-via-reflection/1565766#1565766" />.
-        /// </remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static void SetPropertyValue<T>(
-            this Type type,
-            string propertyName,
-            T value,
-            BindingFlags bindingFlags = DefaultBindingFlags)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            var pi = type.GetPropertyInfo(propertyName, bindingFlags);
-
-            if (pi == null)
-            {
-                throw new InvalidOperationException($"Property {propertyName} was not found on type {type.FullName}");
-            }
-
-            pi.SetPropertyValue(null, value);
-        }
-
-        /// <summary>
-        /// Sets a property value in a given Object.
-        /// </summary>
-        /// <typeparam name="T">Type of the property.</typeparam>
-        /// <param name="item">Object containing property to set.</param>
-        /// <param name="propertyName">The name of the property to set.</param>
-        /// <param name="value">Value to set.</param>
-        /// <param name="bindingFlags">Optional binding flags to use during reflection operations.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
-        /// <exception cref="InvalidOperationException">The property was not found.</exception>
-        /// <exception cref="InvalidCastException">The property is not of type T.</exception>
-        /// <remarks>
-        /// adapted from: <a href="http://stackoverflow.com/questions/1565734/is-it-possible-to-set-private-property-via-reflection/1565766#1565766" />.
-        /// </remarks>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1726:UsePreferredTerms", MessageId = "Flags", Justification = "Correct name.")]
-        public static void SetPropertyValue<T>(
-            this object item,
-            string propertyName,
-            T value,
-            BindingFlags bindingFlags = DefaultBindingFlags)
-        {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
-            var pi = item.GetType().GetPropertyInfo(propertyName, bindingFlags);
-
-            if (pi == null)
-            {
-                throw new InvalidOperationException($"Property {propertyName} was not found in Type {item.GetType().FullName}");
-            }
-
-            pi.SetPropertyValue(item, value);
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        private static T GetPropertyValue<T>(
-            this PropertyInfo pi,
-            object item)
-        {
-            if (pi == null)
-            {
-                throw new ArgumentException(nameof(PropertyInfo) + " must not be null", nameof(pi));
-            }
-
-            Type returnType = typeof(T);
-
-            try
-            {
-                var value = pi.GetValue(item, null);
-
-                if (value == null)
-                {
-                    // can't solely rely on the ( T ) cast - if pi.GetValue returns null, then null can be casted to any reference type.
-                    if (!pi.PropertyType.IsAssignableTo(returnType))
-                    {
-                        throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{returnType.FullName}'.");
-                    }
-                }
-
-                var result = (T)value;
-
-                return result;
-            }
-            catch (NullReferenceException)
-            {
-                // if result the value is null, then attempt to cast to value type will result in NullReferenceException
-                throw new InvalidCastException($"Unable to cast object of type '{pi.PropertyType.FullName}' to type '{returnType.FullName}'.");
-            }
-        }
-
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        private static void SetPropertyValue<T>(
-            this PropertyInfo pi,
-            object item,
-            T value)
-        {
-            if (pi == null)
-            {
-                throw new ArgumentException(nameof(PropertyInfo) + " must not be null", nameof(pi));
-            }
-
-            try
-            {
-                pi.SetValue(item, value, null);
-            }
-            catch (ArgumentException ex)
-            {
-                throw new InvalidCastException(ex.Message);
-            }
-        }
-
-        private static PropertyInfo GetPropertyInfo(
-            this Type type,
-            string propertyName,
-            BindingFlags bindingFlags)
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated,
+            bool throwIfNotFound = true)
         {
             if (type == null)
             {
@@ -298,19 +103,539 @@ namespace OBeautifulCode.Reflection.Recipes
 
             if (string.IsNullOrWhiteSpace(propertyName))
             {
-                throw new ArgumentException("The name of the property is whitespace.", nameof(propertyName));
+                throw new ArgumentException(Invariant($"{nameof(propertyName)} is white space."));
             }
 
-            PropertyInfo result = null;
+            var properties = type
+                // ReSharper disable once RedundantArgumentDefaultValue
+                .GetPropertiesFiltered(memberRelationships, memberOwners, memberAccessModifiers, memberMutability, memberAttributes, OrderMembersBy.None)
+                .Where(_ => _.Name == propertyName)
+                .ToList();
 
-            while ((result == null) && (type != null))
+            PropertyInfo result;
+
+            if (!properties.Any())
             {
-                result = type.GetProperty(propertyName, bindingFlags);
-
-                type = type.BaseType;
+                if (throwIfNotFound)
+                {
+                    throw new ArgumentException(Invariant($"There is no property named '{propertyName}' on type '{type.ToStringReadable()}', using the specified binding constraints."));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else if (properties.Count > 1)
+            {
+                throw new ArgumentException(Invariant($"There is more than one property named '{propertyName}' on type '{type.ToStringReadable()}', using the specified binding constraints."));
+            }
+            else
+            {
+                result = properties.Single();
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets the value of a property.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="item">The object.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to the <paramref name="item"/> Type.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <returns>
+        /// The value of the property.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">The property does not have a get method.</exception>
+        /// <exception cref="InvalidCastException">The property is not of the specified type.</exception>
+        public static T GetPropertyValue<T>(
+            this object item,
+            string propertyName,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            var propertyInfo = item.GetType().GetPropertyFiltered(propertyName, memberRelationships, memberOwners, memberAccessModifiers, memberMutability, memberAttributes);
+
+            var propertyValue = propertyInfo.GetValue(item);
+
+            var result = propertyValue.CastOrThrowIfTypeMismatch<T>(propertyInfo);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the value of a property.
+        /// </summary>
+        /// <param name="item">The object.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to the <paramref name="item"/> Type.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <returns>
+        /// The value of the property.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">The property does not have a get method.</exception>
+        public static object GetPropertyValue(
+            this object item,
+            string propertyName,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            var propertyInfo = item.GetType().GetPropertyFiltered(propertyName, memberRelationships, memberOwners, memberAccessModifiers, memberMutability, memberAttributes);
+
+            var result = propertyInfo.GetValue(item);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the value of a static property.
+        /// </summary>
+        /// <typeparam name="T">The type of the property.</typeparam>
+        /// <param name="type">The type that contains the property.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <returns>
+        /// The value of the property.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">The property does not have a get method.</exception>
+        /// <exception cref="InvalidCastException">The property is not of the specified type.</exception>
+        public static T GetStaticPropertyValue<T>(
+            this Type type,
+            string propertyName,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var propertyInfo = type.GetPropertyFiltered(propertyName, memberRelationships, MemberOwners.Static, memberAccessModifiers, memberMutability, memberAttributes);
+
+            var propertyValue = propertyInfo.GetValue(null);
+
+            var result = propertyValue.CastOrThrowIfTypeMismatch<T>(propertyInfo);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the value of a property on a static type.
+        /// </summary>
+        /// <param name="type">The type that contains the property.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <returns>
+        /// The value of the property.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">The property does not have a get method.</exception>
+        public static object GetStaticPropertyValue(
+            this Type type,
+            string propertyName,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var propertyInfo = type.GetPropertyFiltered(propertyName, memberRelationships, MemberOwners.Static, memberAccessModifiers, memberMutability, memberAttributes);
+
+            var result = propertyInfo.GetValue(null);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if a type has a property of the specified property name.
+        /// </summary>
+        /// <param name="type">The type to check.</param>
+        /// <param name="propertyName">The name of the property to check for.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <returns>
+        /// true if the type has a property of the specified property name, false if not.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        public static bool HasProperty(
+            this Type type,
+            string propertyName,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (propertyName == null)
+            {
+                throw new ArgumentNullException(nameof(propertyName));
+            }
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+            {
+                throw new ArgumentException(Invariant($"{nameof(propertyName)} is white space."));
+            }
+
+            var properties = type
+                // ReSharper disable once RedundantArgumentDefaultValue
+                .GetPropertiesFiltered(memberRelationships, memberOwners, memberAccessModifiers, memberMutability, memberAttributes, OrderMembersBy.None)
+                .Where(_ => _.Name == propertyName)
+                .ToList();
+
+            var result = properties.Any();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is not writable (is read-only).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is not writable, otherwise false.
+        /// </returns>
+        public static bool IsNotWritableProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.IsReadOnlyProperty();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is not readable (is write-only).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is not readable, otherwise false.
+        /// </returns>
+        public static bool IsNotReadableProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.IsWriteOnlyProperty();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is readable (has a getter).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is readable, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyInfo"/> is null.</exception>
+        public static bool IsReadableProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.GetMethod != null;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is a read-only (has no setter).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is read-only, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyInfo"/> is null.</exception>
+        public static bool IsReadOnlyProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.SetMethod == null;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is a read-only auto property
+        /// (i.e. MyProperty { get; }).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is a read-only auto-property, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyInfo"/> is null.</exception>
+        public static bool IsReadOnlyAutoProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            // Is an auto-property (one with a backing field automatically generated by the compiler)?
+            // Note that expression body properties are NOT auto-properties.
+            // see: https://stackoverflow.com/a/60638810/356790
+            var result = propertyInfo.IsReadOnlyProperty() && propertyInfo.GetMethod.IsCompilerGenerated();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is writable (has a setter).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is writable, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyInfo"/> is null.</exception>
+        public static bool IsWritableProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.SetMethod != null;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Determines if the specified property is a write-only (has no getter).
+        /// </summary>
+        /// <param name="propertyInfo">The property.</param>
+        /// <returns>
+        /// true if the specified property is write-only, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyInfo"/> is null.</exception>
+        public static bool IsWriteOnlyProperty(
+            this PropertyInfo propertyInfo)
+        {
+            if (propertyInfo == null)
+            {
+                throw new ArgumentNullException(nameof(propertyInfo));
+            }
+
+            var result = propertyInfo.GetMethod == null;
+
+            return result;
+        }
+
+        /// <summary>
+        /// Sets a property's value.
+        /// </summary>
+        /// <param name="item">The object.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="value">The value to set the property to.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to the <paramref name="item"/> Type.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberOwners">OPTIONAL value that scopes the search for members based on who owns the member.  DEFAULT is to include members owned by an object or owned by the type itself.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="item"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on the object type using the specified binding constraints.</exception>
+        /// <exception cref="InvalidCastException">Unable to assign null to the property's type.</exception>
+        /// <exception cref="InvalidCastException">Unable to assign <paramref name="value"/> type to the property's type.</exception>
+        public static void SetPropertyValue(
+            this object item,
+            string propertyName,
+            object value,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberOwners memberOwners = MemberOwners.All,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (item == null)
+            {
+                throw new ArgumentNullException(nameof(item));
+            }
+
+            var propertyInfo = item.GetType().GetPropertyFiltered(propertyName, memberRelationships, memberOwners, memberAccessModifiers, memberMutability, memberAttributes);
+
+            value.ThrowIfNotAssignableTo(propertyInfo);
+
+            propertyInfo.SetValue(item, value);
+        }
+
+        /// <summary>
+        /// Sets a static property's value.
+        /// </summary>
+        /// <param name="type">The type that contains the property.</param>
+        /// <param name="propertyName">The name of the property.</param>
+        /// <param name="value">The value to set the property to.</param>
+        /// <param name="memberRelationships">OPTIONAL value that scopes the search for members based on their relationship to <paramref name="type"/>.  DEFAULT is to include the members declared in or inherited by the specified type.</param>
+        /// <param name="memberAccessModifiers">OPTIONAL value that scopes the search for members based on access modifiers.  DEFAULT is to include members having any supported access modifier.</param>
+        /// <param name="memberMutability">OPTIONAL value that scopes the search for members based on mutability.  DEFAULT is to include members where mutability is not applicable and where applicable, include members with any kind of mutability.</param>
+        /// <param name="memberAttributes">OPTIONAL value that scopes the search for members based on the presence or absence of certain attributes on those members.  DEFAULT is to include members that are not compiler generated.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="propertyName"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="propertyName"/> is whitespace.</exception>
+        /// <exception cref="ArgumentException">There is no property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="ArgumentException">There is more than one property named <paramref name="propertyName"/> on type <paramref name="type"/> using the specified binding constraints.</exception>
+        /// <exception cref="InvalidCastException">Unable to assign null to the property's type.</exception>
+        /// <exception cref="InvalidCastException">Unable to assign <paramref name="value"/> type to the property's type.</exception>
+        public static void SetStaticPropertyValue(
+            this Type type,
+            string propertyName,
+            object value,
+            MemberRelationships memberRelationships = MemberRelationships.DeclaredOrInherited,
+            MemberAccessModifiers memberAccessModifiers = MemberAccessModifiers.All,
+            MemberMutability memberMutability = MemberMutability.All,
+            MemberAttributes memberAttributes = MemberAttributes.NotCompilerGenerated)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var propertyInfo = type.GetPropertyFiltered(propertyName, memberRelationships, MemberOwners.Static, memberAccessModifiers, memberMutability, memberAttributes);
+
+            value.ThrowIfNotAssignableTo(propertyInfo);
+
+            propertyInfo.SetValue(null, value);
+        }
+
+        private static T CastOrThrowIfTypeMismatch<T>(
+            this object propertyValue,
+            PropertyInfo propertyInfo)
+        {
+            var returnType = typeof(T);
+
+            T result;
+
+            if (propertyValue == null)
+            {
+                // can't solely rely on the (T) cast - if pi.GetValue returns null, then null can be cast to any reference type.
+                var propertyType = propertyInfo.PropertyType;
+
+                if (!returnType.IsAssignableFrom(propertyType))
+                {
+                    throw new InvalidCastException(Invariant($"Unable to cast object of type '{propertyType.ToStringReadable()}' to type '{returnType.ToStringReadable()}'."));
+                }
+
+                result = default;
+            }
+            else
+            {
+                try
+                {
+                    result = (T)propertyValue;
+                }
+                catch (InvalidCastException)
+                {
+                    throw new InvalidCastException(Invariant($"Unable to cast object of type '{propertyValue.GetType().ToStringReadable()}' to type '{returnType.ToStringReadable()}'."));
+                }
+            }
+
+            return result;
+        }
+
+        private static void ThrowIfNotAssignableTo(
+            this object value,
+            PropertyInfo propertyInfo)
+        {
+            var propertyType = propertyInfo.PropertyType;
+
+            if (value == null)
+            {
+                if (!propertyType.IsClosedTypeAssignableToNull())
+                {
+                    throw new InvalidCastException(Invariant($"Unable to assign null value to property of type '{propertyType.ToStringReadable()}'."));
+                }
+            }
+            else
+            {
+                var valueType = value.GetType();
+
+                if (!propertyType.IsAssignableFrom(valueType))
+                {
+                    throw new InvalidCastException(Invariant($"Unable to assign value of type '{valueType.ToStringReadable()}' to property of type '{propertyType.ToStringReadable()}'."));
+                }
+            }
         }
     }
 }

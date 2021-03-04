@@ -9,22 +9,23 @@
 
 namespace OBeautifulCode.Collection.Recipes
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Linq;
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
 
     using OBeautifulCode.Equality.Recipes;
+    using OBeautifulCode.Math.Recipes;
     using OBeautifulCode.String.Recipes;
-    
-    using static System.FormattableString;
+
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Helper methods for operating on objects of type <see cref="IEnumerable"/> and <see cref="IEnumerable{T}"/>.
     /// </summary>
-#if !OBeautifulCodeCollectionRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Collection.Recipes", "See package version number")]
+#if !OBeautifulCodeCollectionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Collection.Recipes", "See package version number")]
     internal
 #else
     public
@@ -79,6 +80,42 @@ namespace OBeautifulCode.Collection.Recipes
                 var combinations = GetCombinations(valuesList, x).Select(_=> _.ToArray()).ToList();
 
                 result.AddRange(combinations);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Puts the elements of a specified enumerable into a new enumerable, in random order.
+        /// </summary>
+        /// <param name="value">The enumerable.</param>
+        /// <returns>
+        /// A new enumerable having all of the elements of the specified enumerable, but in random order.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        public static IEnumerable<T> RandomizeElements<T>(
+            this IEnumerable<T> value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            var result = value.ToList();
+
+            var elementCount = result.Count;
+
+            while (elementCount > 1)
+            {
+                elementCount--;
+
+                var randomIndex = ThreadSafeRandom.Next(elementCount + 1);
+
+                T element = result[randomIndex];
+
+                result[randomIndex] = result[elementCount];
+
+                result[elementCount] = element;
             }
 
             return result;

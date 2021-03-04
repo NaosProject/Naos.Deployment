@@ -9,13 +9,13 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// Specifies the kind of assertion.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public

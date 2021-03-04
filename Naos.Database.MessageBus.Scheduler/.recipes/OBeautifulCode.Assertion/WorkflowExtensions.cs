@@ -9,25 +9,24 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System.Collections;
-    using System.Globalization;
-    using System.Linq;
-    using System.Runtime.CompilerServices;
+    using global::System.Collections;
+    using global::System.Globalization;
+    using global::System.Linq;
+    using global::System.Runtime.CompilerServices;
 
     using OBeautifulCode.Type.Recipes;
 
     /// <summary>
     /// Workflow related extension methods, excluding verification.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        static class WorkflowExtensions
+    static class WorkflowExtensions
     {
         /// <summary>
         /// Initializes an argument-related subject for verification.

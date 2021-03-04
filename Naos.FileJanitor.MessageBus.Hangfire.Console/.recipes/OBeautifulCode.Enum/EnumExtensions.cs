@@ -9,27 +9,32 @@
 
 namespace OBeautifulCode.Enum.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.Linq;
-    using System.Reflection;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Diagnostics.CodeAnalysis;
+    using global::System.Globalization;
+    using global::System.Linq;
+    using global::System.Reflection;
 
     using OBeautifulCode.Collection.Recipes;
+    using OBeautifulCode.Type.Recipes;
+
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Adds some convenient extension methods to enums.
     /// </summary>
-#if !OBeautifulCodeEnumRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Enum.Recipes", "See package version number")]
+#if !OBeautifulCodeEnumSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Enum.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
     static class EnumExtensions
     {
+        private static readonly MethodInfo ToEnumGenericMethodInfo = typeof(EnumExtensions).GetMethods().Single(_ => (_.Name == nameof(ToEnum)) && _.IsGenericMethod);
+
         /// <summary>
         /// Gets the members/values of a specified enum.
         /// </summary>
@@ -418,6 +423,129 @@ namespace OBeautifulCode.Enum.Recipes
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Parses and converts to the specified string to an enum value.
+        /// </summary>
+        /// <remarks>
+        /// [Flags] Colors { None=0, Red = 1, Green = 2, Blue = 4 }
+        /// '0'          => None
+        /// '2'          => Green
+        /// '7'          => Red | Green | Blue
+        /// 'Blue'       => Blue
+        /// 'blue'       => Blue (if ignoreCase = true)
+        /// 'Red, Green' => Red | Green
+        /// 'Red,Green'  => Red | Green
+        /// 'red,green'  => Red | Green (if ignoreCase = true)
+        /// </remarks>
+        /// <typeparam name="TEnum">The type of enum.</typeparam>
+        /// <param name="value">The string value to convert.</param>
+        /// <param name="ignoreCase">
+        /// Optional value indicating whether to operate in case sensitive or case insensitive mode.
+        /// Default is operate in case sensitive mode.
+        /// Use <c>true</c> to read value in case insensitive mode; <c>false</c> to read value in case sensitive mode.
+        /// </param>
+        /// <returns>
+        /// The enum member/value that corresponds to the specified string value.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value"/> is white space.</exception>
+        /// <exception cref="ArgumentException"><typeparamref name="TEnum"/> does not represent an enumeration.</exception>
+        /// <exception cref="ArgumentException">Cannot convert the specified value to an enum member of the <typeparamref name="TEnum"/> enum.</exception>
+        public static TEnum ToEnum<TEnum>(
+            this string value,
+            bool ignoreCase = false)
+            where TEnum : struct
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException(Invariant($"{nameof(value)} is white space"));
+            }
+
+            if (!typeof(TEnum).IsEnum)
+            {
+                throw new ArgumentException($"typeof({nameof(TEnum)}).{nameof(Type.IsEnum)} is false");
+            }
+
+            if (!Enum.TryParse(value, ignoreCase, out TEnum result) || (!GetAllPossibleEnumValues<TEnum>().Contains(result)))
+            {
+                throw new ArgumentException(Invariant($"Cannot convert the specified value to an enum member of the '{typeof(TEnum).ToStringReadable()}' enum.   Specified value is '{value}'."));
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Parses and converts to the specified string to an enum value.
+        /// </summary>
+        /// <remarks>
+        /// [Flags] Colors { None=0, Red = 1, Green = 2, Blue = 4 }
+        /// '0'          => None
+        /// '2'          => Green
+        /// '7'          => Red | Green | Blue
+        /// 'Blue'       => Blue
+        /// 'blue'       => Blue (if ignoreCase = true)
+        /// 'Red, Green' => Red | Green
+        /// 'Red,Green'  => Red | Green
+        /// 'red,green'  => Red | Green (if ignoreCase = true)
+        /// </remarks>
+        /// <param name="value">The string value to convert.</param>
+        /// <param name="enumType">The type of the enum.</param>
+        /// <param name="ignoreCase">
+        /// Optional value indicating whether to operate in case sensitive or case insensitive mode.
+        /// Default is operate in case sensitive mode.
+        /// Use <c>true</c> to read value in case insensitive mode; <c>false</c> to read value in case sensitive mode.
+        /// </param>
+        /// <returns>
+        /// The enum member/value that corresponds to the specified string value.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="enumType"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="enumType"/> does not represent an enumeration.</exception>
+        /// <exception cref="ArgumentException">Cannot convert the specified value to an enum member of the <paramref name="enumType"/> enum.</exception>
+        public static Enum ToEnum(
+            this string value,
+            Type enumType,
+            bool ignoreCase = false)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException(Invariant($"{nameof(value)} is white space"));
+            }
+
+            if (enumType == null)
+            {
+                throw new ArgumentNullException(nameof(enumType));
+            }
+
+            if (!enumType.IsEnum)
+            {
+                throw new ArgumentException($"{nameof(enumType)}.{nameof(Type.IsEnum)} is false");
+            }
+
+            try
+            {
+                var result = (Enum)ToEnumGenericMethodInfo.MakeGenericMethod(enumType).Invoke(null, new object[] { value, ignoreCase });
+
+                return result;
+            }
+            catch (TargetInvocationException ex)
+            {
+                // ReSharper disable once PossibleNullReferenceException
+                throw ex.InnerException;
+            }
         }
 
         /// <summary>

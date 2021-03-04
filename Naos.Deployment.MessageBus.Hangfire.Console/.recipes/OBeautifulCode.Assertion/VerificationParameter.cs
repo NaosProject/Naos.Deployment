@@ -9,20 +9,19 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// A parameter of the verification (e.g. the comparison value when verifying that a subject is greater than some comparison value)"/>.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class VerificationParameter
+    class VerificationParameter
     {
         /// <summary>
         /// Gets or sets the name of the parameter.

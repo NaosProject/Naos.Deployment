@@ -114,7 +114,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                     }));
 
             var archiver = ArchiverFactory.Instance.BuildArchiver(directoryArchiveKind, archiveCompressionKind);
-            var archivedDirectory = new ArchivedDirectory(directoryArchiveKind, archiveCompressionKind, sourceFilePath, true, Encoding.UTF8.WebName);
+            var archivedDirectory = new ArchivedDirectory(directoryArchiveKind, archiveCompressionKind, sourceFilePath, true, Encoding.UTF8.WebName, DateTime.UtcNow);
             Run.TaskUntilCompletion(archiver.RestoreDirectoryAsync(archivedDirectory, targetDirectoryPath));
         }
 

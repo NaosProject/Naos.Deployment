@@ -9,22 +9,21 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
-    using System.Runtime.Serialization;
+    using global::System;
+    using global::System.Runtime.Serialization;
 
     /// <summary>
     /// The assertion framework is being used improperly.
     /// </summary>
     [Serializable]
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class ImproperUseOfAssertionFrameworkException : Exception
+    class ImproperUseOfAssertionFrameworkException : Exception
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ImproperUseOfAssertionFrameworkException"/> class.

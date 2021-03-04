@@ -9,18 +9,18 @@
 
 namespace OBeautifulCode.Equality.Recipes
 {
-    using System.Collections.Generic;
+    using global::System.Collections.Generic;
 
     /// <summary>
     /// Determines the strategy to use when comparing two <see cref="IEnumerable{T}"/> for equality.
     /// </summary>
-#if !OBeautifulCodeEqualityRecipesProject
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
+#if !OBeautifulCodeEqualitySolution
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        enum EnumerableEqualityComparerStrategy
+    enum EnumerableEqualityComparerStrategy
     {
         /// <summary>
         /// Use <see cref="EqualityExtensions.IsSequenceEqualTo{TSource}"/>.

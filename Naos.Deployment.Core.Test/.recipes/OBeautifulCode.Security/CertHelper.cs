@@ -9,19 +9,19 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Security.Cryptography;
-    using System.Security.Cryptography.Pkcs;
-    using System.Security.Cryptography.X509Certificates;
-    using System.Text;
-    using System.Text.RegularExpressions;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Diagnostics.CodeAnalysis;
+    using global::System.Globalization;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::System.Security.Cryptography;
+    using global::System.Security.Cryptography.Pkcs;
+    using global::System.Security.Cryptography.X509Certificates;
+    using global::System.Text;
+    using global::System.Text.RegularExpressions;
 
-    using OBeautifulCode.Security.Recipes.Internal;
+    using OBeautifulCode.CodeAnalysis.Recipes;
     using OBeautifulCode.Type;
 
     using Org.BouncyCastle.Asn1;
@@ -38,9 +38,9 @@ namespace OBeautifulCode.Security.Recipes
     using Org.BouncyCastle.X509;
     using Org.BouncyCastle.X509.Extension;
 
-    using static System.FormattableString;
+    using static global::System.FormattableString;
 
-    using ContentInfo = System.Security.Cryptography.Pkcs.ContentInfo;
+    using ContentInfo = global::System.Security.Cryptography.Pkcs.ContentInfo;
     using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
     using X509Extension = Org.BouncyCastle.Asn1.X509.X509Extension;
 
@@ -48,9 +48,9 @@ namespace OBeautifulCode.Security.Recipes
     /// Provides helpers methods for dealing with certificates.
     /// </summary>
     [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "There are a lot of things you can do with certs!  Should really break this up...")]
-#if !OBeautifulCodeSecurityRecipesProject
-    [ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
+#if !OBeautifulCodeSecuritySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
     internal
 #else
     public

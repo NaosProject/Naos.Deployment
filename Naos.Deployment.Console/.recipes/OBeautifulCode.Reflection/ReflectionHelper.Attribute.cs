@@ -9,14 +9,14 @@
 
 namespace OBeautifulCode.Reflection.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Diagnostics.CodeAnalysis;
+    using global::System.Linq;
 
-    /// <summary>
-    /// Provides useful methods related to reflection.
-    /// </summary>
-#if !OBeautifulCodeReflectionRecipesProject
+    using static global::System.FormattableString;
+
+#if !OBeautifulCodeReflectionSolution
     internal
 #else
     public
@@ -34,8 +34,6 @@ namespace OBeautifulCode.Reflection.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="type"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributes{T}(Type)"/>.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "GetAttributes", Justification = "This is spelled correctly.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
         public static TAttribute GetAttribute<TAttribute>(
             this Type type)
             where TAttribute : Attribute
@@ -48,74 +46,7 @@ namespace OBeautifulCode.Reflection.Recipes
             var attributes = type.GetAttributes<TAttribute>();
             if (attributes.Count > 1)
             {
-                throw new InvalidOperationException($"Type '{type}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributes)}.");
-            }
-
-            var result = attributes.SingleOrDefault();
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the specified type of attribute, applied to a specific enum value.
-        /// </summary>
-        /// <typeparam name="TAttribute">The type of the attribute to return.</typeparam>
-        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
-        /// <returns>
-        /// An attribute object of the specified type that has been applied to the specified
-        /// enum value or null if no such attribute has been applied.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="enumValue"/> is not an Enum.</exception>
-        /// <exception cref="InvalidOperationException"><paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributesOnEnumValue{T}(Enum)"/>.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "GetAttributes", Justification = "This is spelled correctly.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        public static TAttribute GetAttributeOnEnumValue<TAttribute>(
-            this object enumValue)
-            where TAttribute : Attribute
-        {
-            if (enumValue == null)
-            {
-                throw new ArgumentNullException(nameof(enumValue));
-            }
-
-            var enumValueAsEnum = enumValue as Enum;
-
-            if (enumValueAsEnum == null)
-            {
-                throw new ArgumentException($"'{nameof(enumValue)}' is not an Enum");
-            }
-
-            var result = enumValueAsEnum.GetAttributeOnEnumValue<TAttribute>();
-
-            return result;
-        }
-
-        /// <summary>
-        /// Gets the specified type of attribute, applied to a specific enum value.
-        /// </summary>
-        /// <typeparam name="TAttribute">The type of the attribute to return.</typeparam>
-        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
-        /// <returns>
-        /// An attribute object of the specified type that has been applied to the specified
-        /// enum value or null if no such attribute has been applied.
-        /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
-        /// <exception cref="InvalidOperationException"><paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributesOnEnumValue{T}(Enum)"/>.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "GetAttributesOnEnumValue", Justification = "This is spelled correctly.")]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object,System.Object,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
-        public static TAttribute GetAttributeOnEnumValue<TAttribute>(
-            this Enum enumValue)
-            where TAttribute : Attribute
-        {
-            if (enumValue == null)
-            {
-                throw new ArgumentNullException(nameof(enumValue));
-            }
-
-            var attributes = enumValue.GetAttributesOnEnumValue<TAttribute>();
-            if (attributes.Count > 1)
-            {
-                throw new InvalidOperationException($"Enum value '{enumValue}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributesOnEnumValue)}.");
+                throw new InvalidOperationException(Invariant($"Type '{type}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributes)}()."));
             }
 
             var result = attributes.SingleOrDefault();
@@ -151,6 +82,69 @@ namespace OBeautifulCode.Reflection.Recipes
         }
 
         /// <summary>
+        /// Gets the specified type of attribute, applied to a specific enum value.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of the attribute to return.</typeparam>
+        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
+        /// <returns>
+        /// An attribute object of the specified type that has been applied to the specified
+        /// enum value or null if no such attribute has been applied.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="enumValue"/> is not an Enum.</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributesOnEnumValue{T}(Enum)"/>.</exception>
+        public static TAttribute GetAttributeOnEnumValue<TAttribute>(
+            this object enumValue)
+            where TAttribute : Attribute
+        {
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
+
+            var enumValueAsEnum = enumValue as Enum;
+
+            if (enumValueAsEnum == null)
+            {
+                throw new ArgumentException($"'{nameof(enumValue)}' is not an Enum");
+            }
+
+            var result = enumValueAsEnum.GetAttributeOnEnumValue<TAttribute>();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the specified type of attribute, applied to a specific enum value.
+        /// </summary>
+        /// <typeparam name="TAttribute">The type of the attribute to return.</typeparam>
+        /// <param name="enumValue">The enum value to scope the attribute search to.</param>
+        /// <returns>
+        /// An attribute object of the specified type that has been applied to the specified
+        /// enum value or null if no such attribute has been applied.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.  Consider calling <see cref="GetAttributesOnEnumValue{T}(Enum)"/>.</exception>
+        public static TAttribute GetAttributeOnEnumValue<TAttribute>(
+            this Enum enumValue)
+            where TAttribute : Attribute
+        {
+            if (enumValue == null)
+            {
+                throw new ArgumentNullException(nameof(enumValue));
+            }
+
+            var attributes = enumValue.GetAttributesOnEnumValue<TAttribute>();
+            if (attributes.Count > 1)
+            {
+                throw new InvalidOperationException(Invariant($"Enum value '{enumValue}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributesOnEnumValue)}()."));
+            }
+
+            var result = attributes.SingleOrDefault();
+            return result;
+        }
+
+        /// <summary>
         /// Gets all attributes of the specified type that have been applied to a specific enum value.
         /// Only useful when the attribute is configured such that more one instance can be applied to an enum value.
         /// </summary>
@@ -162,7 +156,6 @@ namespace OBeautifulCode.Reflection.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="enumValue"/> is not an Enum.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1305:SpecifyIFormatProvider", MessageId = "System.String.Format(System.String,System.Object)", Justification = "This is a developer-facing string, not a user-facing string.")]
         public static IReadOnlyCollection<TAttribute> GetAttributesOnEnumValue<TAttribute>(
             this object enumValue)
             where TAttribute : Attribute
@@ -229,7 +222,7 @@ namespace OBeautifulCode.Reflection.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="throwOnMultiple"/> is true and <paramref name="type"/> has multiple attributes of type <typeparamref name="TAttribute"/>.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
         public static bool HasAttribute<TAttribute>(
             this Type type,
             bool throwOnMultiple = true)
@@ -264,7 +257,7 @@ namespace OBeautifulCode.Reflection.Recipes
         /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="enumValue"/> is not an Enum.</exception>
         /// <exception cref="InvalidOperationException"><paramref name="throwOnMultiple"/> is true and <paramref name="enumValue"/> has multiple attributes of type <typeparamref name="TAttribute"/>.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
         public static bool HasAttributeOnEnumValue<TAttribute>(
             this object enumValue,
             bool throwOnMultiple = true)
@@ -286,7 +279,7 @@ namespace OBeautifulCode.Reflection.Recipes
         /// <summary>
         /// Determines if an attribute of the specified type that has been applied to a specific enum value.
         /// </summary>
-        /// <typeparam name="TAttribute">The type of the attributes to serach for.</typeparam>
+        /// <typeparam name="TAttribute">The type of the attributes to search for.</typeparam>
         /// <param name="enumValue">The enum value to scope the attribute search to.</param>
         /// <param name="throwOnMultiple">
         /// Optional.  Determines if method should throw when multiple instances of the specified
@@ -297,7 +290,7 @@ namespace OBeautifulCode.Reflection.Recipes
         /// True if the attribute has been applied to the specified enum value, otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="enumValue"/> is null.</exception>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
+        [SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter", Justification = "This mirrors the 'Get' methods")]
         public static bool HasAttributeOnEnumValue<TAttribute>(
             this Enum enumValue,
             bool throwOnMultiple = true)

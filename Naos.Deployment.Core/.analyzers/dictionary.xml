@@ -6,6 +6,9 @@
       <!-- We prefer 'Dropdown' (or 'drop-down') to 'DropDown'.  See <Deprecated><Term PreferredAlternate="Dropdown"> for more details  -->
       <Word>DropDown</Word>
 
+      <!-- We prefer 'Username' to 'UserName'.  See <Deprecated><Term PreferredAlternate="Username"> for more details  -->
+      <Word>UserName</Word>
+
     </Unrecognized>
     <Recognized>
       <!-- Describes data that was made anonymous -->
@@ -22,6 +25,9 @@
       
       <!-- A character encoding: American Standard Code for Information Interchange -->
       <Word>ascii</Word>
+
+      <!-- Abbreviated form of Authentication or Authorization -->
+      <Word>auth</Word>
 
       <!-- A feature in Excel that automatically sizes rows and columns based on the contained content -->
       <Word>autofit</Word>
@@ -40,6 +46,9 @@
 
       <!-- The ability be be compiled. -->
       <Word>compilable</Word>
+
+      <!-- Plural of config.  Multiple configurations. -->
+      <Word>configs</Word>
 
       <!-- Acronym for Certificate Signing Request -->
       <Word>CSR</Word>
@@ -108,6 +117,9 @@
       <!-- Acronym for Public Key Cryptography Standards -->
       <Word>PKCS</Word>
 
+      <!-- Acronym for Portable Network Graphics -->
+      <Word>PNG</Word>
+
       <!-- Acronym for Request For Comments -->
       <Word>RFC</Word>
 
@@ -116,6 +128,9 @@
 
       <!-- A series of datapoints indexed in time order -->
       <Word>timeseries</Word>
+
+      <!-- Acronym for Transportation Layer Security -->
+      <Word>TLS</Word>
 
       <!-- In .NET, a way describe a type parameter in generics. -->
       <Word>typeparam</Word>
@@ -139,7 +154,7 @@
        -->
 
       <Term PreferredAlternate="Dropdown">DropDown</Term>
-
+      <Term PreferredAlternate="Username">UserName</Term>
     </Deprecated>
     <Compound>
       <Term CompoundAlternate="CellPhone">cellphone</Term>

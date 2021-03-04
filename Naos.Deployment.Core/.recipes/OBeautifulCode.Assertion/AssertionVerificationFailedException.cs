@@ -9,22 +9,21 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
-    using System.Runtime.Serialization;
+    using global::System;
+    using global::System.Runtime.Serialization;
 
     /// <summary>
     /// A verification has failed in an uncategorized assertion.
     /// </summary>
     [Serializable]
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class AssertionVerificationFailedException : Exception
+    class AssertionVerificationFailedException : Exception
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="AssertionVerificationFailedException"/> class.

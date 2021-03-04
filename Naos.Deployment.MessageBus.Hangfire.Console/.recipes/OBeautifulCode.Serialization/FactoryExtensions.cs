@@ -9,16 +9,16 @@
 
 namespace OBeautifulCode.Serialization.Recipes
 {
-    using System.Diagnostics.CodeAnalysis;
+    using global::System.Diagnostics.CodeAnalysis;
 
     using OBeautifulCode.Representation.System;
 
     /// <summary>
     /// Extension methods.
     /// </summary>
-#if !OBeautifulCodeSerializationRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Serialization.Recipes", "See package version number")]
+#if !OBeautifulCodeSerializationSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Serialization.Recipes", "See package version number")]
     internal
 #else
     public
@@ -37,7 +37,7 @@ namespace OBeautifulCode.Serialization.Recipes
         /// Self described serialization.
         /// </returns>
         [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "object", Justification = "Spelling/name is correct.")]
-        public static DescribedSerialization ToDescribedSerialization<T>(
+        public static DescribedSerializationBase ToDescribedSerialization<T>(
             this T objectToPackageIntoDescribedSerialization,
             SerializerRepresentation serializerRepresentation,
             SerializationFormat serializationFormat,
@@ -61,7 +61,7 @@ namespace OBeautifulCode.Serialization.Recipes
         /// Originally serialized object.
         /// </returns>
         public static object DeserializePayload(
-            this DescribedSerialization describedSerialization,
+            this DescribedSerializationBase describedSerialization,
             AssemblyMatchStrategy assemblyMatchStrategy = AssemblyMatchStrategy.AnySingleVersion)
         {
             var result =  describedSerialization.DeserializePayloadUsingSpecificFactory(
@@ -82,7 +82,7 @@ namespace OBeautifulCode.Serialization.Recipes
         /// </returns>
         [SuppressMessage("Microsoft.Design", "CA1062:Validate arguments of public methods", MessageId = "1", Justification = "Checked with Must and tested.")]
         public static T DeserializePayload<T>(
-            this DescribedSerialization describedSerialization, 
+            this DescribedSerializationBase describedSerialization,
             AssemblyMatchStrategy assemblyMatchStrategy = AssemblyMatchStrategy.AnySingleVersion)
         {
             var result = describedSerialization.DeserializePayloadUsingSpecificFactory<T>(

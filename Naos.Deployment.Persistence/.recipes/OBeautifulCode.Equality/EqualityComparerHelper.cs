@@ -9,22 +9,22 @@
 
 namespace OBeautifulCode.Equality.Recipes
 {
-    using System;
-    using System.Collections.Generic;
+    using global::System;
+    using global::System.Collections.Generic;
 
     using OBeautifulCode.Type.Recipes;
 
     /// <summary>
     /// Helper methods related to <see cref="IEqualityComparer{T}"/>.
     /// </summary>
-#if !OBeautifulCodeEqualityRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
+#if !OBeautifulCodeEqualitySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        static class EqualityComparerHelper
+    static class EqualityComparerHelper
     {
         /// <summary>
         /// Gets the equality comparer to use for the specified type.

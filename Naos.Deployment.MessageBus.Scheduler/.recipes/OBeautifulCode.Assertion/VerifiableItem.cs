@@ -9,7 +9,7 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// Specifies a item that is verifiable.  The verification is directly applied to this item.
@@ -17,15 +17,14 @@ namespace OBeautifulCode.Assertion.Recipes
     /// then the <see cref="Verification"/>s after that call are applied to the elements of the enumerable.
     /// Those elements are the verifiable items.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class VerifiableItem
+    class VerifiableItem
     {
         /// <summary>
         /// Gets or sets the value of the verifiable item.

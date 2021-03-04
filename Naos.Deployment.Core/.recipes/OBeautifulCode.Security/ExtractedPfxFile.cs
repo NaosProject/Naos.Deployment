@@ -9,21 +9,21 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
 
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.X509;
 
-    using static System.FormattableString;
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Represents cryptographic objects extracted from a PFX file.
     /// </summary>
-#if !OBeautifulCodeSecurityRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
+#if !OBeautifulCodeSecuritySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
     internal
 #else
     public

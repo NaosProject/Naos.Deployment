@@ -9,13 +9,13 @@
 
 namespace OBeautifulCode.Equality.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Diagnostics.CodeAnalysis;
 
-    using OBeautifulCode.Equality.Recipes.Internal;
+    using OBeautifulCode.CodeAnalysis.Recipes;
 
-    using static System.FormattableString;
+    using static global::System.FormattableString;
 
     /// <summary>
     /// An implementation of <see cref="IEqualityComparer{T}"/> for any <see cref="IEnumerable{T}"/>.
@@ -24,14 +24,14 @@ namespace OBeautifulCode.Equality.Recipes
     /// Adapted from: <a href="https://stackoverflow.com/a/14675741/356790" />.
     /// </remarks>
     /// <typeparam name="T">The type of objects to enumerate.</typeparam>
-#if !OBeautifulCodeEqualityRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
+#if !OBeautifulCodeEqualitySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Equality.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class EnumerableEqualityComparer<T> : IEqualityComparer<IEnumerable<T>>
+    class EnumerableEqualityComparer<T> : IEqualityComparer<IEnumerable<T>>
     {
         private readonly EnumerableEqualityComparerStrategy enumerableEqualityComparerStrategy;
 

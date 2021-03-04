@@ -9,20 +9,19 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// Tracks information related to the subject and lifecycle of an assertion.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.Diagnostics.DebuggerStepThrough]
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        class AssertionTracker
+    class AssertionTracker
     {
         /// <summary>
         /// Gets or sets the subject value.

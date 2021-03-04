@@ -9,20 +9,20 @@
 
 namespace OBeautifulCode.Process.Recipes
 {
-    using System;
-    using System.Diagnostics;
-    using System.Security.Principal;
-    
-    using DotNetProcess = System.Diagnostics.Process;
+    using global::System;
+    using global::System.Diagnostics;
+    using global::System.Security.Principal;
 
-    using static System.FormattableString;
+    using DotNetProcess = global::System.Diagnostics.Process;
+
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Contains helper/convenience methods related to managing processes.
     /// </summary>
-#if !OBeautifulCodeProcessRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Process.Recipes", "See package version number")]
+#if !OBeautifulCodeProcessSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Process.Recipes", "See package version number")]
     internal
 #else
     public

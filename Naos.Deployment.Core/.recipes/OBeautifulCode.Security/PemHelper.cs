@@ -9,11 +9,11 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.IO;
-    using System.Text;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.IO;
+    using global::System.Text;
 
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.OpenSsl;
@@ -23,9 +23,9 @@ namespace OBeautifulCode.Security.Recipes
     /// <summary>
     /// Contains helper methods for creating PEM encoded data.
     /// </summary>
-#if !OBeautifulCodeSecurityRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
+#if !OBeautifulCodeSecuritySolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Security.Recipes", "See package version number")]
     internal
 #else
     public

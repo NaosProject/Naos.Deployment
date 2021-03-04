@@ -9,21 +9,24 @@
 
 namespace OBeautifulCode.String.Recipes
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Text.RegularExpressions;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Diagnostics.CodeAnalysis;
+    using global::System.Globalization;
+    using global::System.Linq;
+    using global::System.Text;
+    using global::System.Text.RegularExpressions;
 
-    using static System.FormattableString;
+    using OBeautifulCode.CodeAnalysis.Recipes;
+
+    using static global::System.FormattableString;
 
     /// <summary>
     /// Adds some convenient extension methods to strings.
     /// </summary>
-#if !OBeautifulCodeStringRecipesProject
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.String.Recipes", "See package version number")]
+#if !OBeautifulCodeStringSolution
+    [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.String.Recipes", "See package version number")]
     internal
 #else
     public
@@ -43,6 +46,24 @@ namespace OBeautifulCode.String.Recipes
                 new char[0]
                     .Concat(Enumerable.Range(65, 26).Select(Convert.ToChar))
                     .Concat(Enumerable.Range(97, 26).Select(Convert.ToChar)));
+
+        /// <summary>
+        /// Specifies a map of <see cref="DateTimeKind"/> to the preferred format string to use for that kind.
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = ObcSuppressBecause.CA2104_DoNotDeclareReadOnlyMutableReferenceTypes_TypeIsImmutable)]
+        public static readonly IReadOnlyDictionary<DateTimeKind, string> DateTimeKindToPreferredFormatStringMap =
+            new Dictionary<DateTimeKind, string>
+            {
+                // ReSharper disable once StringLiteralTypo
+                { DateTimeKind.Utc, "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffff'Z'" },
+
+                // ReSharper disable once StringLiteralTypo
+                { DateTimeKind.Unspecified, "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffff''" },
+
+                // ReSharper disable once StringLiteralTypo
+                // note that the K here expands to the offset (e.g. "-05:00")
+                { DateTimeKind.Local, "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffffffK" },
+            };
 
         /// <summary>
         /// Appends one string to the another (base) if the base string
@@ -273,6 +294,47 @@ namespace OBeautifulCode.String.Recipes
             }
 
             var result = new string(chars, 0, count);
+            return result;
+        }
+
+        /// <summary>
+        /// Replaces tokens in a specified string value with the specified replacement values.
+        /// </summary>
+        /// <remarks>
+        /// DO NOT use this method if your replacement values contain tokens themselves.
+        /// This method does not process tokens in any guaranteed order.
+        /// </remarks>
+        /// <param name="value">The string containing tokens to replace.</param>
+        /// <param name="tokenToReplacementValueMap">
+        /// A map of the case-sensitive tokens to their replacement values.
+        /// If a replacement value is null, an empty string will be used.
+        /// </param>
+        /// <returns>
+        /// The result of replacing all tokens in <paramref name="value"/> with their replacement value.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="tokenToReplacementValueMap"/> is null.</exception>
+        public static string ReplaceTokens(
+            this string value,
+            IReadOnlyDictionary<string, string> tokenToReplacementValueMap)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (tokenToReplacementValueMap == null)
+            {
+                throw new ArgumentNullException(nameof(tokenToReplacementValueMap));
+            }
+
+            var result = value;
+
+            foreach (var token in tokenToReplacementValueMap.Keys)
+            {
+                result = result.Replace(token, tokenToReplacementValueMap[token]);
+            }
+
             return result;
         }
 
@@ -561,6 +623,711 @@ namespace OBeautifulCode.String.Recipes
             else
             {
                 result = Char.ToLower(value[0], cultureInfo) + value.Substring(1, value.Length - 1);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this sbyte value)
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this sbyte? value,
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((sbyte)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this byte value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this byte? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((byte)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this short value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this short? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((short)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this ushort value)
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this ushort? value,
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((ushort)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this int value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this int? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((int)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this uint value)
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this uint? value,
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((uint)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this long value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this long? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((long)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this ulong value)
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            #pragma warning disable CS3001 // Argument type is not CLS-compliant
+            this ulong? value,
+            #pragma warning restore CS3001 // Argument type is not CLS-compliant
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((ulong)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this float value)
+        {
+            var result = value.ToString("G9", CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this float? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((float)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this double value)
+        {
+            var result = value.ToString("G17", CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this double? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((double)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this decimal value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this decimal? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((decimal)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "Prefer bool as lower case.")]
+        public static string ToStringInvariantPreferred(
+            this bool value)
+        {
+            var result = value.ToString(CultureInfo.InvariantCulture).ToLowerInvariant();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this bool? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((bool)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this Guid value)
+        {
+            var result = value.ToString().ToUpperInvariant();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this Guid? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((Guid)value).ToStringInvariantPreferred();
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        public static string ToStringInvariantPreferred(
+            this DateTime value)
+        {
+            var formatString = DateTimeKindToPreferredFormatStringMap[value.Kind];
+
+            var result = value.ToString(formatString, CultureInfo.InvariantCulture);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value or null if <paramref name="value"/> is null and <paramref name="throwIfNull"/> is false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null and <paramref name="throwIfNull"/> is true.</exception>
+        public static string ToStringInvariantPreferred(
+            this DateTime? value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                result = ((DateTime)value).ToStringInvariantPreferred();
             }
 
             return result;

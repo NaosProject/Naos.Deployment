@@ -12,13 +12,13 @@ namespace OBeautifulCode.Assertion.Recipes
     /// <summary>
     /// Specifies on whether a range is inclusive or exclusive of the endpoints.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        enum Range
+    enum Range
     {
         /// <summary>
         /// Range is inclusive of both the minimum (start) and maximum (end) value.

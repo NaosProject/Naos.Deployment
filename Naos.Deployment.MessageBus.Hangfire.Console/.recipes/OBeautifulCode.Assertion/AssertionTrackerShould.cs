@@ -9,18 +9,18 @@
 
 namespace OBeautifulCode.Assertion.Recipes
 {
-    using System.Diagnostics.CodeAnalysis;
+    using global::System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Specifies what should or should not be true about an <see cref="AssertionTracker"/>.
     /// </summary>
-#if !OBeautifulCodeAssertionRecipesProject
-    [System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
+#if !OBeautifulCodeAssertionSolution
+    [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Assertion.Recipes", "See package version number")]
     internal
 #else
     public
 #endif
-        enum AssertionTrackerShould
+    enum AssertionTrackerShould
     {
         /// <summary>
         /// Unknown (default).
