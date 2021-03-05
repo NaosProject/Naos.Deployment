@@ -8,47 +8,32 @@ namespace Naos.Deployment.Console
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
     using System.Xml.Serialization;
 
     using CLAP;
-
-    using Microsoft.SqlServer.Management.Smo;
 
     using Naos.AWS.Domain;
     using Naos.Bootstrapper;
     using Naos.CodeAnalysis.Recipes;
     using Naos.Configuration.Domain;
-    using Naos.Cron;
-    using Naos.Database.Domain;
-    using Naos.Database.SqlServer;
     using Naos.Deployment.Core;
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Persistence;
     using Naos.Deployment.Tracking;
     using Naos.MachineManagement.Local;
-    using Naos.MessageBus.Domain;
-    using Naos.Packaging.Domain;
-    using Naos.Packaging.NuGet;
     using Naos.Recipes.RunWithRetry;
-    using Naos.Recipes.WinRM;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Security.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
-
-    using OBeautifulCode.Type;
-
-    using Spritely.Recipes;
 
     using static System.FormattableString;
 

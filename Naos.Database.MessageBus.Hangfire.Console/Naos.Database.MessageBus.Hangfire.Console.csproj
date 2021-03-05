@@ -58,12 +58,6 @@
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
-    <Reference Include="FluentMigrator, Version=1.6.2.0, Culture=neutral, PublicKeyToken=aacfc7de5acabf05, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentMigrator.1.6.2\lib\40\FluentMigrator.dll</HintPath>
-    </Reference>
-    <Reference Include="FluentMigrator.Runner, Version=1.6.2.0, Culture=neutral, PublicKeyToken=aacfc7de5acabf05, processorArchitecture=MSIL">
-      <HintPath>..\packages\FluentMigrator.Runner.1.6.2\lib\40\FluentMigrator.Runner.dll</HintPath>
-    </Reference>
     <Reference Include="Hangfire.Core, Version=1.5.9.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Hangfire.Core.1.5.9\lib\net45\Hangfire.Core.dll</HintPath>
     </Reference>
@@ -206,18 +200,6 @@
     <Reference Include="Naos.Database.Domain, Version=1.1.302.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Database.Domain.1.1.302\lib\net462\Naos.Database.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Database.Mongo.Administration, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Mongo.Administration.1.1.206\lib\net462\Naos.Database.Mongo.Administration.dll</HintPath>
-    </Reference>
-    <Reference Include="Naos.Database.Mongo.Domain, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.Mongo.Domain.1.1.206\lib\net462\Naos.Database.Mongo.Domain.dll</HintPath>
-    </Reference>
-    <Reference Include="Naos.Database.SqlServer.Administration, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Administration.1.1.206\lib\net462\Naos.Database.SqlServer.Administration.dll</HintPath>
-    </Reference>
-    <Reference Include="Naos.Database.SqlServer.Domain, Version=1.1.206.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Database.SqlServer.Domain.1.1.206\lib\net462\Naos.Database.SqlServer.Domain.dll</HintPath>
-    </Reference>
     <Reference Include="Naos.Diagnostics.Domain, Version=1.3.37.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.37\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
@@ -245,6 +227,12 @@
     <Reference Include="Naos.MessageBus.Persistence, Version=1.3.34.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Persistence.1.3.34\lib\net462\Naos.MessageBus.Persistence.dll</HintPath>
     </Reference>
+    <Reference Include="Naos.Mongo.Domain, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Domain.1.0.4\lib\net462\Naos.Mongo.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.Mongo.Protocol.Client, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Protocol.Client.1.0.4\lib\net462\Naos.Mongo.Protocol.Client.dll</HintPath>
+    </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.56.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.56\lib\net462\Naos.Packaging.Domain.dll</HintPath>
     </Reference>
@@ -256,6 +244,12 @@
     </Reference>
     <Reference Include="Naos.Protocol.Serialization.Json, Version=1.0.96.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Protocol.Serialization.Json.1.0.96\lib\net462\Naos.Protocol.Serialization.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.SqlServer.Domain, Version=1.0.71.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.71\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
+    </Reference>
+    <Reference Include="Naos.SqlServer.Protocol.Client, Version=1.0.71.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Protocol.Client.1.0.71\lib\net462\Naos.SqlServer.Protocol.Client.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Telemetry.Domain, Version=1.0.26.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Telemetry.Domain.1.0.26\lib\net462\Naos.Telemetry.Domain.dll</HintPath>

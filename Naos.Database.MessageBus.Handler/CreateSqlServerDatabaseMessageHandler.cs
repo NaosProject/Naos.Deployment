@@ -13,12 +13,12 @@ namespace Naos.Database.MessageBus.Handler
 
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.SqlServer.Administration;
-    using Naos.Database.SqlServer.Domain;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-
+    using Naos.SqlServer.Domain;
+    using Naos.SqlServer.Protocol.Client;
     using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Database.Recipes;
 
     /// <summary>
     /// Naos.MessageBus handler for CreateSqlServerDatabaseMessages.
@@ -51,9 +51,9 @@ namespace Naos.Database.MessageBus.Handler
                     // use this to avoid issues with database not there or going offline
                     var localhostConnection = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                     var masterConnectionString =
-                        ConnectionStringHelper.SpecifyInitialCatalogInConnectionString(
-                            localhostConnection.ToSqlServerConnectionString(),
-                            SqlServerDatabaseManager.MasterDatabaseName);
+                        localhostConnection
+                           .BuildConnectionString(TimeSpan.FromSeconds(30))
+                           .AddOrUpdateInitialCatalogInConnectionString(SqlServerDatabaseManager.MasterDatabaseName);
 
                     var existingDatabases = SqlServerDatabaseManager.Retrieve(masterConnectionString);
                     if (existingDatabases.Any(_ => string.Equals(_.DatabaseName, message.DatabaseName, StringComparison.CurrentCultureIgnoreCase)))
@@ -65,21 +65,20 @@ namespace Naos.Database.MessageBus.Handler
                     var dataFilePath = Path.Combine(dataDirectory, message.DataFileName);
                     var logFilePath = Path.Combine(dataDirectory, message.DataFileName);
 
-                    var databaseConfiguration = new DatabaseConfiguration
-                                                    {
-                                                        DatabaseName = message.DatabaseName,
-                                                        DatabaseType = message.DatabaseType,
-                                                        DataFileLogicalName = message.DataFileLogicalName,
-                                                        LogFileLogicalName = message.LogFileLogicalName,
-                                                        DataFilePath = dataFilePath,
-                                                        LogFilePath = logFilePath,
-                                                        DataFileCurrentSizeInKb = message.DataFileCurrentSizeInKb,
-                                                        DataFileGrowthSizeInKb = message.DataFileGrowthSizeInKb,
-                                                        DataFileMaxSizeInKb = message.DataFileMaxSizeInKb,
-                                                        LogFileCurrentSizeInKb = message.LogFileCurrentSizeInKb,
-                                                        LogFileGrowthSizeInKb = message.LogFileGrowthSizeInKb,
-                                                        LogFileMaxSizeInKb = message.LogFileMaxSizeInKb,
-                                                    };
+                    var databaseConfiguration = new DatabaseConfiguration(
+                        message.DatabaseName,
+                        message.DatabaseType,
+                        RecoveryMode.Simple,
+                        message.DataFileLogicalName,
+                        dataFilePath,
+                        message.DataFileCurrentSizeInKb,
+                        message.DataFileMaxSizeInKb,
+                        message.DataFileGrowthSizeInKb,
+                        message.LogFileLogicalName,
+                        logFilePath,
+                        message.LogFileCurrentSizeInKb,
+                        message.LogFileMaxSizeInKb,
+                        message.LogFileGrowthSizeInKb);
 
                     SqlServerDatabaseManager.Create(masterConnectionString, databaseConfiguration);
 

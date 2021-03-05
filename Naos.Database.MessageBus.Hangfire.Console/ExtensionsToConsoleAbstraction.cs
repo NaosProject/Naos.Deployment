@@ -15,14 +15,12 @@ namespace Naos.Database.MessageBus.Hangfire.Console
     using Naos.Configuration.Domain;
     using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.Mongo;
-    using Naos.Database.Mongo.Domain;
-    using Naos.Database.SqlServer.Administration;
-    using Naos.Database.SqlServer.Domain;
     using Naos.Logging.Domain;
-    using Naos.Logging.Persistence;
+    using Naos.Mongo.Domain;
+    using Naos.Mongo.Protocol.Client;
     using Naos.Recipes.RunWithRetry;
-
+    using Naos.SqlServer.Domain;
+    using Naos.SqlServer.Protocol.Client;
     using static System.FormattableString;
 
     /// <summary>
@@ -66,23 +64,25 @@ namespace Naos.Database.MessageBus.Hangfire.Console
 
             var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
-            var connectionString = connectionDefinition.ToSqlServerConnectionString();
+            var connectionString = connectionDefinition
+               .BuildConnectionString(TimeSpan.FromSeconds(30));
 
             var errorHandling = ErrorHandling.StopOnError;
             var compressionOption = CompressionOption.NoCompression;
 
             var backupFilePathUri = new Uri(targetFilePath);
-            var backupDetails = new BackupSqlServerDatabaseDetails
-            {
-                Name = Invariant($"{databaseName}DatabaseBackup"),
-                BackupTo = backupFilePathUri,
-                ChecksumOption = ChecksumOption.NoChecksum,
-                Cipher = Cipher.NoEncryption,
-                CompressionOption = compressionOption,
-                Description = null,
-                Device = Device.Disk,
-                ErrorHandling = errorHandling,
-            };
+            var backupDetails = new BackupSqlServerDatabaseDetails(
+                Invariant($"{databaseName}DatabaseBackup"),
+                null,
+                Device.Disk,
+                backupFilePathUri,
+                null,
+                compressionOption,
+                ChecksumOption.NoChecksum,
+                errorHandling,
+                Cipher.NoEncryption,
+                Encryptor.None,
+                null);
 
             Run.TaskUntilCompletion(SqlServerDatabaseManager.BackupFullAsync(connectionString, databaseName, backupDetails));
         }
@@ -182,7 +182,8 @@ namespace Naos.Database.MessageBus.Hangfire.Console
 
             var settings = Config.Get<DatabaseMessageHandlerSettings>();
             var connectionDefinition = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[databaseName.ToUpperInvariant()];
-            var connectionString = connectionDefinition.ToSqlServerConnectionString();
+            var connectionString = connectionDefinition
+               .BuildConnectionString(TimeSpan.FromSeconds(30));
 
             var dataFilePath = Path.Combine(dataDirectory, databaseName + "Dat.mdf");
             var logFilePath = Path.Combine(dataDirectory, databaseName + "Log.ldf");
@@ -191,18 +192,17 @@ namespace Naos.Database.MessageBus.Hangfire.Console
             var recoveryOption = RecoveryOption.Recovery;
 
             var backupFilePathUri = new Uri(sourceFilePath);
-            var restoreDetails = new RestoreSqlServerDatabaseDetails
-            {
-                ChecksumOption = ChecksumOption.NoChecksum,
-                Device = Device.Disk,
-                ErrorHandling = errorHandling,
-                DataFilePath = dataFilePath,
-                LogFilePath = logFilePath,
-                RecoveryOption = recoveryOption,
-                ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
-                RestoreFrom = backupFilePathUri,
-                RestrictedUserOption = RestrictedUserOption.Normal,
-            };
+            var restoreDetails = new RestoreSqlServerDatabaseDetails(
+                dataFilePath,
+                logFilePath,
+                Device.Disk,
+                backupFilePathUri,
+                null,
+                ChecksumOption.NoChecksum,
+                errorHandling,
+                recoveryOption,
+                ReplaceOption.ReplaceExistingDatabase,
+                RestrictedUserOption.Normal);
 
             Run.TaskUntilCompletion(SqlServerDatabaseManager.RestoreFullAsync(connectionString, databaseName, restoreDetails));
         }

@@ -9,9 +9,12 @@ namespace Naos.Deployment.Domain
     using System;
     using System.Collections.Generic;
     using Naos.Cron.Serialization.Json;
+    using Naos.Database.Serialization.Json;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
+    using Naos.Mongo.Serialization.Json;
     using Naos.Packaging.Serialization.Json;
+    using Naos.SqlServer.Serialization.Json;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
 
@@ -31,6 +34,9 @@ namespace Naos.Deployment.Domain
                 typeof(LoggingJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
                 typeof(PackagingJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
                 typeof(MessageBusJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
+                typeof(DatabaseJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
+                typeof(MongoJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
+                typeof(SqlServerJsonSerializationConfiguration).ToJsonSerializationConfigurationType(),
             };
 
         /// <inheritdoc />
@@ -47,7 +53,6 @@ namespace Naos.Deployment.Domain
                 typeof(ComputingContainerDescription).ToTypeToRegisterForJson(),
                 typeof(ComputingInfrastructureManagerSettings).ToTypeToRegisterForJson(),
                 typeof(Create).ToTypeToRegisterForJson(),
-                typeof(DatabaseMigrationBase).ToTypeToRegisterForJson(),
                 typeof(DatabaseRestoreBase).ToTypeToRegisterForJson(),
                 typeof(DeployedInstance).ToTypeToRegisterForJson(),
                 typeof(DeploymentConfiguration).ToTypeToRegisterForJson(),

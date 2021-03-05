@@ -6,8 +6,8 @@
 
 namespace Naos.Database.MessageBus.Scheduler
 {
-    using Naos.Database.SqlServer.Domain;
     using Naos.MessageBus.Domain;
+    using Naos.SqlServer.Domain;
 
     /// <summary>
     /// Message to create a database on the server the handler is on.

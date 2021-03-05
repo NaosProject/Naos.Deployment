@@ -206,7 +206,6 @@ namespace Naos.Deployment.Core.Test
                                    DataDirectory = @"D:\Data",
                                    BackupDirectory = @"D:\Backup",
                                    Restore = new NullDatabaseRestore(),
-                                   Migration = new NullDatabaseMigration(),
                                    Create =
                                        new Create
                                            {
@@ -257,7 +256,6 @@ namespace Naos.Deployment.Core.Test
             Assert.Equal(original.BackupDirectory, cloned.BackupDirectory);
             Assert.Equal(original.DataDirectory, cloned.DataDirectory);
             Assert.Equal(original.Name, cloned.Name);
-            Assert.NotSame(original.Migration, cloned.Migration);
             Assert.NotSame(original.Restore, cloned.Restore);
             Assert.NotSame(original.Create, cloned.Create);
             Assert.NotSame(original.Create.DatabaseFileNameSettings, cloned.Create.DatabaseFileNameSettings);

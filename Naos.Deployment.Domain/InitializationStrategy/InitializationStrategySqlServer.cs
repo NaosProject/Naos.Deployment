@@ -34,11 +34,6 @@ namespace Naos.Deployment.Domain
         public Create Create { get; set; }
 
         /// <summary>
-        /// Gets or sets the schema/data migration information, null will skip.
-        /// </summary>
-        public DatabaseMigrationBase Migration { get; set; }
-
-        /// <summary>
         /// Gets or sets the administrator password to use.
         /// </summary>
         public string AdministratorPassword { get; set; }
@@ -86,7 +81,6 @@ namespace Naos.Deployment.Domain
                               AdministratorPassword = this.AdministratorPassword,
                               Create = (Create)this.Create.Clone(),
                               Restore = (DatabaseRestoreBase)this.Restore.Clone(),
-                              Migration = (DatabaseMigrationBase)this.Migration.Clone(),
                               ManagementChannelName = this.ManagementChannelName,
                           };
             return ret;

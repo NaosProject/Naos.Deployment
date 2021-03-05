@@ -299,28 +299,6 @@ namespace Naos.Deployment.Core.Test
         }
 
         [Fact]
-        public static void Deserialize_DatabaseMigration_Valid()
-        {
-            var input = @"
-[{
-""PackageDescription"" : { ""id"": ""Naos.Something"" },
-""initializationStrategies"":
-    [{""name"": ""DatabaseName"", ""administratorPassword"":""hello"",      ""migration"": {""version"":17}}]
-}]";
-            var deserialized = (ICollection<PackageDescriptionWithOverrides>)JsonSerializerToUse.Deserialize(input, typeof(ICollection<PackageDescriptionWithOverrides>));
-
-            Assert.NotNull(deserialized);
-            var actualMigration = deserialized.Single()
-                .InitializationStrategies.OfType<InitializationStrategySqlServer>()
-                .Single()
-                .Migration;
-            Assert.NotNull(actualMigration);
-            var actualFluentMigration = Assert.IsType<DatabaseMigrationFluentMigrator>(actualMigration);
-            Assert.NotNull(actualFluentMigration);
-            Assert.Equal(17, actualFluentMigration.Version);
-        }
-
-        [Fact]
         public static void Deserialize_SingleMessageBusHandlerInitStrategy_Valid()
         {
             var input = @"

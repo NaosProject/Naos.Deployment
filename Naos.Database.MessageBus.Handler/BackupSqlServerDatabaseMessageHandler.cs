@@ -12,13 +12,12 @@ namespace Naos.Database.MessageBus.Handler
 
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.SqlServer.Administration;
-    using Naos.Database.SqlServer.Domain;
     using Naos.FileJanitor.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-
+    using Naos.SqlServer.Domain;
+    using Naos.SqlServer.Protocol.Client;
     using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;
@@ -62,23 +61,24 @@ namespace Naos.Database.MessageBus.Handler
                 this.DatabaseName = message.DatabaseName;
 
                 var backupFilePathUri = new Uri(this.FilePath);
-                var backupDetails = new BackupSqlServerDatabaseDetails
-                                        {
-                                            Name = message.BackupName,
-                                            BackupTo = backupFilePathUri,
-                                            ChecksumOption = message.ChecksumOption,
-                                            Cipher = message.Cipher,
-                                            CompressionOption = message.CompressionOption,
-                                            Description = message.BackupDescription,
-                                            Device = Device.Disk,
-                                            ErrorHandling = message.ErrorHandling,
-                                        };
+                var backupDetails = new BackupSqlServerDatabaseDetails(
+                                        message.BackupName,
+                                        message.BackupDescription,
+                                        Device.Disk,
+                                        backupFilePathUri,
+                                        null,
+                                        message.CompressionOption,
+                                        message.ChecksumOption,
+                                        message.ErrorHandling,
+                                        message.Cipher,
+                                        Encryptor.None,
+                                        null);
 
                 activity.Write(() => Invariant($"Backing up SQL Server database {this.DatabaseName} to {backupFilePath}."));
 
                 var localhostConnection = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                 await SqlServerDatabaseManager.BackupFullAsync(
-                    localhostConnection.ToSqlServerConnectionString(),
+                    localhostConnection.BuildConnectionString(TimeSpan.FromSeconds(30)),
                     this.DatabaseName,
                     backupDetails,
                     null,

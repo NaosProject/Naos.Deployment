@@ -9,9 +9,9 @@ namespace Naos.Database.MessageBus.Scheduler
     using System;
 
     using Naos.Database.Domain;
-    using Naos.Database.SqlServer.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.MessageBus.Domain;
+    using Naos.SqlServer.Domain;
 
     /// <summary>
     /// Message to initiate a database restore on the server the handler is on.

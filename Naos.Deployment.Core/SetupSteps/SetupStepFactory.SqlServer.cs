@@ -11,10 +11,10 @@ namespace Naos.Deployment.Core
     using System.IO;
     using System.Linq;
     using Naos.Database.Domain;
-    using Naos.Database.SqlServer.Administration;
-    using Naos.Database.SqlServer.Domain;
     using Naos.Deployment.Domain;
     using Naos.Packaging.Domain;
+    using Naos.SqlServer.Domain;
+    using Naos.SqlServer.Protocol.Client;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Reflection.Recipes;
     using static System.FormattableString;
@@ -163,67 +163,20 @@ namespace Naos.Deployment.Core
 
                                     var restoreFileUri = new Uri(restoreFilePath);
                                     var checksumOption = awsRestore.RunChecksum ? ChecksumOption.Checksum : ChecksumOption.NoChecksum;
-                                    var restoreDetails = new RestoreSqlServerDatabaseDetails
-                                                             {
-                                                                 ChecksumOption = checksumOption,
-                                                                 Device = Device.Disk,
-                                                                 ErrorHandling = ErrorHandling.StopOnError,
-                                                                 DataFilePath = databaseConfigurationForRestore.DataFilePath,
-                                                                 LogFilePath = databaseConfigurationForRestore.LogFilePath,
-                                                                 RecoveryOption = RecoveryOption.NoRecovery,
-                                                                 ReplaceOption = ReplaceOption.ReplaceExistingDatabase,
-                                                                 RestoreFrom = restoreFileUri,
-                                                                 RestrictedUserOption = RestrictedUserOption.Normal,
-                                                             };
+
+                                    var restoreDetails = new RestoreSqlServerDatabaseDetails(
+                                        databaseConfigurationForRestore.DataFilePath,
+                                        databaseConfigurationForRestore.LogFilePath,
+                                        Device.Disk,
+                                        restoreFileUri,
+                                        null,
+                                        checksumOption,
+                                        ErrorHandling.StopOnError,
+                                        RecoveryOption.NoRecovery,
+                                        ReplaceOption.ReplaceExistingDatabase,
+                                        RestrictedUserOption.Normal);
+
                                     SqlServerDatabaseManager.RestoreFull(realRemoteConnectionString, sqlServerStrategy.Name, restoreDetails);
-                                    return new dynamic[0];
-                                },
-                        });
-            }
-
-            if (sqlServerStrategy.Migration != null)
-            {
-                var fluentMigration = sqlServerStrategy.Migration as DatabaseMigrationFluentMigrator;
-                if (fluentMigration == null)
-                {
-                    throw new NotSupportedException(
-                        "Currently no support for type of database migration: " + sqlServerStrategy.Migration.GetType());
-                }
-
-                databaseSteps.Add(
-                    new SetupStep
-                        {
-                            Description = Invariant($"Run Fluent Migration on Database: {sqlServerStrategy.Name} to Version: {fluentMigration.Version}."),
-                            SetupFunc = machineManager =>
-                                {
-                                    var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
-
-                                    var workingPath = Path.Combine(this.workingDirectory, "DeployMigration-" + Guid.NewGuid().ToString().Substring(0, 4));
-                                    this.packageManager.DownloadPackages(new[] { package.PackageDescription }, workingPath, true);
-
-                                    var allFilePaths = Directory.GetFiles(workingPath, "*", SearchOption.AllDirectories);
-                                    var migrationAssemblyFilePath =
-                                        allFilePaths.Where(_ => Path.GetFileNameWithoutExtension(_) == package.PackageDescription.Id)
-                                            .SingleOrDefault(_ => _.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || _.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase));
-
-                                    new { migrationAssemblyFilePath }.AsArg().Must().NotBeNull(
-                                        Invariant($"Needs assembly named for package ID: {package.PackageDescription.Id} in downloaded path: {workingPath}"));
-
-                                    // Need to run loose because FluentMigrator doesn't play nice...
-                                    using (var loader = AssemblyLoader.CreateAndLoadFromDirectory(
-                                        workingPath,
-                                        suppressBadImageFormatException: true,
-                                        suppressFileLoadException: true))
-                                    {
-                                        var assembly = loader.FilePathToAssemblyMap[migrationAssemblyFilePath];
-                                        MigrationExecutor.Up(
-                                            assembly,
-                                            realRemoteConnectionString,
-                                            sqlServerStrategy.Name,
-                                            fluentMigration.Version,
-                                            this.debugAnnouncer);
-                                    }
-
                                     return new dynamic[0];
                                 },
                         });
@@ -252,22 +205,20 @@ namespace Naos.Deployment.Core
                 recoveryModeEnum = (RecoveryMode)Enum.Parse(typeof(RecoveryMode), recoveryMode, true);
             }
 
-            var databaseConfiguration = new DatabaseConfiguration
-            {
-                DatabaseName = databaseName,
-                DatabaseType = DatabaseType.User,
-                RecoveryMode = recoveryModeEnum,
-                DataFileLogicalName = localDatabaseFileNameSettings.DataFileLogicalName,
-                DataFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.DataFileNameOnDisk),
-                DataFileCurrentSizeInKb = localDatabaseFileSizeSettings.DataFileCurrentSizeInKb,
-                DataFileMaxSizeInKb = localDatabaseFileSizeSettings.DataFileMaxSizeInKb,
-                DataFileGrowthSizeInKb = localDatabaseFileSizeSettings.DataFileGrowthSizeInKb,
-                LogFileLogicalName = localDatabaseFileNameSettings.LogFileLogicalName,
-                LogFilePath = Path.Combine(dataDirectory, localDatabaseFileNameSettings.LogFileNameOnDisk),
-                LogFileCurrentSizeInKb = localDatabaseFileSizeSettings.LogFileCurrentSizeInKb,
-                LogFileMaxSizeInKb = localDatabaseFileSizeSettings.LogFileMaxSizeInKb,
-                LogFileGrowthSizeInKb = localDatabaseFileSizeSettings.LogFileGrowthSizeInKb,
-            };
+            var databaseConfiguration = new DatabaseConfiguration(
+                databaseName,
+                DatabaseType.User,
+                recoveryModeEnum,
+                localDatabaseFileNameSettings.DataFileLogicalName,
+                Path.Combine(dataDirectory, localDatabaseFileNameSettings.DataFileNameOnDisk),
+                localDatabaseFileSizeSettings.DataFileCurrentSizeInKb,
+                localDatabaseFileSizeSettings.DataFileMaxSizeInKb,
+                localDatabaseFileSizeSettings.DataFileGrowthSizeInKb,
+                localDatabaseFileNameSettings.LogFileLogicalName,
+                Path.Combine(dataDirectory, localDatabaseFileNameSettings.LogFileNameOnDisk),
+                localDatabaseFileSizeSettings.LogFileCurrentSizeInKb,
+                localDatabaseFileSizeSettings.LogFileMaxSizeInKb,
+                localDatabaseFileSizeSettings.LogFileGrowthSizeInKb);
 
             return databaseConfiguration;
         }

@@ -7,9 +7,8 @@
 namespace Naos.Database.MessageBus.Scheduler
 {
     using System;
-
-    using Naos.Database.SqlServer.Domain;
     using Naos.MessageBus.Domain;
+    using Naos.SqlServer.Domain;
 
     /// <summary>
     /// Message to initiate a database backup on the server the handler is on.

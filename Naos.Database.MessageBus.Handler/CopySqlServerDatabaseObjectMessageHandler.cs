@@ -6,13 +6,14 @@
 
 namespace Naos.Database.MessageBus.Handler
 {
+    using System;
     using System.Threading.Tasks;
 
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.SqlServer.Administration;
     using Naos.MessageBus.Domain;
-
+    using Naos.SqlServer.Protocol.Client;
+    using Naos.SqlServer.Protocol.Management;
     using OBeautifulCode.Assertion.Recipes;
 
     /// <summary>
@@ -28,8 +29,14 @@ namespace Naos.Database.MessageBus.Handler
             var settings = Config.Get<DatabaseMessageHandlerSettings>();
             new { settings }.AsArg().Must().NotBeNull();
 
-            var sourceDatabaseConnectionString = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.SourceDatabaseName.ToUpperInvariant()].ToSqlServerConnectionString();
-            var targetDatabaseConnectionString = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.TargetDatabaseName.ToUpperInvariant()].ToSqlServerConnectionString();
+            var sourceDatabaseConnectionString = settings
+                                                .SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.SourceDatabaseName.ToUpperInvariant()]
+                                                .BuildConnectionString(TimeSpan.FromSeconds(30));
+
+            var targetDatabaseConnectionString = settings
+                                                .SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.TargetDatabaseName.ToUpperInvariant()]
+                                                .BuildConnectionString(TimeSpan.FromSeconds(30));
+
             await DatabaseObjectCopier.CopyObjects(message.OrderedObjectNamesToCopy, sourceDatabaseConnectionString, targetDatabaseConnectionString);
         }
     }

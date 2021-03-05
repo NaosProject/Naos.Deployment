@@ -9,8 +9,8 @@ namespace Naos.Database.MessageBus.Scheduler
     using System;
     using System.Collections.Generic;
 
-    using Naos.Database.Mongo.Domain;
-    using Naos.Database.SqlServer.Domain;
+    using Naos.Mongo.Domain;
+    using Naos.SqlServer.Domain;
 
     /// <summary>
     /// Model object for Its.Configuration providing settings for the MessageHandlers.

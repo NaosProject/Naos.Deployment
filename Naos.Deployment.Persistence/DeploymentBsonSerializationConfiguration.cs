@@ -10,9 +10,12 @@ namespace Naos.Deployment.Persistence
     using System.Collections.Generic;
 
     using Naos.Cron.Serialization.Bson;
+    using Naos.Database.Serialization.Bson;
     using Naos.Deployment.Domain;
     using Naos.MachineManagement.Domain;
+    using Naos.Mongo.Serialization.Bson;
     using Naos.Packaging.Serialization.Bson;
+    using Naos.SqlServer.Serialization.Bson;
     using OBeautifulCode.Serialization.Bson;
 
     /// <summary>
@@ -34,6 +37,9 @@ namespace Naos.Deployment.Persistence
             {
                 typeof(CronBsonSerializationConfiguration).ToBsonSerializationConfigurationType(),
                 typeof(PackagingBsonSerializationConfiguration).ToBsonSerializationConfigurationType(),
+                typeof(DatabaseBsonSerializationConfiguration).ToBsonSerializationConfigurationType(),
+                typeof(MongoBsonSerializationConfiguration).ToBsonSerializationConfigurationType(),
+                typeof(SqlServerBsonSerializationConfiguration).ToBsonSerializationConfigurationType(),
             };
 
         /// <inheritdoc />
@@ -51,7 +57,6 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(ComputingContainerDescription).ToTypeToRegisterForBson(),
                                                                                     typeof(ComputingInfrastructureManagerSettings).ToTypeToRegisterForBson(),
                                                                                     typeof(Create).ToTypeToRegisterForBson(),
-                                                                                    typeof(DatabaseMigrationBase).ToTypeToRegisterForBson(),
                                                                                     typeof(DatabaseRestoreBase).ToTypeToRegisterForBson(),
                                                                                     typeof(DeployedInstance).ToTypeToRegisterForBson(),
                                                                                     typeof(DeploymentConfiguration).ToTypeToRegisterForBson(),

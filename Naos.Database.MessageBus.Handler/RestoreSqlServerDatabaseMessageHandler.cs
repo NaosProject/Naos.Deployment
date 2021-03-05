@@ -12,14 +12,13 @@ namespace Naos.Database.MessageBus.Handler
 
     using Naos.Configuration.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.SqlServer.Administration;
-    using Naos.Database.SqlServer.Domain;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-
+    using Naos.SqlServer.Domain;
+    using Naos.SqlServer.Protocol.Client;
     using OBeautifulCode.Assertion.Recipes;
-
+    using OBeautifulCode.Database.Recipes;
     using static System.FormattableString;
 
     /// <summary>
@@ -66,26 +65,25 @@ namespace Naos.Database.MessageBus.Handler
                     activity.Write(() => $"Using data path: {dataFilePath}, log path: {logFilePath}");
 
                     var restoreFilePath = new Uri(this.FilePath);
-                    var restoreDetails = new RestoreSqlServerDatabaseDetails
-                                             {
-                                                 ChecksumOption = message.ChecksumOption,
-                                                 Device = Device.Disk,
-                                                 ErrorHandling = message.ErrorHandling,
-                                                 DataFilePath = dataFilePath,
-                                                 LogFilePath = logFilePath,
-                                                 RecoveryOption = message.RecoveryOption,
-                                                 ReplaceOption = message.ReplaceOption,
-                                                 RestoreFrom = restoreFilePath,
-                                                 RestrictedUserOption = message.RestrictedUserOption,
-                                             };
+                    var restoreDetails = new RestoreSqlServerDatabaseDetails(
+                        dataFilePath,
+                        logFilePath,
+                        Device.Disk,
+                        restoreFilePath,
+                        null,
+                        message.ChecksumOption,
+                        message.ErrorHandling,
+                        message.RecoveryOption,
+                        message.ReplaceOption,
+                        message.RestrictedUserOption);
 
                     activity.Write(() => Invariant($"Restoring SQL Server database {this.DatabaseName} from {restoreFilePath}."));
 
                     var localhostConnection = settings.SqlServerDatabaseNameToLocalhostConnectionDefinitionMap[message.DatabaseName.ToUpperInvariant()];
                     // use this to avoid issues with database not there or going offline
-                    var masterConnectionString = ConnectionStringHelper.SpecifyInitialCatalogInConnectionString(
-                        localhostConnection.ToSqlServerConnectionString(),
-                        SqlServerDatabaseManager.MasterDatabaseName);
+                    var masterConnectionString = localhostConnection
+                                                .BuildConnectionString(TimeSpan.FromSeconds(30))
+                                                .AddOrUpdateInitialCatalogInConnectionString(SqlServerDatabaseManager.MasterDatabaseName);
 
                     await SqlServerDatabaseManager.RestoreFullAsync(
                         masterConnectionString,

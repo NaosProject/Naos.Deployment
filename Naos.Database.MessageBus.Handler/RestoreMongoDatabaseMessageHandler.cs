@@ -11,13 +11,12 @@ namespace Naos.Database.MessageBus.Handler
     using System.Threading.Tasks;
 
     using Naos.Configuration.Domain;
-    using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.Mongo;
     using Naos.FileJanitor.MessageBus.Scheduler;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
-
+    using Naos.Mongo.Domain;
+    using Naos.Mongo.Protocol.Client;
     using OBeautifulCode.Assertion.Recipes;
 
     using static System.FormattableString;

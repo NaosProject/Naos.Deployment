@@ -10,11 +10,11 @@ namespace Naos.Deployment.Core
     using System.Collections.Generic;
     using System.Linq;
     using Naos.Database.MessageBus.Scheduler;
-    using Naos.Database.Mongo.Domain;
-    using Naos.Database.SqlServer.Domain;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.MessageBus.Domain;
+    using Naos.Mongo.Domain;
+    using Naos.SqlServer.Domain;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Representation.System;
     using static System.FormattableString;
