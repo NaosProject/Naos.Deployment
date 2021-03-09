@@ -1576,7 +1576,12 @@ namespace Naos.Deployment.Console
             }
         }
 
-        private static ICreateMachineManagers GetMachineManagerFactory(
+        /// <summary>
+        /// Gets the machine manager factory.
+        /// </summary>
+        /// <param name="environmentType">Type of the environment.</param>
+        /// <returns>ICreateMachineManagers.</returns>
+        public static ICreateMachineManagers GetMachineManagerFactory(
             EnvironmentType environmentType)
         {
             switch (environmentType)
