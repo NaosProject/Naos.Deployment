@@ -961,7 +961,7 @@ namespace Naos.Deployment.Core
                         await Task.WhenAll(terminateInstancesTasks);
                         return instanceName;
                     case ExistingDeploymentStrategy.DeploySideBySide:
-                        return instanceName + "-SideBySide-" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mmZ", CultureInfo.InvariantCulture);
+                        return instanceName + "-SxS-" + DateTime.UtcNow.ToString("yyyyMMddTHHmmZ", CultureInfo.InvariantCulture);
                     case ExistingDeploymentStrategy.DeployAdditional:
                         throw new NotSupportedException("DeployAdditional is not currently supported.");
                     case ExistingDeploymentStrategy.NotPossibleToReplaceOrDuplicate:
