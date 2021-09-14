@@ -37,6 +37,7 @@ namespace Naos.Deployment.Console
     using Naos.Recipes.RunWithRetry;
 
     using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Execution.Recipes;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Security.Recipes;
     using OBeautifulCode.Serialization;
@@ -153,13 +154,13 @@ namespace Naos.Deployment.Console
         {
             void GetPassword(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
+                var privateKey = tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id).RunUntilCompletion();
                 privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
 
-                var password = Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
+                var password = manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey).RunUntilCompletion();
                 password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
 
                 localResultAnnouncer(password);
@@ -187,7 +188,7 @@ namespace Naos.Deployment.Console
         {
             void GetKey(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var privateKey = Run.TaskUntilCompletion(tracker.GetPrivateKeyOfComputingContainerAsync(environment, accessibility));
+                var privateKey = tracker.GetPrivateKeyOfComputingContainerAsync(environment, accessibility).RunUntilCompletion();
 
                 localResultAnnouncer(privateKey);
             }
@@ -214,10 +215,10 @@ namespace Naos.Deployment.Console
         {
             void GetInstanceStatus(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                var status = Run.TaskUntilCompletion(manager.GetInstanceStatusAsync(instance.Id, instance.Location));
+                var status = manager.GetInstanceStatusAsync(instance.Id, instance.Location).RunUntilCompletion();
                 status.AsArg(Invariant($"FailedToGetStatusFor-{instance.Id}")).Must().NotBeNull();
 
                 localResultAnnouncer(status.ToString());
@@ -245,10 +246,10 @@ namespace Naos.Deployment.Console
         {
             void GetConsoleOutput(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
-                var encodedOutput = Run.TaskUntilCompletion(manager.GetConsoleOutputFromInstanceAsync(instance));
+                var encodedOutput = manager.GetConsoleOutputFromInstanceAsync(instance).RunUntilCompletion();
                 encodedOutput.AsArg(Invariant($"FailedToGetConsoleOutputFor-{instance.Id}")).Must().NotBeNull();
 
                 var bytes = Convert.FromBase64String(encodedOutput);
@@ -277,7 +278,7 @@ namespace Naos.Deployment.Console
         {
             void GetInstancesFromProvider(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instances = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                var instances = manager.GetActiveInstancesFromProviderAsync(environment).RunUntilCompletion();
 
                 instances.ToList().OrderBy(_ => _.Name).ToList().ForEach(_ =>
                     localResultAnnouncer(Invariant($"{_.Id}\t{_.PrivateIpAddress}\t{_.Name}")));
@@ -303,7 +304,7 @@ namespace Naos.Deployment.Console
         {
             void GetInstances(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instances = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                var instances = tracker.GetAllInstanceDescriptionsAsync(environment).RunUntilCompletion();
 
                 instances.ToList().ForEach(_ => localResultAnnouncer(Invariant($"{_.ComputerName}\t{_.PrivateIpAddress}")));
             }
@@ -328,8 +329,8 @@ namespace Naos.Deployment.Console
         {
             void GetInstanceDifferences(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instancesInTracker = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
-                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                var instancesInTracker = tracker.GetAllInstanceDescriptionsAsync(environment).RunUntilCompletion();
+                var instancesInProvider = manager.GetActiveInstancesFromProviderAsync(environment).RunUntilCompletion();
 
                 var instancesOnlyInTracker = instancesInTracker
                     .Where(tracked =>
@@ -369,9 +370,9 @@ namespace Naos.Deployment.Console
             void RemoveTrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
                 localResultAnnouncer(Invariant($"Removing {instanceName}."));
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 localResultAnnouncer(Invariant($"Found {instanceName} - {instance.PrivateIpAddress} - {instance.Name}."));
-                Run.TaskUntilCompletion(manager.TerminateInstanceAsync(environment, instance.Id, instance.Location, true));
+                manager.TerminateInstanceAsync(environment, instance.Id, instance.Location, true).RunUntilCompletion();
                 localResultAnnouncer(Invariant($"Removed {instanceName}."));
             }
 
@@ -413,7 +414,7 @@ namespace Naos.Deployment.Console
             {
                 if (!string.IsNullOrWhiteSpace(instanceNameOfInstanceToRemove))
                 {
-                    var instancesInTracking = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                    var instancesInTracking = tracker.GetAllInstanceDescriptionsAsync(environment).RunUntilCompletion();
                     var trackedInstance = instancesInTracking.SingleOrDefault(
                         _ => (_.ComputerName ?? string.Empty).Equals(instanceNameOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
                     if (trackedInstance != null)
@@ -422,7 +423,7 @@ namespace Naos.Deployment.Console
                     }
                 }
 
-                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                var instancesInProvider = manager.GetActiveInstancesFromProviderAsync(environment).RunUntilCompletion();
                 var instanceInCloud = instancesInProvider.SingleOrDefault(
                     _ => (_.PrivateIpAddress ?? string.Empty).Equals(privateIpAddressOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
 
@@ -432,7 +433,7 @@ namespace Naos.Deployment.Console
                         $"IP Address provided: {privateIpAddressOfInstanceToRemove} exists in Provider; ID: {instanceInCloud.Id}, Name: {instanceInCloud.Name}"));
                 }
 
-                Run.TaskUntilCompletion(tracker.RemoveInstanceFromTracking(environment, privateIpAddressOfInstanceToRemove));
+                tracker.RemoveInstanceFromTracking(environment, privateIpAddressOfInstanceToRemove).RunUntilCompletion();
                 localResultAnnouncer(Invariant($"Removed {privateIpAddressOfInstanceToRemove} from Tracking."));
             }
 
@@ -458,7 +459,7 @@ namespace Naos.Deployment.Console
         {
             void RemoveUntrackedInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instancesInProvider = Run.TaskUntilCompletion(manager.GetActiveInstancesFromProviderAsync(environment));
+                var instancesInProvider = manager.GetActiveInstancesFromProviderAsync(environment).RunUntilCompletion();
 
                 var instanceInCloud = instancesInProvider.SingleOrDefault(_ => (_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.CurrentCultureIgnoreCase));
 
@@ -468,7 +469,7 @@ namespace Naos.Deployment.Console
                         Invariant($"ID provided: {systemIdOfInstanceToRemove} does NOT exist in provider."));
                 }
 
-                var instancesInTracking = Run.TaskUntilCompletion(tracker.GetAllInstanceDescriptionsAsync(environment));
+                var instancesInTracking = tracker.GetAllInstanceDescriptionsAsync(environment).RunUntilCompletion();
                 var trackedInstance = instancesInTracking.SingleOrDefault(
                     _ => (_.Id ?? string.Empty).Equals(systemIdOfInstanceToRemove, StringComparison.OrdinalIgnoreCase));
 
@@ -478,11 +479,13 @@ namespace Naos.Deployment.Console
                         $"ID provided: {systemIdOfInstanceToRemove} does exist in Tracking; ID: {trackedInstance.Id}, Name: {trackedInstance.Name}"));
                 }
 
-                Run.TaskUntilCompletion(manager.TerminateInstanceAsync(
-                    environment,
-                    systemIdOfInstanceToRemove,
-                    instanceInCloud.Location,
-                    true));
+                manager.TerminateInstanceAsync(
+                            environment,
+                            systemIdOfInstanceToRemove,
+                            instanceInCloud.Location,
+                            true)
+                       .RunUntilCompletion();
+
                 localResultAnnouncer(Invariant($"Removed {systemIdOfInstanceToRemove} from Provider."));
             }
 
@@ -513,7 +516,7 @@ namespace Naos.Deployment.Console
 
             void GetInstanceDetails(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 var instanceText = configFileManager.SerializeConfigToFileText(instance);
@@ -549,12 +552,12 @@ namespace Naos.Deployment.Console
                 using (var activity = Log.With(() => new { Name = instanceName }))
                 {
                     activity.Write(() => "Starting");
-                    var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                    var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                     instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
                     activity.Write(() => Invariant($"Found instance: {instance.Id}"));
 
                     var privateKey =
-                        Run.TaskUntilCompletion(tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id));
+                        tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id).RunUntilCompletion();
                     privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
                     activity.Write(() => Invariant($"Found key for password decryption."));
 
@@ -576,7 +579,7 @@ namespace Naos.Deployment.Console
 
                     var user = "administrator";
                     var password =
-                        Run.TaskUntilCompletion(manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey));
+                        manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey).RunUntilCompletion();
                     password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
                     activity.Write(() => Invariant($"Found password."));
 
@@ -677,13 +680,13 @@ namespace Naos.Deployment.Console
         {
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
                     activity.Write(() => "Starting");
-                    Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
+                    manager.TurnOnInstanceAsync(instance.Id, instance.Location).RunUntilCompletion();
                     activity.Write(() => "Running");
                 }
             }
@@ -710,13 +713,13 @@ namespace Naos.Deployment.Console
         {
             void StopInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
                     activity.Write(() => "Stopping");
-                    Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
+                    manager.TurnOffInstanceAsync(instance.Id, instance.Location, force).RunUntilCompletion();
                     activity.Write(() => "Stopped");
                 }
             }
@@ -743,15 +746,15 @@ namespace Naos.Deployment.Console
         {
             void StartInstance(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
-                var instance = Run.TaskUntilCompletion(manager.GetInstanceDescriptionAsync(environment, instanceName));
+                var instance = manager.GetInstanceDescriptionAsync(environment, instanceName).RunUntilCompletion();
                 instance.AsArg(Invariant($"FailedToFindInstanceByName-{instanceName}")).Must().NotBeNull();
 
                 using (var activity = Log.With(() => new { instance.Name, instance.Id }))
                 {
                     activity.Write(() => "Stopping");
-                    Run.TaskUntilCompletion(manager.TurnOffInstanceAsync(instance.Id, instance.Location, force));
+                    manager.TurnOffInstanceAsync(instance.Id, instance.Location, force).RunUntilCompletion();
                     activity.Write(() => "Restarting");
-                    Run.TaskUntilCompletion(manager.TurnOnInstanceAsync(instance.Id, instance.Location));
+                    manager.TurnOnInstanceAsync(instance.Id, instance.Location).RunUntilCompletion();
                     activity.Write(() => "Running");
                 }
             }
@@ -831,7 +834,7 @@ namespace Naos.Deployment.Console
 
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
             {
-                var allInstances = Run.TaskUntilCompletion(infrastructureTracker.GetAllInstanceDescriptionsAsync(environment));
+                var allInstances = infrastructureTracker.GetAllInstanceDescriptionsAsync(environment).RunUntilCompletion();
                 var instancesFilteredByName = allInstances.Where(_ => shouldIncludeByDecisionAgainstName(_.ComputerName)).ToList();
                 var instancesToEvaluate = instancesFilteredByName.Select(
                     _ =>
@@ -874,8 +877,8 @@ namespace Naos.Deployment.Console
                 {
                     foreach (var instanceToEvaluate in instancesToEvaluate)
                     {
-                        var description = Run.TaskUntilCompletion(
-                            computingManager.GetInstanceDescriptionAsync(environment, instanceToEvaluate.InstanceName));
+                        var description =
+                            computingManager.GetInstanceDescriptionAsync(environment, instanceToEvaluate.InstanceName).RunUntilCompletion();
                         var systemSpecificInstanceType = description.SystemSpecificDetails["instanceType"];
                         instanceToEvaluate.AbstractInstanceType.SpecificInstanceTypeSystemId = systemSpecificInstanceType;
 
@@ -1258,7 +1261,7 @@ namespace Naos.Deployment.Console
 
             var cert = certToLoad.ToEncryptedVersion(encryptingCertificateLocator);
 
-            Run.TaskUntilCompletion(writer.PersistCertificateAsync(cert));
+            writer.PersistCertificateAsync(cert).RunUntilCompletion();
         }
 
         /// <summary>
@@ -1281,7 +1284,7 @@ namespace Naos.Deployment.Console
                     typeof(CertificateManagementConfigurationBase));
 
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
-            var arcologyCertificate = Run.TaskUntilCompletion(certificateRetriever.GetCertificateByNameAsync(certificateName));
+            var arcologyCertificate = certificateRetriever.GetCertificateByNameAsync(certificateName).RunUntilCompletion();
 
             File.WriteAllBytes(exportFilePath, arcologyCertificate.PfxBytes);
             return arcologyCertificate.PfxPasswordInClearText;
@@ -1383,12 +1386,12 @@ namespace Naos.Deployment.Console
             }
 
             var credentials = serializer.Deserialize<CredentialContainer>(credentialsJson);
-            var populatedEnvironment = Run.TaskUntilCompletion(Creator.CreateEnvironment(
+            var populatedEnvironment = Creator.CreateEnvironment(
                 credentials,
                 configuration,
                 UpdateOutputConfigFile,
 				null,
-                TimeSpan.FromMinutes(10)));
+                TimeSpan.FromMinutes(10)).RunUntilCompletion();
 
             var vpc = populatedEnvironment.Vpcs.Single();
 
@@ -1444,7 +1447,7 @@ namespace Naos.Deployment.Console
 
             using (var newFileArcology = new RootFolderEnvironmentFolderInstanceFileTracker(outputArcologyPath))
             {
-                Run.TaskUntilCompletion(newFileArcology.Create(environment, arcologyInfo));
+                newFileArcology.Create(environment, arcologyInfo).RunUntilCompletion();
             }
 
             var certificatesJsonFilePath = Path.Combine(outputArcologyPath, Invariant($"{environment}.Certificates.json"));
@@ -1458,8 +1461,8 @@ namespace Naos.Deployment.Console
                 environmentCertificate.GetX509SubjectAttributes().ToDictionary(k => k.Key.ToString(), v => v.Value),
                 environmentCertificateBytes,
                 environmentCertificatePassword);
-            Run.TaskUntilCompletion(
-                certificateWriter.PersistCertificateAsync(environmentCertToStore, encryptingCertificateLocator));
+            
+                certificateWriter.PersistCertificateAsync(environmentCertToStore, encryptingCertificateLocator).RunUntilCompletion();
 
             var deploymentCertToStore = new CertificateDescriptionWithClearPfxPayload(
                 Path.GetFileNameWithoutExtension(deploymentCertificateFilePath),
@@ -1468,8 +1471,7 @@ namespace Naos.Deployment.Console
                 deploymentCertificate.GetX509SubjectAttributes().ToDictionary(k => k.Key.ToString(), v => v.Value),
                 deploymentCertificateBytes,
                 deploymentCertificatePassword);
-            Run.TaskUntilCompletion(
-                certificateWriter.PersistCertificateAsync(deploymentCertToStore, encryptingCertificateLocator));
+                certificateWriter.PersistCertificateAsync(deploymentCertToStore, encryptingCertificateLocator).RunUntilCompletion();
         }
 
         /// <summary>
@@ -1502,8 +1504,8 @@ namespace Naos.Deployment.Console
             }
 
             var cidr = configuration.Vpcs.Single().Cidr;
-            var instances =
-                Run.TaskUntilCompletion(new List<InstanceWithStatus>().FillFromAwsAsync(configuration.RegionName, credentials));
+            var fillFromAwsTask = new List<InstanceWithStatus>().FillFromAwsAsync(configuration.RegionName, credentials);
+            var instances = fillFromAwsTask.RunUntilCompletion();
 
             // MUST filter by terminated first because AWS will return null IP addresses which will through on the next filter step...
             var nonTerminatedInstances = instances
@@ -1539,13 +1541,13 @@ namespace Naos.Deployment.Console
                 }
             }
 
-            var destroyedEnvironment = Run.TaskUntilCompletion(
-                Destroyer.RemoveEnvironment(
-                    credentials,
-                    configuration,
-                    UpdateOutputConfigFile,
-					null,
-                    TimeSpan.FromMinutes(10)));
+            var removeEnvironmentTask = Destroyer.RemoveEnvironment(
+                credentials,
+                configuration,
+                UpdateOutputConfigFile,
+                null,
+                TimeSpan.FromMinutes(10));
+            var destroyedEnvironment = removeEnvironmentTask.RunUntilCompletion();
             if (destroyedEnvironment.Vpcs.Any() || destroyedEnvironment.InternetGateways.Any() ||
                 destroyedEnvironment.ElasticIps.Any())
             {

@@ -21,6 +21,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
     using Naos.Recipes.RunWithRetry;
     using Naos.SqlServer.Domain;
     using Naos.SqlServer.Protocol.Client;
+    using OBeautifulCode.Execution.Recipes;
     using static System.FormattableString;
 
     /// <summary>
@@ -84,7 +85,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 Encryptor.None,
                 null);
 
-            Run.TaskUntilCompletion(SqlServerDatabaseManager.BackupFullAsync(connectionString, databaseName, backupDetails));
+            SqlServerDatabaseManager.BackupFullAsync(connectionString, databaseName, backupDetails).RunUntilCompletion();
         }
 
         /// <summary>
@@ -141,7 +142,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 Description = null,
             };
 
-            Run.TaskUntilCompletion(MongoDatabaseManager.BackupFullAsync(connectionDefinition, databaseName, backupDetails, workingDirectory, utilityPath));
+            MongoDatabaseManager.BackupFullAsync(connectionDefinition, databaseName, backupDetails, workingDirectory, utilityPath).RunUntilCompletion();
         }
 
         /// <summary>
@@ -204,7 +205,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 ReplaceOption.ReplaceExistingDatabase,
                 RestrictedUserOption.Normal);
 
-            Run.TaskUntilCompletion(SqlServerDatabaseManager.RestoreFullAsync(connectionString, databaseName, restoreDetails));
+            SqlServerDatabaseManager.RestoreFullAsync(connectionString, databaseName, restoreDetails).RunUntilCompletion();
         }
 
         /// <summary>
@@ -260,7 +261,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 RestoreFrom = backupFilePathUri,
             };
 
-            Run.TaskUntilCompletion(MongoDatabaseManager.RestoreFullAsync(connectionDefinition, databaseName, restoreDetails, workingDirectory, utilityPath));
+            MongoDatabaseManager.RestoreFullAsync(connectionDefinition, databaseName, restoreDetails, workingDirectory, utilityPath).RunUntilCompletion();
         }
     }
 }

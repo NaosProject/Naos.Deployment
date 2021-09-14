@@ -19,6 +19,7 @@ namespace Naos.Deployment.Core
     using Naos.Packaging.Domain;
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Execution.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
     using static System.FormattableString;
@@ -822,28 +823,28 @@ namespace Naos.Deployment.Core
         private IReadOnlyCollection<SetupStepBatch> GetSetupStepsToUpdateArcologyAfterPackageIsDeployed(PackageDescription packageDescription, string instanceId, string environment)
         {
             var ret = new[]
+                      {
+                          new SetupStepBatch
                           {
-                              new SetupStepBatch
-                                  {
-                                      ExecutionOrder = ExecutionOrder.UpdateArcology,
-                                      Steps = new[]
-                                                  {
-                                                      new SetupStep
+                              ExecutionOrder = ExecutionOrder.UpdateArcology,
+                              Steps = new[]
+                                      {
+                                          new SetupStep
+                                          {
+                                              Description = Invariant($"Mark deployed - {packageDescription.GetIdDotVersionString()}."),
+                                              SetupFunc = m =>
                                                           {
-                                                              Description = Invariant($"Mark deployed - {packageDescription.GetIdDotVersionString()}."),
-                                                              SetupFunc = m =>
-                                                                  {
-                                                                      Run.TaskUntilCompletion(
-                                                                          this.tracker.ProcessDeployedPackageAsync(
-                                                                              environment,
-                                                                              instanceId,
-                                                                              packageDescription));
-                                                                      return new object[0];
-                                                                  },
+                                                              this.tracker.ProcessDeployedPackageAsync(
+                                                                       environment,
+                                                                       instanceId,
+                                                                       packageDescription)
+                                                                  .RunUntilCompletion();
+                                                              return new object[0];
                                                           },
-                                                  },
-                                  },
-                          };
+                                          },
+                                      },
+                          },
+                      };
 
             return ret;
         }

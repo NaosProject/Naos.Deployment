@@ -22,6 +22,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
     using Naos.Logging.Domain;
     using Naos.Logging.Persistence;
     using Naos.Recipes.RunWithRetry;
+    using OBeautifulCode.Execution.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
     using static System.FormattableString;
@@ -70,7 +71,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                         }));
 
             var archiver = ArchiverFactory.Instance.BuildArchiver(directoryArchiveKind, archiveCompressionKind);
-            var archivedDirectory = Run.TaskUntilCompletion(archiver.ArchiveDirectoryAsync(sourceDirectoryPath, targetFilePath, true, Encoding.UTF8));
+            var archivedDirectory = archiver.ArchiveDirectoryAsync(sourceDirectoryPath, targetFilePath, true, Encoding.UTF8).RunUntilCompletion();
 
             PrintArguments(archivedDirectory, Invariant($"Result of archiving of: {sourceDirectoryPath}"));
         }
@@ -115,7 +116,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             var archiver = ArchiverFactory.Instance.BuildArchiver(directoryArchiveKind, archiveCompressionKind);
             var archivedDirectory = new ArchivedDirectory(directoryArchiveKind, archiveCompressionKind, sourceFilePath, true, Encoding.UTF8.WebName, DateTime.UtcNow);
-            Run.TaskUntilCompletion(archiver.RestoreDirectoryAsync(archivedDirectory, targetDirectoryPath));
+            archiver.RestoreDirectoryAsync(archivedDirectory, targetDirectoryPath).RunUntilCompletion();
         }
 
         /// <summary>
@@ -175,11 +176,11 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             if (!string.IsNullOrWhiteSpace(filePath) && string.IsNullOrWhiteSpace(directoryPath))
             {
-                Run.TaskUntilCompletion(FileExchanger.StoreFile(fileManager, filePath, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames));
+                FileExchanger.StoreFile(fileManager, filePath, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames).RunUntilCompletion();
             }
             else if (!string.IsNullOrWhiteSpace(directoryPath) && string.IsNullOrWhiteSpace(filePath))
             {
-                Run.TaskUntilCompletion(FileExchanger.StoreDirectory(fileManager, directoryPath, directoryArchiveKind, archiveCompressionKind, true, Encoding.UTF8, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames));
+                FileExchanger.StoreDirectory(fileManager, directoryPath, directoryArchiveKind, archiveCompressionKind, true, Encoding.UTF8, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames).RunUntilCompletion();
             }
             else
             {
@@ -237,7 +238,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             if (!string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(key))
             {
-                var foundFile = Run.TaskUntilCompletion(FileExchanger.FindFile(fileManager, containerLocation, container, prefix, multipleKeysFoundStrategy));
+                var foundFile = FileExchanger.FindFile(fileManager, containerLocation, container, prefix, multipleKeysFoundStrategy).RunUntilCompletion();
                 key = foundFile.Key;
                 Its.Log.Instrumentation.Log.Write(() => Invariant($"Chose prefix ({prefix}) match: {key}"));
             }
@@ -256,12 +257,12 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                                          "FileJanitor-FetchFileAndRestore-" + Guid.NewGuid() + ".tmp")
                                      : targetPath;
 
-            Run.TaskUntilCompletion(FileExchanger.FetchFile(fileManager, containerLocation, container, key, downloadTarget));
+            FileExchanger.FetchFile(fileManager, containerLocation, container, key, downloadTarget).RunUntilCompletion();
 
             if (restoreArchive)
             {
-                var metadata = Run.TaskUntilCompletion(FileExchanger.FetchMetadata(fileManager, containerLocation, container, key));
-                Run.TaskUntilCompletion(FileExchanger.RestoreDownload(downloadTarget, targetPath, metadata));
+                var metadata = FileExchanger.FetchMetadata(fileManager, containerLocation, container, key).RunUntilCompletion();
+                FileExchanger.RestoreDownload(downloadTarget, targetPath, metadata).RunUntilCompletion();
             }
         }
 

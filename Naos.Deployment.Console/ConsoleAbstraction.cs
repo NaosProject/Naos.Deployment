@@ -30,6 +30,7 @@ namespace Naos.Deployment.Console
     using Naos.MachineManagement.Local;
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
+    using OBeautifulCode.Execution.Recipes;
     using OBeautifulCode.Representation.System;
     using OBeautifulCode.Security.Recipes;
     using OBeautifulCode.Serialization;
@@ -423,12 +424,12 @@ namespace Naos.Deployment.Console
             var certificateRetrieverConfiguration =
                 DefaultJsonSerializer.Deserialize<CertificateManagementConfigurationBase>(certificateRetrieverJson);
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
-            var certificateNames = Run.TaskUntilCompletion(certificateRetriever.GetAllCertificateNamesAsync());
+            var certificateNames = certificateRetriever.GetAllCertificateNamesAsync().RunUntilCompletion();
             var certificateName =
                 certificateNames.SingleOrDefault(_ => _.ToUpperInvariant() == Invariant($"vpn.{environment}.{DnsSuffix}").ToUpperInvariant());
 
             var certificateDescription = !string.IsNullOrWhiteSpace(certificateName)
-                ? Run.TaskUntilCompletion(certificateRetriever.GetCertificateByNameAsync(certificateName))
+                ? certificateRetriever.GetCertificateByNameAsync(certificateName).RunUntilCompletion()
                 : null;
             var certificate = certificateDescription != null
                 ? CertHelper.ExtractCryptographicObjectsFromPfxFile(certificateDescription.PfxBytes, certificateDescription.PfxPasswordInClearText)
@@ -568,7 +569,7 @@ namespace Naos.Deployment.Console
 
                         encryptingCertificateLocator = directoryArcology.ComputingContainers.First().EncryptingCertificateLocator;
 
-                        Run.TaskUntilCompletion(databaseTracker.Create(environment.ToLowerInvariant(), directoryArcology, directoryArcology.Instances));
+                        databaseTracker.Create(environment.ToLowerInvariant(), directoryArcology, directoryArcology.Instances).RunUntilCompletion();
                         break;
                     case ArcologyMigrationDirection.DatabaseToDirectory:
 
@@ -578,7 +579,7 @@ namespace Naos.Deployment.Console
                         }
 
                         var mongoTracker = (MongoInfrastructureTracker)databaseTracker;
-                        var databaseArcology = Run.TaskUntilCompletion(mongoTracker.GetArcologyByEnvironmentNameAsync(environment.ToLowerInvariant()));
+                        var databaseArcology = mongoTracker.GetArcologyByEnvironmentNameAsync(environment.ToLowerInvariant()).RunUntilCompletion();
                         using (var fileArcology = new RootFolderEnvironmentFolderInstanceFileTracker(arcologyFilePath))
                         {
                             encryptingCertificateLocator = databaseArcology.ComputingContainers.First().EncryptingCertificateLocator;
@@ -591,7 +592,7 @@ namespace Naos.Deployment.Console
                                 WindowsSkuSearchPatternMap = databaseArcology.WindowsSkuSearchPatternMap,
                             };
 
-                            Run.TaskUntilCompletion(fileArcology.Create(environment.ToLowerInvariant(), databaseArcologyInfo, databaseArcology.Instances));
+                            fileArcology.Create(environment.ToLowerInvariant(), databaseArcologyInfo, databaseArcology.Instances).RunUntilCompletion();
                         }
 
                         break;
@@ -621,11 +622,11 @@ namespace Naos.Deployment.Console
                     throw new NotSupportedException(Invariant($"{nameof(ArcologyMigrationDirection)}: {direction} is not supported."));
             }
 
-            var allCertificateNames = Run.TaskUntilCompletion(certificateReader.GetAllCertificateNamesAsync());
+            var allCertificateNames = certificateReader.GetAllCertificateNamesAsync().RunUntilCompletion();
             foreach (var certificateName in allCertificateNames)
             {
-                var certificate = Run.TaskUntilCompletion(certificateReader.GetCertificateByNameAsync(certificateName));
-                Run.TaskUntilCompletion(certificateWriter.PersistCertificateAsync(certificate.ToEncryptedVersion(encryptingCertificateLocator)));
+                var certificate = certificateReader.GetCertificateByNameAsync(certificateName).RunUntilCompletion();
+                certificateWriter.PersistCertificateAsync(certificate.ToEncryptedVersion(encryptingCertificateLocator)).RunUntilCompletion();
             }
         }
 
