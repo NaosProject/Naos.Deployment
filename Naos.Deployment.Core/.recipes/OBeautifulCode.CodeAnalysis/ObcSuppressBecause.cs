@@ -160,6 +160,11 @@ namespace OBeautifulCode.CodeAnalysis.Recipes
         public const string CA1709_IdentifiersShouldBeCasedCorrectly_CasingIsAsPreferred = "The casing is as preferred.";
 
         /// <summary>
+        /// An Exception base class should end in 'Base' (as is the convention for all base classes), not 'Exception'.
+        /// </summary>
+        public const string CA1710_IdentifiersShouldHaveCorrectSuffix_ExceptionBaseClassShouldEndWithBase = "An Exception base class should end in 'Base' (as is the convention for all base classes), not 'Exception'.";
+
+        /// <summary>
         /// The identifier is suffixed with the name of the Type that it directly extends or implements to improves readability and comprehension of unit tests whre the Type is a primary concern of those tests.
         /// </summary>
         public const string CA1710_IdentifiersShouldHaveCorrectSuffix_NameDirectlyExtendedOrImplementedTypeAddedAsSuffixForTestsWhereTypeIsPrimaryConcern = "The identifier is suffixed with the name of the Type that it directly extends or implements to improves readability and comprehension of unit tests whre the Type is a primary concern of those tests.";
@@ -198,6 +203,11 @@ namespace OBeautifulCode.CodeAnalysis.Recipes
         /// The name of the Type of the identifier uses the term 'Flags' and so it's appropriate to use that term in the the name of the identifier.
         /// </summary>
         public const string CA1726_UsePreferredTerms_NameOfTypeOfIdentifierUsesTheTermFlags = "The name of the Type of the identifier uses the term 'Flags' and so it's appropriate to use that term in the the name of the identifier.";
+
+        /// <summary>
+        /// In some cases, the debugger raises an error because it cannot set a conditional breakpoint.  A local is introduced to simplify the evaluation of the breakpoint's condition.  It's only purpose is to allow a conditional breakpoint in proximity of the breakpoint that cannot be set.
+        /// </summary>
+        public const string CA1804_RemoveUnusedLocals_UsedAsWorkaroundForConditionalBreakpointThatCannotBeSet = "In some cases, the debugger raises an error because it cannot set a conditional breakpoint.  A local is introduced to simplify the evaluation of the breakpoint's condition.  It's only purpose is to allow a conditional breakpoint in proximity of the breakpoint that cannot be set.";
 
         /// <summary>
         /// The static field(s) are declared in a code generated partial test class that should not be alterated.

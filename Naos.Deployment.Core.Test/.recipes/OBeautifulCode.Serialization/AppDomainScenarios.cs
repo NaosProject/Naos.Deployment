@@ -35,12 +35,12 @@ namespace OBeautifulCode.Serialization.Recipes
         /// Serialize and de-serialize in the current App Domain.
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "InCurrent", Justification = ObcSuppressBecause.CA1702_CompoundWordsShouldBeCasedCorrectly_AnalyzerIsIncorrectlyDetectingCompoundWords)]
-        RoundtripInCurrentAppDomain,
+        RoundtripInCurrentAppDomain = 1,
 
         /// <summary>
         /// Serialize and de-serialize in a new App Domain.
         /// </summary>
-        RoundtripInNewAppDomain,
+        RoundtripInNewAppDomain = 2,
 
         /// <summary>
         /// Serialize in the current App Domain and de-serialize in a new App Domain.
@@ -51,7 +51,7 @@ namespace OBeautifulCode.Serialization.Recipes
         /// performs that de-serialization is dependent on.
         /// </remarks>
         [SuppressMessage("Microsoft.Naming", "CA1702:CompoundWordsShouldBeCasedCorrectly", MessageId = "InCurrent", Justification = ObcSuppressBecause.CA1702_CompoundWordsShouldBeCasedCorrectly_AnalyzerIsIncorrectlyDetectingCompoundWords)]
-        SerializeInCurrentAppDomainAndDeserializeInNewAppDomain,
+        SerializeInCurrentAppDomainAndDeserializeInNewAppDomain = 4,
 
         /// <summary>
         /// Serialize in a new App Domain and de-serialize in a new, but different App Domain.
@@ -61,6 +61,6 @@ namespace OBeautifulCode.Serialization.Recipes
         /// needing to be serialized - that there's no config or caching that serialization
         /// performs that de-serialization is dependent on.
         /// </remarks>
-        SerializeInNewAppDomainAndDeserializeInNewAppDomain,
+        SerializeInNewAppDomainAndDeserializeInNewAppDomain = 8,
     }
 }

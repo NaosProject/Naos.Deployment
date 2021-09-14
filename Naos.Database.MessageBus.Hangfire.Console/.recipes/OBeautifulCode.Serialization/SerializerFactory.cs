@@ -17,6 +17,7 @@ namespace OBeautifulCode.Serialization.Recipes
     using OBeautifulCode.Serialization.Bson;
     using OBeautifulCode.Serialization.Json;
     using OBeautifulCode.Serialization.PropertyBag;
+    using OBeautifulCode.Type;
 
     using static System.FormattableString;
 
@@ -34,8 +35,8 @@ namespace OBeautifulCode.Serialization.Recipes
     {
         private static readonly SerializerFactory InternalInstance = new SerializerFactory();
 
-        private static readonly ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>>
-            SerializerCache = new ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>>();
+        private static readonly ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<VersionMatchStrategy, ISerializer>>
+            CachedSerializerRepresentationToSerializerMap = new ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<VersionMatchStrategy, ISerializer>>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyBagSerializerFactory"/> class.
@@ -55,7 +56,7 @@ namespace OBeautifulCode.Serialization.Recipes
         /// <inheritdoc />
         public override ISerializer BuildSerializer(
             SerializerRepresentation serializerRepresentation,
-            AssemblyMatchStrategy assemblyMatchStrategy = AssemblyMatchStrategy.AnySingleVersion)
+            VersionMatchStrategy assemblyVersionMatchStrategy = VersionMatchStrategy.AnySingleVersion)
         {
             if (serializerRepresentation == null)
             {
@@ -64,16 +65,16 @@ namespace OBeautifulCode.Serialization.Recipes
 
             ISerializer result;
 
-            if (SerializerCache.TryGetValue(serializerRepresentation, out ConcurrentDictionary<AssemblyMatchStrategy, ISerializer> assemblyMatchStrategyToSerializerMap))
+            if (CachedSerializerRepresentationToSerializerMap.TryGetValue(serializerRepresentation, out ConcurrentDictionary<VersionMatchStrategy, ISerializer> assemblyVersionMatchStrategyToSerializerMap))
             {
-                if (assemblyMatchStrategyToSerializerMap.TryGetValue(assemblyMatchStrategy, out result))
+                if (assemblyVersionMatchStrategyToSerializerMap.TryGetValue(assemblyVersionMatchStrategy, out result))
                 {
                     return result;
                 }
             }
 
             // ReSharper disable once RedundantArgumentDefaultValue
-            var configurationType = serializerRepresentation.SerializationConfigType?.ResolveFromLoadedTypes(assemblyMatchStrategy, throwIfCannotResolve: true);
+            var configurationType = serializerRepresentation.SerializationConfigType?.ResolveFromLoadedTypes(assemblyVersionMatchStrategy, throwIfCannotResolve: true);
 
             ISerializer serializer;
 
@@ -94,9 +95,9 @@ namespace OBeautifulCode.Serialization.Recipes
 
             result = this.WrapInCompressingSerializerIfAppropriate(serializer, serializerRepresentation.CompressionKind);
 
-            SerializerCache.TryAdd(serializerRepresentation, new ConcurrentDictionary<AssemblyMatchStrategy, ISerializer>());
+            CachedSerializerRepresentationToSerializerMap.TryAdd(serializerRepresentation, new ConcurrentDictionary<VersionMatchStrategy, ISerializer>());
 
-            SerializerCache[serializerRepresentation].TryAdd(assemblyMatchStrategy, result);
+            CachedSerializerRepresentationToSerializerMap[serializerRepresentation].TryAdd(assemblyVersionMatchStrategy, result);
 
             return result;
         }

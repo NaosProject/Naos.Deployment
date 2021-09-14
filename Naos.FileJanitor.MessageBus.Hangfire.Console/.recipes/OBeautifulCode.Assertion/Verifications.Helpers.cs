@@ -35,15 +35,15 @@ namespace OBeautifulCode.Assertion.Recipes
 
         private static readonly MethodInfo GetDefaultValueOpenGenericMethodInfo = ((Func<object>)GetDefaultValue<object>).Method.GetGenericMethodDefinition();
 
-        private static readonly ConcurrentDictionary<Type, MethodInfo> GetDefaultValueTypeToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
+        private static readonly ConcurrentDictionary<Type, MethodInfo> CachedGetDefaultValueTypeToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
 
         private static readonly MethodInfo IsEqualToOpenGenericMethodInfo = typeof(EqualityExtensions).GetMethod(nameof(EqualityExtensions.IsEqualTo))?.GetGenericMethodDefinition();
 
-        private static readonly ConcurrentDictionary<Type, MethodInfo> TypeToIsEqualToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
+        private static readonly ConcurrentDictionary<Type, MethodInfo> CachedTypeToIsEqualToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
 
         private static readonly MethodInfo CompareUsingDefaultComparerOpenGenericMethodInfo = ((Func<object, object, CompareOutcome>)CompareUsingDefaultComparer).Method.GetGenericMethodDefinition();
 
-        private static readonly ConcurrentDictionary<Type, MethodInfo> CompareUsingDefaultComparerTypeToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
+        private static readonly ConcurrentDictionary<Type, MethodInfo> CachedCompareUsingDefaultComparerTypeToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
 
         private static readonly Regex ValidateEmailAddressRegex = new Regex(@"^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
@@ -72,12 +72,12 @@ namespace OBeautifulCode.Assertion.Recipes
         private static object GetDefaultValue(
             Type type)
         {
-            if (!GetDefaultValueTypeToMethodInfoMap.ContainsKey(type))
+            if (!CachedGetDefaultValueTypeToMethodInfoMap.ContainsKey(type))
             {
-                GetDefaultValueTypeToMethodInfoMap.TryAdd(type, GetDefaultValueOpenGenericMethodInfo.MakeGenericMethod(type));
+                CachedGetDefaultValueTypeToMethodInfoMap.TryAdd(type, GetDefaultValueOpenGenericMethodInfo.MakeGenericMethod(type));
             }
 
-            var result = GetDefaultValueTypeToMethodInfoMap[type].Invoke(null, null);
+            var result = CachedGetDefaultValueTypeToMethodInfoMap[type].Invoke(null, null);
 
             return result;
         }
@@ -87,12 +87,12 @@ namespace OBeautifulCode.Assertion.Recipes
             object value1,
             object value2)
         {
-            if (!TypeToIsEqualToMethodInfoMap.ContainsKey(type))
+            if (!CachedTypeToIsEqualToMethodInfoMap.ContainsKey(type))
             {
-                TypeToIsEqualToMethodInfoMap.TryAdd(type, IsEqualToOpenGenericMethodInfo.MakeGenericMethod(type));
+                CachedTypeToIsEqualToMethodInfoMap.TryAdd(type, IsEqualToOpenGenericMethodInfo.MakeGenericMethod(type));
             }
 
-            var result = (bool)TypeToIsEqualToMethodInfoMap[type].Invoke(null, new[] { value1, value2, null });
+            var result = (bool)CachedTypeToIsEqualToMethodInfoMap[type].Invoke(null, new[] { value1, value2, null });
 
             return result;
         }
@@ -126,9 +126,9 @@ namespace OBeautifulCode.Assertion.Recipes
             object value1,
             object value2)
         {
-            if (!CompareUsingDefaultComparerTypeToMethodInfoMap.ContainsKey(type))
+            if (!CachedCompareUsingDefaultComparerTypeToMethodInfoMap.ContainsKey(type))
             {
-                CompareUsingDefaultComparerTypeToMethodInfoMap.TryAdd(type, CompareUsingDefaultComparerOpenGenericMethodInfo.MakeGenericMethod(type));
+                CachedCompareUsingDefaultComparerTypeToMethodInfoMap.TryAdd(type, CompareUsingDefaultComparerOpenGenericMethodInfo.MakeGenericMethod(type));
             }
 
             // note that the call is ultimately, via reflection, to Compare(T, T)
@@ -144,7 +144,7 @@ namespace OBeautifulCode.Assertion.Recipes
             // otherwise, if reflection is able to call Compare(T, T), then ArgumentException can be thrown if
             // Type T does not have a working default comparer (see TypeExtensions.HasDefaultWorkingComparer())
             // However we already check for this upfront in ThrowIfTypeDoesNotHaveWorkingDefaultComparer
-            var result = (CompareOutcome)CompareUsingDefaultComparerTypeToMethodInfoMap[type].Invoke(null, new[] { value1, value2 });
+            var result = (CompareOutcome)CachedCompareUsingDefaultComparerTypeToMethodInfoMap[type].Invoke(null, new[] { value1, value2 });
 
             return result;
         }

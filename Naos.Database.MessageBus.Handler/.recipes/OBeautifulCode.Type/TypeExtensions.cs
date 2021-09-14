@@ -41,7 +41,7 @@ namespace OBeautifulCode.Type.Recipes
     /// <a href="https://stackoverflow.com/questions/59144791/if-type-isgenericparameter-true-will-type-containsgenericparameters-true?noredirect=1#comment104515860_59144791" />.
     /// <a href="https://stackoverflow.com/questions/59141721/why-is-the-basetype-of-a-generic-type-definition-not-itself-a-generic-type-defin?noredirect=1#comment104515814_59141721" />.
     /// </remarks>
-#if !OBeautifulCodeTypeSolution
+#if !OBeautifulCodeTypeSolution || OBeautifulCodeTypeProject
     [global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Type.Recipes", "See package version number")]
     internal
@@ -65,6 +65,8 @@ namespace OBeautifulCode.Type.Recipes
         private static readonly Type ComparableInterfaceType = typeof(IComparable);
 
         private static readonly Type ComparableInterfaceGenericTypeDefinition = typeof(IComparable<>);
+
+        private static readonly Type KeyValuePairGenericTypeDefinitionType = typeof(KeyValuePair<,>);
 
         private static readonly Regex GenericBracketsRegex = new Regex("<.*>", RegexOptions.Compiled);
 
@@ -884,6 +886,32 @@ namespace OBeautifulCode.Type.Recipes
         }
 
         /// <summary>
+        /// Determines if the specified type is a closed <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// true if the specified type is a closed <see cref="KeyValuePair{TKey, TValue}"/>; otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static bool IsClosedSystemKeyValuePairType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.ContainsGenericParameters)
+            {
+                return false;
+            }
+
+            var result = type.IsSystemKeyValuePairType();
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if the specified type is a closed version of one of the
         /// following ordered <see cref="System"/> Collection generic type definitions:
         /// <see cref="SystemOrderedCollectionGenericTypeDefinitions"/>.
@@ -994,7 +1022,7 @@ namespace OBeautifulCode.Type.Recipes
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// true if the specified type is a closed <see cref="System"/> collection type; otherwise false.
+        /// true if the specified type is an open or closed <see cref="System"/> collection type; otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public static bool IsSystemCollectionType(
@@ -1024,7 +1052,7 @@ namespace OBeautifulCode.Type.Recipes
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// true if the specified type is a closed <see cref="System"/> dictionary type; otherwise false.
+        /// true if the specified type is an open or closed <see cref="System"/> dictionary type; otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public static bool IsSystemDictionaryType(
@@ -1052,7 +1080,7 @@ namespace OBeautifulCode.Type.Recipes
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// true if the specified type is a closed <see cref="IEnumerable{T}"/>; otherwise false.
+        /// true if the specified type is an open or closed <see cref="IEnumerable{T}"/>; otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public static bool IsSystemEnumerableType(
@@ -1076,13 +1104,41 @@ namespace OBeautifulCode.Type.Recipes
         }
 
         /// <summary>
+        /// Determines if the specified type is an open or closed <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// true if the specified type is an open or closed <see cref="KeyValuePair{TKey, TValue}"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static bool IsSystemKeyValuePairType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (!type.IsGenericType)
+            {
+                return false;
+            }
+
+            var genericTypeDefinition = type.GetGenericTypeDefinition();
+
+            var result = genericTypeDefinition == KeyValuePairGenericTypeDefinitionType;
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if the specified type is an open or closed version of one of the
         /// following ordered <see cref="System"/> Collection generic type definitions:
         /// <see cref="SystemOrderedCollectionGenericTypeDefinitions"/>.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// true if the specified type is a closed, ordered <see cref="System"/> Collection type; otherwise false.
+        /// true if the specified type is an open or closed, ordered <see cref="System"/> Collection type; otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public static bool IsSystemOrderedCollectionType(
@@ -1112,7 +1168,7 @@ namespace OBeautifulCode.Type.Recipes
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>
-        /// true if the specified type is a closed, unordered <see cref="System"/> Collection type; otherwise false.
+        /// true if the specified type is an open or closed, unordered <see cref="System"/> Collection type; otherwise false.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
         public static bool IsSystemUnorderedCollectionType(

@@ -86,6 +86,52 @@ namespace OBeautifulCode.Collection.Recipes
         }
 
         /// <summary>
+        /// Gets the longest string that is a prefix of all of the specified strings.
+        /// </summary>
+        /// <remarks>
+        /// Adapted from: <a href="https://stackoverflow.com/a/58265152/356790" />.
+        /// </remarks>
+        /// <param name="values">The value to evaluate for a common prefix.</param>
+        /// <returns>
+        /// The longest string that is a prefix of all of the specified strings.
+        /// If any value is null, returns null as the common prefix.
+        /// Otherwise, if there is no common prefix, returns an empty string.
+        /// If only one value is specified, then the value itself is returned.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="values"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="values"/> is empty.</exception>
+        public static string GetLongestCommonPrefix(
+            this IReadOnlyCollection<string> values)
+        {
+            if (values == null)
+            {
+                throw new ArgumentNullException(nameof(values));
+            }
+
+            if (!values.Any())
+            {
+                throw new ArgumentException(Invariant($"{nameof(values)} is empty."));
+            }
+
+            string result;
+
+            if (values.Count == 1)
+            {
+                result = values.First();
+            }
+            else if (values.Any(_ => _ == null))
+            {
+                result = null;
+            }
+            else
+            {
+                result = new string(values.Min().TakeWhile((c, i) => values.All(s => s[i] == c)).ToArray());
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Puts the elements of a specified enumerable into a new enumerable, in random order.
         /// </summary>
         /// <param name="value">The enumerable.</param>

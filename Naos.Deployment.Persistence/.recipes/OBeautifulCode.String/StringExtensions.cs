@@ -1408,5 +1408,35 @@ namespace OBeautifulCode.String.Recipes
             var result = value.ToBytes(Utf8Encoding);
             return result;
         }
+
+        /// <summary>
+        /// Truncates a string.
+        /// </summary>
+        /// <param name="value">The value to truncate.</param>
+        /// <param name="maxLength">The max length of the string.</param>
+        /// <returns>
+        /// <paramref name="value"/> if it's length is &lt;= <paramref name="maxLength"/>
+        /// otherwise, <paramref name="value"/> truncated to <paramref name="maxLength"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxLength"/> is &lt; 0.</exception>
+        public static string Truncate(
+            this string value,
+            int maxLength)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (maxLength < 0)
+            {
+                throw new ArgumentOutOfRangeException(Invariant($"{nameof(maxLength)} is < 0."));
+            }
+
+            var result = new string(value.Take(maxLength).ToArray());
+
+            return result;
+        }
     }
 }

@@ -15,7 +15,7 @@ namespace OBeautifulCode.Type.Recipes
     /// Options for generating a readability-optimized string representation of a type.
     /// </summary>
     [Flags]
-#if !OBeautifulCodeTypeSolution
+#if !OBeautifulCodeTypeSolution || OBeautifulCodeTypeProject
     [global::System.CodeDom.Compiler.GeneratedCode("OBeautifulCode.Type.Recipes", "See package version number")]
     internal
 #else

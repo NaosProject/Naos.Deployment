@@ -44,12 +44,14 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var attributes = type.GetAttributes<TAttribute>();
+
             if (attributes.Count > 1)
             {
                 throw new InvalidOperationException(Invariant($"Type '{type}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributes)}()."));
             }
 
             var result = attributes.SingleOrDefault();
+
             return result;
         }
 
@@ -77,7 +79,9 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var attributes = type.GetCustomAttributes(typeof(TAttribute), false);
+
             var result = attributes.Cast<TAttribute>().ToList().AsReadOnly();
+
             return result;
         }
 
@@ -135,12 +139,14 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var attributes = enumValue.GetAttributesOnEnumValue<TAttribute>();
+
             if (attributes.Count > 1)
             {
                 throw new InvalidOperationException(Invariant($"Enum value '{enumValue}' has multiple attributes of type '{typeof(TAttribute)}'.  Consider calling {nameof(GetAttributesOnEnumValue)}()."));
             }
 
             var result = attributes.SingleOrDefault();
+
             return result;
         }
 
@@ -201,9 +207,13 @@ namespace OBeautifulCode.Reflection.Recipes
             }
 
             var type = enumValue.GetType();
+
             var member = type.GetMember(enumValue.ToString());
+
             var attributes = member[0].GetCustomAttributes(typeof(TAttribute), false);
+
             var result = attributes.Cast<TAttribute>().ToList().AsReadOnly();
+
             return result;
         }
 
@@ -229,6 +239,7 @@ namespace OBeautifulCode.Reflection.Recipes
             where TAttribute : Attribute
         {
             bool result;
+
             if (throwOnMultiple)
             {
                 result = GetAttribute<TAttribute>(type) != null;
@@ -264,6 +275,7 @@ namespace OBeautifulCode.Reflection.Recipes
             where TAttribute : Attribute
         {
             bool result;
+
             if (throwOnMultiple)
             {
                 result = GetAttributeOnEnumValue<TAttribute>(enumValue) != null;
@@ -297,6 +309,7 @@ namespace OBeautifulCode.Reflection.Recipes
             where TAttribute : Attribute
         {
             bool result;
+
             if (throwOnMultiple)
             {
                 result = GetAttributeOnEnumValue<TAttribute>(enumValue) != null;
