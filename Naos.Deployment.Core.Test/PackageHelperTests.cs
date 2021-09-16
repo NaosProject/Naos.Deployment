@@ -16,8 +16,6 @@ namespace Naos.Deployment.Core.Test
     using Naos.Packaging.Domain;
     using Naos.Packaging.NuGet;
 
-    using Newtonsoft.Json;
-
     using Spritely.Recipes;
 
     using Xunit;
