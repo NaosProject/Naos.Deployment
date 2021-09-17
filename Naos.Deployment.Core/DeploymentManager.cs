@@ -520,7 +520,7 @@ namespace Naos.Deployment.Core
                                                {
                                                    new SetupStep
                                                        {
-                                                           Description = Invariant($"Waiting for machine to be reachable via {machineManager.MachineProtocol} (confirm VPN connection)."),
+                                                           Description = Invariant($"Waiting for machine to be reachable via {machineManager.MachineProtocol} (confirm WinRM Service running & VPN connected)."),
                                                            SetupFunc = m =>
                                                                {
                                                                    this.WaitUntilMachineIsAccessible(m);
