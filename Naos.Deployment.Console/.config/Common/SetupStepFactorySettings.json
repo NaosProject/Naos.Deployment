@@ -63,7 +63,7 @@
     "administratorAccount": "Administrator",
     "harnessSettings": {
         "harnessAccount": "NT AUTHORITY\\NETWORKSERVICE",
-        "defaultTaskPriority": 5 
+        "defaultTaskPriority": 5
     },
     "windowsServerSettings": {
         "taskSchedulerSnapInPath": "C:\\Windows\\System32\\taskschd.msc",
@@ -407,7 +407,8 @@
                 "   # Need to support TLS 1.2",
                 "   [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12",
                 "   # can't use write-host b/c we're not in interactive mode when executing remotely via WinRM.",
-                "   iex (((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1') -ireplace 'Write-Host', 'Write-Output'))",
+                "   # can't use Get-Downloader method due to unknown reasons.",
+                "   iex (((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1').Replace('Write-Host', 'Write-Output').Replace('Get-Downloader $url @ProxyConfiguration', 'New-Object System.Net.WebClient')))",
                 "   }catch{}",
                 "}"
             ]
