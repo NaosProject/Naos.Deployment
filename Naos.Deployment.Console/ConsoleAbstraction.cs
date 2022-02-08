@@ -57,6 +57,7 @@ namespace Naos.Deployment.Console
         /// <inheritdoc />
         protected override void CustomPerformEntryPointPreChecks()
         {
+            // ENSURE NETWORK IS PRIVATE: Check that the active network is private as this will be required for any WinRM commands.
             using (var localMachineManager = new LocalMachineManager())
             {
                 var connectionProfiles = localMachineManager.RunScript("{ Get-NetConnectionProfile }");

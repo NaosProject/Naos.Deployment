@@ -29,14 +29,17 @@ namespace Naos.Deployment.Core
     {
         private readonly IGetCertificates certificateRetriever;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Holdover from the past but might be re-used.")]
         private readonly IGetPackages packageManager;
 
         private readonly IManageConfigFiles configFileManager;
 
         private readonly string environmentCertificateName;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Holdover from the past but might be re-used.")]
         private readonly string workingDirectory;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Holdover from the past but might be re-used.")]
         private readonly Action<string> debugAnnouncer;
 
         /// <summary>
