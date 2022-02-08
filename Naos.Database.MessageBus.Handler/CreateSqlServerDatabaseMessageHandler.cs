@@ -65,7 +65,7 @@ namespace Naos.Database.MessageBus.Handler
                     var dataFilePath = Path.Combine(dataDirectory, message.DataFileName);
                     var logFilePath = Path.Combine(dataDirectory, message.DataFileName);
 
-                    var databaseConfiguration = new DatabaseConfiguration(
+                    var databaseConfiguration = new SqlServerDatabaseDefinition(
                         message.DatabaseName,
                         message.DatabaseType,
                         RecoveryMode.Simple,
@@ -80,7 +80,7 @@ namespace Naos.Database.MessageBus.Handler
                         message.LogFileMaxSizeInKb,
                         message.LogFileGrowthSizeInKb);
 
-                    SqlServerDatabaseManager.Create(masterConnectionString, databaseConfiguration);
+                    SqlServerDatabaseManager.Create(masterConnectionString, databaseConfiguration, message.ExistingDatabaseStrategy);
 
                     this.DatabaseName = message.DatabaseName;
 

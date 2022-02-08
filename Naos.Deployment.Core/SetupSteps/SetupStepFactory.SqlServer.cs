@@ -123,7 +123,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager =>
                         {
                             var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
-                            SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation);
+                            SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation, ExistingDatabaseStrategy.Throw);
                             return new dynamic[0];
                         },
                     });
@@ -185,7 +185,7 @@ namespace Naos.Deployment.Core
             return databaseSteps;
         }
 
-        private DatabaseConfiguration BuildDatabaseConfiguration(string databaseName, string dataDirectory, string recoveryMode, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
+        private SqlServerDatabaseDefinition BuildDatabaseConfiguration(string databaseName, string dataDirectory, string recoveryMode, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
         {
             var localDatabaseFileNameSettings = databaseFileNameSettings
                                                 ?? new DatabaseFileNameSettings
@@ -205,7 +205,7 @@ namespace Naos.Deployment.Core
                 recoveryModeEnum = (RecoveryMode)Enum.Parse(typeof(RecoveryMode), recoveryMode, true);
             }
 
-            var databaseConfiguration = new DatabaseConfiguration(
+            var databaseConfiguration = new SqlServerDatabaseDefinition(
                 databaseName,
                 DatabaseType.User,
                 recoveryModeEnum,

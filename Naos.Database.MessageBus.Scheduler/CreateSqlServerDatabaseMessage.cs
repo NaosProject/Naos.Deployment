@@ -6,6 +6,7 @@
 
 namespace Naos.Database.MessageBus.Scheduler
 {
+    using Naos.Database.Domain;
     using Naos.MessageBus.Domain;
     using Naos.SqlServer.Domain;
 
@@ -82,5 +83,10 @@ namespace Naos.Database.MessageBus.Scheduler
         /// </summary>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Kb", Justification = "Spelling/name is correct.")]
         public long LogFileGrowthSizeInKb { get; set; }
+
+        /// <summary>
+        /// Gets or sets the strategy to use when there is an existing database.
+        /// </summary>
+        public ExistingDatabaseStrategy ExistingDatabaseStrategy { get; set; }
     }
 }
