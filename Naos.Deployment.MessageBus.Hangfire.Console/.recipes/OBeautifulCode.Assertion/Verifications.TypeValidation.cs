@@ -66,6 +66,15 @@ namespace OBeautifulCode.Assertion.Recipes
             },
         };
 
+        private static readonly IReadOnlyCollection<TypeValidation> MustBeNullableBooleanTypeValidations = new[]
+        {
+            new TypeValidation
+            {
+                Handler = ThrowIfNotAssignableToType,
+                ReferenceTypes = new[] { NullableBoolType },
+            },
+        };
+
         private static readonly IReadOnlyCollection<TypeValidation> MustBeStringTypeValidations = new[]
         {
             new TypeValidation
@@ -149,6 +158,22 @@ namespace OBeautifulCode.Assertion.Recipes
 
         private static readonly IReadOnlyCollection<TypeValidation> InequalityTypeValidations = new[]
         {
+            new TypeValidation
+            {
+                Handler = ThrowIfTypeDoesNotHaveWorkingDefaultComparer,
+            },
+            new TypeValidation
+            {
+                Handler = ThrowIfTypeIsNotEqualToAllVerificationParameterType,
+            },
+        };
+
+        private static readonly IReadOnlyCollection<TypeValidation> NullableInequalityTypeValidations = new[]
+        {
+            new TypeValidation
+            {
+                Handler = ThrowIfTypeCannotBeAssignedToNull,
+            },
             new TypeValidation
             {
                 Handler = ThrowIfTypeDoesNotHaveWorkingDefaultComparer,

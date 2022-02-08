@@ -175,6 +175,11 @@ namespace OBeautifulCode.CodeAnalysis.Recipes
         public const string CA1711_IdentifiersShouldNotHaveIncorrectSuffix_TypeNameAddedAsSuffixForTestsWhereTypeIsPrimaryConcern = "The identifier is suffixed with it's Type name to improve readability and comprehension of unit tests where the Type is a primary concern of those tests.";
 
         /// <summary>
+        /// The delegate identifier is suffixed with 'Delegate' which is the preferred suffix for non-event-handling and non-callback delegates.
+        /// </summary>
+        public const string CA1711_IdentifiersShouldNotHaveIncorrectSuffix_PreferToUseDelegateForNonEventHandlingNonCallbackDelegates = "The delegate identifier is suffixed with 'Delegate' which is the preferred suffix for non-event-handling and non-callback delegates.";
+
+        /// <summary>
         /// The name is plural.
         /// </summary>
         public const string CA1714_FlagsEnumsShouldHavePluralNames_TheNameIsPlural = "The name is plural.";

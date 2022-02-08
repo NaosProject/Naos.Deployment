@@ -168,6 +168,53 @@ namespace OBeautifulCode.Collection.Recipes
         }
 
         /// <summary>
+        /// Splits an ordered collection into chunks of a specified length.
+        /// </summary>
+        /// <typeparam name="T">The type of element in the collection.</typeparam>
+        /// <param name="value">The collection to split.</param>
+        /// <param name="lengthPerChunk">The length of each chunk when splitting the specified collection.</param>
+        /// <returns>
+        /// <paramref name="value"/> split into an ordered collection of chunks, where each chunk is an ordered collection of length <paramref name="lengthPerChunk"/>.
+        /// If the length of <paramref name="value"/> cannot be evenly divided by <paramref name="lengthPerChunk"/>, then the last
+        /// chunk will contain less elements.  No elements are truncated.
+        /// If <paramref name="value"/> is empty then an empty list is returned.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="lengthPerChunk"/> is &lt;= 0.</exception>
+        public static IReadOnlyList<IReadOnlyList<T>> SplitIntoChunksOfLength<T>(
+            this IReadOnlyList<T> value,
+            int lengthPerChunk)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (lengthPerChunk <= 0)
+            {
+                throw new ArgumentOutOfRangeException(Invariant($"'{nameof(lengthPerChunk)}' <= '{0}'"), (Exception)null);
+            }
+
+            var result = new List<List<T>>((value.Count / lengthPerChunk) + 1);
+
+            for (var i = 0; i < value.Count; i += lengthPerChunk)
+            {
+                var chunk = new List<T>(Math.Min(lengthPerChunk, value.Count));
+
+                var elementsInChunk = Math.Min(lengthPerChunk, value.Count - i);
+
+                for (var j = i; j < i + elementsInChunk; j++)
+                {
+                    chunk.Add(value[j]);
+                }
+                
+                result.Add(chunk);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Gets the symmetric difference of two sets using the default equality comparer.
         /// The symmetric difference is defined as the set of elements which are in one of the sets, but not in both.
         /// </summary>
