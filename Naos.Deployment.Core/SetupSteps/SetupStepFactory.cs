@@ -405,7 +405,7 @@ namespace Naos.Deployment.Core
 
         private static void ThrowIfMissingNecessaryVolumes(IReadOnlyCollection<Volume> volumes, IReadOnlyCollection<InitializationStrategySqlServer> initializationStrategiesSql, IReadOnlyCollection<InitializationStrategyMongo> initializationStrategiesMongo)
         {
-            if ((initializationStrategiesSql?.Any() ?? false) || (initializationStrategiesMongo?.Any() ?? false))
+            if ((initializationStrategiesSql?.Any(_ => string.IsNullOrWhiteSpace(_.DataDirectory) || string.IsNullOrWhiteSpace(_.BackupDirectory)) ?? false) || (initializationStrategiesMongo?.Any() ?? false))
             {
                 if (!(volumes?.Any(_ => "D".Equals((_?.DriveLetter ?? string.Empty).ToUpperInvariant())) ?? false))
                 {
