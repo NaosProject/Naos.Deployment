@@ -196,11 +196,11 @@ namespace Naos.Deployment.Console
 
             var windowsSkuSearchPatternMap = new Dictionary<string, string>
                            {
-                               { "doesNotMatter", "Windows_Server-2012-R2_RTM-English-64Bit-Base-*" },
-                               { "base", "Windows_Server-2012-R2_RTM-English-64Bit-Base-*" },
-                               { "sqlWeb", "Windows_Server-2012-R2_RTM-English-64Bit-SQL_2016_SP2_Web-*" },
-                               { "sqlStandard", "Windows_Server-2012-R2_RTM-English-64Bit-SQL_2014_SP1_Standard-*" },
-                               { "sqlEnterprise", "Windows_Server-2012-R2_RTM-English-64Bit-SQL_2014_SP1_Enterprise-*" },
+                               { "doesNotMatter", "Windows_Server-2019-English-Full-Base-*" },
+                               { "base", "Windows_Server-2019-English-Full-Base-*" },
+                               { "sqlWeb", "Windows_Server-2019-English-Full-SQL_2019_Web-*" },
+                               { "sqlStandard", "Windows_Server-2019-English-Full-SQL_2019_Standard-*" },
+                               { "sqlEnterprise", "Windows_Server-2019-English-Full-SQL_2019_Enterprise-*" },
                            };
             var windowsSkuSearchPatternMapJson = DefaultJsonSerializer.SerializeToString(windowsSkuSearchPatternMap);
 
