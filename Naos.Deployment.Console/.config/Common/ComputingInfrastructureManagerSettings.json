@@ -733,6 +733,7 @@
         "netsh advfirewall firewall add rule name=\"WinRM 5985\" protocol=TCP dir=in localport=5985 action=allow | Out-File -FilePath $logPath -Append",
         "netsh advfirewall firewall add rule name=\"WinRM 5986\" protocol=TCP dir=in localport=5986 action=allow | Out-File -FilePath $logPath -Append",
         "",
+        "$windowsVersion = [System.Environment]::OSVersion.Version",
         "if ($windowsVersion.Major -le '6')",
         "{",
         "   # Nothing to do on Windows Server 2012 R2 and older as the EC2Config Service does it by default",
