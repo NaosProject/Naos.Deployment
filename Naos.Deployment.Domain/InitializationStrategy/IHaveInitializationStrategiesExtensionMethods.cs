@@ -4,12 +4,10 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Core
+namespace Naos.Deployment.Domain
 {
     using System.Collections.Generic;
     using System.Linq;
-
-    using Naos.Deployment.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
 

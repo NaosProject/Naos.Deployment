@@ -423,7 +423,6 @@
     <Compile Include="Properties\ProjectInfo.cs" />
     <Compile Include="RecordingMachineManagerFactory.cs" />
     <Compile Include="PackageHelper.cs" />
-    <Compile Include="IHaveInitializationStrategiesExtensionMethods.cs" />
     <Compile Include="MessageBusHandlerHarnessConfiguration.cs" />
     <Compile Include="PackagedDeploymentConfiguration.cs" />
     <Compile Include="PackagedDeploymentConfigurationExtensionMethods.cs" />
