@@ -12,6 +12,7 @@ namespace Naos.Deployment.Core
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
     using Naos.Deployment.Domain;
@@ -20,6 +21,7 @@ namespace Naos.Deployment.Core
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Execution.Recipes;
+    using OBeautifulCode.Security.Recipes;
     using OBeautifulCode.Serialization;
     using OBeautifulCode.Serialization.Json;
     using static System.FormattableString;
@@ -709,12 +711,14 @@ namespace Naos.Deployment.Core
             new { configFileManager }.AsArg().Must().NotBeNull();
 
             // get deployment details from Its.Config in the package
-            var deploymentFileSearchPattern = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
+            var deploymentFileSearchPatternInsecure = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json");
+            var deploymentFileSearchPatternSecure = configFileManager.BuildConfigPath(precedence: environment, fileNameWithExtension: "DeploymentConfigurationWithStrategies.json.secure");
 
             bool FigureOutIfNeedToBundleDependencies(IHaveInitializationStrategies hasStrategies) =>
                 hasStrategies != null && (hasStrategies.GetInitializationStrategiesOf<InitializationStrategyMessageBusHandler>().Any()
                                           || hasStrategies.GetInitializationStrategiesOf<InitializationStrategySqlServer>().Any(_ => _.BundleDependencies));
 
+            var certsFromStore = CertHelper.GetCertificatesFromStore(StoreLocation.LocalMachine, StoreName.My);
             var packagedDeploymentConfigs = packagesToDeploy.Select(
                 packageDescriptionWithOverrides =>
                     {
@@ -724,10 +728,28 @@ namespace Naos.Deployment.Core
                         var package = packageHelper.GetPackage(packageDescriptionWithOverrides.PackageDescription, bundleAllDependencies);
                         var actualVersion = packageHelper.GetActualVersionFromPackage(package.Package);
 
-                        var deploymentConfigJson =
+                        string deploymentConfigJson = null;
+
+                        var deploymentConfigJsonSecure =
                             packageManager.GetMultipleFileContentsFromPackageAsStrings(
                                 package.Package,
-                                deploymentFileSearchPattern).Select(_ => _.Value).SingleOrDefault();
+                                deploymentFileSearchPatternSecure).Select(_ => _.Value).SingleOrDefault();
+                        if (!string.IsNullOrWhiteSpace(deploymentConfigJsonSecure))
+                        {
+                            var decryptedValue = deploymentConfigJsonSecure.DecryptStringFromBase64String(certsFromStore);
+                            deploymentConfigJson = decryptedValue;
+                        }
+                        else
+                        {
+                            var deploymentConfigJsonInsecure =
+                                packageManager.GetMultipleFileContentsFromPackageAsStrings(
+                                                   package.Package,
+                                                   deploymentFileSearchPatternInsecure)
+                                              .Select(_ => _.Value)
+                                              .SingleOrDefault();
+
+                            deploymentConfigJson = deploymentConfigJsonInsecure;
+                        }
 
                         // strip the BOM (Byte Order Mark) since the characters are stored in a string now and encoding should be fine; presence of this will fail many serializers...
                         var deploymentConfigJsonWithoutBom = (deploymentConfigJson ?? string.Empty).Replace("\ufeff", string.Empty);
