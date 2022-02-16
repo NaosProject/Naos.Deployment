@@ -152,6 +152,10 @@
                 "{",
                 "param([String] $ExeFullPath, [String] $Arguments)",
                 "   &$ExeFullPath $Arguments",
+                "   if ($lastexitcode -ne 0)",
+                "   {",
+                "      throw \"Failure running '$ExeFullPath $Arguments' for OneTimeCall.\"",
+                "   }",
                 "}"
             ]
         },
