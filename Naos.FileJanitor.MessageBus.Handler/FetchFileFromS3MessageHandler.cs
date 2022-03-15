@@ -75,7 +75,7 @@ namespace Naos.FileJanitor.MessageBus.Handler
 
                 // shares path down because it can be augmented...
                 this.FilePath = message.FilePath.Replace("{Key}", key);
-                log.Write(() => $"Dowloading the file to replaced FilePath: {this.FilePath}");
+                log.Write(() => $"Downloading the file to replaced FilePath: {this.FilePath}");
 
                 var metadata = await FileExchanger.FetchMetadata(fileManager, containerLocation, container, key);
 

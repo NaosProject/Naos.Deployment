@@ -50,6 +50,7 @@ namespace Naos.Deployment.Persistence
                                                                                     // Domain types
                                                                                     typeof(ArcologyInfo).ToTypeToRegisterForBson(),
                                                                                     typeof(AutoStartProvider).ToTypeToRegisterForBson(),
+                                                                                    typeof(BackupAndPersistDatabaseOp).ToTypeToRegisterForBson(),
                                                                                     typeof(CertificateDescription).ToTypeToRegisterForBson(),
                                                                                     typeof(CertificateDescriptionWithClearPfxPayload).ToTypeToRegisterForBson(),
                                                                                     typeof(CertificateDescriptionWithEncryptedPfxPayload).ToTypeToRegisterForBson(),
@@ -64,6 +65,7 @@ namespace Naos.Deployment.Persistence
                                                                                     typeof(DeploymentException).ToTypeToRegisterForBson(),
                                                                                     typeof(DeploymentStrategy).ToTypeToRegisterForBson(),
                                                                                     typeof(DirectoryToCreateDetails).ToTypeToRegisterForBson(),
+                                                                                    typeof(DownloadAndRestoreDatabaseOp).ToTypeToRegisterForBson(),
                                                                                     typeof(Encryptor).ToTypeToRegisterForBson(),
                                                                                     typeof(ImageDetails).ToTypeToRegisterForBson(),
                                                                                     typeof(InitializationStrategyBase).ToTypeToRegisterForBson(),

@@ -46,6 +46,7 @@ namespace Naos.Deployment.Domain
             {
                 typeof(ArcologyInfo).ToTypeToRegisterForJson(),
                 typeof(AutoStartProvider).ToTypeToRegisterForJson(),
+                typeof(BackupAndPersistDatabaseOp).ToTypeToRegisterForJson(),
                 typeof(CertificateDescription).ToTypeToRegisterForJson(),
                 typeof(CertificateDescriptionWithClearPfxPayload).ToTypeToRegisterForJson(),
                 typeof(CertificateDescriptionWithEncryptedPfxPayload).ToTypeToRegisterForJson(),
@@ -60,6 +61,7 @@ namespace Naos.Deployment.Domain
                 typeof(DeploymentException).ToTypeToRegisterForJson(),
                 typeof(DeploymentStrategy).ToTypeToRegisterForJson(),
                 typeof(DirectoryToCreateDetails).ToTypeToRegisterForJson(),
+                typeof(DownloadAndRestoreDatabaseOp).ToTypeToRegisterForJson(),
                 typeof(Encryptor).ToTypeToRegisterForJson(),
                 typeof(ImageDetails).ToTypeToRegisterForJson(),
                 typeof(InitializationStrategyBase).ToTypeToRegisterForJson(),

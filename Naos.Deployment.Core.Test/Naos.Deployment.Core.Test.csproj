@@ -394,10 +394,33 @@
     <Compile Include=".recipes\OBeautifulCode.Assertion\WorkflowExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.AutoFakeItEasy\AutoFakeItEasyBootstrapper.cs" />
     <Compile Include=".recipes\OBeautifulCode.CodeAnalysis\ObcSuppressBecause.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Comparable\ComparableTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Comparable\ComparableTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Comparable\ValidatedComparableTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorArgumentValidation\ConstructorArgumentValidationTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorArgumentValidation\ConstructorArgumentValidationTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorArgumentValidation\ValidatedConstructorArgumentValidationTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorPropertyAssignment\CompareActualToExpectedUsing.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorPropertyAssignment\ConstructorPropertyAssignmentTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorPropertyAssignment\ConstructorPropertyAssignmentTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorPropertyAssignment\SystemUnderTestExpectedPropertyValue{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\ConstructorPropertyAssignment\ValidatedConstructorPropertyAssignmentTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\DeepCloneWith\DeepCloneWithTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\DeepCloneWith\DeepCloneWithTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\DeepCloneWith\SystemUnderTestDeepCloneWithValue{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\DeepCloneWith\ValidatedDeepCloneWithTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Equatable\EquatableTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Equatable\EquatableTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\Equatable\ValidatedEquatableTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\StringRepresentation\StringRepresentationTestScenarios{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\StringRepresentation\StringRepresentationTestScenario{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\StringRepresentation\SystemUnderTestExpectedStringRepresentation{T}.cs" />
+    <Compile Include=".recipes\OBeautifulCode.CodeGen\StringRepresentation\ValidatedStringRepresentationTestScenario{T}.cs" />
     <Compile Include=".recipes\OBeautifulCode.Collection\EnumerableExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Compression\CompressorFactory.cs" />
     <Compile Include=".recipes\OBeautifulCode.Compression\DotNetZipCompressor.cs" />
     <Compile Include=".recipes\OBeautifulCode.Compression\NullCompressor.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Enum\EnumExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\ByteArrayEqualityComparer.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\ColorEqualityComparer.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\DateTimeEqualityComparer.cs" />
@@ -415,8 +438,26 @@
     <Compile Include=".recipes\OBeautifulCode.Equality\ReadOnlyDictionaryEqualityComparer.cs" />
     <Compile Include=".recipes\OBeautifulCode.Equality\ReferenceEqualityComparer{T}.cs" />
     <Compile Include=".recipes\OBeautifulCode.Math\ThreadSafeRandom.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\AccessModifier.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\AppDomainHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\BindingFlagsFor.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ConstructorsMatchedToPropertiesStrategy.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\DisposableAppDomain.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberAccessModifiers.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberAttributes.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberKinds.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberMutability.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberOwners.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\MemberRelationships.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\OrderMembersBy.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Attribute.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Constructor.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Enum.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Field.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.MemberInfo.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Method.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\ReflectionHelper.Property.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\AwsCertificateManagerPayload.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\CertHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\ExtractedPfxFile.cs" />
@@ -438,8 +479,17 @@
     <Compile Include=".recipes\OBeautifulCode.Type\TypeExtensions.cs" />
     <Compile Include=".recipes\Spritely.SecureString\SecureString.cs" />
     <Compile Include="ComputingManagerHelperTests.cs" />
+    <Compile Include="SerializationConfigurationTypes.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.ApplyOverrides.cs" />
     <Compile Include="DeploymentConfigurationExtensionMethodsTest.Flatten.cs" />
+    <Compile Include="Operations\BackupAndPersistDatabaseOpTest.cs" />
+    <Compile Include="Operations\BackupAndPersistDatabaseOpTest.designer.cs">
+      <DependentUpon>BackupAndPersistDatabaseOpTest.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Operations\DownloadAndRestoreDatabaseOpTest.cs" />
+    <Compile Include="Operations\DownloadAndRestoreDatabaseOpTest.designer.cs">
+      <DependentUpon>DownloadAndRestoreDatabaseOpTest.cs</DependentUpon>
+    </Compile>
     <Compile Include="PackageHelperTests.cs" />
     <Compile Include="InitializationStrategyCloningTest.cs" />
     <Compile Include="ArcologyTest.cs" />
@@ -511,6 +561,7 @@
   <ItemGroup>
     <Content Include=".analyzers\dictionary.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
