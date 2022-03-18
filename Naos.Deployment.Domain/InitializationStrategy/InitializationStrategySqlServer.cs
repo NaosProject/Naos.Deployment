@@ -6,6 +6,8 @@
 
 namespace Naos.Deployment.Domain
 {
+    using Naos.SqlServer.Domain;
+    using OBeautifulCode.Database.Recipes;
     using static System.FormattableString;
 
     /// <summary>
@@ -92,9 +94,16 @@ namespace Naos.Deployment.Domain
         /// <returns>Localhost connection string.</returns>
         public string CreateLocalhostConnectionString()
         {
-            var instanceName = string.IsNullOrWhiteSpace(this.InstanceName) ? string.Empty : Invariant($"\\{this.InstanceName}");
-            var ret = Invariant($"Server=localhost{instanceName}; user id=sa; password={this.AdministratorPassword}");
-            return ret;
+            var instanceName = string.IsNullOrWhiteSpace(this.InstanceName) ? null : this.InstanceName;
+            var result = ConnectionStringHelper.BuildConnectionString(
+                "localhost",
+                null,
+                instanceName,
+                "master",
+                "sa",
+                this.AdministratorPassword);
+
+            return result;
         }
     }
 }
