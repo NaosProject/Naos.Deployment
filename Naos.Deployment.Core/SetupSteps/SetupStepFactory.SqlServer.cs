@@ -27,7 +27,7 @@ namespace Naos.Deployment.Core
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFrom", Justification = "This pattern works better for correctly loading dependencies.")]
-        private List<SetupStep> GetSqlServerSpecificSteps(InitializationStrategySqlServer sqlServerStrategy, Package package)
+        private List<SetupStep> GetSqlServerSpecificSteps(InitializationStrategySqlServer sqlServerStrategy, Package package, TimeSpan timeoutForSetup)
         {
             if (sqlServerStrategy.Create != null && sqlServerStrategy.Restore != null)
             {
@@ -123,7 +123,7 @@ namespace Naos.Deployment.Core
                         SetupFunc = machineManager =>
                         {
                             var realRemoteConnectionString = connectionString.Replace("localhost", machineManager.Address);
-                            SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation, ExistingDatabaseStrategy.Throw);
+                            SqlServerDatabaseManager.Create(realRemoteConnectionString, databaseConfigurationForCreation, ExistingDatabaseStrategy.Throw, timeoutForSetup);
                             return new dynamic[0];
                         },
                     });

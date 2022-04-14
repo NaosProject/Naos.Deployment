@@ -161,6 +161,11 @@ namespace Naos.Deployment.Domain
     public class DatabaseServerSettings
     {
         /// <summary>
+        /// Gets or sets the timeout for setup step execution.
+        /// </summary>
+        public TimeSpan TimeoutForSetup { get; set; }
+
+        /// <summary>
         /// Gets or sets the Windows service name that is running SQL Server.
         /// </summary>
         public string SqlServiceName { get; set; }

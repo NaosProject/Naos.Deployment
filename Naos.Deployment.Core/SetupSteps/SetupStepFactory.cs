@@ -216,7 +216,7 @@ namespace Naos.Deployment.Core
             }
             else if (strategy is InitializationStrategySqlServer sqlServerStrategy)
             {
-                var databaseSteps = this.GetSqlServerSpecificSteps(sqlServerStrategy, package);
+                var databaseSteps = this.GetSqlServerSpecificSteps(sqlServerStrategy, package, this.Settings.DatabaseServerSettings.TimeoutForSetup);
 
                 ret = new[]
                           {
