@@ -354,7 +354,6 @@ namespace Naos.Deployment.Core
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
 
-
                 var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetryAsync(
