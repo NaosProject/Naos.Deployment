@@ -131,7 +131,7 @@
                 "   ",
                 "   Set-Variable rootPath -Option Constant -Scope Local -Value (Join-Path $env:ProgramData -ChildPath \"Amazon\\EC2-Windows\\Launch\")",
                 "   Set-Variable modulePath -Option Constant -Scope Local -Value (Join-Path $rootPath -ChildPath \"Module\\Ec2Launch.psd1\")",
-                "   Set-Variable scriptPath -Option Constant -Scope Local -Value (Join-Path $PSScriptRoot -ChildPath $MyInvocation.MyCommand.Name)",
+                "   Set-Variable scriptPath -Option Constant -Scope Local -Value (Join-Path $rootPath -ChildPath \"Scripts\")",
                 "   Set-Variable scheduleName -Option Constant -Scope Local -Value \"Disk Initialization\"",
                 "   Set-Variable shellHwRegPath -Option Constant -Scope Local -Value \"HKLM:\\SYSTEM\\CurrentControlSet\\services\\ShellHWDetection\"",
                 "   ",
