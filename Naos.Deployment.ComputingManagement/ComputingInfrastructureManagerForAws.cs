@@ -18,7 +18,8 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.Logging.Domain;
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
-
+    using OBeautifulCode.Collection.Recipes;
+    using OBeautifulCode.String.Recipes;
     using static System.FormattableString;
 
     using CheckState = Naos.Deployment.Domain.CheckState;
@@ -31,6 +32,11 @@ namespace Naos.Deployment.ComputingManagement
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Aws", Justification = "Spelling/name is correct.")]
     public class ComputingInfrastructureManagerForAws : IManageComputingInfrastructure
     {
+        /// <summary>
+        /// Volume identifier=drive letter in CSV key.
+        /// </summary>
+        public const string VolumesKeyForSystemSpecificDictionary = "volumes";
+
         private const string ElasticIpIdKeyForSystemSpecificDictionary = "elasticIpId";
         private const string AmiIdKeyForSystemSpecificDictionary = "amiId";
         private const string InstanceTypeKeyForSystemSpecificDictionary = "instanceType";
@@ -351,6 +357,7 @@ namespace Naos.Deployment.ComputingManagement
                 environment,
                 instanceDetails.ComputingContainerDescription.ContainerLocation);
 
+            var cachedLookupsForDriveLetterInReverse = new Dictionary<string, string>();
             string GetDeviceNameFromDriveLetter(string driveLetter)
             {
                 var foundResult = this.settings.DriveLetterVolumeDescriptorMap.TryGetValue(driveLetter, out string mapResult);
@@ -358,6 +365,8 @@ namespace Naos.Deployment.ComputingManagement
                 {
                     throw new DeploymentException("Drive letter not supported: " + driveLetter);
                 }
+
+                cachedLookupsForDriveLetterInReverse.Add(mapResult, driveLetter);
 
                 return mapResult;
             }
@@ -463,6 +472,10 @@ namespace Naos.Deployment.ComputingManagement
                                                 {
                                                     InstanceTypeKeyForSystemSpecificDictionary,
                                                     awsInstanceType
+                                                },
+                                                {
+                                                    VolumesKeyForSystemSpecificDictionary,
+                                                    createdInstance.MappedVolumes.Select(_ => Invariant($"{_.Id}={cachedLookupsForDriveLetterInReverse[_.DeviceName]}")).ToCsv()
                                                 },
                                             };
 

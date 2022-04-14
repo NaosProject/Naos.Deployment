@@ -254,6 +254,11 @@ namespace Naos.Deployment.Domain
     public class DeploymentScriptBlockSet
     {
         /// <summary>
+        /// Gets or sets the script block to initialize disks if necessary.
+        /// </summary>
+        public ScriptBlockDescription InitializeDisksIfNecessary { get; set; }
+
+        /// <summary>
         /// Gets or sets the script block to enable script execution.
         /// </summary>
         public ScriptBlockDescription EnableScriptExecutionScript { get; set; }

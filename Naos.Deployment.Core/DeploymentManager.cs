@@ -354,6 +354,7 @@ namespace Naos.Deployment.Core
             {
                 this.LogAnnouncement("Waiting for Administrator password to be available (takes a few minutes for this).", instanceNumber);
 
+
                 var adminPasswordClear =
                     await
                     this.RunFuncWithTelemetryAsync(
@@ -392,7 +393,7 @@ namespace Naos.Deployment.Core
                 var instanceLevelSetupSteps =
                     await
                     this.setupStepFactory.GetInstanceLevelSetupSteps(
-                        createdInstanceDescription.ComputerName,
+                        createdInstanceDescription,
                         configToCreateWith.InstanceType.OperatingSystem,
                         environment,
                         packagedDeploymentConfigsWithDefaultsAndOverrides.SelectMany(_ => _.InitializationStrategies).ToList(),

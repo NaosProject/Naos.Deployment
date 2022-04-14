@@ -9,8 +9,9 @@ namespace Naos.Deployment.Core
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
-
+    using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
     using Naos.Packaging.Domain;
@@ -25,14 +26,14 @@ namespace Naos.Deployment.Core
         /// <summary>
         /// Gets the instance level setup steps.
         /// </summary>
-        /// <param name="computerName">Computer name to use in windows for the instance.</param>
+        /// <param name="instanceDescription">Instance description of created instance to set up.</param>
         /// <param name="operatingSystem">The operating system of the instance.</param>
         /// <param name="environment">Environment the instance is in.</param>
         /// <param name="allInitializationStrategies">All initialization strategies to be setup.</param>
         /// <param name="deploymentDirectory">Path used to store deployments and associated temporal information.</param>
         /// <param name="funcToReplaceKnownTokensWithValues">Function to replace well known tokens with values.</param>
         /// <returns>List of setup steps. </returns>
-        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(string computerName, OperatingSystemDescriptionBase operatingSystem, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
+        public async Task<IReadOnlyCollection<SetupStepBatch>> GetInstanceLevelSetupSteps(InstanceDescription instanceDescription, OperatingSystemDescriptionBase operatingSystem, string environment, IReadOnlyCollection<InitializationStrategyBase> allInitializationStrategies, string deploymentDirectory, Func<string, string> funcToReplaceKnownTokensWithValues)
         {
             var windowsOs = operatingSystem as OperatingSystemDescriptionWindows;
             if (windowsOs == null)
@@ -54,15 +55,36 @@ namespace Naos.Deployment.Core
 
             steps.Add(setupWinRm);
 
+            if (instanceDescription.SystemSpecificDetails.ContainsKey(ComputingInfrastructureManagerForAws.VolumesKeyForSystemSpecificDictionary))
+            {
+                var volumeString = instanceDescription.SystemSpecificDetails[ComputingInfrastructureManagerForAws.VolumesKeyForSystemSpecificDictionary];
+
+                var initializeDisks = new SetupStep
+                                      {
+                                          Description = "Initialize Disks (if necessary).",
+                                          SetupFunc =
+                                              machineManager =>
+                                                  machineManager.RunScript(
+                                                                     this.Settings.DeploymentScriptBlocks.InitializeDisksIfNecessary.ScriptText,
+                                                                     new[]
+                                                                     {
+                                                                         volumeString,
+                                                                     })
+                                                                .ToList(),
+                                      };
+
+                steps.Add(initializeDisks);
+            }
+
             var setupUpdates = new SetupStep
-                                   {
-                                       Description = "Setup Windows Updates.",
-                                       SetupFunc =
-                                           machineManager =>
+                               {
+                                   Description = "Setup Windows Updates.",
+                                   SetupFunc =
+                                       machineManager =>
                                            machineManager.RunScript(
                                                this.Settings.DeploymentScriptBlocks
-                                               .SetupWindowsUpdatesScript.ScriptText).ToList(),
-                                   };
+                                                   .SetupWindowsUpdatesScript.ScriptText).ToList(),
+                               };
 
             steps.Add(setupUpdates);
 
@@ -236,7 +258,7 @@ namespace Naos.Deployment.Core
                                                                                                       new
                                                                                                           {
                                                                                                               Name = fullComputerNameEnvironmentVariable,
-                                                                                                              Value = computerName,
+                                                                                                              Value = instanceDescription.ComputerName,
                                                                                                           },
                                                                                                   };
                                                           return
@@ -327,7 +349,7 @@ namespace Naos.Deployment.Core
                                  Description = "Rename Computer.",
                                  SetupFunc = machineManager =>
                                      {
-                                         var renameParams = new[] { computerName };
+                                         var renameParams = new[] { instanceDescription.ComputerName };
                                          return machineManager.RunScript(
                                              this.Settings.DeploymentScriptBlocks.RenameComputerScript.ScriptText,
                                              renameParams).ToList();
