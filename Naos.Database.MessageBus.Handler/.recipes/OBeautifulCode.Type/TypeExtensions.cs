@@ -968,6 +968,27 @@ namespace OBeautifulCode.Type.Recipes
         }
 
         /// <summary>
+        /// Determines if the type is compiler-generated.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns>
+        /// True if the type is compiler-generated, otherwise false.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="type"/> is null.</exception>
+        public static bool IsCompilerGeneratedType(
+            this Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var result = type.CustomAttributes.Select(s => s.AttributeType).Contains(typeof(CompilerGeneratedAttribute));
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines if the specified type is an open or closed <see cref="Nullable{T}"/> type.
         /// </summary>
         /// <remarks>Adapted from: <a href="https://stackoverflow.com/a/41281601/356790" />.</remarks>

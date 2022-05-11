@@ -168,6 +168,71 @@ namespace OBeautifulCode.Collection.Recipes
         }
 
         /// <summary>
+        /// Removes the elements of a specified collection from an enumerable.
+        /// </summary>
+        /// <remarks>
+        /// Unlike <see cref="System.Linq.Enumerable.Except{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>,
+        /// this method does not remove duplicates.
+        /// Adapted from: <a href="https://metadataconsulting.blogspot.com/2021/02/CSharp-dotNet-Get-difference-between-two-unordered-not-unique-lists-aka-duplicates-allowed-within-a-list-and-across-both-lists.html" />.
+        /// </remarks>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="value">The collection to remove from.</param>
+        /// <param name="itemsToRemove">The items to remove.</param>
+        /// <param name="comparer">OPTIONAL equality comparer to use when compare values.  DEFAULT is to use <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
+        /// <param name="throwIfNotFound">OPTIONAL value indicating whether to throw if an item in <paramref name="itemsToRemove"/> is not found in <paramref name="value"/>.  DEFAULT is to NOT throw.</param>
+        /// <returns>
+        /// The specified <paramref name="value"/> without the items in <paramref name="itemsToRemove" /> without performing the distinct operation.
+        /// For example if <paramref name="value"/> = { 1, 2, 2, 3 } and <paramref name="itemsToRemove"/> = { 1, 2, 3 } the result will be { 2 }.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="itemsToRemove"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">An item to remove was not found in <paramref name="value"/> and <paramref name="throwIfNotFound"/> is true.</exception>
+        public static IEnumerable<T> RemoveRange<T>(
+            this IEnumerable<T> value,
+            IEnumerable<T> itemsToRemove,
+            IEqualityComparer<T> comparer = null,
+            bool throwIfNotFound = false)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            if (itemsToRemove == null)
+            {
+                throw new ArgumentNullException(nameof(itemsToRemove));
+            }
+
+            var result = value.ToList();
+
+            comparer = EqualityComparerHelper.GetEqualityComparerToUse(comparer);
+
+            foreach (var item in itemsToRemove)
+            {
+                var found = false;
+
+                for (var x = 0; x < result.Count; x++)
+                {
+                    if (comparer.Equals(result[x], item))
+                    {
+                        result.RemoveAt(x);
+                        
+                        found = true;
+
+                        break;
+                    }
+                }
+
+                if (throwIfNotFound && (!found))
+                {
+                    throw new InvalidOperationException(Invariant($"Could not find the following item to remove from the specified enumerable: {item}."));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Splits an ordered collection into chunks of a specified length.
         /// </summary>
         /// <typeparam name="T">The type of element in the collection.</typeparam>
@@ -223,7 +288,7 @@ namespace OBeautifulCode.Collection.Recipes
         /// contain one copy of the the duplicate item and only if it doesn't appear in the other set.
         /// </remarks>
         /// <param name="value">The first enumerable.</param>
-        /// <param name="secondSet">The second enumerable to compare against the first.</param>
+        /// <param name="secondSet">The collection enumerable to compare against the first.</param>
         /// <returns>IEnumerable(T) with the symmetric difference of the two sets.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="secondSet"/> is null.</exception>
@@ -246,7 +311,7 @@ namespace OBeautifulCode.Collection.Recipes
         /// </remarks>
         /// <typeparam name="TSource">The type of elements in the collection.</typeparam>
         /// <param name="value">The first enumerable.</param>
-        /// <param name="secondSet">The second enumerable to compare against the first.</param>
+        /// <param name="secondSet">The collection enumerable to compare against the first.</param>
         /// <param name="comparer">Optional equality comparer to use to compare elements.  Default is to call <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
         /// <returns>Returns an <see cref="IEnumerable{T}"/> with the symmetric difference of the two sets.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>

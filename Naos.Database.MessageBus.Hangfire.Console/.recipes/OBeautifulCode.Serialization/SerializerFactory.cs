@@ -13,7 +13,6 @@ namespace OBeautifulCode.Serialization.Recipes
     using global::System.Collections.Concurrent;
 
     using OBeautifulCode.Compression;
-    using OBeautifulCode.Representation.System;
     using OBeautifulCode.Serialization.Bson;
     using OBeautifulCode.Serialization.Json;
     using OBeautifulCode.Serialization.PropertyBag;
@@ -37,6 +36,12 @@ namespace OBeautifulCode.Serialization.Recipes
 
         private static readonly ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<VersionMatchStrategy, ISerializer>>
             CachedSerializerRepresentationToSerializerMap = new ConcurrentDictionary<SerializerRepresentation, ConcurrentDictionary<VersionMatchStrategy, ISerializer>>();
+
+        private static readonly BsonSerializerFactory BsonSerializerFactory = new BsonSerializerFactory();
+
+        private static readonly JsonSerializerFactory JsonSerializerFactory = new JsonSerializerFactory();
+
+        private static readonly PropertyBagSerializerFactory PropertyBagSerializerFactory = new PropertyBagSerializerFactory();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PropertyBagSerializerFactory"/> class.
@@ -73,21 +78,18 @@ namespace OBeautifulCode.Serialization.Recipes
                 }
             }
 
-            // ReSharper disable once RedundantArgumentDefaultValue
-            var configurationType = serializerRepresentation.SerializationConfigType?.ResolveFromLoadedTypes(assemblyVersionMatchStrategy, throwIfCannotResolve: true);
-
             ISerializer serializer;
 
             switch (serializerRepresentation.SerializationKind)
             {
                 case SerializationKind.Bson:
-                    serializer = new ObcBsonSerializer(configurationType?.ToBsonSerializationConfigurationType());
+                    serializer = BsonSerializerFactory.BuildSerializer(serializerRepresentation, assemblyVersionMatchStrategy);
                     break;
                 case SerializationKind.Json:
-                    serializer = new ObcJsonSerializer(configurationType?.ToJsonSerializationConfigurationType());
+                    serializer = JsonSerializerFactory.BuildSerializer(serializerRepresentation, assemblyVersionMatchStrategy);
                     break;
                 case SerializationKind.PropertyBag:
-                    serializer = new ObcPropertyBagSerializer(configurationType?.ToPropertyBagSerializationConfigurationType());
+                    serializer = PropertyBagSerializerFactory.BuildSerializer(serializerRepresentation, assemblyVersionMatchStrategy);
                     break;
                 default:
                     throw new NotSupportedException(Invariant($"{nameof(serializerRepresentation)} from enumeration {nameof(SerializationKind)} of {serializerRepresentation.SerializationKind} is not supported."));
