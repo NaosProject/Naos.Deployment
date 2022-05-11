@@ -4,7 +4,7 @@
 // </copyright>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace Naos.Deployment.Domain
+namespace Naos.Deployment.Core.Test
 {
     using System;
     using Naos.FileJanitor.Domain;
