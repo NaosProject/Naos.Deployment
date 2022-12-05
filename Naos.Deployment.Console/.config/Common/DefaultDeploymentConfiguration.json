@@ -8,7 +8,7 @@
     "volumes": [
         {
             "driveLetter": "C",
-            "sizeInGb": 50,
+            "sizeInGb": 65,
             "type": "standard"
         }
     ],
