@@ -20,10 +20,8 @@ namespace OBeautifulCode.Security.Recipes
     using global::System.Security.Cryptography.X509Certificates;
     using global::System.Text;
     using global::System.Text.RegularExpressions;
-
     using OBeautifulCode.CodeAnalysis.Recipes;
     using OBeautifulCode.Type;
-
     using Org.BouncyCastle.Asn1;
     using Org.BouncyCastle.Asn1.Pkcs;
     using Org.BouncyCastle.Asn1.X509;
@@ -32,14 +30,13 @@ namespace OBeautifulCode.Security.Recipes
     using Org.BouncyCastle.Crypto.Generators;
     using Org.BouncyCastle.Crypto.Operators;
     using Org.BouncyCastle.Crypto.Parameters;
+    using Org.BouncyCastle.Math;
     using Org.BouncyCastle.OpenSsl;
     using Org.BouncyCastle.Pkcs;
     using Org.BouncyCastle.Security;
     using Org.BouncyCastle.X509;
     using Org.BouncyCastle.X509.Extension;
-
     using static global::System.FormattableString;
-
     using ContentInfo = global::System.Security.Cryptography.Pkcs.ContentInfo;
     using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
     using X509Extension = Org.BouncyCastle.Asn1.X509.X509Extension;
@@ -66,7 +63,6 @@ namespace OBeautifulCode.Security.Recipes
         /// A payload that can be used to load certs into the AWS Certificate Manager via the console.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="input"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="clearTextPassword"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="clearTextPassword"/> is white space.</exception>
         /// <exception cref="InvalidOperationException">The PFX file does not contain a private key.</exception>
         public static AwsCertificateManagerPayload CreateAwsCertificateManagerPayloadFromPfx(
@@ -176,7 +172,7 @@ namespace OBeautifulCode.Security.Recipes
 
             var pemEncodedIntermediateCertificateChain = File.ReadAllText(pemEncodedIntermediateCertificateChainFilePath);
 
-            var intermediateCertificateChain = CertHelper.ReadCertsFromPemEncodedString(pemEncodedIntermediateCertificateChain);
+            var intermediateCertificateChain = ReadCertsFromPemEncodedString(pemEncodedIntermediateCertificateChain);
 
             var pemEncodedCertificate = File.ReadAllText(pemEncodedCertificateFilePath);
 
@@ -218,7 +214,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="IOException"><paramref name="overwrite"/> is false and there is a file at <paramref name="outputPfxFilePath"/>.</exception>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
         public static void CreatePfxFile(
-            IReadOnlyList<X509Certificate> certChain,
+            IReadOnlyList<X509Certificate2> certChain,
             string clearTextPassword,
             string outputPfxFilePath,
             bool overwrite,
@@ -268,6 +264,7 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             var mode = overwrite ? FileMode.Create : FileMode.CreateNew;
+
             using (var fileStream = new FileStream(outputPfxFilePath, mode, FileAccess.Write, FileShare.None))
             {
                 CreatePfxFile(certChain, clearTextPassword, fileStream, privateKey);
@@ -294,7 +291,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not null and not private.</exception>
         [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Creating a PFX requires lots of types.")]
         public static void CreatePfxFile(
-            IReadOnlyList<X509Certificate> certChain,
+            IReadOnlyList<X509Certificate2> certChain,
             string clearTextPassword,
             Stream output,
             AsymmetricKeyParameter privateKey = null)
@@ -350,7 +347,7 @@ namespace OBeautifulCode.Security.Recipes
 
             foreach (var cert in certChain)
             {
-                var certEntry = new X509CertificateEntry(cert);
+                var certEntry = new X509CertificateEntry(cert.ToBouncyX509Certificate());
 
                 certEntries.Add(certEntry);
 
@@ -408,6 +405,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <param name="locality">The locality (e.g. "Seattle").</param>
         /// <param name="state">The state (e.g. "Washington").</param>
         /// <param name="country">The country (e.g. "US").</param>
+        /// <param name="signatureAlgorithm">OPTIONAL signature algorithm to use.  DEFAULT is SHA1 with RSA.</param>
         /// <returns>
         /// The certificate signing request.
         /// </returns>
@@ -423,99 +421,135 @@ namespace OBeautifulCode.Security.Recipes
             string organization,
             string locality,
             string state,
-            string country)
+            string country,
+            SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.Sha1WithRsaEncryption)
         {
-            if (asymmetricKeyPair == null)
+            var sslCreationInfo = GetSslCreationInfo(asymmetricKeyPair, commonName, subjectAlternativeNames, organizationalUnit, organization, locality, state, country, signatureAlgorithm);
+
+            var extensionsForCsr = sslCreationInfo.OidToExtensionMap.ToDictionary(_ => _.Key, _ => _.Value);
+
+            var result = new Pkcs10CertificationRequest(
+                sslCreationInfo.SignatureFactory,
+                sslCreationInfo.Subject,
+                asymmetricKeyPair.Public,
+                new DerSet(new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(new X509Extensions(extensionsForCsr)))));
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a self-signed SSL certificate.
+        /// </summary>
+        /// <param name="asymmetricKeyPair">The asymmetric cipher key pair.</param>
+        /// <param name="commonName">The common name (e.g. "example.com").</param>
+        /// <param name="subjectAlternativeNames">Optional.  The subject alternative names. (e.g. "shopping.example.com", "mail.example.com").</param>
+        /// <param name="organizationalUnit">The organizational unit (e.g. "Engineering Dept").</param>
+        /// <param name="organization">The organization (e.g. "The Example Company").</param>
+        /// <param name="locality">The locality (e.g. "Seattle").</param>
+        /// <param name="state">The state (e.g. "Washington").</param>
+        /// <param name="country">The country (e.g. "US").</param>
+        /// <param name="validityTimeRange">The validity time range.</param>
+        /// <param name="signatureAlgorithm">OPTIONAL signature algorithm to use.  DEFAULT is SHA1 with RSA.</param>
+        /// <returns>
+        /// The certificate.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="asymmetricKeyPair"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="commonName"/> or <paramref name="organizationalUnit"/>or <paramref name="organization"/> or <paramref name="locality"/> or <paramref name="state"/> or <paramref name="country"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="commonName"/> or <paramref name="organizationalUnit"/> or <paramref name="organization"/> or <paramref name="locality"/> or <paramref name="state"/> or <paramref name="country"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="validityTimeRange"/> is null.</exception>
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "There are many types required to construct a CSR.")]
+        public static X509Certificate2 CreateSelfSignedSslCertificate(
+            this AsymmetricCipherKeyPair asymmetricKeyPair,
+            string commonName,
+            IReadOnlyCollection<string> subjectAlternativeNames,
+            string organizationalUnit,
+            string organization,
+            string locality,
+            string state,
+            string country,
+            UtcDateTimeRangeInclusive validityTimeRange,
+            SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.Sha1WithRsaEncryption)
+        {
+            var sslCreationInfo = GetSslCreationInfo(asymmetricKeyPair, commonName, subjectAlternativeNames, organizationalUnit, organization, locality, state, country, signatureAlgorithm);
+
+            if (validityTimeRange == null)
             {
-                throw new ArgumentNullException(nameof(asymmetricKeyPair));
+                throw new ArgumentNullException(nameof(validityTimeRange));
             }
 
-            if (commonName == null)
+            var generator = new X509V3CertificateGenerator();
+
+            foreach (var extensionIdentifier in sslCreationInfo.OidToExtensionMap.Keys)
             {
-                throw new ArgumentNullException(nameof(commonName));
+                var extension = sslCreationInfo.OidToExtensionMap[extensionIdentifier];
+
+                generator.AddExtension(extensionIdentifier, extension.IsCritical, extension.GetParsedValue());
             }
 
-            if (string.IsNullOrWhiteSpace(commonName))
+            generator.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(asymmetricKeyPair.Public));
+
+            generator.SetSubjectDN(sslCreationInfo.Subject);
+
+            generator.SetPublicKey(asymmetricKeyPair.Public);
+
+            generator.SetIssuerDN(sslCreationInfo.Subject);
+
+            generator.SetNotBefore(validityTimeRange.StartDateTimeInUtc);
+
+            generator.SetNotAfter(validityTimeRange.EndDateTimeInUtc);
+
+            generator.SetSerialNumber(new BigInteger(DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture)));
+
+            var bouncyCert = generator.Generate(sslCreationInfo.SignatureFactory);
+
+            var result = bouncyCert.ToSystemX509Certificate();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a PKCS #12 certificate (bundles private key with X.509 certificate).
+        /// </summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="cert">The certificate.</param>
+        /// <returns>
+        /// The certificate.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="privateKey"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="privateKey"/> is not private.</exception>
+        /// <exception cref="NotSupportedException">The specified kind of private key is not supported.</exception>
+        public static X509Certificate2 CreatePkcs12Certificate(
+            this X509Certificate2 cert,
+            AsymmetricKeyParameter privateKey)
+        {
+            if (cert == null)
             {
-                throw new ArgumentException(Invariant($"'{nameof(commonName)}' is white space"));
+                throw new ArgumentNullException(nameof(cert));
             }
 
-            if (organizationalUnit == null)
+            if (privateKey == null)
             {
-                throw new ArgumentNullException(nameof(organizationalUnit));
+                throw new ArgumentNullException(nameof(privateKey));
             }
 
-            if (string.IsNullOrWhiteSpace(organizationalUnit))
+            if (!privateKey.IsPrivate)
             {
-                throw new ArgumentException(Invariant($"'{nameof(organizationalUnit)}' is white space"));
+                throw new ArgumentException(Invariant($"'{nameof(privateKey.IsPrivate)}' is false"));
+            }
+            
+            if (privateKey is RsaPrivateCrtKeyParameters rsaPrivateKey)
+            {
+                cert.PrivateKey = DotNetUtilities.ToRSA(rsaPrivateKey);
+            }
+            else
+            {
+                throw new NotSupportedException(Invariant($"This type of {nameof(AsymmetricKeyParameter)} is not supported: {privateKey.GetType()}."));
             }
 
-            if (organization == null)
-            {
-                throw new ArgumentNullException(nameof(organization));
-            }
-
-            if (string.IsNullOrWhiteSpace(organization))
-            {
-                throw new ArgumentException(Invariant($"'{nameof(organization)}' is white space"));
-            }
-
-            if (locality == null)
-            {
-                throw new ArgumentNullException(nameof(locality));
-            }
-
-            if (string.IsNullOrWhiteSpace(locality))
-            {
-                throw new ArgumentException(Invariant($"'{nameof(locality)}' is white space"));
-            }
-
-            if (state == null)
-            {
-                throw new ArgumentNullException(nameof(state));
-            }
-
-            if (string.IsNullOrWhiteSpace(state))
-            {
-                throw new ArgumentException(Invariant($"'{nameof(state)}' is white space"));
-            }
-
-            if (country == null)
-            {
-                throw new ArgumentNullException(nameof(country));
-            }
-
-            if (string.IsNullOrWhiteSpace(country))
-            {
-                throw new ArgumentException(Invariant($"'{nameof(country)}' is white space"));
-            }
-
-            var attributesInOrder = new List<DerObjectValue>
-            {
-                new DerObjectValue(X509Name.C, country),
-                new DerObjectValue(X509Name.ST, state),
-                new DerObjectValue(X509Name.L, locality),
-                new DerObjectValue(X509Name.O, organization),
-                new DerObjectValue(X509Name.OU, organizationalUnit),
-                new DerObjectValue(X509Name.CN, commonName),
-            };
-
-            var extensions = new Dictionary<DerObjectIdentifier, X509Extension>
-            {
-                { X509Extensions.BasicConstraints, new X509Extension(true, new DerOctetString(new BasicConstraints(false))) },
-                { X509Extensions.KeyUsage, new X509Extension(true, new DerOctetString(new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyEncipherment | KeyUsage.DataEncipherment | KeyUsage.NonRepudiation))) },
-                { X509Extensions.ExtendedKeyUsage, new X509Extension(false, new DerOctetString(new ExtendedKeyUsage(KeyPurposeID.IdKPServerAuth, KeyPurposeID.IdKPClientAuth))) },
-                { X509Extensions.SubjectKeyIdentifier, new X509Extension(false, new DerOctetString(new SubjectKeyIdentifierStructure(asymmetricKeyPair.Public))) },
-            };
-
-            if ((subjectAlternativeNames != null) && subjectAlternativeNames.Any())
-            {
-                var generalNames = subjectAlternativeNames.Select(_ => new GeneralName(GeneralName.DnsName, _)).ToArray();
-
-                extensions.Add(X509Extensions.SubjectAlternativeName, new X509Extension(false, new DerOctetString(new GeneralNames(generalNames))));
-            }
-
-            var result = CreateCsr(asymmetricKeyPair, SignatureAlgorithm.Sha1WithRsaEncryption, attributesInOrder, extensions);
+            // Mark private key as exportable so that code using this cert has access to it.
+            // To do so, need to set an empty string password.
+            var result = new X509Certificate2(cert.Export(X509ContentType.Pkcs12), string.Empty, X509KeyStorageFlags.Exportable);
 
             return result;
         }
@@ -677,22 +711,13 @@ namespace OBeautifulCode.Security.Recipes
         /// The decrypted string.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="bytes"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
         [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
         public static byte[] Decrypt(
             this byte[] bytes,
             X509Certificate2 certificate)
         {
-            if (bytes == null)
-            {
-                throw new ArgumentNullException(nameof(bytes));
-            }
-
-            if (certificate == null)
-            {
-                throw new ArgumentNullException(nameof(certificate));
-            }
-
             var result = bytes.Decrypt(new[] { certificate });
 
             return result;
@@ -707,6 +732,7 @@ namespace OBeautifulCode.Security.Recipes
         /// The decrypted string.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="bytes"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="certificates"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="certificates"/> is empty or contains a null element.</exception>
         [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
@@ -717,6 +743,11 @@ namespace OBeautifulCode.Security.Recipes
             if (bytes == null)
             {
                 throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (bytes.Length == 0)
+            {
+                throw new ArgumentException(Invariant($"{nameof(bytes)} is empty."));
             }
 
             if (certificates == null)
@@ -734,15 +765,45 @@ namespace OBeautifulCode.Security.Recipes
                 throw new ArgumentException(Invariant($"'{nameof(certificates)}' contains an element that is null"));
             }
 
-            var certCollection = new X509Certificate2Collection(certificates.ToArray());
+            var certificate = certificates.SingleOrDefault();
 
-            var envelopedCms = new EnvelopedCms();
+            if (certificate == null)
+            {
+                throw new NotSupportedException("Multiple certificates in the chain is not supported.");
+            }
 
-            envelopedCms.Decode(bytes);
+            var cmsEnvelopedData = new CmsEnvelopedData(bytes);
 
-            envelopedCms.Decrypt(certCollection);
+            var recipient = cmsEnvelopedData
+                .GetRecipientInfos()
+                .GetRecipients()
+                .Cast<KeyTransRecipientInformation>()
+                .Single();
 
-            var result = envelopedCms.ContentInfo.Content;
+            var privateKey = certificate.PrivateKey;
+
+            ICipherParameters cipherParameters;
+
+            if (privateKey is RSACryptoServiceProvider rsaProvider)
+            {
+                var parameters = rsaProvider.ExportParameters(true);
+
+                cipherParameters = new RsaPrivateCrtKeyParameters(
+                    new BigInteger(1, parameters.Modulus),
+                    new BigInteger(1, parameters.Exponent),
+                    new BigInteger(1, parameters.D),
+                    new BigInteger(1, parameters.P),
+                    new BigInteger(1, parameters.Q),
+                    new BigInteger(1, parameters.DP),
+                    new BigInteger(1, parameters.DQ),
+                    new BigInteger(1, parameters.InverseQ));
+            }
+            else
+            {
+                throw new NotSupportedException(Invariant($"This kind of private key is not supported: {privateKey.SignatureAlgorithm}."));
+            }
+
+            var result = recipient.GetContent(cipherParameters);
 
             return result;
         }
@@ -823,6 +884,7 @@ namespace OBeautifulCode.Security.Recipes
         /// The encrypted bytes.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="bytes"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="bytes"/> is empty.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="certificate"/> is null.</exception>
         [SuppressMessage("Microsoft.Naming", "CA1720:IdentifiersShouldNotContainTypeNames", MessageId = "bytes", Justification = ObcSuppressBecause.CA1720_IdentifiersShouldNotContainTypeNames_TypeNameAddsClarityToIdentifierAndAlternativesDegradeClarity)]
         public static byte[] Encrypt(
@@ -832,6 +894,11 @@ namespace OBeautifulCode.Security.Recipes
             if (bytes == null)
             {
                 throw new ArgumentNullException(nameof(bytes));
+            }
+
+            if (bytes.Length == 0)
+            {
+                throw new ArgumentException(Invariant($"{nameof(bytes)} is empty."));
             }
 
             if (certificate == null)
@@ -985,6 +1052,7 @@ namespace OBeautifulCode.Security.Recipes
             using (var inputStream = new MemoryStream(input))
             {
                 var result = ExtractCryptographicObjectsFromPfxFile(inputStream, clearTextPassword);
+
                 return result;
             }
         }
@@ -1029,13 +1097,13 @@ namespace OBeautifulCode.Security.Recipes
             
             var aliases = store.Aliases;
 
-            var certificateChain = new List<X509Certificate>();
+            var certificateChain = new List<X509Certificate2>();
             
             foreach (var alias in aliases)
             {
                 var certEntry = store.GetCertificate(alias.ToString());
 
-                certificateChain.Add(certEntry.Certificate);
+                certificateChain.Add(certEntry.Certificate.ToSystemX509Certificate());
             }
 
             var endUserCertificate = certificateChain.GetEndUserCertFromCertChain();
@@ -1136,7 +1204,7 @@ namespace OBeautifulCode.Security.Recipes
 
             var parser = new X509CertificateParser();
 
-            var bouncyCerts = new List<X509Certificate>();
+            var certs = new List<X509Certificate2>();
 
             using (var chain = new X509Chain())
             {
@@ -1146,11 +1214,11 @@ namespace OBeautifulCode.Security.Recipes
                 {
                     var bouncyCert = parser.ReadCertificate(chainElement.Certificate.Export(X509ContentType.Cert));
 
-                    bouncyCerts.Add(bouncyCert);
+                    certs.Add(bouncyCert.ToSystemX509Certificate());
                 }
             }
 
-            CreatePfxFile(bouncyCerts, unsecuredPassword, filePath, true, privateKey);
+            CreatePfxFile(certs, unsecuredPassword, filePath, true, privateKey);
         }
 
         /// <summary>
@@ -1164,8 +1232,8 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        public static X509Certificate GetEndUserCertFromCertChain(
-            this IReadOnlyCollection<X509Certificate> certChain)
+        public static X509Certificate2 GetEndUserCertFromCertChain(
+            this IReadOnlyCollection<X509Certificate2> certChain)
         {
             if (certChain == null)
             {
@@ -1183,6 +1251,7 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Last();
+
             return result;
         }
 
@@ -1198,8 +1267,8 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        public static IReadOnlyList<X509Certificate> GetIntermediateChainFromCertChain(
-            this IReadOnlyCollection<X509Certificate> certChain)
+        public static IReadOnlyList<X509Certificate2> GetIntermediateChainFromCertChain(
+            this IReadOnlyCollection<X509Certificate2> certChain)
         {
             if (certChain == null)
             {
@@ -1231,7 +1300,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
         [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = "We specifically want lower-case here.")]
         public static string GetThumbprint(
-            this X509Certificate cert)
+            this X509Certificate2 cert)
         {
             if (cert == null)
             {
@@ -1240,7 +1309,7 @@ namespace OBeautifulCode.Security.Recipes
 
             using (var shaProvider = new SHA1CryptoServiceProvider())
             {
-                var hash = shaProvider.ComputeHash(cert.GetEncoded());
+                var hash = shaProvider.ComputeHash(cert.ToBouncyX509Certificate().GetEncoded());
 
                 var result = BitConverter.ToString(hash).Replace("-", " ").ToLowerInvariant();
 
@@ -1257,14 +1326,16 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
         public static UtcDateTimeRangeInclusive GetValidityPeriod(
-            this X509Certificate cert)
+            this X509Certificate2 cert)
         {
             if (cert == null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
 
-            var result = new UtcDateTimeRangeInclusive(cert.NotBefore, cert.NotAfter);
+            var bouncyCert = cert.ToBouncyX509Certificate();
+
+            var result = new UtcDateTimeRangeInclusive(bouncyCert.NotBefore, bouncyCert.NotAfter);
 
             return result;
         }
@@ -1278,22 +1349,24 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
         public static IReadOnlyDictionary<X509FieldKind, string> GetX509Fields(
-            this X509Certificate cert)
+            this X509Certificate2 cert)
         {
             if (cert == null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
 
+            var bouncyCert = cert.ToBouncyX509Certificate();
+
             var result = new Dictionary<X509FieldKind, string>
             {
-                { X509FieldKind.IssuerName, cert.IssuerDN?.ToString() },
-                { X509FieldKind.NotAfter, cert.NotAfter.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
-                { X509FieldKind.NotBefore, cert.NotBefore.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
-                { X509FieldKind.SerialNumber, cert.SerialNumber?.ToString() },
-                { X509FieldKind.SignatureAlgorithmName, cert.SigAlgName },
-                { X509FieldKind.SubjectName, cert.SubjectDN?.ToString() },
-                { X509FieldKind.Version, cert.Version.ToString(CultureInfo.InvariantCulture) },
+                { X509FieldKind.IssuerName, bouncyCert.IssuerDN?.ToString() },
+                { X509FieldKind.NotAfter, bouncyCert.NotAfter.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
+                { X509FieldKind.NotBefore, bouncyCert.NotBefore.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) },
+                { X509FieldKind.SerialNumber, bouncyCert.SerialNumber?.ToString() },
+                { X509FieldKind.SignatureAlgorithmName, bouncyCert.SigAlgName },
+                { X509FieldKind.SubjectName, bouncyCert.SubjectDN?.ToString() },
+                { X509FieldKind.Version, bouncyCert.Version.ToString(CultureInfo.InvariantCulture) },
             };
             return result;
         }
@@ -1331,14 +1404,16 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
         public static IReadOnlyDictionary<X509SubjectAttributeKind, string> GetX509SubjectAttributes(
-            this X509Certificate cert)
+            this X509Certificate2 cert)
         {
             if (cert == null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
 
-            var subject = cert.SubjectDN;
+            var bouncyCert = cert.ToBouncyX509Certificate();
+
+            var subject = bouncyCert.SubjectDN;
 
             var result = subject.GetX509SubjectAttributes();
 
@@ -1423,8 +1498,8 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is empty.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
-        public static IReadOnlyList<X509Certificate> OrderCertChainFromLowestToHighestLevelOfTrust(
-            this IReadOnlyCollection<X509Certificate> certChain)
+        public static IReadOnlyList<X509Certificate2> OrderCertChainFromLowestToHighestLevelOfTrust(
+            this IReadOnlyCollection<X509Certificate2> certChain)
         {
             if (certChain == null)
             {
@@ -1442,6 +1517,7 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             var result = certChain.OrderCertChainFromHighestToLowestLevelOfTrust().Reverse().ToList();
+
             return result;
         }
 
@@ -1457,8 +1533,8 @@ namespace OBeautifulCode.Security.Recipes
         /// <exception cref="ArgumentException"><paramref name="certChain"/> contains a null element.</exception>
         /// <exception cref="ArgumentException"><paramref name="certChain"/> is malformed.</exception>
         [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = ObcSuppressBecause.CA1502_AvoidExcessiveComplexity_DisagreeWithAssessment)]
-        public static IReadOnlyList<X509Certificate> OrderCertChainFromHighestToLowestLevelOfTrust(
-            this IReadOnlyCollection<X509Certificate> certChain)
+        public static IReadOnlyList<X509Certificate2> OrderCertChainFromHighestToLowestLevelOfTrust(
+            this IReadOnlyCollection<X509Certificate2> certChain)
         {
             if (certChain == null)
             {
@@ -1477,19 +1553,26 @@ namespace OBeautifulCode.Security.Recipes
 
             certChain = certChain.Distinct().ToList();
 
+            var bouncyCertChain = certChain
+                .Select(_ => _.ToBouncyX509Certificate())
+                .Distinct()
+                .ToList();
+
             // for every cert, record which other certs verify it
             var parentCertsByChildCert = new Dictionary<X509Certificate, List<X509Certificate>>();
-            foreach (var cert in certChain)
+            foreach (var bouncyCert in bouncyCertChain)
             {
-                parentCertsByChildCert.Add(cert, new List<X509Certificate>());
+                parentCertsByChildCert.Add(bouncyCert, new List<X509Certificate>());
 
-                var otherCerts = certChain.Except(new[] { cert }).ToList();
+                var otherCerts = bouncyCertChain.Except(new[] { bouncyCert }).ToList();
+
                 foreach (var otherCert in otherCerts)
                 {
                     try
                     {
-                        cert.Verify(otherCert.GetPublicKey());
-                        parentCertsByChildCert[cert].Add(otherCert);
+                        bouncyCert.Verify(otherCert.GetPublicKey());
+
+                        parentCertsByChildCert[bouncyCert].Add(otherCert);
                     }
 
                     // ReSharper disable once EmptyGeneralCatchClause
@@ -1523,11 +1606,15 @@ namespace OBeautifulCode.Security.Recipes
 
             // flip it and index the certs by parent
             var childCertByParentCert = parentCertsByChildCert.ToDictionary(_ => _.Value.Single(), _ => _.Key);
-            var result = new List<X509Certificate> { rootCert };
-            while (childCertByParentCert.ContainsKey(result.Last()))
+            var bouncyResult = new List<X509Certificate> { rootCert };
+            while (childCertByParentCert.ContainsKey(bouncyResult.Last()))
             {
-                result.Add(childCertByParentCert[result.Last()]);
+                bouncyResult.Add(childCertByParentCert[bouncyResult.Last()]);
             }
+
+            var result = bouncyResult
+                .Select(_ => _.ToSystemX509Certificate())
+                .ToList();
 
             return result;
         }
@@ -1544,7 +1631,7 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPkcs7"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="pemEncodedPkcs7"/> is white space.</exception>
-        public static IReadOnlyList<X509Certificate> ReadCertChainFromPemEncodedPkcs7CmsString(
+        public static IReadOnlyList<X509Certificate2> ReadCertChainFromPemEncodedPkcs7CmsString(
             string pemEncodedPkcs7)
         {
             if (pemEncodedPkcs7 == null)
@@ -1557,14 +1644,22 @@ namespace OBeautifulCode.Security.Recipes
                 throw new ArgumentException(Invariant($"'{nameof(pemEncodedPkcs7)}' is white space"));
             }
 
-            IReadOnlyList<X509Certificate> result;
+            IReadOnlyList<X509Certificate2> result;
             using (var stringReader = new StringReader(pemEncodedPkcs7))
             {
                 var pemReader = new PemReader(stringReader);
+
                 var pemObject = pemReader.ReadPemObject();
+                
                 var data = new CmsSignedData(pemObject.Content);
+                
                 var certStore = data.GetCertificates("COLLECTION");
-                result = certStore.GetMatches(null).Cast<X509Certificate>().ToList();
+                
+                result = certStore
+                    .GetMatches(null)
+                    .Cast<X509Certificate>()
+                    .Select(_ => _.ToSystemX509Certificate())
+                    .ToList();
             }
 
             return result;
@@ -1579,7 +1674,7 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCerts"/> is null.</exception>
         /// <exception cref="ArgumentException"><paramref name="pemEncodedCerts"/> is white space.</exception>
-        public static IReadOnlyList<X509Certificate> ReadCertsFromPemEncodedString(
+        public static IReadOnlyList<X509Certificate2> ReadCertsFromPemEncodedString(
             string pemEncodedCerts)
         {
             if (pemEncodedCerts == null)
@@ -1595,18 +1690,68 @@ namespace OBeautifulCode.Security.Recipes
             // remove empty lines - required so that PemReader.ReadObject doesn't return null in-between returning certs
             pemEncodedCerts = Regex.Replace(pemEncodedCerts, @"^\s*$[\r\n]*", string.Empty, RegexOptions.Multiline);
 
-            var result = new List<X509Certificate>();
+            var result = new List<X509Certificate2>();
             using (var stringReader = new StringReader(pemEncodedCerts))
             {
                 var pemReader = new PemReader(stringReader);
+
                 var certObject = pemReader.ReadObject();
+                
                 while (certObject != null)
                 {
                     var cert = certObject as X509Certificate;
-                    result.Add(cert);
+
+                    result.Add(cert.ToSystemX509Certificate());
+
                     certObject = pemReader.ReadObject();
                 }
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Reads a PKCS #12 certificate (bundles private key with X.509 certificate) from PEM-encoded strings.
+        /// </summary>
+        /// <param name="pemEncodedCert">The PEM-encoded certificate.</param>
+        /// <param name="pemEncodedPrivateKey">The PEM-encoded private key.</param>
+        /// <returns>
+        /// The certificate.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedCert"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedCert"/> is white space.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="pemEncodedPrivateKey"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="pemEncodedPrivateKey"/> is white space.</exception>
+        /// <exception cref="NotSupportedException">The specified kind of private key is not supported.</exception>
+        public static X509Certificate2 ReadPkcs12CertFromPemEncodedStrings(
+            string pemEncodedCert,
+            string pemEncodedPrivateKey)
+        {
+            if (pemEncodedCert == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedCert));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedCert))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedCert)}' is white space"));
+            }
+
+            if (pemEncodedPrivateKey == null)
+            {
+                throw new ArgumentNullException(nameof(pemEncodedPrivateKey));
+            }
+
+            if (string.IsNullOrWhiteSpace(pemEncodedPrivateKey))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(pemEncodedPrivateKey)}' is white space"));
+            }
+
+            var cert = ReadCertsFromPemEncodedString(pemEncodedCert).Single();
+
+            var privateKey = ReadPrivateKeyFromPemEncodedString(pemEncodedPrivateKey);
+
+            var result = cert.CreatePkcs12Certificate(privateKey);
 
             return result;
         }
@@ -1634,10 +1779,13 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             Pkcs10CertificationRequest result;
+
             using (var stringReader = new StringReader(pemEncodedCsr))
             {
                 var pemReader = new PemReader(stringReader);
+
                 var pemObject = pemReader.ReadPemObject();
+
                 result = new Pkcs10CertificationRequest(pemObject.Content);
             }
 
@@ -1696,76 +1844,160 @@ namespace OBeautifulCode.Security.Recipes
         }
 
         /// <summary>
-        /// Creates a certificate signing request.
+        /// Converts a System certificate to a Bouncy certificate.
         /// </summary>
-        /// <remarks>
-        /// Adapted from: <a href="https://gist.github.com/Venomed/5337717aadfb61b09e58" />.
-        /// Adapted from: <a href="http://perfectresolution.com/2011/10/dynamically-creating-a-csr-private-key-in-net/" />.
-        /// </remarks>
-        /// <param name="asymmetricKeyPair">The asymmetric cipher key pair.</param>
-        /// <param name="signatureAlgorithm">The algorithm to use for signing.</param>
-        /// <param name="attributesInOrder">
-        /// The attributes to use in the subject in the order they should be scanned -
-        /// from most general (e.g. country) to most specific.
-        /// </param>
-        /// <param name="extensions">The x509 extensions to apply.</param>
+        /// <param name="cert">The System certificate.</param>
         /// <returns>
-        /// A certificate signing request.
+        /// The equivalent Bouncy certificate.
         /// </returns>
-        /// <exception cref="ArgumentNullException"><paramref name="asymmetricKeyPair"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="signatureAlgorithm"/> is <see cref="SignatureAlgorithm.None"/>.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="attributesInOrder"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="attributesInOrder"/> is empty.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="extensions"/> is null.</exception>
-        /// <exception cref="ArgumentException"><paramref name="extensions"/> is empty.</exception>
-        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "There are many types required to construct a CSR.")]
-        private static Pkcs10CertificationRequest CreateCsr(
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
+        [SuppressMessage("Microsoft.Design", "CA1011:ConsiderPassingBaseTypesAsParameters", Justification = "Too confusing with System and Bouncy both having an X509Certificate type.")]
+        public static X509Certificate ToBouncyX509Certificate(
+            this X509Certificate2 cert)
+        {
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
+
+            var result = DotNetUtilities.FromX509Certificate(cert);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Converts a Bouncy certificate to a System certificate.
+        /// </summary>
+        /// <param name="cert">The Bouncy certificate.</param>
+        /// <returns>
+        /// The equivalent System certificate.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
+        public static X509Certificate2 ToSystemX509Certificate(
+            this X509Certificate cert)
+        {
+            if (cert == null)
+            {
+                throw new ArgumentNullException(nameof(cert));
+            }
+
+            var result = new X509Certificate2(cert.GetEncoded());
+
+            return result;
+        }
+
+        private static SslCreationInfo GetSslCreationInfo(
             this AsymmetricCipherKeyPair asymmetricKeyPair,
-            SignatureAlgorithm signatureAlgorithm,
-            IReadOnlyList<DerObjectValue> attributesInOrder,
-            IReadOnlyDictionary<DerObjectIdentifier, X509Extension> extensions)
+            string commonName,
+            IReadOnlyCollection<string> subjectAlternativeNames,
+            string organizationalUnit,
+            string organization,
+            string locality,
+            string state,
+            string country,
+            SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.Sha1WithRsaEncryption)
         {
             if (asymmetricKeyPair == null)
             {
                 throw new ArgumentNullException(nameof(asymmetricKeyPair));
             }
 
-            if (signatureAlgorithm == SignatureAlgorithm.None)
+            if (commonName == null)
             {
-                throw new ArgumentOutOfRangeException(Invariant($"'{nameof(signatureAlgorithm)}' == '{SignatureAlgorithm.None}'"), (Exception)null);
+                throw new ArgumentNullException(nameof(commonName));
             }
 
-            if (attributesInOrder == null)
+            if (string.IsNullOrWhiteSpace(commonName))
             {
-                throw new ArgumentNullException(nameof(attributesInOrder));
+                throw new ArgumentException(Invariant($"'{nameof(commonName)}' is white space"));
             }
 
-            if (!attributesInOrder.Any())
+            if (organizationalUnit == null)
             {
-                throw new ArgumentException(Invariant($"'{nameof(attributesInOrder)}' is an empty enumerable"));
-            }
-                
-            if (extensions == null)
-            {
-                throw new ArgumentNullException(nameof(extensions));
+                throw new ArgumentNullException(nameof(organizationalUnit));
             }
 
-            if (!extensions.Any())
+            if (string.IsNullOrWhiteSpace(organizationalUnit))
             {
-                throw new ArgumentException(Invariant($"'{nameof(extensions)}' is an empty enumerable"));
+                throw new ArgumentException(Invariant($"'{nameof(organizationalUnit)}' is white space"));
+            }
+
+            if (organization == null)
+            {
+                throw new ArgumentNullException(nameof(organization));
+            }
+
+            if (string.IsNullOrWhiteSpace(organization))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(organization)}' is white space"));
+            }
+
+            if (locality == null)
+            {
+                throw new ArgumentNullException(nameof(locality));
+            }
+
+            if (string.IsNullOrWhiteSpace(locality))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(locality)}' is white space"));
+            }
+
+            if (state == null)
+            {
+                throw new ArgumentNullException(nameof(state));
+            }
+
+            if (string.IsNullOrWhiteSpace(state))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(state)}' is white space"));
+            }
+
+            if (country == null)
+            {
+                throw new ArgumentNullException(nameof(country));
+            }
+
+            if (string.IsNullOrWhiteSpace(country))
+            {
+                throw new ArgumentException(Invariant($"'{nameof(country)}' is white space"));
+            }
+
+            var attributesInOrder = new List<DerObjectValue>
+            {
+                new DerObjectValue(X509Name.C, country),
+                new DerObjectValue(X509Name.ST, state),
+                new DerObjectValue(X509Name.L, locality),
+                new DerObjectValue(X509Name.O, organization),
+                new DerObjectValue(X509Name.OU, organizationalUnit),
+                new DerObjectValue(X509Name.CN, commonName),
+            };
+
+            var subject = new X509Name(attributesInOrder.Select(_ => _.Identifier).ToList(), attributesInOrder.Select(_ => _.Value).ToList());
+
+            var oidToExtensionMap = new Dictionary<DerObjectIdentifier, X509Extension>
+            {
+                { X509Extensions.BasicConstraints, new X509Extension(true, new DerOctetString(new BasicConstraints(false))) },
+                { X509Extensions.KeyUsage, new X509Extension(true, new DerOctetString(new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyEncipherment | KeyUsage.DataEncipherment | KeyUsage.NonRepudiation))) },
+                { X509Extensions.ExtendedKeyUsage, new X509Extension(false, new DerOctetString(new ExtendedKeyUsage(KeyPurposeID.IdKPServerAuth, KeyPurposeID.IdKPClientAuth))) },
+                { X509Extensions.SubjectKeyIdentifier, new X509Extension(false, new DerOctetString(new SubjectKeyIdentifierStructure(asymmetricKeyPair.Public))) },
+            };
+
+            if ((subjectAlternativeNames != null) && subjectAlternativeNames.Any())
+            {
+                var generalNames = subjectAlternativeNames.Select(_ => new GeneralName(GeneralName.DnsName, _)).ToArray();
+
+                oidToExtensionMap.Add(X509Extensions.SubjectAlternativeName, new X509Extension(false, new DerOctetString(new GeneralNames(generalNames))));
             }
 
             var signatureFactory = new Asn1SignatureFactory(signatureAlgorithm.ToSignatureAlgorithmString(), asymmetricKeyPair.Private);
 
-            var subject = new X509Name(attributesInOrder.Select(_ => _.Identifier).ToList(), attributesInOrder.Select(_ => _.Value).ToList());
+            var result = new SslCreationInfo
+            {
+                Subject = subject,
+                SignatureFactory = signatureFactory,
+                OidToExtensionMap = oidToExtensionMap,
+            };
 
-            var extensionsForCsr = extensions.ToDictionary(_ => _.Key, _ => _.Value);
-
-            var result = new Pkcs10CertificationRequest(
-                signatureFactory,
-                subject,
-                asymmetricKeyPair.Public,
-                new DerSet(new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(new X509Extensions(extensionsForCsr)))));
             return result;
         }
 
@@ -1838,6 +2070,15 @@ namespace OBeautifulCode.Security.Recipes
             public DerObjectIdentifier Identifier { get; }
 
             public string Value { get; }
+        }
+
+        private class SslCreationInfo
+        {
+            public Asn1SignatureFactory SignatureFactory { get; set; }
+            
+            public X509Name Subject { get; set; }
+
+            public IReadOnlyDictionary<DerObjectIdentifier, X509Extension> OidToExtensionMap { get; set; }
         }
     }
 }

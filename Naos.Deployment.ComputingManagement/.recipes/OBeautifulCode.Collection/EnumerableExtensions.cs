@@ -173,25 +173,22 @@ namespace OBeautifulCode.Collection.Recipes
         /// <remarks>
         /// Unlike <see cref="System.Linq.Enumerable.Except{TSource}(IEnumerable{TSource}, IEnumerable{TSource})"/>,
         /// this method does not remove duplicates.
-        /// Adapted from: <a href="https://metadataconsulting.blogspot.com/2021/02/CSharp-dotNet-Get-difference-between-two-unordered-not-unique-lists-aka-duplicates-allowed-within-a-list-and-across-both-lists.html" />.
+        /// Adapted from: <a href="https://metadataconsulting.blogspot.com/2021/02/CSharp-dotNet-Get-difference-between-two-unordered-not-unique-lists-using-BitArrays-for-super-fast-speed.html" />.
         /// </remarks>
         /// <typeparam name="T"></typeparam>
         /// <param name="value">The collection to remove from.</param>
         /// <param name="itemsToRemove">The items to remove.</param>
         /// <param name="comparer">OPTIONAL equality comparer to use when compare values.  DEFAULT is to use <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
-        /// <param name="throwIfNotFound">OPTIONAL value indicating whether to throw if an item in <paramref name="itemsToRemove"/> is not found in <paramref name="value"/>.  DEFAULT is to NOT throw.</param>
         /// <returns>
         /// The specified <paramref name="value"/> without the items in <paramref name="itemsToRemove" /> without performing the distinct operation.
         /// For example if <paramref name="value"/> = { 1, 2, 2, 3 } and <paramref name="itemsToRemove"/> = { 1, 2, 3 } the result will be { 2 }.
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
         /// <exception cref="ArgumentNullException"><paramref name="itemsToRemove"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">An item to remove was not found in <paramref name="value"/> and <paramref name="throwIfNotFound"/> is true.</exception>
         public static IEnumerable<T> RemoveRange<T>(
             this IEnumerable<T> value,
             IEnumerable<T> itemsToRemove,
-            IEqualityComparer<T> comparer = null,
-            bool throwIfNotFound = false)
+            IEqualityComparer<T> comparer = null)
         {
             if (value == null)
             {
@@ -203,29 +200,56 @@ namespace OBeautifulCode.Collection.Recipes
                 throw new ArgumentNullException(nameof(itemsToRemove));
             }
 
-            var result = value.ToList();
+            var itemToRemoveToCountMap = new Dictionary<T, int>(comparer);
 
-            comparer = EqualityComparerHelper.GetEqualityComparerToUse(comparer);
+            var nullCount = 0;
 
-            foreach (var item in itemsToRemove)
+            foreach (var itemToRemove in itemsToRemove)
             {
-                var found = false;
-
-                for (var x = 0; x < result.Count; x++)
+                if (itemToRemove == null)
                 {
-                    if (comparer.Equals(result[x], item))
-                    {
-                        result.RemoveAt(x);
-                        
-                        found = true;
+                    nullCount++;
+                }
+                else if (itemToRemoveToCountMap.TryGetValue(itemToRemove, out var itemToRemoveCount))
+                {
+                    itemToRemoveToCountMap[itemToRemove] = itemToRemoveCount + 1;
+                }
+                else
+                {
+                    itemToRemoveToCountMap.Add(itemToRemove, 1);
+                }
+            }
 
-                        break;
+            var result = new List<T>();
+
+            foreach (var item in value)
+            {
+                if (item == null)
+                {
+                    nullCount--;
+
+                    if (nullCount < 0)
+                    {
+                        // ReSharper disable once ExpressionIsAlwaysNull
+                        result.Add(item);
                     }
                 }
-
-                if (throwIfNotFound && (!found))
+                else if (itemToRemoveToCountMap.TryGetValue(item, out var itemToRemoveCount))
                 {
-                    throw new InvalidOperationException(Invariant($"Could not find the following item to remove from the specified enumerable: {item}."));
+                    if (itemToRemoveCount == 0)
+                    {
+                        itemToRemoveToCountMap.Remove(item);
+
+                        result.Add(item);
+                    }
+                    else
+                    {
+                        itemToRemoveToCountMap[item] = itemToRemoveCount - 1;
+                    }
+                }
+                else
+                {
+                    result.Add(item);
                 }
             }
 

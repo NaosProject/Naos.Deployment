@@ -277,7 +277,7 @@ namespace OBeautifulCode.Equality.Recipes
         }
 
         /// <summary>
-        /// Compares two dictionaries for equality.
+        /// Determines if two enumerables have the exact same elements in the same order.
         /// </summary>
         /// <typeparam name="TElement">The type of the elements of the input sequences.</typeparam>
         /// <param name="item1">An <see cref="IEnumerable{T}"/> to compare to <paramref name="item2"/>.</param>

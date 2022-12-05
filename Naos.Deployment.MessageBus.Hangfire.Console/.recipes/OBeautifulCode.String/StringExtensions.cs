@@ -632,6 +632,103 @@ namespace OBeautifulCode.String.Recipes
         /// Gets the preferred string representation of a specified value using the invariant culture.
         /// </summary>
         /// <param name="value">The value.</param>
+        /// <param name="throwIfNull">OPTIONAL value that determines whether to throw if <paramref name="value"/> is null.  DEFAULT is to throw.</param>
+        /// <returns>
+        /// The invariant culture string representation of the specified value.
+        /// </returns>
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = ObcSuppressBecause.CA1502_AvoidExcessiveComplexity_DisagreeWithAssessment)]
+        public static string ToStringInvariantPreferred(
+            this object value,
+            bool throwIfNull = true)
+        {
+            string result;
+
+            if (value == null)
+            {
+                if (throwIfNull)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                else
+                {
+                    result = null;
+                }
+            }
+            else
+            {
+                if (value is string stringValue)
+                {
+                    result = stringValue;
+                }
+                else if (value is sbyte signedByteValue)
+                {
+                    result = signedByteValue.ToStringInvariantPreferred();
+                }
+                else if (value is byte byteValue)
+                {
+                    result = byteValue.ToStringInvariantPreferred();
+                }
+                else if (value is short shortValue)
+                {
+                    result = shortValue.ToStringInvariantPreferred();
+                }
+                else if (value is ushort unsignedShortValue)
+                {
+                    result = unsignedShortValue.ToStringInvariantPreferred();
+                }
+                else if (value is int intValue)
+                {
+                    result = intValue.ToStringInvariantPreferred();
+                }
+                else if (value is uint unsignedIntValue)
+                {
+                    result = unsignedIntValue.ToStringInvariantPreferred();
+                }
+                else if (value is long longValue)
+                {
+                    result = longValue.ToStringInvariantPreferred();
+                }
+                else if (value is ulong unsignedLongValue)
+                {
+                    result = unsignedLongValue.ToStringInvariantPreferred();
+                }
+                else if (value is float floatValue)
+                {
+                    result = floatValue.ToStringInvariantPreferred();
+                }
+                else if (value is double doubleValue)
+                {
+                    result = doubleValue.ToStringInvariantPreferred();
+                }
+                else if (value is decimal decimalValue)
+                {
+                    result = decimalValue.ToStringInvariantPreferred();
+                }
+                else if (value is bool boolValue)
+                {
+                    result = boolValue.ToStringInvariantPreferred();
+                }
+                else if (value is Guid guidValue)
+                {
+                    result = guidValue.ToStringInvariantPreferred();
+                }
+                else if (value is DateTime dateTimeValue)
+                {
+                    result = dateTimeValue.ToStringInvariantPreferred();
+                }
+                else
+                {
+                    result = value.ToString();
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the preferred string representation of a specified value using the invariant culture.
+        /// </summary>
+        /// <param name="value">The value.</param>
         /// <returns>
         /// The invariant culture string representation of the specified value.
         /// </returns>

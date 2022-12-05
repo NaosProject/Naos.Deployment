@@ -10,7 +10,6 @@
 namespace OBeautifulCode.Security.Recipes
 {
     using global::System;
-
     using static global::System.FormattableString;
 
     /// <summary>

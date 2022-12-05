@@ -12,10 +12,8 @@ namespace OBeautifulCode.Security.Recipes
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
-
+    using global::System.Security.Cryptography.X509Certificates;
     using Org.BouncyCastle.Crypto;
-    using Org.BouncyCastle.X509;
-
     using static global::System.FormattableString;
 
     /// <summary>
@@ -36,7 +34,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <param name="certificateChain">The certificate chain, in no particular order.</param>
         /// <param name="privateKey">The private key.</param>
         public ExtractedPfxFile(
-            IReadOnlyList<X509Certificate> certificateChain,
+            IReadOnlyList<X509Certificate2> certificateChain,
             AsymmetricKeyParameter privateKey)
         {
             if (certificateChain == null)
@@ -61,7 +59,7 @@ namespace OBeautifulCode.Security.Recipes
         /// <summary>
         /// Gets the certificate chain, in no particular order.
         /// </summary>
-        public IReadOnlyList<X509Certificate> CertificateChain { get; }
+        public IReadOnlyList<X509Certificate2> CertificateChain { get; }
 
         /// <summary>
         /// Gets the private key.

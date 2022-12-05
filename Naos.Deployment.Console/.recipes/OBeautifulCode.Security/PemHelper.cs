@@ -9,16 +9,15 @@
 
 namespace OBeautifulCode.Security.Recipes
 {
+    using System.Security.Cryptography.X509Certificates;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Globalization;
     using global::System.IO;
     using global::System.Text;
-
     using Org.BouncyCastle.Crypto;
     using Org.BouncyCastle.OpenSsl;
     using Org.BouncyCastle.Pkcs;
-    using Org.BouncyCastle.X509;
 
     /// <summary>
     /// Contains helper methods for creating PEM encoded data.
@@ -49,6 +48,7 @@ namespace OBeautifulCode.Security.Recipes
             }
 
             var result = EncodeAsPem(csr);
+
             return result;
         }
 
@@ -103,14 +103,14 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="cert"/> is null.</exception>
         public static string AsPemEncodedString(
-            this X509Certificate cert)
+            this X509Certificate2 cert)
         {
             if (cert == null)
             {
                 throw new ArgumentNullException(nameof(cert));
             }
 
-            var result = EncodeAsPem(cert);
+            var result = EncodeAsPem(cert.ToBouncyX509Certificate());
 
             return result;
         }
@@ -124,7 +124,7 @@ namespace OBeautifulCode.Security.Recipes
         /// </returns>
         /// <exception cref="ArgumentNullException"><paramref name="certChain"/> is null.</exception>
         public static string AsPemEncodedString(
-            this IReadOnlyList<X509Certificate> certChain)
+            this IReadOnlyList<X509Certificate2> certChain)
         {
             if (certChain == null)
             {
