@@ -17,7 +17,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    internal partial class SetupStepFactory
+    public partial class SetupStepFactory
     {
         private List<SetupStep> GetDirectoryToCreateSpecificSteps(InitializationStrategyDirectoryToCreate directoryToCreateStrategy, string packageId, Func<string, string> funcToReplaceTokensInReplacementValue)
         {

@@ -25,7 +25,7 @@ namespace Naos.Deployment.Core
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
-    internal partial class SetupStepFactory
+    public partial class SetupStepFactory
     {
         private readonly IGetCertificates certificateRetriever;
 

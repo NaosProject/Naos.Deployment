@@ -19,7 +19,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    internal partial class SetupStepFactory
+    public partial class SetupStepFactory
     {
         private List<SetupStep> GetReplaceTokenInFilesSpecificSteps(InitializationStrategyReplaceTokenInFiles replaceTokenStrategy, string packageId, string rootPath, Func<string, string> funcToReplaceTokensInReplacementValue)
         {

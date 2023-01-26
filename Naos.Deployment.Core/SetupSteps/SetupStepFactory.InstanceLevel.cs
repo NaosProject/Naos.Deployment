@@ -11,6 +11,7 @@ namespace Naos.Deployment.Core
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Naos.CodeAnalysis.Recipes;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
@@ -21,7 +22,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    internal partial class SetupStepFactory
+    public partial class SetupStepFactory
     {
         /// <summary>
         /// Gets the instance level setup steps.
@@ -366,6 +367,8 @@ namespace Naos.Deployment.Core
         /// </summary>
         /// <param name="chocolateyPackages">Chocolatey packages to install.</param>
         /// <returns>List of setup steps.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Chocolatey", Justification = NaosSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "chocolatey", Justification = NaosSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
         public IReadOnlyCollection<SetupStepBatch> GetChocolateySetupSteps(IReadOnlyCollection<PackageDescription> chocolateyPackages)
         {
             var chocolateyIndividualSetupSteps = this.GetChocolateyIndividualSetupSteps(chocolateyPackages);

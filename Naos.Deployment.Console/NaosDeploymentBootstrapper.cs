@@ -1557,7 +1557,7 @@ namespace Naos.Deployment.Console
         }
 
         [SuppressMessage("Microsoft.Reliability", "CA2000:Dispose objects before losing scope")]
-        private static IManageComputingInfrastructure GetComputingManager(
+        internal static IManageComputingInfrastructure GetComputingManager(
             EnvironmentType environmentType,
             ComputingInfrastructureManagerSettings computingInfrastructureManagerSettings,
             ITrackComputingInfrastructure infrastructureTracker,

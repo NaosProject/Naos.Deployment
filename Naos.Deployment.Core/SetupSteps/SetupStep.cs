@@ -13,7 +13,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Model object for a setup step when provisioning a box.
     /// </summary>
-    internal class SetupStep
+    public class SetupStep
     {
         /// <summary>
         /// Gets or sets the description of the step.
@@ -35,7 +35,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Model object to store a batch of steps.
     /// </summary>
-    internal class SetupStepBatch
+    public class SetupStepBatch
     {
         /// <summary>
         /// Gets or sets the order to execute the step.

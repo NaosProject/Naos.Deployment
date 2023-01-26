@@ -22,7 +22,7 @@ namespace Naos.Deployment.Core
     /// <summary>
     /// Factory to create a list of setup steps from various situations (abstraction to actual machine setup).
     /// </summary>
-    internal partial class SetupStepFactory
+    public partial class SetupStepFactory
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = "Like it this way.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = "Like it this way.")]
@@ -185,7 +185,16 @@ namespace Naos.Deployment.Core
             return databaseSteps;
         }
 
-        private SqlServerDatabaseDefinition BuildDatabaseConfiguration(string databaseName, string dataDirectory, string recoveryMode, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
+        /// <summary>
+        /// Builds the database configuration.
+        /// </summary>
+        /// <param name="databaseName">Name of the database.</param>
+        /// <param name="dataDirectory">The data file directory.</param>
+        /// <param name="recoveryMode">The recovery mode.</param>
+        /// <param name="databaseFileNameSettings">The database file name settings.</param>
+        /// <param name="databaseFileSizeSettings">The database file size settings.</param>
+        /// <returns>Built <see cref="SqlServerDatabaseDefinition" />.</returns>
+        public SqlServerDatabaseDefinition BuildDatabaseConfiguration(string databaseName, string dataDirectory, string recoveryMode, DatabaseFileNameSettings databaseFileNameSettings, DatabaseFileSizeSettings databaseFileSizeSettings)
         {
             var localDatabaseFileNameSettings = databaseFileNameSettings
                                                 ?? new DatabaseFileNameSettings
