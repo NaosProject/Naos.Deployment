@@ -55,6 +55,78 @@ namespace OBeautifulCode.Security.Recipes
     static class CertHelper
     {
         /// <summary>
+        /// Well known PEM-encoded certificate to be used in testing pipelines that utilize encryption/decryption logic.
+        /// </summary>
+        public const string PemEncodedTestingX509Certificate = @"-----BEGIN CERTIFICATE-----
+MIID3TCCAsWgAwIBAgIICNr9aI9GVzswDQYJKoZIhvcNAQEFBQAwbjEOMAwGA1UE
+BhMFd29ybGQxDjAMBgNVBAgMBXdvcmxkMQ4wDAYDVQQHDAV3b3JsZDEMMAoGA1UE
+CgwDb2JjMQwwCgYDVQQLDANvYmMxIDAeBgNVBAMMF251bGwub2JlYXV0aWZ1bGNv
+ZGUuY29tMB4XDTIzMDEyMzE3Mzc1NFoXDTMzMDEyMzE3Mzc1NFowbjEOMAwGA1UE
+BhMFd29ybGQxDjAMBgNVBAgMBXdvcmxkMQ4wDAYDVQQHDAV3b3JsZDEMMAoGA1UE
+CgwDb2JjMQwwCgYDVQQLDANvYmMxIDAeBgNVBAMMF251bGwub2JlYXV0aWZ1bGNv
+ZGUuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAm5t23jDHTAop
+fDiUgc90dlqjpZdYtkTSuBXzFVkG0/YUDb9sREPlAL9nu4RayaOUn8vY0xjoX/4G
+oitMNhMS2VQ8pBosjcmMd1vfijmu8V/ogKyeQlNoHCPvMogPMKVl5tyCgBotCEHL
+9x4cZdHucSCxaH4tGVcXL1GYaVihSSyICs81B8gl3WO3wecfuvZM+3aGdV+r/hBy
+flNscNGraXCOhArRt0IbLBwc80L1irvuh/KUNdmzTOIRgOd93nLmb8iT8iD5SL/H
+oiH09G1dMLZ6+3Mj+riM5h+UUJ/+ZWLUMw/ntWVUPmrt2RmpzNJgopJCH8I+wb2s
+zaC7RUvPEwIDAQABo38wfTAMBgNVHRMBAf8EAjAAMA4GA1UdDwEB/wQEAwIE8DAd
+BgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFNPdjjeBm6/Z
+9Jrxm7q8vIqVYfz1MB8GA1UdIwQYMBaAFNPdjjeBm6/Z9Jrxm7q8vIqVYfz1MA0G
+CSqGSIb3DQEBBQUAA4IBAQCFO0nI+Run9B8r14v4qcoBAj8p8XGL11m58Vev1n6z
+9NDb9YyowJvLv50PoVPI3986TVhG57iZGCm9ta3mXMgZIIjq8mSXYXWEYMoMX0Pc
+6MRHMHyG3Z+abcQwrnU1+5WRmB6x/N5ttisojfWFBg+wpDXYAG32I7XvuaR/gmXE
+kLF3AkTzXrxeKScmgMbxv88uWdqXCUX0ulVFctKpyYaOZYLroUvHkmmqqclkxfRl
+kG1s4U/9yeApODVOuDhLDESamLuy04fd9hSCmRvcAafsOTI9fW0ZF5MVYj6ed0eA
+X/ai7AWl465ZUyuIM1nfW2bToJA1KdOLjGMaGDS1EMcL
+-----END CERTIFICATE-----
+";
+
+        /// <summary>
+        /// Well known PEM-encoded private key, to be used in testing pipelines that utilize encryption/decryption logic.
+        /// </summary>
+        public const string PemEncodedTestingPrivateKey = @"-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAm5t23jDHTAopfDiUgc90dlqjpZdYtkTSuBXzFVkG0/YUDb9s
+REPlAL9nu4RayaOUn8vY0xjoX/4GoitMNhMS2VQ8pBosjcmMd1vfijmu8V/ogKye
+QlNoHCPvMogPMKVl5tyCgBotCEHL9x4cZdHucSCxaH4tGVcXL1GYaVihSSyICs81
+B8gl3WO3wecfuvZM+3aGdV+r/hByflNscNGraXCOhArRt0IbLBwc80L1irvuh/KU
+NdmzTOIRgOd93nLmb8iT8iD5SL/HoiH09G1dMLZ6+3Mj+riM5h+UUJ/+ZWLUMw/n
+tWVUPmrt2RmpzNJgopJCH8I+wb2szaC7RUvPEwIDAQABAoIBABPSe5N1WkX8+2jo
+Gj7pCvhytmsHOxVI8iDiJuuewihpLgfMTUHq9jagq1mvVBNgo7Oxd4b4os1rojOx
+WU2AI4QM34a2ENvlA2BHE1Rb4cW8xnTxyF1Bm78N8tAYlfrH7xG4IGWqL/dfzlhF
+/S8ZTYsas47Ql/Uk636rIcO1tyIHdq0QtF36XTOP1pQXUkiA2gDZjGoFmf09RdZk
++8avzOQJ0jYhPDvIdU78EIah5rCsehgJIo1Od08lX942KXCpWwAQ/n6FJCj7/P/W
+4b66jrQblBnnU7acUjPHJSOLNY6dL8yT8gJx/7k2X3U8uFJBDe6U6M6H5bVGOBwQ
+Friej10CgYEA90+aFgJRjt7NPQxpLMd4Gr5XBLyTyt/Wg8Rfd5m0J36rT/UsoEyA
+Pz5jSuazDup+51JB/ECD00rVMddWYsZRctgU/QhP4IrAZyvtCWmzesoHGaITeoBd
+TI4qxsTkgD5wKWl4dAgyk77KXfw43bmtLMcbEsKPe5b2PArLeiYGBRUCgYEAoRMM
+elVtqToDiD/WKI657gz+eSoVs/w6HTk2/5kj/5c4KoVBoDi1GZiWM0d4YwsoyBZM
+Sc/8ZLQwMspUoaOJTmJMzSCQRFuvAadB+v5GW+7+fMtLGRzkFKjOnPu5AYHzpquc
+IB63geQgSdZ2vkbVaJxg/NDjVbS9TzyIelXM3YcCgYBdP+eCmvcznrDWbwKNPtz7
+gH+BKrWzTjktT/MLPqpeJfXkXTapbo8Ayb5YtKoZWrPk9vAodA8AsXu3olFRRyPY
+4L7xNZwgt1Ca1kY3QWLKTrjkomcjzpjfT8+zSPQ7os9Z3gnr/ldLvCnDzGGIwQUa
+GC0OIsxFNoO72folIYctjQKBgBX7c4h+gCjIMhM2IxQF5noGa/Q9OhkGIyg51rer
+Pq5zBMdIyFwFYTHNETKOXm+l5jroUCECsX9M2AcWddZZazO3VqPn/chWetvO58JJ
+UXDafQCq/eS/fKEVKJ1j/SungIkOgpAfoQupBn8NNcdiA13zeYkHOP9JW0ylBjsr
+2nmhAoGBAIoGr0fsgcjTYrSlZ28xqQFqVUrLfgVcqcB2TSIN45nvwgR4uS8pLWoL
+axMwXI9epEe+G83SjSJJFFDeQI6H8hS/0jT8kM8/+nV5Awjv5HWq+4F8okHslNn/
+nnoh6+yENZjm2uk8sW3Oqal8sqvx57tthV9+x/OGeH8+vcviGefx
+-----END RSA PRIVATE KEY-----
+";
+
+        /// <summary>
+        /// Well known certificate to be used in testing pipelines that utilize encryption/decryption logic.
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = ObcSuppressBecause.CA2104_DoNotDeclareReadOnlyMutableReferenceTypes_TypeIsImmutable)]
+        public static readonly X509Certificate2 TestingX509Certificate = ReadCertsFromPemEncodedString(PemEncodedTestingX509Certificate).Single();
+
+        /// <summary>
+        /// Well known PKCS #12 certificate (bundles private key with X.509 certificate) to be used in testing pipelines that utilize encryption/decryption logic.
+        /// </summary>
+        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = ObcSuppressBecause.CA2104_DoNotDeclareReadOnlyMutableReferenceTypes_TypeIsImmutable)]
+        public static readonly X509Certificate2 Pkcs12TestingCertificate = ReadPkcs12CertFromPemEncodedStrings(PemEncodedTestingX509Certificate, PemEncodedTestingPrivateKey);
+
+        /// <summary>
         /// Creates an AWS Certificate Manager payload from a PFX file.
         /// </summary>
         /// <param name="input">A byte array of the PFX.</param>

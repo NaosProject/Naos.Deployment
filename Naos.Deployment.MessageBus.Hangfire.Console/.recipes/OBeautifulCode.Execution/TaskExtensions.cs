@@ -9,13 +9,10 @@
 
 namespace OBeautifulCode.Execution.Recipes
 {
+    using System.Threading;
     using global::System;
     using global::System.Diagnostics.CodeAnalysis;
-    using global::System.Runtime.ExceptionServices;
-    using global::System.Threading;
     using global::System.Threading.Tasks;
-
-    using static global::System.FormattableString;
 
     /// <summary>
     /// Extension methods on <see cref="Task"/>.
@@ -30,109 +27,50 @@ namespace OBeautifulCode.Execution.Recipes
     static class TaskExtensions
     {
         /// <summary>
-        /// Default <see cref="TimeSpan" /> to wait before re-checking <see cref="Task.Status" />.
+        /// Offloads asynchronous work to the thread pool via <see cref="Task.Run(Func{Task})"/>
+        /// then blocks on the resulting task until complete,
+        /// while ensuring that the asynchronous code resumes on the same thread
+        /// by using a custom <see cref="SynchronizationContext"/> for the execution.
         /// </summary>
-        public static readonly TimeSpan DefaultPollingInterval = TimeSpan.FromMilliseconds(10);
-
-        /// <summary>
-        /// Blocks on a task execution until it's in a <see cref="TaskStatus.Canceled" />, <see cref="TaskStatus.Faulted" />, or <see cref="TaskStatus.RanToCompletion" /> status, will start the task if in <see cref="TaskStatus.Created" />.
-        /// </summary>
-        /// <param name="task">Task to wait on.</param>
-        /// <param name="pollingInterval">OPTIONAL time to poll and check status of task; DEFAULT is <see cref="DefaultPollingInterval" />.</param>
-        /// <param name="taskWaitingStrategy">OPTIONAL strategy on how to wait; DEFAULT is <see cref="TaskWaitingStrategy.Sleep" />.</param>
+        /// <param name="func">A func that executes asynchronous work.</param>
         [SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength", Justification = "In this case we are specifically testing for empty string and not null.")]
-        public static void RunUntilCompletion(
-            this Task task,
-            TimeSpan pollingInterval = default,
-            TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
+        public static void ExecuteSynchronously(
+            this Func<Task> func)
         {
-            task.InternalRunUntilCompletion(pollingInterval, taskWaitingStrategy);
+            if (func == null)
+            {
+                throw new ArgumentNullException(nameof(func));
+            }
+
+            var task = Task.Run(() => AsyncContext.Run(func));
+
+            task.GetAwaiter().GetResult();
         }
 
         /// <summary>
-        /// Blocks on a task execution until it's in a <see cref="TaskStatus.Canceled" />, <see cref="TaskStatus.Faulted" />, or <see cref="TaskStatus.RanToCompletion" /> status, will start the task if in <see cref="TaskStatus.Created" />.
+        /// Offloads asynchronous work to the thread pool via <see cref="Task.Run(Func{Task})"/>
+        /// then blocks on the resulting task until complete,
+        /// while ensuring that the asynchronous code resumes on the same thread
+        /// by using a custom <see cref="SynchronizationContext"/> for the execution.
         /// </summary>
-        /// <typeparam name="T">The type of the return value of the specified task.</typeparam>
-        /// <param name="task">Task to wait on.</param>
-        /// <param name="pollingInterval">OPTIONAL time to poll and check status of task; DEFAULT is <see cref="DefaultPollingInterval" />.</param>
-        /// <param name="taskWaitingStrategy">OPTIONAL strategy on how to wait; DEFAULT is <see cref="TaskWaitingStrategy.Sleep" />.</param>
+        /// <typeparam name="T">The type of the return value of the asynchronous work.</typeparam>
+        /// <param name="func">A func that executes asynchronous work.</param>
         /// <returns>
-        /// Return value of specified task.
+        /// Return value of the asynchronous work.
         /// </returns>
-        public static T RunUntilCompletion<T>(
-            this Task<T> task,
-            TimeSpan pollingInterval = default,
-            TaskWaitingStrategy taskWaitingStrategy = TaskWaitingStrategy.Sleep)
+        public static T ExecuteSynchronously<T>(
+            this Func<Task<T>> func)
         {
-            task.InternalRunUntilCompletion(pollingInterval, taskWaitingStrategy);
-
-            return task.Result;
-        }
-
-        private static void InternalRunUntilCompletion(
-            this Task task,
-            TimeSpan pollingInterval,
-            TaskWaitingStrategy taskWaitingStrategy)
-        {
-            try
+            if (func == null)
             {
-                if (task == null)
-                {
-                    throw new ArgumentNullException(nameof(task));
-                }
-
-                var localPollingTime = pollingInterval == default ? DefaultPollingInterval : pollingInterval;
-
-                if (task.Status == TaskStatus.Created)
-                {
-                    task.Start();
-                }
-
-                // running this way because i want to interrogate afterwards to throw if faulted...
-                while (!task.IsCompleted && !task.IsCanceled && !task.IsFaulted)
-                {
-                    switch (taskWaitingStrategy)
-                    {
-                        case TaskWaitingStrategy.YieldAndSleep:
-                            Thread.Yield();
-                            Thread.Sleep(pollingInterval);
-                            break;
-                        case TaskWaitingStrategy.Sleep:
-                            Thread.Sleep(pollingInterval);
-                            break;
-                        default:
-                            throw new NotSupportedException(Invariant($"Unsupported {nameof(TaskWaitingStrategy)} - {taskWaitingStrategy}"));
-                    }
-
-                    Thread.Sleep(localPollingTime);
-                }
-
-                task.IfFaultedTaskExtractAndThrowException();
+                throw new ArgumentNullException(nameof(func));
             }
-            catch
-            {
-                // This is here intentionally as the TPL will sometimes do dumb things...
-                throw;
-            }
-        }
 
-        private static void IfFaultedTaskExtractAndThrowException(
-            this Task task)
-        {
-            if (task.Status == TaskStatus.Faulted)
-            {
-                var exception = task.Exception ?? new AggregateException(Invariant($"No exception came back from task but status was Faulted."));
+            var task = Task.Run(() => AsyncContext.Run(func));
 
-                if (exception.GetType() == typeof(AggregateException) && exception.InnerExceptions.Count == 1 && exception.InnerException != null)
-                {
-                    // if this is just wrapping a single exception then no need to keep the wrapper...
-                    ExceptionDispatchInfo.Capture(exception.InnerException).Throw();
-                }
-                else
-                {
-                    ExceptionDispatchInfo.Capture(exception).Throw();
-                }
-            }
+            T result = task.GetAwaiter().GetResult();
+
+            return result;
         }
     }
 }

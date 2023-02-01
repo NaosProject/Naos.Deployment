@@ -32,6 +32,7 @@ namespace OBeautifulCode.Assertion.Recipes
         {
             assertionTracker.ThrowImproperUseOfFrameworkIfDetected(AssertionTrackerShould.Exist, AssertionTrackerShould.BeMusted);
 
+            // ReSharper disable once IdentifierTypo
             var hasBeenEached = assertionTracker.Actions.HasFlag(Actions.Eached);
 
             if (hasBeenEached)
@@ -51,7 +52,7 @@ namespace OBeautifulCode.Assertion.Recipes
                         ItemIsElementInEnumerable = false,
                     };
 
-                    ThrowIfNotAssignableToType(eachVerification, eachVerifiableItem, MustBeEnumerableTypeValidations.Single());
+                    ThrowIfVerifiableItemTypeNotAssignableToSpecifiedTypes(eachVerification, eachVerifiableItem, VerifiableItemMustBeEnumerableTypeValidations.Single());
 
                     NotBeNullInternal(assertionTracker, eachVerification, eachVerifiableItem);
                 }

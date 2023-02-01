@@ -39,7 +39,11 @@ namespace OBeautifulCode.Assertion.Recipes
 
         private static readonly MethodInfo IsEqualToOpenGenericMethodInfo = typeof(EqualityExtensions).GetMethod(nameof(EqualityExtensions.IsEqualTo))?.GetGenericMethodDefinition();
 
+        private static readonly MethodInfo IsSequenceEqualToOpenGenericMethodInfo = typeof(EqualityExtensions).GetMethod(nameof(EqualityExtensions.IsSequenceEqualTo))?.GetGenericMethodDefinition();
+
         private static readonly ConcurrentDictionary<Type, MethodInfo> CachedTypeToIsEqualToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
+
+        private static readonly ConcurrentDictionary<Type, MethodInfo> CachedTypeToIsSequenceEqualToMethodInfoMap = new ConcurrentDictionary<Type, MethodInfo>();
 
         private static readonly MethodInfo CompareUsingDefaultComparerOpenGenericMethodInfo = ((Func<object, object, CompareOutcome>)CompareUsingDefaultComparer).Method.GetGenericMethodDefinition();
 
@@ -97,6 +101,22 @@ namespace OBeautifulCode.Assertion.Recipes
             return result;
         }
 
+        private static bool AreSequenceEqual(
+            Type elementType,
+            object value1,
+            object value2,
+            object elementComparer)
+        {
+            if (!CachedTypeToIsSequenceEqualToMethodInfoMap.ContainsKey(elementType))
+            {
+                CachedTypeToIsSequenceEqualToMethodInfoMap.TryAdd(elementType, IsSequenceEqualToOpenGenericMethodInfo.MakeGenericMethod(elementType));
+            }
+
+            var result = (bool)CachedTypeToIsSequenceEqualToMethodInfoMap[elementType].Invoke(null, new[] { value1, value2, elementComparer });
+
+            return result;
+        }
+
         private static CompareOutcome CompareUsingDefaultComparer<T>(
             T x,
             T y)
@@ -143,7 +163,7 @@ namespace OBeautifulCode.Assertion.Recipes
 
             // otherwise, if reflection is able to call Compare(T, T), then ArgumentException can be thrown if
             // Type T does not have a working default comparer (see TypeExtensions.HasDefaultWorkingComparer())
-            // However we already check for this upfront in ThrowIfTypeDoesNotHaveWorkingDefaultComparer
+            // However we already check for this upfront in ThrowIfVerifiableItemTypeDoesNotHaveWorkingDefaultComparer
             var result = (CompareOutcome)CachedCompareUsingDefaultComparerTypeToMethodInfoMap[type].Invoke(null, new[] { value1, value2 });
 
             return result;
@@ -188,7 +208,7 @@ namespace OBeautifulCode.Assertion.Recipes
             {
                 var errorMessage = string.Format(CultureInfo.InvariantCulture, MalformedRangeExceptionMessage, verificationParameters[0].Name, verificationParameters[1].Name, verificationParameters[0].Value.ToStringInErrorMessage(), verificationParameters[1].Value.ToStringInErrorMessage());
 
-                WorkflowExtensions.ThrowImproperUseOfFramework(errorMessage);
+                ThrowImproperUseOfFramework(errorMessage);
             }
         }
 

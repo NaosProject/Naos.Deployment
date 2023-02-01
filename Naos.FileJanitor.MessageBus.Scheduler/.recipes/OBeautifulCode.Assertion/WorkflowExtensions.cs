@@ -282,30 +282,8 @@ namespace OBeautifulCode.Assertion.Recipes
 
             if (shouldThrow)
             {
-                ThrowImproperUseOfFramework(Verifications.SubjectAndOperationSequencingErrorMessage);
+                Verifications.ThrowImproperUseOfFramework(Verifications.SubjectAndOperationSequencingErrorMessage);
             }
-        }
-
-        /// <summary>
-        /// Throws an exception to inform the caller that the framework is being used improperly.
-        /// </summary>
-        /// <param name="message">Optional message to prepend.</param>
-        internal static void ThrowImproperUseOfFramework(
-            string message = null)
-        {
-            // We throw an ImproperUseOfAssertionFrameworkException rather than an
-            // ArgumentException or InvalidOperationException so that this category of
-            // problem can be clearly differentiated from a verification failure.
-            // If we didn't throw here:
-            //   - if tracker == null then NullReferenceException would be thrown soon after, when the tracker
-            //     gets used, except that it would not have a nice message like the one below.  In addition, we would
-            //     have to sprinkle Code Analysis suppressions throughout the project, for CA1062.
-            //   - if tracker != null then the user doesn't understand how the framework is designed to be used
-            //     and what the framework's limitations are.  Some negative outcome might occur (throwing when
-            //     not expected or not throwing when expected).
-            message = message == null ? Verifications.ImproperUseOfFrameworkErrorMessage : message + "  " + Verifications.ImproperUseOfFrameworkErrorMessage;
-
-            throw new ImproperUseOfAssertionFrameworkException(message);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -376,7 +354,7 @@ namespace OBeautifulCode.Assertion.Recipes
                     {
                         var errorMessage = string.Format(CultureInfo.InvariantCulture, Verifications.AnonymousObjectDoesNotHaveSinglePropertyErrorMessage, properties.Length, string.Join(", ", properties.Select(_ => _.Name).ToArray()));
 
-                        ThrowImproperUseOfFramework(errorMessage);
+                        Verifications.ThrowImproperUseOfFramework(errorMessage);
                     }
                 }
             }
