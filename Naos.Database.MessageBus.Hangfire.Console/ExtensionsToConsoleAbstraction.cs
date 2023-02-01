@@ -9,12 +9,13 @@ namespace Naos.Database.MessageBus.Hangfire.Console
     using System;
     using System.Collections.Generic;
     using System.IO;
-
+    using System.Threading.Tasks;
     using CLAP;
 
     using Naos.Configuration.Domain;
     using Naos.Database.Domain;
     using Naos.Database.MessageBus.Scheduler;
+    using Naos.FileJanitor.Domain;
     using Naos.Logging.Domain;
     using Naos.Mongo.Domain;
     using Naos.Mongo.Protocol.Client;
@@ -85,7 +86,8 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 Encryptor.None,
                 null);
 
-            SqlServerDatabaseManager.BackupFullAsync(connectionString, databaseName, backupDetails).RunUntilCompletion();
+            Func<Task> backupFullAsyncFunc = () => SqlServerDatabaseManager.BackupFullAsync(connectionString, databaseName, backupDetails);
+            backupFullAsyncFunc.ExecuteSynchronously();
         }
 
         /// <summary>
@@ -142,7 +144,13 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 Description = null,
             };
 
-            MongoDatabaseManager.BackupFullAsync(connectionDefinition, databaseName, backupDetails, workingDirectory, utilityPath).RunUntilCompletion();
+            Func<Task<ArchivedDirectory>> backupFullAsyncFunc = () => MongoDatabaseManager.BackupFullAsync(
+                                                                    connectionDefinition,
+                                                                    databaseName,
+                                                                    backupDetails,
+                                                                    workingDirectory,
+                                                                    utilityPath);
+            backupFullAsyncFunc.ExecuteSynchronously();
         }
 
         /// <summary>
@@ -205,7 +213,8 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 ReplaceOption.ReplaceExistingDatabase,
                 RestrictedUserOption.Normal);
 
-            SqlServerDatabaseManager.RestoreFullAsync(connectionString, databaseName, restoreDetails).RunUntilCompletion();
+            Func<Task> restoreFullAsyncFunc = () => SqlServerDatabaseManager.RestoreFullAsync(connectionString, databaseName, restoreDetails);
+            restoreFullAsyncFunc.ExecuteSynchronously();
         }
 
         /// <summary>
@@ -261,7 +270,8 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 RestoreFrom = backupFilePathUri,
             };
 
-            MongoDatabaseManager.RestoreFullAsync(connectionDefinition, databaseName, restoreDetails, workingDirectory, utilityPath).RunUntilCompletion();
+            Func<Task> restoreFullAsyncFunc = () => MongoDatabaseManager.RestoreFullAsync(connectionDefinition, databaseName, restoreDetails, workingDirectory, utilityPath);
+            restoreFullAsyncFunc.ExecuteSynchronously();
         }
     }
 }

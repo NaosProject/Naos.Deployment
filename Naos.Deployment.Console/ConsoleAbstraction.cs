@@ -14,6 +14,7 @@ namespace Naos.Deployment.Console
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
     using System.Xml.Serialization;
 
     using CLAP;
@@ -425,12 +426,15 @@ namespace Naos.Deployment.Console
             var certificateRetrieverConfiguration =
                 DefaultJsonSerializer.Deserialize<CertificateManagementConfigurationBase>(certificateRetrieverJson);
             var certificateRetriever = CertificateManagementFactory.CreateReader(certificateRetrieverConfiguration);
-            var certificateNames = certificateRetriever.GetAllCertificateNamesAsync().RunUntilCompletion();
+            Func<Task<IReadOnlyCollection<string>>> allCertificateNamesAsyncFunc = () => certificateRetriever.GetAllCertificateNamesAsync();
+            var certificateNames = allCertificateNamesAsyncFunc.ExecuteSynchronously();
             var certificateName =
                 certificateNames.SingleOrDefault(_ => _.ToUpperInvariant() == Invariant($"vpn.{environment}.{DnsSuffix}").ToUpperInvariant());
 
+            Func<Task<CertificateDescriptionWithClearPfxPayload>> certificateByNameAsyncFunc =
+                () => certificateRetriever.GetCertificateByNameAsync(certificateName);
             var certificateDescription = !string.IsNullOrWhiteSpace(certificateName)
-                ? certificateRetriever.GetCertificateByNameAsync(certificateName).RunUntilCompletion()
+                ? certificateByNameAsyncFunc.ExecuteSynchronously()
                 : null;
             var certificate = certificateDescription != null
                 ? CertHelper.ExtractCryptographicObjectsFromPfxFile(certificateDescription.PfxBytes, certificateDescription.PfxPasswordInClearText)
@@ -570,7 +574,12 @@ namespace Naos.Deployment.Console
 
                         encryptingCertificateLocator = directoryArcology.ComputingContainers.First().EncryptingCertificateLocator;
 
-                        databaseTracker.Create(environment.ToLowerInvariant(), directoryArcology, directoryArcology.Instances).RunUntilCompletion();
+                        Func<Task> createDatabaseArcologyFunc = () => databaseTracker.Create(
+                                                            environment.ToLowerInvariant(),
+                                                            directoryArcology,
+                                                            directoryArcology.Instances);
+
+                        createDatabaseArcologyFunc.ExecuteSynchronously();
                         break;
                     case ArcologyMigrationDirection.DatabaseToDirectory:
 
@@ -580,7 +589,10 @@ namespace Naos.Deployment.Console
                         }
 
                         var mongoTracker = (MongoInfrastructureTracker)databaseTracker;
-                        var databaseArcology = mongoTracker.GetArcologyByEnvironmentNameAsync(environment.ToLowerInvariant()).RunUntilCompletion();
+                        Func<Task<Arcology>> arcologyByEnvironmentNameAsyncFunc =
+                            () => mongoTracker.GetArcologyByEnvironmentNameAsync(environment.ToLowerInvariant());
+
+                        var databaseArcology = arcologyByEnvironmentNameAsyncFunc.ExecuteSynchronously();
                         using (var fileArcology = new RootFolderEnvironmentFolderInstanceFileTracker(arcologyFilePath))
                         {
                             encryptingCertificateLocator = databaseArcology.ComputingContainers.First().EncryptingCertificateLocator;
@@ -593,7 +605,12 @@ namespace Naos.Deployment.Console
                                 WindowsSkuSearchPatternMap = databaseArcology.WindowsSkuSearchPatternMap,
                             };
 
-                            fileArcology.Create(environment.ToLowerInvariant(), databaseArcologyInfo, databaseArcology.Instances).RunUntilCompletion();
+                            Func<Task> createFileArcologyFunc = () => fileArcology.Create(
+                                                                    environment.ToLowerInvariant(),
+                                                                    databaseArcologyInfo,
+                                                                    databaseArcology.Instances);
+
+                            createFileArcologyFunc.ExecuteSynchronously();
                         }
 
                         break;
@@ -623,11 +640,16 @@ namespace Naos.Deployment.Console
                     throw new NotSupportedException(Invariant($"{nameof(ArcologyMigrationDirection)}: {direction} is not supported."));
             }
 
-            var allCertificateNames = certificateReader.GetAllCertificateNamesAsync().RunUntilCompletion();
+            Func<Task<IReadOnlyCollection<string>>> allCertificateNamesAsyncFunc = () => certificateReader.GetAllCertificateNamesAsync();
+            var allCertificateNames = allCertificateNamesAsyncFunc.ExecuteSynchronously();
             foreach (var certificateName in allCertificateNames)
             {
-                var certificate = certificateReader.GetCertificateByNameAsync(certificateName).RunUntilCompletion();
-                certificateWriter.PersistCertificateAsync(certificate.ToEncryptedVersion(encryptingCertificateLocator)).RunUntilCompletion();
+                Func<Task<CertificateDescriptionWithClearPfxPayload>> certificateByNameAsyncFunc =
+                    () => certificateReader.GetCertificateByNameAsync(certificateName);
+                var certificate = certificateByNameAsyncFunc.ExecuteSynchronously();
+                Func<Task> persistCertificateAsyncFunc =
+                    () => certificateWriter.PersistCertificateAsync(certificate.ToEncryptedVersion(encryptingCertificateLocator));
+                persistCertificateAsyncFunc.ExecuteSynchronously();
             }
         }
 

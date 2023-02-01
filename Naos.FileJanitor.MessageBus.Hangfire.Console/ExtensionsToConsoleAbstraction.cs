@@ -10,10 +10,11 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-
+    using System.Threading.Tasks;
     using CLAP;
 
     using Naos.AWS.S3;
+    using Naos.CodeAnalysis.Recipes;
     using Naos.Configuration.Domain;
     using Naos.Deployment.Domain;
     using Naos.FileJanitor.Domain;
@@ -71,7 +72,9 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                         }));
 
             var archiver = ArchiverFactory.Instance.BuildArchiver(directoryArchiveKind, archiveCompressionKind);
-            var archivedDirectory = archiver.ArchiveDirectoryAsync(sourceDirectoryPath, targetFilePath, true, Encoding.UTF8).RunUntilCompletion();
+            Func<Task<ArchivedDirectory>> archiveDirectoryAsyncFunc =
+                () => archiver.ArchiveDirectoryAsync(sourceDirectoryPath, targetFilePath, true, Encoding.UTF8);
+            var archivedDirectory = archiveDirectoryAsyncFunc.ExecuteSynchronously();
 
             PrintArguments(archivedDirectory, Invariant($"Result of archiving of: {sourceDirectoryPath}"));
         }
@@ -116,7 +119,8 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             var archiver = ArchiverFactory.Instance.BuildArchiver(directoryArchiveKind, archiveCompressionKind);
             var archivedDirectory = new ArchivedDirectory(directoryArchiveKind, archiveCompressionKind, sourceFilePath, true, Encoding.UTF8.WebName, DateTime.UtcNow);
-            archiver.RestoreDirectoryAsync(archivedDirectory, targetDirectoryPath).RunUntilCompletion();
+            Func<Task> restoreDirectoryAsyncFunc = () => archiver.RestoreDirectoryAsync(archivedDirectory, targetDirectoryPath);
+            restoreDirectoryAsyncFunc.ExecuteSynchronously();
         }
 
         /// <summary>
@@ -133,6 +137,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
         /// <param name="archiveCompressionKind">Kind of compression if directoryPath used.</param>
         /// <param name="environment">Sets the Its.Configuration precedence to use specific settings.</param>
         /// <param name="debug">Launches the debugger.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = NaosSuppressBecause.CA1506_AvoidExcessiveClassCoupling_DisagreeWithAssessment)]
         [Verb(Aliases = "store", Description = "Store a file in S3.")]
         public static void StoreFileOrDirectory(
             [Aliases("file")] [Description("File path to store (MUST be a file - cannot be used with directoryPath).")] string filePath,
@@ -176,11 +181,33 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             if (!string.IsNullOrWhiteSpace(filePath) && string.IsNullOrWhiteSpace(directoryPath))
             {
-                FileExchanger.StoreFile(fileManager, filePath, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames).RunUntilCompletion();
+                Func<Task> storeFileFunc = () => FileExchanger.StoreFile(
+                                               fileManager,
+                                               filePath,
+                                               containerLocation,
+                                               container,
+                                               key,
+                                               userDefinedMetadata,
+                                               hashingAlgorithmNames);
+
+                storeFileFunc.ExecuteSynchronously();
             }
             else if (!string.IsNullOrWhiteSpace(directoryPath) && string.IsNullOrWhiteSpace(filePath))
             {
-                FileExchanger.StoreDirectory(fileManager, directoryPath, directoryArchiveKind, archiveCompressionKind, true, Encoding.UTF8, containerLocation, container, key, userDefinedMetadata, hashingAlgorithmNames).RunUntilCompletion();
+                Func<Task> storeDirectoryFunc = () => FileExchanger.StoreDirectory(
+                                                    fileManager,
+                                                    directoryPath,
+                                                    directoryArchiveKind,
+                                                    archiveCompressionKind,
+                                                    true,
+                                                    Encoding.UTF8,
+                                                    containerLocation,
+                                                    container,
+                                                    key,
+                                                    userDefinedMetadata,
+                                                    hashingAlgorithmNames);
+
+                storeDirectoryFunc.ExecuteSynchronously();
             }
             else
             {
@@ -200,6 +227,7 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
         /// <param name="restoreArchive">Restore the archive to the target path as a directory (MUST be an archive file).</param>
         /// <param name="environment">Sets the Its.Configuration precedence to use specific settings.</param>
         /// <param name="debug">Launches the debugger.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = NaosSuppressBecause.CA1506_AvoidExcessiveClassCoupling_DisagreeWithAssessment)]
         [Verb(Aliases = "fetch", Description = "Archive a directory into a file.")]
         public static void FetchFileOrArchive(
             [Required][Aliases("path")] [Description("File path to fetch to (must be valid directory path if using restore switch).")] string targetPath,
@@ -238,7 +266,14 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
 
             if (!string.IsNullOrWhiteSpace(prefix) && string.IsNullOrWhiteSpace(key))
             {
-                var foundFile = FileExchanger.FindFile(fileManager, containerLocation, container, prefix, multipleKeysFoundStrategy).RunUntilCompletion();
+                Func<Task<FileLocation>> findFileFunc = () => FileExchanger.FindFile(
+                                                            fileManager,
+                                                            containerLocation,
+                                                            container,
+                                                            prefix,
+                                                            multipleKeysFoundStrategy);
+
+                var foundFile = findFileFunc.ExecuteSynchronously();
                 key = foundFile.Key;
                 Its.Log.Instrumentation.Log.Write(() => Invariant($"Chose prefix ({prefix}) match: {key}"));
             }
@@ -257,12 +292,16 @@ namespace Naos.FileJanitor.MessageBus.Hangfire.Console
                                          "FileJanitor-FetchFileAndRestore-" + Guid.NewGuid() + ".tmp")
                                      : targetPath;
 
-            FileExchanger.FetchFile(fileManager, containerLocation, container, key, downloadTarget).RunUntilCompletion();
+            Func<Task> fetchFileFunc = () => FileExchanger.FetchFile(fileManager, containerLocation, container, key, downloadTarget);
+            fetchFileFunc.ExecuteSynchronously();
 
             if (restoreArchive)
             {
-                var metadata = FileExchanger.FetchMetadata(fileManager, containerLocation, container, key).RunUntilCompletion();
-                FileExchanger.RestoreDownload(downloadTarget, targetPath, metadata).RunUntilCompletion();
+                Func<Task<IReadOnlyCollection<MetadataItem>>> fetchMetadataFunc =
+                    () => FileExchanger.FetchMetadata(fileManager, containerLocation, container, key);
+                var metadata = fetchMetadataFunc.ExecuteSynchronously();
+                Func<Task> restoreDownloadFunc = () => FileExchanger.RestoreDownload(downloadTarget, targetPath, metadata);
+                restoreDownloadFunc.ExecuteSynchronously();
             }
         }
 

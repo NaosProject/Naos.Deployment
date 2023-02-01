@@ -856,11 +856,13 @@ namespace Naos.Deployment.Core
                                               Description = Invariant($"Mark deployed - {packageDescription.GetIdDotVersionString()}."),
                                               SetupFunc = m =>
                                                           {
-                                                              this.tracker.ProcessDeployedPackageAsync(
-                                                                       environment,
-                                                                       instanceId,
-                                                                       packageDescription)
-                                                                  .RunUntilCompletion();
+                                                              Func<Task> processDeployedPackageAsyncFunc =
+                                                                  () => this.tracker.ProcessDeployedPackageAsync(
+                                                                      environment,
+                                                                      instanceId,
+                                                                      packageDescription);
+
+                                                              processDeployedPackageAsyncFunc.ExecuteSynchronously();
                                                               return new object[0];
                                                           },
                                           },
