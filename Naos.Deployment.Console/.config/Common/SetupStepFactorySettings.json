@@ -1133,7 +1133,16 @@
                 "   $smoServer.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed",
                 "   $smoServer.Alter()",
                 "   $smoServer.ConnectionContext.ExecuteNonQuery($statementEnable)",
-                "   $smoServer.ConnectionContext.ExecuteNonQuery($statementPassword)",
+                "   try",
+                "   {",
+                "      $smoServer.ConnectionContext.ExecuteNonQuery($statementPassword)",
+                "   }",
+                "   catch",
+                "   {",
+                "      # Need to get at inner message to see actual error (like password not complex enough)",
+                "      #   Found @ https://stackoverflow.com/questions/37534117/get-error-message-from-executenonquery-statement-with-smo-in-c-sharp",
+                "      throw $_.ToString() + '--->' + $_.Exception.GetBaseException().Message",
+                "   }",
                 "}"
             ]
         },
