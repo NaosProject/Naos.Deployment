@@ -837,45 +837,66 @@ nnoh6+yENZjm2uk8sW3Oqal8sqvx57tthV9+x/OGeH8+vcviGefx
                 throw new ArgumentException(Invariant($"'{nameof(certificates)}' contains an element that is null"));
             }
 
-            var certificate = certificates.SingleOrDefault();
+            byte[] result;
 
-            if (certificate == null)
+            try
             {
-                throw new NotSupportedException("Multiple certificates in the chain is not supported.");
+                // NOTE: This approach doesn't work for large payloads.
+                var certCollection = new X509Certificate2Collection(certificates.ToArray());
+
+                var envelopedCms = new EnvelopedCms();
+
+                envelopedCms.Decode(bytes);
+
+                envelopedCms.Decrypt(certCollection);
+
+                result = envelopedCms.ContentInfo.Content;
             }
-
-            var cmsEnvelopedData = new CmsEnvelopedData(bytes);
-
-            var recipient = cmsEnvelopedData
-                .GetRecipientInfos()
-                .GetRecipients()
-                .Cast<KeyTransRecipientInformation>()
-                .Single();
-
-            var privateKey = certificate.PrivateKey;
-
-            ICipherParameters cipherParameters;
-
-            if (privateKey is RSACryptoServiceProvider rsaProvider)
+            catch (CryptographicException ex) when (ex.Message.Contains("ASN1 value too large"))
             {
-                var parameters = rsaProvider.ExportParameters(true);
+                // NOTE: Use this approach for large payloads, except that it won't work for certificates
+                // that originate in the Certificate Store unless those certificates are marked exportable.
+                // Further, it doesn't work with a collection of certificates; a single certificate is required.
+                var certificate = certificates.SingleOrDefault();
 
-                cipherParameters = new RsaPrivateCrtKeyParameters(
-                    new BigInteger(1, parameters.Modulus),
-                    new BigInteger(1, parameters.Exponent),
-                    new BigInteger(1, parameters.D),
-                    new BigInteger(1, parameters.P),
-                    new BigInteger(1, parameters.Q),
-                    new BigInteger(1, parameters.DP),
-                    new BigInteger(1, parameters.DQ),
-                    new BigInteger(1, parameters.InverseQ));
-            }
-            else
-            {
-                throw new NotSupportedException(Invariant($"This kind of private key is not supported: {privateKey.SignatureAlgorithm}."));
-            }
+                if (certificate == null)
+                {
+                    throw new NotSupportedException("Multiple certificates in the chain is not supported.");
+                }
 
-            var result = recipient.GetContent(cipherParameters);
+                var cmsEnvelopedData = new CmsEnvelopedData(bytes);
+
+                var recipient = cmsEnvelopedData
+                    .GetRecipientInfos()
+                    .GetRecipients()
+                    .Cast<KeyTransRecipientInformation>()
+                    .Single();
+
+                var privateKey = certificate.PrivateKey;
+
+                ICipherParameters cipherParameters;
+
+                if (privateKey is RSACryptoServiceProvider rsaProvider)
+                {
+                    var parameters = rsaProvider.ExportParameters(true);
+
+                    cipherParameters = new RsaPrivateCrtKeyParameters(
+                        new BigInteger(1, parameters.Modulus),
+                        new BigInteger(1, parameters.Exponent),
+                        new BigInteger(1, parameters.D),
+                        new BigInteger(1, parameters.P),
+                        new BigInteger(1, parameters.Q),
+                        new BigInteger(1, parameters.DP),
+                        new BigInteger(1, parameters.DQ),
+                        new BigInteger(1, parameters.InverseQ));
+                }
+                else
+                {
+                    throw new NotSupportedException(Invariant($"This kind of private key is not supported: {privateKey.SignatureAlgorithm}."));
+                }
+
+                result = recipient.GetContent(cipherParameters);
+            }
 
             return result;
         }
