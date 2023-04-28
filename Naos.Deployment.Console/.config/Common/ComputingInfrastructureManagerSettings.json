@@ -27,9 +27,9 @@
     "operatingSystemTagKey": "OperatingSystem",
     "instanceAccessibilityTagKey": "Accessibility",
     "volumeTypeValueMap": {
-        "doesNotMatter": "gp2",
+        "doesNotMatter": "gp3",
         "lowPerformance": "standard",
-        "standard": "gp2",
+        "standard": "gp3",
         "highPerformance": "io1"
     },
     "awsInstanceTypes": [
