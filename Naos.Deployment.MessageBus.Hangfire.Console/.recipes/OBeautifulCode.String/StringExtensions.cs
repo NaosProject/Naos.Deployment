@@ -1337,10 +1337,11 @@ namespace OBeautifulCode.String.Recipes
         /// <returns>
         /// The invariant culture string representation of the specified value.
         /// </returns>
+        [SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase", Justification = ObcSuppressBecause.CA1308_NormalizeStringsToUppercase_PreferGuidLowercase)]
         public static string ToStringInvariantPreferred(
             this Guid value)
         {
-            var result = value.ToString().ToUpperInvariant();
+            var result = value.ToString().ToLowerInvariant();
 
             return result;
         }
