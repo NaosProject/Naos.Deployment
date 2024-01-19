@@ -30,6 +30,7 @@ namespace Naos.Deployment.Console
     using Naos.Deployment.Core.CertificateManagement;
     using Naos.Deployment.Domain;
     using Naos.Deployment.Tracking;
+    using Naos.Diagnostics.Domain;
     using Naos.Logging.Domain;
     using Naos.MachineManagement.Domain;
     using Naos.MachineManagement.Factory;
@@ -91,6 +92,90 @@ namespace Naos.Deployment.Console
                 var nextTargetSubDir = target.CreateSubdirectory(sourceSubDir.Name);
                 CopyAll(sourceSubDir, nextTargetSubDir);
             }
+        }
+
+        /// <summary>
+        /// Gets the Arcology drive report.
+        /// </summary>
+        /// <param name="environment">The environment.</param>
+        /// <param name="environmentType">Type of the environment.</param>
+        /// <param name="credentialsJson">The credentials json.</param>
+        /// <param name="infrastructureTrackerJson">The infrastructure tracker json.</param>
+        /// <param name="threshold">The threshold.</param>
+        /// <returns>Map of instance name to <see cref="CheckDrivesReport" />.</returns>
+        internal static IReadOnlyDictionary<string, CheckDrivesReport> GetArcologyDriveReport(
+            string environment,
+            EnvironmentType environmentType,
+            string credentialsJson,
+            string infrastructureTrackerJson,
+            decimal threshold)
+        {
+            var result = new Dictionary<string, CheckDrivesReport>();
+            var utcNow = DateTime.UtcNow;
+            var getDriveInfoScript = @"{ $output = Get-PSDrive | ?{$_.Provider.Name -eq 'FileSystem'} | %{""$($_.Name):\,$($_.Free),$($_.Used+$_.Free)""}; return $output; }";
+            void GetDriveReports(
+                ITrackComputingInfrastructure tracker,
+                IManageComputingInfrastructure manager)
+            {
+                Func<Task<IReadOnlyCollection<InstanceDescription>>> getInstances = () => tracker.GetAllInstanceDescriptionsAsync(environment);
+                var instances = getInstances.ExecuteSynchronously();
+                foreach (var instance in instances)
+                {
+                    try
+                    {
+                        var address = instance.PrivateIpAddress;
+                        var user = "administrator";
+                        Func<Task<string>> privateKeyOfInstanceByIdAsyncFunc =
+                            () => tracker.GetPrivateKeyOfInstanceByIdAsync(environment, instance.Id);
+                        var privateKey = privateKeyOfInstanceByIdAsyncFunc.ExecuteSynchronously();
+                        privateKey.AsArg(Invariant($"FailedToFindPrivateKeyByInstanceId-{instance.Id}")).Must().NotBeNull();
+                        Func<Task<string>> administratorPasswordForInstanceAsyncFunc =
+                            () => manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey);
+                        var password = administratorPasswordForInstanceAsyncFunc.ExecuteSynchronously();
+                        password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
+                        var machineManager = new MachineManagement.WinRm.WinRmMachineManager(address, user, password, true);
+                        var singleDriveReports = new Dictionary<string, CheckSingleDriveReport>();
+
+                        var outputRaw = machineManager.RunScript(getDriveInfoScript);
+                        var output = outputRaw?.FirstOrDefault()?.ToString();
+                        if (string.IsNullOrWhiteSpace(output))
+                        {
+                            throw new ArgumentException(Invariant($"FailedToGetDriveInfoFor-{instance.Id}"));
+                        }
+
+                        var shouldAlert = false;
+                        foreach (var driveLine in output.Split(
+                            new[]
+                            {
+                                Environment.NewLine,
+                            },
+                            StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            var driveLineSplit = driveLine.Split(',');
+                            var driveName = driveLineSplit[0];
+                            var totalFreeSpaceInBytesString = driveLineSplit[1];
+                            var totalFreeSpaceInBytes = long.Parse(totalFreeSpaceInBytesString, CultureInfo.InvariantCulture);
+                            var totalSizeInBytesString = driveLineSplit[2];
+                            var totalSizeInBytes = long.Parse(totalSizeInBytesString, CultureInfo.InvariantCulture);
+                            var singleDriveReport = new CheckSingleDriveReport(driveName, totalFreeSpaceInBytes, totalSizeInBytes);
+                            singleDriveReports.Add(driveName, singleDriveReport);
+                            shouldAlert = shouldAlert || ((decimal)totalFreeSpaceInBytes / (decimal)totalSizeInBytes) < threshold;
+                        }
+
+                        var driveReport = new CheckDrivesReport(shouldAlert, singleDriveReports, utcNow);
+                        result.Add(instance.Name, driveReport);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                        result.Add(instance.Name, null);
+                    }
+                }
+            }
+
+            BootRunComputingManagerOperation(environmentType, GetDriveReports, credentialsJson, infrastructureTrackerJson);
+
+            return result;
         }
 
         /// <summary>
@@ -393,12 +478,12 @@ namespace Naos.Deployment.Console
             {
                 localResultAnnouncer(Invariant($"Removing {instanceName}."));
 
-                Func<Task<InstanceDescription>> instanceDescriptionAsyncFunc = () => manager.GetInstanceDescriptionAsync(environment, instanceName);                var instance = instanceDescriptionAsyncFunc.ExecuteSynchronously();
+                Func<Task<InstanceDescription>> instanceDescriptionAsyncFunc = () => manager.GetInstanceDescriptionAsync(environment, instanceName); var instance = instanceDescriptionAsyncFunc.ExecuteSynchronously();
                 localResultAnnouncer(Invariant($"Found {instanceName} - {instance.PrivateIpAddress} - {instance.Name}."));
 
                 Func<Task> terminateInstanceAsyncFunc = () => manager.TerminateInstanceAsync(environment, instance.Id, instance.Location, true);
                 terminateInstanceAsyncFunc.ExecuteSynchronously();
-                
+
                 localResultAnnouncer(Invariant($"Removed {instanceName}."));
             }
 
@@ -581,7 +666,7 @@ namespace Naos.Deployment.Console
             string instanceName,
             string environment,
             EnvironmentType environmentType,
-			bool shouldConnectInFullScreen)
+            bool shouldConnectInFullScreen)
         {
             void Connect(ITrackComputingInfrastructure tracker, IManageComputingInfrastructure manager)
             {
@@ -652,7 +737,7 @@ namespace Naos.Deployment.Console
                         activity.Write(() => Invariant($"Stored credentials temporarily stored using CMDKEY."));
                     }
 
-					var rdpArgs = shouldConnectInFullScreen ? Invariant($"/f /v {address}") : Invariant($"/v {address}");
+                    var rdpArgs = shouldConnectInFullScreen ? Invariant($"/f /v {address}") : Invariant($"/v {address}");
                     var rdpProcess = new Process();
                     rdpProcess.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe");
                     rdpProcess.StartInfo.Arguments = rdpArgs;
@@ -821,7 +906,7 @@ namespace Naos.Deployment.Console
             new { infrastructureTrackerJson }.AsArg().Must().NotBeNull();
 
             var credentials = ConfigFileSerializer.Deserialize<CredentialContainer>(credentialsJson);
-			var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
+            var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var infrastructureTrackerConfiguration = (InfrastructureTrackerConfigurationBase)serializer.Deserialize(infrastructureTrackerJson, typeof(InfrastructureTrackerConfigurationBase));
             var computingInfrastructureManagerSettings = Config.Get<ComputingInfrastructureManagerSettings>(new SerializerRepresentation(SerializationKind.Json, typeof(NaosDeploymentCoreJsonSerializationConfiguration).ToRepresentation()));
             using (var infrastructureTracker = InfrastructureTrackerFactory.Create(infrastructureTrackerConfiguration))
@@ -1122,13 +1207,13 @@ namespace Naos.Deployment.Console
             ExistingDeploymentStrategy existingDeploymentStrategy,
             string deploymentAdjustmentApplicatorJson,
             string environment,
-			EnvironmentType environmentType)
+            EnvironmentType environmentType)
         {
-		    var machineManagerFactory = GetMachineManagerFactory(environmentType);
+            var machineManagerFactory = GetMachineManagerFactory(environmentType);
             var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var packagesToDeploy =
                 (IReadOnlyCollection<PackageDescriptionWithOverrides>)serializer.Deserialize(
-				    packagesToDeployJson,
+                    packagesToDeployJson,
                     typeof(IReadOnlyCollection<PackageDescriptionWithOverrides>));
             var certificateRetrieverConfiguration =
                 (CertificateManagementConfigurationBase)serializer.Deserialize(
@@ -1140,12 +1225,12 @@ namespace Naos.Deployment.Console
                     typeof(InfrastructureTrackerConfigurationBase));
             var deploymentAdjustmentStrategiesApplicator =
                 (DeploymentAdjustmentStrategiesApplicator)serializer.Deserialize(
-					deploymentAdjustmentApplicatorJson,
+                    deploymentAdjustmentApplicatorJson,
                     typeof(DeploymentAdjustmentStrategiesApplicator));
             var credentials = (CredentialContainer)serializer.Deserialize(credentialsJson, typeof(CredentialContainer));
 
             var repoConfigs = (IReadOnlyCollection<PackageRepositoryConfiguration>)serializer.Deserialize(
-   			    nugetPackageRepositoryConfigurationsJson,
+                   nugetPackageRepositoryConfigurationsJson,
                 typeof(IReadOnlyCollection<PackageRepositoryConfiguration>));
             var overrideConfig =
                 (DeploymentConfiguration)serializer.Deserialize(overrideDeploymentConfigJson, typeof(DeploymentConfiguration));
@@ -1217,7 +1302,7 @@ namespace Naos.Deployment.Console
                             },
                             unzipDirPath,
                             configFileManager,
-							machineManagerFactory,
+                            machineManagerFactory,
                             environmentCertificateName,
                             announcementFilePath,
                             debugAnnouncementFilePath,
@@ -1273,7 +1358,7 @@ namespace Naos.Deployment.Console
                     certificateSigningRequestPemEncodedFilePath);
             }
 
-			var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
+            var serializer = new ObcJsonSerializer<NaosDeploymentCoreJsonSerializationConfiguration>();
             var certificateConfiguration =
                 (CertificateManagementConfigurationBase)serializer.Deserialize(
                     certificateWriterJson,
@@ -1646,7 +1731,7 @@ namespace Naos.Deployment.Console
                 case EnvironmentType.Aws:
                     return new MachineManagerFactory();
                 case EnvironmentType.Manual:
-				    // TODO: Need to unify this with config of deployment directory.
+                    // TODO: Need to unify this with config of deployment directory.
                     var path = @"D:\Deployments\";
                     if (!Directory.Exists(path))
                     {
@@ -1657,5 +1742,5 @@ namespace Naos.Deployment.Console
                     throw new NotSupportedException(Invariant($"Environment type: {environmentType} is not supported."));
             }
         }
-	}
+    }
 }
