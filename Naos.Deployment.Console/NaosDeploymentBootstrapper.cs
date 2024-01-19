@@ -143,7 +143,6 @@ namespace Naos.Deployment.Console
                             throw new ArgumentException(Invariant($"FailedToGetDriveInfoFor-{instance.Id}"));
                         }
 
-                        var shouldAlert = false;
                         foreach (var driveLine in output.Split(
                             new[]
                             {
@@ -157,12 +156,14 @@ namespace Naos.Deployment.Console
                             var totalFreeSpaceInBytes = long.Parse(totalFreeSpaceInBytesString, CultureInfo.InvariantCulture);
                             var totalSizeInBytesString = driveLineSplit[2];
                             var totalSizeInBytes = long.Parse(totalSizeInBytesString, CultureInfo.InvariantCulture);
-                            var singleDriveReport = new CheckSingleDriveReport(driveName, totalFreeSpaceInBytes, totalSizeInBytes);
+                            var freeSpaceToTotalRatio = ((decimal)totalFreeSpaceInBytes / (decimal)totalSizeInBytes);
+                            var status = freeSpaceToTotalRatio < threshold ? CheckStatus.Failure : CheckStatus.Success;
+                            var singleDriveReport = new CheckSingleDriveReport(driveName, status, totalFreeSpaceInBytes, totalSizeInBytes);
                             singleDriveReports.Add(driveName, singleDriveReport);
-                            shouldAlert = shouldAlert || ((decimal)totalFreeSpaceInBytes / (decimal)totalSizeInBytes) < threshold;
                         }
 
-                        var driveReport = new CheckDrivesReport(shouldAlert, singleDriveReports, utcNow);
+                        var reportStatus = singleDriveReports.Select(_ => _.Value.Status).ToList().ReduceToSingleStatus();
+                        var driveReport = new CheckDrivesReport(reportStatus, singleDriveReports, new CheckDrivesOp(threshold), utcNow);
                         result.Add(instance.Name, driveReport);
                     }
                     catch (Exception e)
