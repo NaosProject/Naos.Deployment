@@ -87,11 +87,11 @@
     <Reference Include="Naos.MessageBus.Domain, Version=1.3.70.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.3.70\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Mongo.Domain, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Mongo.Domain.1.0.8\lib\net462\Naos.Mongo.Domain.dll</HintPath>
+    <Reference Include="Naos.Mongo.Domain, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Domain.1.0.9\lib\net462\Naos.Mongo.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Mongo.Serialization.Json, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Mongo.Serialization.Json.1.0.8\lib\net462\Naos.Mongo.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.Mongo.Serialization.Json, Version=1.0.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Serialization.Json.1.0.9\lib\net462\Naos.Mongo.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Packaging.Domain, Version=1.0.61.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Domain.1.0.61\lib\net462\Naos.Packaging.Domain.dll</HintPath>
