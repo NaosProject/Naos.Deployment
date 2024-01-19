@@ -142,6 +142,7 @@ namespace Naos.Database.MessageBus.Hangfire.Console
                 Name = Invariant($"{databaseName}DatabaseBackup"),
                 BackupTo = backupFilePathUri,
                 Description = null,
+                CollectionsToDumpInParallel = 1,
             };
 
             Func<Task<ArchivedDirectory>> backupFullAsyncFunc = () => MongoDatabaseManager.BackupFullAsync(
