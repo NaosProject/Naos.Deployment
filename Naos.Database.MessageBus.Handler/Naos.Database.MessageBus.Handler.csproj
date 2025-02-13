@@ -165,8 +165,8 @@
     <Reference Include="Naos.Diagnostics.Domain, Version=1.3.49.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Domain.1.3.49\lib\net462\Naos.Diagnostics.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.157.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.157\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.158.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.158\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Logging.Domain, Version=1.0.83.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.83\lib\net462\Naos.Logging.Domain.dll</HintPath>
@@ -174,11 +174,11 @@
     <Reference Include="Naos.MessageBus.Domain, Version=1.3.71.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.MessageBus.Domain.1.3.71\lib\net462\Naos.MessageBus.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Mongo.Domain, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Mongo.Domain.1.0.10\lib\net462\Naos.Mongo.Domain.dll</HintPath>
+    <Reference Include="Naos.Mongo.Domain, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Domain.1.0.11\lib\net462\Naos.Mongo.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.Mongo.Protocol.Client, Version=1.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.Mongo.Protocol.Client.1.0.10\lib\net462\Naos.Mongo.Protocol.Client.dll</HintPath>
+    <Reference Include="Naos.Mongo.Protocol.Client, Version=1.0.11.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.Mongo.Protocol.Client.1.0.11\lib\net462\Naos.Mongo.Protocol.Client.dll</HintPath>
     </Reference>
     <Reference Include="Naos.SqlServer.Domain, Version=1.0.185.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.SqlServer.Domain.1.0.185\lib\net462\Naos.SqlServer.Domain.dll</HintPath>

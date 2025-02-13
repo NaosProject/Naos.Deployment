@@ -11,7 +11,10 @@ namespace Naos.Deployment.Core.Test
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Type;
 
-    public partial class BackupAndPersistDatabaseOpTest
+    public static partial class BackupAndPersistDatabaseOpTest
     {
+        static BackupAndPersistDatabaseOpTest()
+        {
+        }
     }
 }
