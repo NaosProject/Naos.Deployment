@@ -44,7 +44,7 @@ namespace OBeautifulCode.Database.Recipes
     {
         private static readonly IReadOnlyCollection<SqlDbType> ValidStringSqlDbTypes = new[] { SqlDbType.Char, SqlDbType.NChar, SqlDbType.VarChar, SqlDbType.NVarChar, SqlDbType.Xml };
 
-        private static readonly IReadOnlyCollection<SqlDbType> ValidByteArraySqlDbTypes = new[] { SqlDbType.Binary, SqlDbType.VarBinary };
+        private static readonly IReadOnlyCollection<SqlDbType> ValidByteArraySqlDbTypes = new[] { SqlDbType.Binary, SqlDbType.VarBinary, SqlDbType.Image };
 
         private static readonly IReadOnlyCollection<SqlDbType> ValidDateTimeSqlDbTypes = new[] { SqlDbType.Date, SqlDbType.SmallDateTime, SqlDbType.DateTime, SqlDbType.DateTime2 };
 

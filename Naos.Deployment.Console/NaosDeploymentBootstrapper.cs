@@ -24,6 +24,7 @@ namespace Naos.Deployment.Console
 
     using Naos.AWS.Core;
     using Naos.AWS.Domain;
+    using Naos.CodeAnalysis.Recipes;
     using Naos.Configuration.Domain;
     using Naos.Deployment.ComputingManagement;
     using Naos.Deployment.Core;
@@ -103,6 +104,9 @@ namespace Naos.Deployment.Console
         /// <param name="infrastructureTrackerJson">The infrastructure tracker json.</param>
         /// <param name="threshold">The threshold.</param>
         /// <returns>Map of instance name to <see cref="CheckDrivesReport" />.</returns>
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "This is a good practice in the deployment console which sits at the top of the dependency tree.")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity", Justification = NaosSuppressBecause.CA1502_AvoidExcessiveComplexity_DisagreeWithAssessment)]
+        [SuppressMessage("Microsoft.Maintainability", "CA1506:AvoidExcessiveClassCoupling", Justification = NaosSuppressBecause.CA1506_AvoidExcessiveClassCoupling_DisagreeWithAssessment)]
         internal static IReadOnlyDictionary<string, CheckDrivesReport> GetArcologyDriveReport(
             string environment,
             EnvironmentType environmentType,
@@ -133,15 +137,19 @@ namespace Naos.Deployment.Console
                             () => manager.GetAdministratorPasswordForInstanceAsync(instance, privateKey);
                         var password = administratorPasswordForInstanceAsyncFunc.ExecuteSynchronously();
                         password.AsArg(Invariant($"FailedToGetPasswordFor-{instance.Id}")).Must().NotBeNullNorWhiteSpace();
-                        var machineManager = new MachineManagement.WinRm.WinRmMachineManager(address, user, password, true);
-                        var singleDriveReports = new Dictionary<string, CheckSingleDriveReport>();
+                        ICollection<dynamic> outputRaw;
+                        using (var machineManager = new MachineManagement.WinRm.WinRmMachineManager(address, user, password, true))
+                        {
+                            outputRaw = machineManager.RunScript(getDriveInfoScript);
+                        }
 
-                        var outputRaw = machineManager.RunScript(getDriveInfoScript);
                         var output = outputRaw?.FirstOrDefault()?.ToString();
                         if (string.IsNullOrWhiteSpace(output))
                         {
                             throw new ArgumentException(Invariant($"FailedToGetDriveInfoFor-{instance.Id}"));
                         }
+
+                        var singleDriveReports = new Dictionary<string, CheckSingleDriveReport>();
 
                         foreach (var driveLine in output.Split(
                             new[]

@@ -596,6 +596,38 @@ namespace OBeautifulCode.Assertion.Recipes
         }
 
         /// <summary>
+        /// Verifies that the IEnumerable subject is not empty, when not null.
+        /// If null, no exception is thrown.
+        /// </summary>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeEmptyEnumerableWhenNotNull(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeEmptyEnumerableWhenNotNullInternal,
+                Name = nameof(NotBeEmptyEnumerableWhenNotNull),
+                TypeValidations = VerifiableItemMustBeEnumerableTypeValidations,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
         /// Verifies that the IDictionary, IDictionary{TKey,TValue}, or IReadOnlyDictionary{TKey,TValue} subject is empty.
         /// </summary>
         /// <param name="assertionTracker">The assertion tracker.</param>
@@ -648,6 +680,38 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotBeEmptyDictionaryInternal,
                 Name = nameof(NotBeEmptyDictionary),
+                TypeValidations = VerifiableItemMustBeDictionaryTypeValidations,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IDictionary, IDictionary{TKey,TValue}, or IReadOnlyDictionary{TKey,TValue} subject is not empty, when not null.
+        /// If null, no exception is thrown.
+        /// </summary>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeEmptyDictionaryWhenNotNull(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeEmptyDictionaryWhenNotNullInternal,
+                Name = nameof(NotBeEmptyDictionaryWhenNotNull),
                 TypeValidations = VerifiableItemMustBeDictionaryTypeValidations,
                 Data = data,
             };
@@ -804,6 +868,38 @@ namespace OBeautifulCode.Assertion.Recipes
                 ApplyBecause = applyBecause,
                 Handler = NotContainAnyKeyValuePairsWithNullValueInternal,
                 Name = nameof(NotContainAnyKeyValuePairsWithNullValue),
+                TypeValidations = VerifiableItemMustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IDictionary, IDictionary{TKey,TValue}, or IReadOnlyDictionary{TKey,TValue} subject does not contain any null values, when not null.
+        /// If null, no exception is thrown.
+        /// </summary>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotContainAnyKeyValuePairsWithNullValueWhenNotNull(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotContainAnyKeyValuePairsWithNullValueWhenNotNullInternal,
+                Name = nameof(NotContainAnyKeyValuePairsWithNullValueWhenNotNull),
                 TypeValidations = VerifiableItemMustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
                 Data = data,
             };
@@ -1050,6 +1146,50 @@ namespace OBeautifulCode.Assertion.Recipes
         }
 
         /// <summary>
+        /// Verifies that the IEnumerable subject not empty nor contains any null elements, when not null.
+        /// If null, no exception is thrown.
+        /// </summary>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeEmptyEnumerableNorContainAnyNullsWhenNotNull(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verificationName = nameof(NotBeEmptyEnumerableNorContainAnyNullsWhenNotNull);
+
+            var verification1 = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeEmptyEnumerableWhenNotNullInternal,
+                Name = verificationName,
+                TypeValidations = VerifiableItemEnumerableElementTypeMustBeAssignableToNullValidations,
+                Data = data,
+            };
+
+            var verification2 = new Verification
+            {
+                Because = because,
+                Handler = NotContainAnyNullElementsWhenNotNullInternal,
+                Name = verificationName,
+                TypeValidations = null,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification1);
+            assertionTracker.ExecuteVerification(verification2);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
         /// Verifies that the IEnumerable subject is not null nor empty nor contains any null elements.
         /// </summary>
         /// <param name="assertionTracker">The assertion tracker.</param>
@@ -1081,6 +1221,50 @@ namespace OBeautifulCode.Assertion.Recipes
             {
                 Because = because,
                 Handler = NotContainAnyNullElementsInternal,
+                Name = verificationName,
+                TypeValidations = null,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification1);
+            assertionTracker.ExecuteVerification(verification2);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IDictionary, IDictionary{TKey,TValue}, or IReadOnlyDictionary{TKey,TValue} subject is not empty nor contains any null values, when not null.
+        /// If null, no exception is thrown.
+        /// </summary>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeEmptyDictionaryNorContainAnyNullValuesWhenNotNull(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verificationName = nameof(NotBeEmptyDictionaryNorContainAnyNullValuesWhenNotNull);
+
+            var verification1 = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeEmptyDictionaryWhenNotNullInternal,
+                Name = verificationName,
+                TypeValidations = VerifiableItemMustBeDictionaryWhoseValueTypeCanBeAssignedToNullValidations,
+                Data = data,
+            };
+
+            var verification2 = new Verification
+            {
+                Because = because,
+                Handler = NotContainAnyKeyValuePairsWithNullValueWhenNotNullInternal,
                 Name = verificationName,
                 TypeValidations = null,
                 Data = data,
@@ -2307,6 +2491,214 @@ namespace OBeautifulCode.Assertion.Recipes
             return assertionTracker;
         }
 
+        /// <summary>
+        /// Verifies that the IEnumerable subject has the exact same elements in any order as a specified IEnumerable value.
+        /// Every unique element in the first set has to appear in the second set the same number of times it appears in the first
+        /// </summary>
+        /// <typeparam name="TElement">The type of the comparison value.</typeparam>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="comparisonValue">The value to compare the subject value to.</param>
+        /// <param name="elementComparer">Optional equality comparer to use to compare the elements.  Default is to use the result of <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker BeUnorderedEqualTo<TElement>(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            IEnumerable<TElement> comparisonValue,
+            IEqualityComparer<TElement> elementComparer = null,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = BeUnorderedEqualToInternal,
+                Name = nameof(BeUnorderedEqualTo),
+                VerificationParameters = new[]
+                {
+                    new VerificationParameter
+                    {
+                        Name = nameof(comparisonValue),
+                        Value = comparisonValue,
+                        ParameterType = typeof(IEnumerable<TElement>),
+                    },
+                    new VerificationParameter
+                    {
+                        Name = nameof(elementComparer),
+                        Value = elementComparer,
+                        ParameterType = typeof(IEqualityComparer<TElement>),
+                    },
+                },
+                TypeValidations = VerifiableItemTypeMustBeAssignableToFirstVerificationParameterType,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IEnumerable subject does not have the exact same elements in any order as a specified IEnumerable value.
+        /// Every unique element in the first set must not appear in the second set the same number of times it appears in the first
+        /// </summary>
+        /// <typeparam name="TElement">The type of the comparison value.</typeparam>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="comparisonValue">The value to compare the subject value to.</param>
+        /// <param name="elementComparer">Optional equality comparer to use to compare the elements.  Default is to use the result of <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeUnorderedEqualTo<TElement>(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            IEnumerable<TElement> comparisonValue,
+            IEqualityComparer<TElement> elementComparer = null,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeUnorderedEqualToInternal,
+                Name = nameof(NotBeUnorderedEqualTo),
+                VerificationParameters = new[]
+                {
+                    new VerificationParameter
+                    {
+                        Name = nameof(comparisonValue),
+                        Value = comparisonValue,
+                        ParameterType = typeof(IEnumerable<TElement>),
+                    },
+                    new VerificationParameter
+                    {
+                        Name = nameof(elementComparer),
+                        Value = elementComparer,
+                        ParameterType = typeof(IEqualityComparer<TElement>),
+                    },
+                },
+                TypeValidations = VerifiableItemTypeMustBeAssignableToFirstVerificationParameterType,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IEnumerable subject has the exact same elements in any order as a specified IEnumerable value, when not null.
+        /// If null, no exception is thrown.  Otherwise, every unique element in the first set has to appear in the second set the same number of times it appears in the first.
+        /// </summary>
+        /// <typeparam name="TElement">The type of the comparison value.</typeparam>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="comparisonValue">The value to compare the subject value to.</param>
+        /// <param name="elementComparer">Optional equality comparer to use to compare the elements.  Default is to use the result of <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker BeUnorderedEqualToWhenNotNull<TElement>(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            IEnumerable<TElement> comparisonValue,
+            IEqualityComparer<TElement> elementComparer = null,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = BeUnorderedEqualToWhenNotNullInternal,
+                Name = nameof(BeUnorderedEqualToWhenNotNull),
+                VerificationParameters = new[]
+                {
+                    new VerificationParameter
+                    {
+                        Name = nameof(comparisonValue),
+                        Value = comparisonValue,
+                        ParameterType = typeof(IEnumerable<TElement>),
+                    },
+                    new VerificationParameter
+                    {
+                        Name = nameof(elementComparer),
+                        Value = elementComparer,
+                        ParameterType = typeof(IEqualityComparer<TElement>),
+                    },
+                },
+                TypeValidations = VerifiableItemTypeMustBeAssignableToFirstVerificationParameterType,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+
+        /// <summary>
+        /// Verifies that the IEnumerable subject does not have the exact same elements in any order as a specified IEnumerable value, when not null.
+        /// If null, no exception is thrown.  Otherwise, every unique element in the first set must not appear in the second set the same number of times it appears in the first
+        /// </summary>
+        /// <typeparam name="TElement">The type of the comparison value.</typeparam>
+        /// <param name="assertionTracker">The assertion tracker.</param>
+        /// <param name="comparisonValue">The value to compare the subject value to.</param>
+        /// <param name="elementComparer">Optional equality comparer to use to compare the elements.  Default is to use the result of <see cref="EqualityComparerHelper.GetEqualityComparerToUse{T}(IEqualityComparer{T})"/>.</param>
+        /// <param name="because">Optional rationale for the verification, used in the exception message if the subject fails this verification.  The default is use the framework-generated exception message as-is.</param>
+        /// <param name="applyBecause">Optional value that determines how to apply the <paramref name="because"/>, when specified.  The default is to prefix the framework-generated exception message with <paramref name="because"/>.</param>
+        /// <param name="data">Optional collection of key/value pairs that provide additional user-defined information that is added to the exception's <see cref="Exception.Data"/> property, if thrown.  The default is no user-defined information.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        public static AssertionTracker NotBeUnorderedEqualToWhenNotNull<TElement>(
+            [ValidatedNotNull] this AssertionTracker assertionTracker,
+            IEnumerable<TElement> comparisonValue,
+            IEqualityComparer<TElement> elementComparer = null,
+            string because = null,
+            ApplyBecause applyBecause = ApplyBecause.PrefixedToDefaultMessage,
+            IDictionary data = null)
+        {
+            var verification = new Verification
+            {
+                Because = because,
+                ApplyBecause = applyBecause,
+                Handler = NotBeUnorderedEqualToWhenNotNullInternal,
+                Name = nameof(NotBeUnorderedEqualToWhenNotNull),
+                VerificationParameters = new[]
+                {
+                    new VerificationParameter
+                    {
+                        Name = nameof(comparisonValue),
+                        Value = comparisonValue,
+                        ParameterType = typeof(IEnumerable<TElement>),
+                    },
+                    new VerificationParameter
+                    {
+                        Name = nameof(elementComparer),
+                        Value = elementComparer,
+                        ParameterType = typeof(IEqualityComparer<TElement>),
+                    },
+                },
+                TypeValidations = VerifiableItemTypeMustBeAssignableToFirstVerificationParameterType,
+                Data = data,
+            };
+
+            assertionTracker.ExecuteVerification(verification);
+
+            return assertionTracker;
+        }
+        
         /// <summary>
         /// Verifies that the subject is an element of the specified collection.
         /// </summary>

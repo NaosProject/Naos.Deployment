@@ -118,13 +118,13 @@ nnoh6+yENZjm2uk8sW3Oqal8sqvx57tthV9+x/OGeH8+vcviGefx
         /// Well known certificate to be used in testing pipelines that utilize encryption/decryption logic.
         /// </summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = ObcSuppressBecause.CA2104_DoNotDeclareReadOnlyMutableReferenceTypes_TypeIsImmutable)]
-        public static readonly X509Certificate2 TestingX509Certificate = ReadCertsFromPemEncodedString(PemEncodedTestingX509Certificate).Single();
+        public static X509Certificate2 TestingX509Certificate => ReadCertsFromPemEncodedString(PemEncodedTestingX509Certificate).Single();
 
         /// <summary>
         /// Well known PKCS #12 certificate (bundles private key with X.509 certificate) to be used in testing pipelines that utilize encryption/decryption logic.
         /// </summary>
         [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = ObcSuppressBecause.CA2104_DoNotDeclareReadOnlyMutableReferenceTypes_TypeIsImmutable)]
-        public static readonly X509Certificate2 Pkcs12TestingCertificate = ReadPkcs12CertFromPemEncodedStrings(PemEncodedTestingX509Certificate, PemEncodedTestingPrivateKey);
+        public static X509Certificate2 Pkcs12TestingCertificate => ReadPkcs12CertFromPemEncodedStrings(PemEncodedTestingX509Certificate, PemEncodedTestingPrivateKey);
 
         /// <summary>
         /// Creates an AWS Certificate Manager payload from a PFX file.
