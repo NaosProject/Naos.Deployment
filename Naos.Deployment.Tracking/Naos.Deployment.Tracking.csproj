@@ -105,14 +105,14 @@
     <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.63\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Domain, Version=1.0.186.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.186\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Domain, Version=1.0.187.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.187\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Serialization.Bson, Version=1.0.186.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Serialization.Bson.1.0.186\lib\net462\Naos.SqlServer.Serialization.Bson.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Serialization.Bson, Version=1.0.187.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Serialization.Bson.1.0.187\lib\net462\Naos.SqlServer.Serialization.Bson.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Serialization.Json, Version=1.0.186.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Serialization.Json.1.0.186\lib\net462\Naos.SqlServer.Serialization.Json.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Serialization.Json, Version=1.0.187.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Serialization.Json.1.0.187\lib\net462\Naos.SqlServer.Serialization.Json.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Telemetry.Domain, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Telemetry.Domain.1.0.31\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
