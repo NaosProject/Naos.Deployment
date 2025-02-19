@@ -185,11 +185,11 @@
     <Reference Include="MongoDB.Driver.Core, Version=2.4.4.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MongoDB.Driver.Core.2.4.4\lib\net45\MongoDB.Driver.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Core, Version=1.0.94.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Core.1.0.94\lib\net462\Naos.AWS.Core.dll</HintPath>
+    <Reference Include="Naos.AWS.Core, Version=1.0.95.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Core.1.0.95\lib\net462\Naos.AWS.Core.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.94.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.94\lib\net462\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.95.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.95\lib\net462\Naos.AWS.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Configuration.Domain, Version=1.0.28.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Configuration.Domain.1.0.28\lib\net462\Naos.Configuration.Domain.dll</HintPath>
@@ -221,8 +221,8 @@
     <Reference Include="Naos.Diagnostics.Serialization.Json, Version=1.3.49.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Diagnostics.Serialization.Json.1.3.49\lib\net462\Naos.Diagnostics.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.158.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.158\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
+    <Reference Include="Naos.FileJanitor.Domain, Version=1.2.159.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.FileJanitor.Domain.1.2.159\lib\net462\Naos.FileJanitor.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Logging.Domain, Version=1.0.83.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Logging.Domain.1.0.83\lib\net462\Naos.Logging.Domain.dll</HintPath>
