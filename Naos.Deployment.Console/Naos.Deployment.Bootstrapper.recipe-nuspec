@@ -8,6 +8,7 @@
       <dependency id="Naos.Deployment.Config.Common" version="[$version$,)" />
       <dependency id="Naos.Deployment.Core" version="[$version$,)" />
       <dependency id="Naos.Recipes.RunWithRetry" version="1.0.122" />
+      <dependency id="Naos.CodeAnalysis.Recipes.SuppressBecause" version="1.0.129" />
       <dependency id="OBeautifulCode.Serialization.Recipes.Factory" version="1.0.53" />
       <dependency id="OBeautifulCode.Collection.Recipes.EnumerableExtensions" version="1.0.42" />
       <dependency id="OBeautifulCode.Security.Recipes.CertHelper" version="1.0.34" />
