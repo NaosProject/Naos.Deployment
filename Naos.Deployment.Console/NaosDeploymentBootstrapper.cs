@@ -1317,8 +1317,9 @@ namespace Naos.Deployment.Console
                             debugAnnouncementFilePath,
                             telemetryFilePath);
 
-                        deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, existingDeploymentStrategy, overrideConfig)
-                            .Wait();
+                        Func<Task> deployPackagesFunc = () => deploymentManager.DeployPackagesAsync(packagesToDeploy, environment, instanceName, existingDeploymentStrategy, overrideConfig);
+
+                        deployPackagesFunc.ExecuteSynchronously();
                     }
                 }
             }

@@ -577,7 +577,9 @@ namespace Naos.Deployment.Core
                     {
                         lock (this.syncDnsManager)
                         {
-                            this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] {ipAddress}).Wait();
+                            Func<Task> upsertDnsEntryFunc = () => this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress });
+
+                            upsertDnsEntryFunc.ExecuteSynchronously();
                         }
 
                         return new object[0];

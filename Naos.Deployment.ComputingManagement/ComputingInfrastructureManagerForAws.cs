@@ -20,6 +20,7 @@ namespace Naos.Deployment.ComputingManagement
     using Naos.Recipes.RunWithRetry;
     using OBeautifulCode.Assertion.Recipes;
     using OBeautifulCode.Collection.Recipes;
+    using OBeautifulCode.Execution.Recipes;
     using static System.FormattableString;
 
     using CheckState = Naos.Deployment.Domain.CheckState;
@@ -125,16 +126,18 @@ namespace Naos.Deployment.ComputingManagement
             string mfaValue)
         {
             var credentialManager = new CredentialManager();
-            var task = Task.Run(() => credentialManager.GetSessionTokenCredentialsAsync(
+
+            Func<Task<CredentialContainer>> getSessionTokenCredentialsFunc = () => credentialManager.GetSessionTokenCredentialsAsync(
                 location,
                 tokenLifespan,
                 username,
                 password,
                 virtualMfaDeviceId,
-                mfaValue));
-            task.Wait();
-            var credentialsToUse = task.Result;
-            return credentialsToUse;
+                mfaValue);
+
+            var result = getSessionTokenCredentialsFunc.ExecuteSynchronously();
+
+            return result;
         }
 
         /// <summary>
