@@ -557,27 +557,32 @@ namespace Naos.Deployment.Core
                        };
         }
 
-        private SetupStepBatch[] GetUpdateDnsSteps(int instanceNumber, string environment, List<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides, InstanceDescription createdInstanceDescription, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private SetupStepBatch[] GetUpdateDnsSteps(
+            int instanceNumber,
+            string environment,
+            List<PackagedDeploymentConfiguration> packagedDeploymentConfigsWithDefaultsAndOverrides,
+            InstanceDescription createdInstanceDescription,
+            Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
-            List<SetupStep> steps = new List<SetupStep>();
+            var steps = new List<SetupStep>();
 
 #pragma warning disable SA1305 // Field names should not use Hungarian notation
             SetupStep BuildDnsStep(string dns, string ipAddress, string instanceLocation)
 #pragma warning restore SA1305 // Field names should not use Hungarian notation
             {
                 var step = new SetupStep
-                               {
-                                   Description = Invariant($"Pointing {dns} at {ipAddress}."),
-                                   SetupFunc = m =>
-                                       {
-                                           lock (this.syncDnsManager)
-                                           {
-                                               this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] { ipAddress }).Wait();
-                                           }
+                {
+                    Description = Invariant($"Pointing {dns} at {ipAddress}."),
+                    SetupFunc = m =>
+                    {
+                        lock (this.syncDnsManager)
+                        {
+                            this.computingManager.UpsertDnsEntryAsync(environment, instanceLocation, dns, new[] {ipAddress}).Wait();
+                        }
 
-                                           return new object[0];
-                                       },
-                               };
+                        return new object[0];
+                    },
+                };
                 return step;
             }
 
