@@ -239,11 +239,11 @@
     <Reference Include="Naos.Packaging.Serialization.Json, Version=1.0.63.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Packaging.Serialization.Json.1.0.63\lib\net462\Naos.Packaging.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Domain, Version=1.0.191.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.191\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Domain, Version=1.0.194.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.194\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Protocol.Client, Version=1.0.191.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Protocol.Client.1.0.191\lib\net462\Naos.SqlServer.Protocol.Client.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Protocol.Client, Version=1.0.194.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Protocol.Client.1.0.194\lib\net462\Naos.SqlServer.Protocol.Client.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Telemetry.Domain, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Telemetry.Domain.1.0.31\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
@@ -269,8 +269,8 @@
     <Reference Include="OBeautifulCode.Serialization.PropertyBag, Version=1.0.143.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Serialization.PropertyBag.1.0.143\lib\net462\OBeautifulCode.Serialization.PropertyBag.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Type, Version=1.0.136.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Type.1.0.136\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.139.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.139\lib\net462\OBeautifulCode.Type.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>

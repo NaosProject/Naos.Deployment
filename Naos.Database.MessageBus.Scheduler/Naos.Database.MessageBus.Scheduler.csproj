@@ -60,8 +60,8 @@
     <Reference Include="Naos.Mongo.Domain, Version=1.0.13.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Mongo.Domain.1.0.13\lib\net462\Naos.Mongo.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.SqlServer.Domain, Version=1.0.191.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.191\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
+    <Reference Include="Naos.SqlServer.Domain, Version=1.0.194.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.SqlServer.Domain.1.0.194\lib\net462\Naos.SqlServer.Domain.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Telemetry.Domain, Version=1.0.31.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Telemetry.Domain.1.0.31\lib\net462\Naos.Telemetry.Domain.dll</HintPath>
@@ -78,8 +78,8 @@
     <Reference Include="OBeautifulCode.Serialization.Json, Version=1.0.143.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Serialization.Json.1.0.143\lib\net462\OBeautifulCode.Serialization.Json.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Type, Version=1.0.136.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Type.1.0.136\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.139.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.139\lib\net462\OBeautifulCode.Type.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

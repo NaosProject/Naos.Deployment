@@ -89,11 +89,11 @@
     <Reference Include="Naos.AWS.Contract, Version=1.0.49.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.AWS.Contract.1.0.49\lib\net461\Naos.AWS.Contract.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.Domain, Version=1.0.96.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.Domain.1.0.96\lib\net462\Naos.AWS.Domain.dll</HintPath>
+    <Reference Include="Naos.AWS.Domain, Version=1.0.97.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.Domain.1.0.97\lib\net462\Naos.AWS.Domain.dll</HintPath>
     </Reference>
-    <Reference Include="Naos.AWS.S3, Version=1.0.96.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Naos.AWS.S3.1.0.96\lib\net462\Naos.AWS.S3.dll</HintPath>
+    <Reference Include="Naos.AWS.S3, Version=1.0.97.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Naos.AWS.S3.1.0.97\lib\net462\Naos.AWS.S3.dll</HintPath>
     </Reference>
     <Reference Include="Naos.Configuration.Domain, Version=1.0.28.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Naos.Configuration.Domain.1.0.28\lib\net462\Naos.Configuration.Domain.dll</HintPath>
@@ -170,8 +170,8 @@
     <Reference Include="OBeautifulCode.Serialization.PropertyBag, Version=1.0.143.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\OBeautifulCode.Serialization.PropertyBag.1.0.143\lib\net462\OBeautifulCode.Serialization.PropertyBag.dll</HintPath>
     </Reference>
-    <Reference Include="OBeautifulCode.Type, Version=1.0.136.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OBeautifulCode.Type.1.0.136\lib\net462\OBeautifulCode.Type.dll</HintPath>
+    <Reference Include="OBeautifulCode.Type, Version=1.0.139.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\OBeautifulCode.Type.1.0.139\lib\net462\OBeautifulCode.Type.dll</HintPath>
     </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <HintPath>..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
