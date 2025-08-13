@@ -255,7 +255,11 @@ namespace OBeautifulCode.Serialization.Recipes
             SerializationFormat serializationFormat,
             object objectToSerialize)
         {
-            var result = objectToSerialize.ToDescribedSerialization(serializerRepresentation, serializationFormat);
+            var result = objectToSerialize.ToDescribedSerializationUsingSpecificFactory(
+                serializerRepresentation,
+                SerializerRepresentationSelectionStrategy.UseSpecifiedRepresentation,
+                SerializerFactories.Standard,
+                serializationFormat);
 
             return result;
         }
@@ -263,7 +267,8 @@ namespace OBeautifulCode.Serialization.Recipes
         private static T Deserialize<T>(
             DescribedSerializationBase describedSerialization)
         {
-            var result = describedSerialization.DeserializePayload<T>();
+            var result = describedSerialization.DeserializePayloadUsingSpecificFactory<T>(
+                SerializerFactories.Standard);
 
             return result;
         }
@@ -273,11 +278,13 @@ namespace OBeautifulCode.Serialization.Recipes
             SerializationFormat serializationFormat,
             T objectToSerialize)
         {
-            var serializer = SerializerFactory.Instance.BuildSerializer(serializerRepresentation);
+            var describedSerialization = objectToSerialize.ToDescribedSerializationUsingSpecificFactory(
+                serializerRepresentation,
+                SerializerRepresentationSelectionStrategy.UseSpecifiedRepresentation,
+                SerializerFactories.Standard,
+                serializationFormat);
 
-            var describedSerialization = objectToSerialize.ToDescribedSerializationUsingSpecificSerializer(serializer, serializationFormat);
-
-            var deserializedObject = (T)describedSerialization.DeserializePayloadUsingSpecificSerializer(serializer);
+            var deserializedObject = (T)describedSerialization.DeserializePayloadUsingSpecificFactory(SerializerFactories.Standard);
 
             // note that we cannot return a ValueTuple (DescribedSerializationBase describedSerialization, T actual)
             // here because ValueTuple is not [Serializable]
