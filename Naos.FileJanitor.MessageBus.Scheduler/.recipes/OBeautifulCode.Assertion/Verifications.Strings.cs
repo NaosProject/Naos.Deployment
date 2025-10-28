@@ -291,7 +291,9 @@ namespace OBeautifulCode.Assertion.Recipes
 
         public const string BeUtcDateTimeWhenNotNullExceptionMessageSuffix = "is not null and is of a Kind that is not DateTimeKind.Utc";
 
-        public static readonly string SubjectAndOperationSequencingErrorMessage = Invariant($"There is an issue with sequencing of the provided value and the supported assertion operators: {nameof(WorkflowExtensions.AsArg)}, {nameof(WorkflowExtensions.AsOp)}, {nameof(WorkflowExtensions.AsTest)}, {nameof(WorkflowExtensions.Must)}, {nameof(WorkflowExtensions.MustForArg)}, {nameof(WorkflowExtensions.MustForOp)}, {nameof(WorkflowExtensions.MustForTest)}, {nameof(WorkflowExtensions.And)}, {nameof(WorkflowExtensions.Each)}.");
+        public static readonly string SubjectInitializedAndCannotBeNamedErrorMessage = "Subject has been initialized and can no longer be named.  Please name your object in an As...() call.";
+
+        public static readonly string SubjectAndOperationSequencingErrorMessage = Invariant($"There is an issue with sequencing of the provided value and the supported assertion operators: {nameof(WorkflowExtensions.AsArg)}, {nameof(WorkflowExtensions.AsOp)}, {nameof(WorkflowExtensions.AsTest)}, {nameof(WorkflowExtensions.Must)}, {nameof(WorkflowExtensions.MustForArg)}, {nameof(WorkflowExtensions.MustForOp)}, {nameof(WorkflowExtensions.MustForTest)}, {nameof(WorkflowExtensions.MustForRecording)}, {nameof(WorkflowExtensions.And)}, {nameof(WorkflowExtensions.Each)}, {nameof(WorkflowExtensions.ForRecording)}.");
 
 #pragma warning restore SA1600
 #pragma warning restore 1591

@@ -49,7 +49,7 @@ namespace OBeautifulCode.CodeGen.ModelObject.Recipes
         public Type ExpectedExceptionType { get; set; }
 
         /// <summary>
-        /// Gets or sets a set strings that should each be contained within the expected <see cref="Exception.Message"/>.
+        /// Gets or sets a set of strings that should each be contained within the expected <see cref="Exception.Message"/>.
         /// If the full message is known, leave null and set <see cref="ExpectedExceptionMessageEquals"/>.
         /// </summary>
         public IReadOnlyCollection<string> ExpectedExceptionMessageContains { get; set; }

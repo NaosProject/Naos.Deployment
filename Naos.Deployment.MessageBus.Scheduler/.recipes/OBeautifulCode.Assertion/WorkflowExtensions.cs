@@ -13,7 +13,6 @@ namespace OBeautifulCode.Assertion.Recipes
     using global::System.Globalization;
     using global::System.Linq;
     using global::System.Runtime.CompilerServices;
-
     using OBeautifulCode.Type.Recipes;
 
     /// <summary>
@@ -34,15 +33,19 @@ namespace OBeautifulCode.Assertion.Recipes
         /// <typeparam name="TSubject">The type of subject.</typeparam>
         /// <param name="value">The value of the subject.</param>
         /// <param name="name">Optional name of the subject.  Default is null; the subject is unnamed.</param>
+        /// <param name="forRecording">Optional value indicating whether the verification(s) are recorded (verification exceptions are stored in tracker, not thrown).  Default is not to record (throw exceptions on verification failures).</param>
         /// <returns>
         /// The assertion tracker.
         /// </returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static AssertionTracker MustForArg<TSubject>(
             [ValidatedNotNull] this TSubject value,
-            string name = null)
+            string name = null,
+            bool forRecording = false)
         {
-            var result = value.AsArg(name).Must();
+            var result = forRecording
+                ? value.AsArg(name).ForRecording().Must()
+                : value.AsArg(name).Must();
 
             return result;
         }
@@ -53,15 +56,19 @@ namespace OBeautifulCode.Assertion.Recipes
         /// <typeparam name="TSubject">The type of subject.</typeparam>
         /// <param name="value">The value of the subject.</param>
         /// <param name="name">Optional name of the subject.  Default is null; the subject is unnamed.</param>
+        /// <param name="forRecording">Optional value indicating whether the verification(s) are recorded (verification exceptions are stored in tracker, not thrown).  Default is not to record (throw exceptions on verification failures).</param>
         /// <returns>
         /// The assertion tracker.
         /// </returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static AssertionTracker MustForOp<TSubject>(
             [ValidatedNotNull] this TSubject value,
-            string name = null)
+            string name = null,
+            bool forRecording = false)
         {
-            var result = value.AsOp(name).Must();
+            var result = forRecording
+                ? value.AsOp(name).ForRecording().Must()
+                : value.AsOp(name).Must();
 
             return result;
         }
@@ -72,15 +79,38 @@ namespace OBeautifulCode.Assertion.Recipes
         /// <typeparam name="TSubject">The type of subject.</typeparam>
         /// <param name="value">The value of the subject.</param>
         /// <param name="name">Optional name of the subject.  Default is null; the subject is unnamed.</param>
+        /// <param name="forRecording">Optional value indicating whether the verification(s) are recorded (verification exceptions are stored in tracker, not thrown).  Default is not to record (throw exceptions on verification failures).</param>
         /// <returns>
         /// The assertion tracker.
         /// </returns>
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static AssertionTracker MustForTest<TSubject>(
             [ValidatedNotNull] this TSubject value,
+            string name = null,
+            bool forRecording = false)
+        {
+            var result = forRecording
+                ? value.AsTest(name).ForRecording().Must()
+                : value.AsTest(name).Must();
+
+            return result;
+        }
+
+        /// <summary>
+        /// Initializes a subject for verification(s) that are recorded (verification exceptions are stored in tracker, not thrown).
+        /// </summary>
+        /// <typeparam name="TSubject">The type of subject.</typeparam>
+        /// <param name="value">The value of the subject.</param>
+        /// <param name="name">Optional name of the subject.  Default is null; the subject is unnamed.</param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static AssertionTracker MustForRecording<TSubject>(
+            [ValidatedNotNull] this TSubject value,
             string name = null)
         {
-            var result = value.AsTest(name).Must();
+            var result = value.As(name, AssertionKind.Unknown).ForRecording().Must();
 
             return result;
         }
@@ -143,6 +173,52 @@ namespace OBeautifulCode.Assertion.Recipes
         }
 
         /// <summary>
+        /// Initializes a subject for verification(s) that are recorded
+        /// (verification exceptions are stored in tracker, not thrown).
+        /// </summary>
+        /// <typeparam name="TSubject">The type of subject.</typeparam>
+        /// <param name="value">The value of the subject.</param>
+        /// <param name="name">
+        /// Optional name of the subject if the subject hasn't been initialized with an As... call.
+        /// Default is null; the subject is unnamed.
+        /// </param>
+        /// <returns>
+        /// The assertion tracker.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public static AssertionTracker ForRecording<TSubject>(
+            [ValidatedNotNull] this TSubject value,
+            string name = null)
+        {
+            AssertionTracker result;
+            if (value is AssertionTracker assertionTracker)
+            {
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    Verifications.ThrowImproperUseOfFramework(Verifications.SubjectInitializedAndCannotBeNamedErrorMessage);
+                }
+
+                assertionTracker.ThrowImproperUseOfFrameworkIfDetected(
+                    AssertionTrackerShould.Exist,
+                    AssertionTrackerShould.NotBeRecording,
+                    AssertionTrackerShould.NotBeMusted,
+                    AssertionTrackerShould.NotBeEached, 
+                    AssertionTrackerShould.NotBeVerified,
+                    AssertionTrackerShould.NotHaveEachedValueVerifiedForIteration);
+
+                result = assertionTracker;
+            }
+            else
+            {
+                result = value.As(name, AssertionKind.Unknown);
+            }
+
+            result.Actions |= Actions.PutIntoRecordingMode;
+
+            return result;
+        }
+
+        /// <summary>
         /// Initializes a subject for verification.
         /// </summary>
         /// <typeparam name="TSubject">The type of the subject.</typeparam>
@@ -160,7 +236,12 @@ namespace OBeautifulCode.Assertion.Recipes
                 // As... has already been called
                 result = tracker;
 
-                result.ThrowImproperUseOfFrameworkIfDetected(AssertionTrackerShould.Exist, AssertionTrackerShould.BeCategorized, AssertionTrackerShould.NotBeMusted, AssertionTrackerShould.NotBeEached, AssertionTrackerShould.NotBeVerified);
+                result.ThrowImproperUseOfFrameworkIfDetected(
+                    AssertionTrackerShould.Exist, 
+                    AssertionTrackerShould.NotBeMusted, 
+                    AssertionTrackerShould.NotBeEached,
+                    AssertionTrackerShould.NotBeVerified, 
+                    AssertionTrackerShould.NotHaveEachedValueVerifiedForIteration);
             }
             else
             {
@@ -189,7 +270,10 @@ namespace OBeautifulCode.Assertion.Recipes
         public static AssertionTracker Each(
             [ValidatedNotNull] this AssertionTracker assertionTracker)
         {
-            assertionTracker.ThrowImproperUseOfFrameworkIfDetected(AssertionTrackerShould.Exist, AssertionTrackerShould.BeMusted, AssertionTrackerShould.NotBeEached);
+            assertionTracker.ThrowImproperUseOfFrameworkIfDetected(
+                AssertionTrackerShould.Exist, 
+                AssertionTrackerShould.BeMusted, 
+                AssertionTrackerShould.NotBeEached);
 
             assertionTracker.Actions |= Actions.Eached;
 
@@ -206,7 +290,10 @@ namespace OBeautifulCode.Assertion.Recipes
         public static AssertionTracker And(
             [ValidatedNotNull] this AssertionTracker assertionTracker)
         {
-            assertionTracker.ThrowImproperUseOfFrameworkIfDetected(AssertionTrackerShould.Exist, AssertionTrackerShould.BeMusted, AssertionTrackerShould.BeVerifiedAtLeastOnce);
+            assertionTracker.ThrowImproperUseOfFrameworkIfDetected(
+                AssertionTrackerShould.Exist, 
+                AssertionTrackerShould.BeMusted,
+                AssertionTrackerShould.BeVerifiedAtLeastOnce);
 
             return assertionTracker;
         }
@@ -250,6 +337,12 @@ namespace OBeautifulCode.Assertion.Recipes
                         case AssertionTrackerShould.NotBeNamed:
                             shouldThrow = assertionTracker.Actions.HasFlag(Actions.Named) || (assertionTracker.SubjectName != null);
                             break;
+                        case AssertionTrackerShould.BeRecording:
+                            shouldThrow = !assertionTracker.Actions.HasFlag(Actions.PutIntoRecordingMode);
+                            break;
+                        case AssertionTrackerShould.NotBeRecording:
+                            shouldThrow = assertionTracker.Actions.HasFlag(Actions.PutIntoRecordingMode);
+                            break;
                         case AssertionTrackerShould.BeMusted:
                             shouldThrow = !assertionTracker.Actions.HasFlag(Actions.Musted);
                             break;
@@ -267,6 +360,12 @@ namespace OBeautifulCode.Assertion.Recipes
                             break;
                         case AssertionTrackerShould.NotBeVerified:
                             shouldThrow = assertionTracker.Actions.HasFlag(Actions.VerifiedAtLeastOnce);
+                            break;
+                        case AssertionTrackerShould.HaveEachedValueVerifiedForIteration:
+                            shouldThrow = !assertionTracker.Actions.HasFlag(Actions.EachedValueVerifiedForIteration);
+                            break;
+                        case AssertionTrackerShould.NotHaveEachedValueVerifiedForIteration:
+                            shouldThrow = assertionTracker.Actions.HasFlag(Actions.EachedValueVerifiedForIteration);
                             break;
                         default:
                             shouldThrow = true;
@@ -302,13 +401,17 @@ namespace OBeautifulCode.Assertion.Recipes
                 SubjectValue = value,
                 SubjectName = name,
                 SubjectType = typeof(TSubject),
-                Actions = Actions.Categorized,
                 AssertionKind = assertionKind,
             };
 
             if (name != null)
             {
                 result.Actions |= Actions.Named;
+            }
+
+            if (assertionKind != AssertionKind.Unknown)
+            {
+                result.Actions |= Actions.Categorized;
             }
 
             return result;

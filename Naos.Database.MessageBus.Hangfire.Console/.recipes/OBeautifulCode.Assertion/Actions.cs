@@ -51,22 +51,40 @@ namespace OBeautifulCode.Assertion.Recipes
         Named = 2,
 
         /// <summary>
+        /// The subject's verification(s) should have put into recording mode with a call to:
+        /// <see cref="WorkflowExtensions.ForRecording{TSubject}(TSubject, string)"/>.
+        /// In recording mode, when a verification fails, the generated exception
+        /// is stored in the tracker instead of being throw.
+        /// - DOES NOT APPLY to exceptions thrown because of improper use of the framework.
+        /// - DOES NOT APPLY to type validation.
+        /// The above two cases will always throw.
+        /// </summary>
+        PutIntoRecordingMode = 4,
+
+        /// <summary>
         /// The subject should have been Must'ed with a call to
         /// <see cref="WorkflowExtensions.Must{TSubject}(TSubject)"/>.
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Musted", Justification = ObcSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
-        Musted = 4,
+        Musted = 8,
 
         /// <summary>
         /// The subject should have been Each'ed with a call to
         /// <see cref="WorkflowExtensions.Each(AssertionTracker)"/>.
         /// </summary>
         [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eached", Justification = ObcSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
-        Eached = 8,
+        Eached = 16,
 
         /// <summary>
         /// The subject should have been verified by at least one verification.
         /// </summary>
-        VerifiedAtLeastOnce = 16,
+        VerifiedAtLeastOnce = 32,
+
+        /// <summary>
+        /// The <see cref="Eached"/> value has been verified as an enumerable
+        /// that is not null and is thus ready for iteration.
+        /// </summary>
+        [SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eached", Justification = ObcSuppressBecause.CA1704_IdentifiersShouldBeSpelledCorrectly_SpellingIsCorrectInContextOfTheDomain)]
+        EachedValueVerifiedForIteration = 64,
     }
 }

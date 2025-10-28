@@ -37,7 +37,7 @@ namespace OBeautifulCode.CodeGen.ModelObject.Recipes
         /// <param name="id">The identifier of the scenario.</param>
         /// <param name="constructionFunc">A func that constructs the object.</param>
         /// <param name="expectedExceptionType">The Type of the expected <see cref="Exception"/> that is thrown when the object is constructed.</param>
-        /// <param name="expectedExceptionMessageContains">A set strings that should each be contained within the expected <see cref="Exception.Message"/>.</param>
+        /// <param name="expectedExceptionMessageContains">A set of strings that should each be contained within the expected <see cref="Exception.Message"/>.</param>
         /// <param name="expectedExceptionMessageEquals">The expected <see cref="Exception.Message"/>.</param>
         public ValidatedConstructorArgumentValidationTestScenario(
             string id,
@@ -82,7 +82,7 @@ namespace OBeautifulCode.CodeGen.ModelObject.Recipes
         public Type ExpectedExceptionType { get; }
 
         /// <summary>
-        /// Gets a set strings that should each be contained within the expected <see cref="Exception.Message"/>.
+        /// Gets a set of strings that should each be contained within the expected <see cref="Exception.Message"/>.
         /// </summary>
         public IReadOnlyCollection<string> ExpectedExceptionMessageContains { get; }
 

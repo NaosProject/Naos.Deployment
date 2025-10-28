@@ -138,6 +138,9 @@
       <!-- Refers to some piece of data that has not yet been validated -->
       <Word>unvalidated</Word>
 
+      <!-- Refers to an object that can be validated -->
+      <Word>validatable</Word>
+
       <!-- The file extension and file format for an Excel file -->
       <Word>xls</Word>
       <Word>xlsx</Word>

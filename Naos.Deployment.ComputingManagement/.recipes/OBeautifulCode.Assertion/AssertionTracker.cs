@@ -47,5 +47,12 @@ namespace OBeautifulCode.Assertion.Recipes
         /// Gets or sets the kind of assertion.
         /// </summary>
         public AssertionKind AssertionKind { get; set; }
+
+        /// <summary>
+        /// Gets or sets the verification exception, which is stored here
+        /// when the subject's verifications are <see cref="Actions.PutIntoRecordingMode"/>
+        /// and the subject has failed a verification.
+        /// </summary>
+        public Exception VerificationException { get; set; }
     }
 }
