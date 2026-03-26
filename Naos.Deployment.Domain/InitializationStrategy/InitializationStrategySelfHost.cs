@@ -30,11 +30,6 @@ namespace Naos.Deployment.Domain
         public IReadOnlyCollection<string> SelfHostSupportedDnsEntries { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the SSL certificate to lookup and use.
-        /// </summary>
-        public string SslCertificateName { get; set; }
-
-        /// <summary>
         /// Gets or sets the account to configure the scheduled task that runs the executable.
         /// </summary>
         public string ScheduledTaskAccount { get; set; }
@@ -49,19 +44,30 @@ namespace Naos.Deployment.Domain
         /// </summary>
         public int? Priority { get; set; }
 
+        /// <summary>
+        /// Gets or sets the ACME client Route 53 DNS challenge handler access key.
+        /// </summary>
+        public string AcmeClientRoute53DnsChallengeHandlerAccessKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ACME client Route 53 DNS challenge handler secret key.
+        /// </summary>
+        public string AcmeClientRoute53DnsChallengeHandlerSecretKey { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
             var ret = new InitializationStrategySelfHost
-                          {
-                              SelfHostExeFilePathRelativeToPackageRoot = this.SelfHostExeFilePathRelativeToPackageRoot,
-                              SelfHostArguments = this.SelfHostArguments,
-                              SslCertificateName = this.SslCertificateName,
-                              SelfHostSupportedDnsEntries =
-                                  this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),
-                              ScheduledTaskAccount = this.ScheduledTaskAccount,
-                              Priority = this.Priority,
-                          };
+            {
+                SelfHostExeFilePathRelativeToPackageRoot = this.SelfHostExeFilePathRelativeToPackageRoot,
+                SelfHostArguments = this.SelfHostArguments,
+                SelfHostSupportedDnsEntries =
+                    this.SelfHostSupportedDnsEntries.Select(_ => _.Clone().ToString()).ToList(),
+                ScheduledTaskAccount = this.ScheduledTaskAccount,
+                Priority = this.Priority,
+                AcmeClientRoute53DnsChallengeHandlerAccessKey = this.AcmeClientRoute53DnsChallengeHandlerAccessKey,
+                AcmeClientRoute53DnsChallengeHandlerSecretKey = this.AcmeClientRoute53DnsChallengeHandlerSecretKey,
+            };
 
             return ret;
         }

@@ -23,23 +23,11 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetIisSpecificSetupStepsAsync(InitializationStrategyIis iisStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private List<SetupStep> GetIisSpecificSetupSteps(InitializationStrategyIis iisStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string webRootPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
+            // We are no longer adding HTTP bindings and thus not checking for the existence of the supporting certs.
+            // The certificate installation process will create the bindings.
             var httpsBindingDefinitions = iisStrategy.HttpsBindings ?? new HttpsBinding[0];
-            if (httpsBindingDefinitions.Where(_ => string.IsNullOrWhiteSpace(_.HostHeader)).ToList().Count > 1)
-            {
-                throw new ArgumentException(Invariant($"Cannot have more than one binding without a {nameof(HttpsBinding)}.{nameof(HttpsBinding.HostHeader)} that is blank; site {iisStrategy.PrimaryDns}."));
-            }
-
-            if (httpsBindingDefinitions.Count == 0 && string.IsNullOrWhiteSpace(iisStrategy.HostHeaderForHttpBinding))
-            {
-                throw new ArgumentException(Invariant($"Must specify {nameof(iisStrategy.HttpsBindings)} and/or {iisStrategy.HostHeaderForHttpBinding}; site {iisStrategy.PrimaryDns}."));
-            }
-
-            if (httpsBindingDefinitions.Any(_ => string.IsNullOrWhiteSpace(_.SslCertificateName)))
-            {
-                throw new ArgumentException(Invariant($"Must specify specify a {nameof(HttpsBinding.SslCertificateName)} on all {nameof(iisStrategy.HttpsBindings)}; site {iisStrategy.PrimaryDns}."));
-            }
 
             var primaryDns = funcToCreateNewDnsWithTokensReplaced(iisStrategy.PrimaryDns);
 
@@ -50,19 +38,6 @@ namespace Naos.Deployment.Core
             webSteps.AddRange(itsConfigSteps);
 
             var certificateNameToThumbprintMap = new Dictionary<string, string>();
-            foreach (var bindingDefinition in httpsBindingDefinitions)
-            {
-                if (!certificateNameToThumbprintMap.ContainsKey(bindingDefinition.SslCertificateName))
-                {
-                    var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(bindingDefinition.SslCertificateName);
-                    if (certDetails == null)
-                    {
-                        throw new DeploymentException("Could not find certificate by name: " + bindingDefinition.SslCertificateName);
-                    }
-
-                    certificateNameToThumbprintMap.Add(bindingDefinition.SslCertificateName, certDetails.GetPowershellPathableThumbprint());
-                }
-            }
 
             var httpsBindings = httpsBindingDefinitions
                 .Select(_ => new { Thumbprint = certificateNameToThumbprintMap[_.SslCertificateName], HostHeader = _.HostHeader }).ToList();
@@ -87,9 +62,21 @@ namespace Naos.Deployment.Core
 
             var configureWebsiteParameters = new object[]
                                            {
-                                               webRootPath, primaryDns, StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), appPoolAccount,
-                                               appPoolPassword, appPoolStartMode, autoStartProviderName, autoStartProviderType, iisStrategy.EnableSni,
-                                               httpsBindings, hostHeaderForHttpBinding,
+                                               webRootPath,
+                                               primaryDns,
+                                               StoreLocation.LocalMachine.ToString(),
+                                               StoreName.My.ToString(),
+                                               appPoolAccount,
+                                               appPoolPassword,
+                                               appPoolStartMode,
+                                               autoStartProviderName,
+                                               autoStartProviderType,
+                                               iisStrategy.EnableSni,
+                                               httpsBindings,
+                                               hostHeaderForHttpBinding,
+                                               iisStrategy.CertificateHostNames.ToList(),
+                                               iisStrategy.AcmeClientRoute53DnsChallengeHandlerAccessKey,
+                                               iisStrategy.AcmeClientRoute53DnsChallengeHandlerSecretKey,
                                            };
 
             webSteps.Add(

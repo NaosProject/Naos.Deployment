@@ -18,7 +18,7 @@ namespace Naos.Deployment.Core
     using Naos.Packaging.Domain;
 
     using OBeautifulCode.Assertion.Recipes;
-
+    using OBeautifulCode.Reflection.Recipes;
     using static System.FormattableString;
 
     /// <summary>
@@ -110,7 +110,9 @@ namespace Naos.Deployment.Core
         {
             ThrowIfMultipleMongoStrategiesAreInvalidCombination(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
-            ThrowIfCertificatesNotProperlyConfigured(packagedConfig.GetInitializationStrategiesOf<InitializationStrategyCertificateToInstall>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategySelfHost>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>());
+            ThrowIfCertificatesNotProperlyConfigured(
+                packagedConfig.GetInitializationStrategiesOf<InitializationStrategyCertificateToInstall>(),
+                packagedConfig.GetInitializationStrategiesOf<InitializationStrategyIis>());
 
             ThrowIfMissingNecessaryVolumes(packagedConfig.DeploymentConfiguration.Volumes, packagedConfig.GetInitializationStrategiesOf<InitializationStrategySqlServer>(), packagedConfig.GetInitializationStrategiesOf<InitializationStrategyMongo>());
 
@@ -153,6 +155,30 @@ namespace Naos.Deployment.Core
             var packageId = package.PackageDescription.Id;
             var packageDirectoryPath = this.GetPackageDirectoryPath(packagedConfig);
             var defaultLogWritingSettings = this.GetDefaultLogWritingSettings(packagedConfig);
+
+            var acmeClientInstallSteps = new[]
+            {
+                new SetupStep
+                {
+                    Description = Invariant($"Install Chocolatey Package: win-acme.2.2.9.1701."),
+                    SetupFunc = machineManager =>
+                    {
+                        var installChocoPackageParams = new object[]
+                        {
+                            new PackageDescription
+                            {
+                                Id = "win-acme",
+                                Version = "2.2.9.1701",
+                            },
+                        };
+                        return
+                            machineManager.RunScript(
+                                this.Settings.DeploymentScriptBlocks.InstallChocolateyPackages.ScriptText,
+                                installChocoPackageParams).ToList();
+                    },
+                },
+                CopyAcmeClientHelperScriptsStep(),
+            };
 
             if (strategy is InitializationStrategyReplaceTokenInFiles replaceTokenStrategy)
             {
@@ -294,7 +320,6 @@ namespace Naos.Deployment.Core
             else if (strategy is InitializationStrategySelfHost selfHostStrategy)
             {
                 var selfHostSteps =
-                    await
                     this.GetSelfHostSpecificSteps(
                         selfHostStrategy,
                         defaultLogWritingSettings,
@@ -305,35 +330,45 @@ namespace Naos.Deployment.Core
                         funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
-                          {
-                              new SetupStepBatch
-                                  {
-                                      ExecutionOrder = ExecutionOrder.SelfHost,
-                                      Steps = selfHostSteps,
-                                  },
-                          };
+                {
+                    new SetupStepBatch
+                    {
+                        ExecutionOrder = ExecutionOrder.InstallAcmeClient,
+                        Steps = acmeClientInstallSteps,
+                    },
+                    new SetupStepBatch
+                    {
+                        ExecutionOrder = ExecutionOrder.SelfHost,
+                        Steps = selfHostSteps,
+                    },
+                };
             }
             else if (strategy is InitializationStrategyIis iisStrategy)
             {
                 var webRootPath = Path.Combine(packageDirectoryPath, "packagedWebsite"); // this needs to match how the package was built in the build system...
 
-                var webStepsAfterReboot = await this.GetIisSpecificSetupStepsAsync(
-                                   iisStrategy,
-                                   defaultLogWritingSettings,
-                                   packagedConfig.ItsConfigOverrides,
-                                   webRootPath,
-                                   environment,
-                                   adminPassword,
-                                   funcToReplaceKnownTokensWithValues);
+                var webStepsAfterReboot = this.GetIisSpecificSetupSteps(
+                    iisStrategy,
+                    defaultLogWritingSettings,
+                    packagedConfig.ItsConfigOverrides,
+                    webRootPath,
+                    environment,
+                    adminPassword,
+                    funcToReplaceKnownTokensWithValues);
 
                 ret = new[]
-                          {
-                              new SetupStepBatch
-                                  {
-                                      ExecutionOrder = ExecutionOrder.ConfigureIis,
-                                      Steps = webStepsAfterReboot,
-                                  },
-                          };
+                {
+                    new SetupStepBatch
+                    {
+                        ExecutionOrder = ExecutionOrder.InstallAcmeClient,
+                        Steps = acmeClientInstallSteps,
+                    },
+                    new SetupStepBatch
+                    {
+                        ExecutionOrder = ExecutionOrder.ConfigureIis,
+                        Steps = webStepsAfterReboot,
+                    },
+                };
             }
             else
             {
@@ -388,6 +423,43 @@ namespace Naos.Deployment.Core
             return deployUnzippedFileStep;
         }
 
+        private static SetupStep CopyAcmeClientHelperScriptsStep()
+        {
+            var dnsChallengeHandlerPs1FileBytes = AssemblyHelper.ReadEmbeddedResourceAsBytes(
+                "Naos.Deployment.Core.SetupSteps.AcmeClientRoute53DnsChallengeHandler.ps1",
+                addCallerNamespace: false);
+
+            var postInstallForSelfHostPs1FileBytes = AssemblyHelper.ReadEmbeddedResourceAsBytes(
+                "Naos.Deployment.Core.SetupSteps.AcmePostInstallForSelfHost.ps1",
+                addCallerNamespace: false);
+
+            var copyAcmeClientScriptsStep = new SetupStep
+            {
+                Description = Invariant($"Copy ACME client helper scripts."),
+                SetupFunc = machineManager =>
+                {
+                    // in case we're in a retry scenario we should just overwrite...
+                    const bool Overwrite = true;
+
+                    machineManager.SendFile(
+                        "c:\\tools\\win-acme\\Scripts\\AcmeClientRoute53DnsChallengeHandler.ps1",
+                        dnsChallengeHandlerPs1FileBytes,
+                        false,
+                        Overwrite);
+
+                    machineManager.SendFile(
+                        "c:\\tools\\win-acme\\Scripts\\AcmePostInstallForSelfHost.ps1",
+                        postInstallForSelfHostPs1FileBytes,
+                        false,
+                        Overwrite);
+
+                    return new dynamic[0];
+                },
+            };
+
+            return copyAcmeClientScriptsStep;
+        }
+
         private string GetPackageDirectoryPath(PackagedDeploymentConfiguration packagedConfig)
         {
             var volumes = packagedConfig.DeploymentConfiguration.Volumes;
@@ -416,7 +488,6 @@ namespace Naos.Deployment.Core
 
         private static void ThrowIfCertificatesNotProperlyConfigured(
             IReadOnlyCollection<InitializationStrategyCertificateToInstall> certificateToInstallStrategies,
-            IReadOnlyCollection<InitializationStrategySelfHost> selfHostStrategies,
             IReadOnlyCollection<InitializationStrategyIis> iisStrategies)
         {
             void VerifyCertificate(string certName, string description)
@@ -436,11 +507,6 @@ namespace Naos.Deployment.Core
                 {
                     throw new DeploymentException(Invariant($"Certificate Store Name must be {StoreName.My} instead of {certToInstall.StoreName} for cert: {certName}.  {description}"));
                 }
-            }
-
-            foreach (var selfHost in selfHostStrategies)
-            {
-                VerifyCertificate(selfHost.SslCertificateName, Invariant($"Self Host Exe: {selfHost.SelfHostExeFilePathRelativeToPackageRoot}"));
             }
 
             foreach (var iis in iisStrategies)

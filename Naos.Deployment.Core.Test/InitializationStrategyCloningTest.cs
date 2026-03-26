@@ -88,7 +88,6 @@ namespace Naos.Deployment.Core.Test
                                    SelfHostExeFilePathRelativeToPackageRoot = "my.exe",
                                    SelfHostArguments = "args",
                                    SelfHostSupportedDnsEntries = new[] { "myDns" },
-                                   SslCertificateName = "certName",
                                    ScheduledTaskAccount = "Monkey",
                                };
 
@@ -96,7 +95,6 @@ namespace Naos.Deployment.Core.Test
             Assert.NotNull(cloned);
             Assert.NotSame(original, cloned);
             Assert.Equal(original.SelfHostSupportedDnsEntries.Single(), cloned.SelfHostSupportedDnsEntries.Single());
-            Assert.Equal(original.SslCertificateName, cloned.SslCertificateName);
             Assert.Equal(original.SelfHostExeFilePathRelativeToPackageRoot, cloned.SelfHostExeFilePathRelativeToPackageRoot);
             Assert.Equal(original.SelfHostArguments, cloned.SelfHostArguments);
             Assert.Equal(original.ScheduledTaskAccount, cloned.ScheduledTaskAccount);

@@ -58,6 +58,8 @@ namespace Naos.Deployment.Core
 
         ScheduledTask,
 
+        InstallAcmeClient,
+
         SelfHost,
 
         ConfigureIis,

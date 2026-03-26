@@ -50,6 +50,22 @@ namespace Naos.Deployment.Domain
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Sni", Justification = "Spelling/name is correct.")]
         public bool EnableSni { get; set; }
 
+        /// <summary>
+        /// Gets or sets the host names for the certificates that are required.
+        /// Each is a CSV, allowing for subject alternative names (e.g. 'primary.example.com,alternative-name.example.com').
+        /// </summary>
+        public IReadOnlyCollection<string> CertificateHostNames { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ACME client Route 53 DNS challenge handler access key.
+        /// </summary>
+        public string AcmeClientRoute53DnsChallengeHandlerAccessKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ACME client Route 53 DNS challenge handler secret key.
+        /// </summary>
+        public string AcmeClientRoute53DnsChallengeHandlerSecretKey { get; set; }
+
         /// <inheritdoc />
         public override object Clone()
         {
@@ -62,6 +78,9 @@ namespace Naos.Deployment.Domain
                               HttpsBindings = this.HttpsBindings?.Select(_ => _.Clone()).ToList(),
                               HostHeaderForHttpBinding = this.HostHeaderForHttpBinding,
                               EnableSni = this.EnableSni,
+                              CertificateHostNames = this.CertificateHostNames,
+                              AcmeClientRoute53DnsChallengeHandlerAccessKey = this.AcmeClientRoute53DnsChallengeHandlerAccessKey,
+                              AcmeClientRoute53DnsChallengeHandlerSecretKey = this.AcmeClientRoute53DnsChallengeHandlerSecretKey,
                           };
 
             return ret;

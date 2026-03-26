@@ -392,7 +392,9 @@
     <Compile Include=".recipes\OBeautifulCode.Execution\AsyncContext.cs" />
     <Compile Include=".recipes\OBeautifulCode.Execution\TaskExtensions.cs" />
     <Compile Include=".recipes\OBeautifulCode.Math\ThreadSafeRandom.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\AssemblyHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Reflection\AssemblyLoader.cs" />
+    <Compile Include=".recipes\OBeautifulCode.Reflection\CompressionMethod.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\AwsCertificateManagerPayload.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\CertHelper.cs" />
     <Compile Include=".recipes\OBeautifulCode.Security\ExtractedPfxFile.cs" />
@@ -459,6 +461,8 @@
     <None Include=".analyzers\release.ruleset" />
     <None Include="app.config" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="SetupSteps\AcmeClientRoute53DnsChallengeHandler.ps1" />
+    <EmbeddedResource Include="SetupSteps\AcmePostInstallForSelfHost.ps1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Naos.Database.MessageBus.Scheduler\Naos.Database.MessageBus.Scheduler.csproj">

@@ -8,10 +8,9 @@ namespace Naos.Deployment.Core
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
-    using System.Threading.Tasks;
-
     using Naos.Cron;
     using Naos.Deployment.Domain;
     using Naos.Logging.Domain;
@@ -21,30 +20,33 @@ namespace Naos.Deployment.Core
     /// </summary>
     public partial class SetupStepFactory
     {
-        private async Task<List<SetupStep>> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
+        private List<SetupStep> GetSelfHostSpecificSteps(InitializationStrategySelfHost selfHostStrategy, LogWritingSettings defaultLogWritingSettings, IReadOnlyCollection<ItsConfigOverride> itsConfigOverrides, string packageDirectoryPath, string environment, string adminPassword, Func<string, string> funcToCreateNewDnsWithTokensReplaced)
         {
             var selfHostSteps = new List<SetupStep>();
             var selfHostDnsEntries = selfHostStrategy.SelfHostSupportedDnsEntries.Select(funcToCreateNewDnsWithTokensReplaced).ToList();
-            var sslCertificateName = selfHostStrategy.SslCertificateName;
             var scheduledTaskAccount = this.GetAccountToUse(selfHostStrategy);
             var selfHostExeFilePathRelativeToPackageRoot = selfHostStrategy.SelfHostExeFilePathRelativeToPackageRoot;
+            var selfHostExeName = Path.GetFileName(selfHostExeFilePathRelativeToPackageRoot);
             var selfHostExeArguments = selfHostStrategy.SelfHostArguments;
-            var applicationId = Guid.NewGuid().ToString().ToUpper();
+            var applicationId = Guid.NewGuid().ToString().ToUpperInvariant();
             var runElevated = selfHostStrategy.RunElevated;
             var priority = selfHostStrategy.Priority ?? this.Settings.HarnessSettings.DefaultTaskPriority;
 
-            // specific steps to support self hosting
-            var certDetails = await this.certificateRetriever.GetCertificateByNameAsync(sslCertificateName);
-            if (certDetails == null)
+            var configureCertParams = new object[]
             {
-                throw new DeploymentException("Could not find certificate by name: " + sslCertificateName);
-            }
+                StoreLocation.LocalMachine.ToString(),
+                StoreName.My.ToString(),
+                applicationId,
+                selfHostDnsEntries,
+                selfHostExeName,
+                selfHostStrategy.AcmeClientRoute53DnsChallengeHandlerAccessKey,
+                selfHostStrategy.AcmeClientRoute53DnsChallengeHandlerSecretKey,
+            };
 
-            var configureCertParams = new object[] { StoreLocation.LocalMachine.ToString(), StoreName.My.ToString(), certDetails.GetPowershellPathableThumbprint(), applicationId, selfHostDnsEntries };
             selfHostSteps.Add(
                 new SetupStep
                     {
-                        Description = $"Configure SSL Certificate {sslCertificateName} for Self Hosting.",
+                        Description = $"Configure SSL Certificates for Self Hosting.",
                         SetupFunc =
                             machineManager =>
                             machineManager.RunScript(
